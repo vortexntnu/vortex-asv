@@ -3,7 +3,7 @@
   <name>auv_setup</name>
   <version>0.0.0</version>
   <description>The auv_setup package</description>
-  <maintainer email="chstr@stud.ntnu.no">christopher</maintainer>
+  <maintainer email="viktorn@stud.ntnu.no">Viktor Ertsås Naas</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
