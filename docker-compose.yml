@@ -1,0 +1,15 @@
+version: '3.0'
+services:
+  vortex:
+    build: .
+    container_name: vortex
+    user: vortex
+    privileged: true
+    volumes:
+      - "./asv_ws:/vortex/ASV/asv_ws"
+      - /dev:dev
+    environment:
+      DISPLAY: :0
+    stdin_open: true
+    tty: true
+    network_mode: host
