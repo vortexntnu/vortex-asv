@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>asv_setup</name>
+  <version>0.0.0</version>
+  <description>The asv_setup package</description>
+  <maintainer email="viktorn@stud.ntnu.no">Viktor Ertsås Naas</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+ </package>
