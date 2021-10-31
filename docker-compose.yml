@@ -1,15 +1,22 @@
 version: '3.0'
 services:
+
   vortex:
     build: .
     container_name: vortex
     user: vortex
     privileged: true
     volumes:
-      - "./asv_ws:/vortex/ASV/asv_ws"
-      - /dev:dev
+      - ".:/home/vortex/Vortex_ASV" #copies current directory into Vortex_ASV in the container (if Vortex_ASV does not exist, it is created)
     environment:
       DISPLAY: :0
     stdin_open: true
     tty: true
     network_mode: host
+
+#To add additional services, such as a simulator:
+# simulator_service:
+#   build: .
+#   container_name: simulator_service
+#   etc.
+#   read more about the docker-compose here: https://docs.docker.com/compose/
