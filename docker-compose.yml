@@ -1,13 +1,12 @@
 version: '3.0'
 services:
-
   vortex:
-    build: .
     container_name: vortex
+    build: .
     user: vortex
     privileged: true
     volumes:
-      - ".:/home/vortex/Vortex_ASV" #copies current directory into Vortex_ASV in the container (if Vortex_ASV does not exist, it is created)
+      - "./asv_ws:/home/vortex/asv_ws" # Shared volume to avoid rebuilding when starting a new container
     environment:
       DISPLAY: :0
     stdin_open: true
