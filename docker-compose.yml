@@ -1,7 +1,7 @@
-version: '3.0'
+version: '3.8'
 services:
   vortex:
-    container_name: vortex
+    container_name: vortex_asv
     build: .
     user: vortex
     privileged: true
