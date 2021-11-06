@@ -1,3 +1,6 @@
+## ASV note
+We should remove all the messages that are not required anymore, as I'm sure there's a lot of those...
+
 # vortex_msgs
 
 
