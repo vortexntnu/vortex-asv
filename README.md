@@ -51,6 +51,6 @@ exit
 ```  
 
 ## Volumes
-A volume is a folder which is linked between the container and the host the container the running on. The folder asw_ws in this repository is a volume, meaning any changes made inside the folder is automatically synced. /home/vortex/asv_ws/ is a volume, meaning making any changes in the volume from the container also changes the asv_ws folder in the host. 
+A volume is a folder which is linked between the container and the host the container the running on.  /home/vortex/asv_ws/ is a volume, meaning making any changes in the volume from the container also changes the asv_ws folder in the host. 
 
 Right now, the container is pretty empty, but it will be updated with the dependencies needed to run the ASV as the project continues.
