@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS signals)
+find_package(Boost REQUIRED COMPONENTS)
 
 set(ROSLINT_CPP_OPTS "--filter=-legal/copyright")
 roslint_cpp()
