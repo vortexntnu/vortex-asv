@@ -4,3 +4,6 @@ The resulting calculation is published as a vortex_msgs ThrusterForces.
 
 The calculation itself is based on the 'unweighted pseudoinverse-based allocator' as described in _Fossen (2011): Handbook
 of Marine Craft Hydrodynamics and Motion Control_ (chapter 12.3.2).
+
+## ASV note
+This will mostly be plug-and-play, but we should clean the code up a bit.

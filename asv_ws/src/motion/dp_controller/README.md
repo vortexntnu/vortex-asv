@@ -1,3 +1,6 @@
+## ASV note
+This is a tried and tested node, but is made for full 6DOF control. We will not need to use quaternions, or care about anything other than DOF 1,2 and 6. We can either rewrite this code, or use it as a reference to write a new DP controller entirely.
+
 ## DP controller
 
 #### Subscribes to:
