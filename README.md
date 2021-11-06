@@ -1,2 +1,56 @@
 # Vortex-ASV
 Vortex ASV software. Purpose built for competing in ASV competitions. 
+
+
+# Docker
+Docker is a tool for creating a virtual environment with predetermined dependencies, much like a VM with fixed installation steps. In this case, we are using the the ROS noetic image as a base, and adding our own dependencies on top of it.
+To use Docker, make sure you have downloaded the [Docker Engine](https://docs.docker.com/engine/install/ubuntu/) and [Docker compose](https://docs.docker.com/compose/install/).
+To build the Docker image, navigate to this folder (Vortex-ASV) where the Dockerfile and docker-compose.yml files are located, and execute the command  
+
+```
+sudo docker-compose build
+```
+
+Note that you only need to build the image once unless changes have been made to the Dockerfile since the last time you built.
+After building the image, you can run any service using
+
+```
+sudo docker-compose up -d <service_name>
+```
+
+Running without a service name runs every container listed in the docker-compose file.
+The -d flag (detach) runs the container in the background.
+When you are done working within the container, close it by running
+
+```
+sudo docker-compose down <service_name>
+```
+
+To open the terminal inside the container, run
+
+```
+sudo docker-compose exec vortex /bin/bash
+```
+
+If you get the error message "bash: /home/vortex/asv_ws/devel/setup.bash: No such file or directory" when you enter the container terminal it means you have not built the ROS workspace. Navigate to ~/asv_ws and run
+
+```
+catkin build
+```
+
+Now you can source by running
+
+```
+source ~/asv_ws/devel/setup.bash
+```
+
+or alternatively, it will source automatically the next time you run the container. To exit the container, run
+
+```
+exit
+```  
+
+## Volumes
+A volume is a folder which is linked between the container and the host the container the running on.  /home/vortex/asv_ws/ is a volume, meaning making any changes in the volume from the container also changes the asv_ws folder in the host. 
+
+Right now, the container is pretty empty, but it will be updated with the dependencies needed to run the ASV as the project continues.

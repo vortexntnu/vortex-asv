@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  vortex:
+    container_name: vortex_asv
+    build: .
+    user: vortex
+    privileged: true
+    volumes:
+      - "./asv_ws:/home/vortex/asv_ws" # Shared volume to avoid rebuilding when starting a new container
+    environment:
+      DISPLAY: :0
+    stdin_open: true
+    tty: true
+    network_mode: host
+
+#To add additional services, such as a simulator:
+# simulator_service:
+#   build: .
+#   container_name: simulator_service
+#   etc.
+#   read more about the docker-compose here: https://docs.docker.com/compose/
