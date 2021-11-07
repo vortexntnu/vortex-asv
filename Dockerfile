@@ -23,4 +23,8 @@ RUN apt-get install -y \
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc
 RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
+
+RUN mkdir -p /home/vortex/asv_ws
+RUN chown vortex /home/vortex/asv_ws
+
 CMD ["/bin/bash"]
