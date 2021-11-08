@@ -20,22 +20,20 @@ sudo docker-compose up -d <service_name>
 
 Running without a service name runs every container listed in the docker-compose file.
 The -d flag (detach) runs the container in the background.
-When you are done working within the container, close it by running
-
-```
-sudo docker-compose down <service_name>
-```
 
 To open the terminal inside the container, run
 
 ```
-sudo docker-compose exec vortex /bin/bash
+sudo docker-compose exec <service_name> /bin/bash
 ```
 
-If you get the error message "bash: /home/vortex/asv_ws/devel/setup.bash: No such file or directory" when you enter the container terminal it means you have not built the ROS workspace. Navigate to ~/asv_ws and run
+
+In the case that you get the error message "bash: /home/vortex/asv_ws/devel/setup.bash: No such file or directory" when you enter the container terminal it means you have not built the ROS workspace. 
+
+Build the ROS workspace: 
 
 ```
-catkin build
+cd ~/asv_ws && catkin build
 ```
 
 Now you can source by running
@@ -49,6 +47,12 @@ or alternatively, it will source automatically the next time you run the contain
 ```
 exit
 ```  
+
+When you are done working within the container, close it by running
+
+```
+sudo docker-compose down <service_name>
+```
 
 ## Volumes
 A volume is a folder which is linked between the container and the host the container the running on.  /home/vortex/asv_ws/ is a volume, meaning making any changes in the volume from the container also changes the asv_ws folder in the host. 
