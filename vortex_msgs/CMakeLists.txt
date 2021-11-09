@@ -13,42 +13,25 @@ add_message_files(
   DIRECTORY msg
   FILES
   ThrusterForces.msg
-  LightInput.msg
   PropulsionCommand.msg
   EulerOrientations.msg
   GuidanceData.msg
-  Debug.msg
   Pwm.msg
-  RovState.msg
-  ContainerID.msg
-  Manipulator.msg
-  CameraFeedSelection.msg
-  CameraObjectInfo.msg
-  ObjectPosition.msg
   DpSetpoint.msg
+  Debug.msg
+  RovState.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
     ControlMode.srv
-    LandmarkPose.srv
-    SetBatteryLevel.srv
-    LaunchTorpedo.srv
-    ThrusterArming.srv
-    ThrustersWrite.srv
     SetPidGains.srv
-    SetVelocity.srv
-#   Service2.srv
 )
 
 add_action_files(
   FILES
-  MoveRelative.action
   LosPathFollowing.action
-  Move.action
-  ControlMode.action
-  SetVelocity.action
 )
 
 generate_messages(

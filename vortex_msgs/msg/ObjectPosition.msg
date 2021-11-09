@@ -1,2 +1,0 @@
-string objectID
-geometry_msgs/Point position
