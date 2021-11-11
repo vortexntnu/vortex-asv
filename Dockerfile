@@ -8,18 +8,24 @@ RUN useradd -ms /bin/bash \
 RUN echo "vortex:vortex" | chpasswd
 RUN usermod -aG sudo vortex
 
-RUN apt-get update
+RUN apt-get update && apt-get install -y python3-catkin-tools
 
-RUN apt-get install -y python3-catkin-tools
 
 # ROS package dependencies
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y \
     ros-$distro-roslint \
     ros-$distro-move-base-msgs \
     ros-$distro-tf \
     ros-$distro-tf2 \
     ros-$distro-eigen-conversions \
-    libeigen3-dev
+    ros-$distro-tf2-geometry-msgs \
+    ros-$distro-pcl-ros \
+    libeigen3-dev \
+    libglfw3-dev \
+    libglew-dev \
+    libjsoncpp-dev \
+    libtclap-dev
+
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc
 RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
