@@ -23,7 +23,7 @@ physical:
 
 propulsion:
   dofs:
-    num: 6
+    num: 3
     which:
       surge: true
       sway:  true
@@ -37,6 +37,6 @@ propulsion:
 
     rate_of_change:
       max: 1 # Maximum rate of change in newton per second for a thruster
-    map: [0, 1, 2, 3, 4, 5, 6, 7]  
+    map: [0, 1, 2, 3]  
     direction: [1,  1,  1, 1]
-    offset: [80, 80, 80, 80, 80, 80, 80, 80] # Offset IN PWM!
+    offset: [80, 80, 80, 80] # Offset IN PWM!
