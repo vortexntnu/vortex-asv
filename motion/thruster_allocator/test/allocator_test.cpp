@@ -25,14 +25,11 @@ public:
       ros::spinOnce();
   }
 
-  void Publish(double surge, double sway, double heave, double roll, double pitch, double yaw)
+  void Publish(double surge, double sway, double yaw)
   {
     geometry_msgs::Wrench msg;
     msg.force.x  = surge;
     msg.force.y  = sway;
-    msg.force.z  = heave;
-    msg.torque.x = roll;
-    msg.torque.y = pitch;
     msg.torque.z = yaw;
     pub.publish(msg);
   }
@@ -73,22 +70,22 @@ private:
 
 TEST_F(AllocatorTest, CheckResponsiveness)
 {
-  Publish(0, 0, 0, 0, 0, 0);
+  Publish(0, 0, 0);
   WaitForMessage();
 }
 
 TEST_F(AllocatorTest, ZeroInput)
 {
-  Publish(0, 0, 0, 0, 0, 0);
+  Publish(0, 0, 0);
   WaitForMessage();
 
-  double thrust_expected[] = {0, 0, 0, 0, 0, 0};
+  double thrust_expected[] = {0, 0, 0};
   ExpectThrustNear(thrust_expected);
 }
 
 TEST_F(AllocatorTest, Forward)
 {
-  Publish(1, 0, 0, 0, 0, 0);
+  Publish(1, 0, 0);
   WaitForMessage();
 
   double thrust_expected[] = {0.35356, 0.35356, -0.35356, -0.35356, -0.20639, 0.20639};
