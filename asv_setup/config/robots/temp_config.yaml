@@ -1,0 +1,42 @@
+# This file defines parameters specific to Beluga
+#
+# When looking at the ASV from above, the thruster placement is:   
+#    /\          /\
+#   /  \  front /  \
+#  /    \      /    \
+#  |=3↗=|      |=0↖=|
+#  |    |      |    |
+#  |    |      |    |
+#  |    |======|    |
+#  |    |      |    |
+#  |    |      |    |
+#  |    |      |    |
+#  |=2↖=|==||==|=1↗=|
+#
+
+physical:
+  weight: 24.00     # kg
+  buoyancy: 23.00   # kg
+  center_of_mass: [-15.2, 1.0, 9.4]        # mm (x,y,z)
+  center_of_buoyancy: [-15.1, 0.9, 20.0]   # mm (x,y,z)
+
+
+propulsion:
+  dofs:
+    num: 6
+    which:
+      surge: true
+      sway:  true
+      yaw:   true
+  thrusters:
+    num: 4
+    configuration_matrix:
+      [[-0.70711,  -0.70711,  -0.70711,  -0.70711], # Surge
+       [ 0.70711,  -0.70711,   0.70711,  -0.70711], # Sway
+       [ 0.32557,   0.32557,  -0.32557,  -0.32557]] # Yaw
+
+    rate_of_change:
+      max: 1 # Maximum rate of change in newton per second for a thruster
+    map: [0, 1, 2, 3, 4, 5, 6, 7]  
+    direction: [1,  1,  1, 1]
+    offset: [80, 80, 80, 80, 80, 80, 80, 80] # Offset IN PWM!
