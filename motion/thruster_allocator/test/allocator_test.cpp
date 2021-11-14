@@ -9,8 +9,8 @@ class AllocatorTest : public ::testing::Test
 public:
   AllocatorTest()
   {
-    pub = nh.advertise<geometry_msgs::Wrench>("rov_forces", 10);
-    sub = nh.subscribe("thruster_forces", 10, &AllocatorTest::Callback, this);
+    pub = nh.advertise<geometry_msgs::Wrench>("body_frame_forces", 10);
+    sub = nh.subscribe("thruster_forces", 10, &AllocatorTest::forceWrenchCallback, this);
     message_received = false;
 
     if (!nh.getParam("/propulsion/thrusters/num", num_thrusters))

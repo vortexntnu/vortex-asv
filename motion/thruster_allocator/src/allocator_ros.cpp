@@ -15,16 +15,13 @@ Allocator::Allocator(ros::NodeHandle nh)
   m_min_thrust(-std::numeric_limits<double>::infinity()),
   m_max_thrust(std::numeric_limits<double>::infinity())
 {
-  m_sub = m_nh.subscribe("/auv/thruster_manager/input", 1, &Allocator::callback, this);
+  m_sub = m_nh.subscribe("/auv/thruster_manager/input", 1, &Allocator::forceWrenchCallback, this);   //MUST BE CHANGED when we have the other nodes
   m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>("/thrust/thruster_forces", 1);
-  //m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>("/auv/thruster_manager/input", 1);
 
   if (!m_nh.getParam("/propulsion/dofs/num", m_num_degrees_of_freedom))
     ROS_FATAL("Failed to read parameter number of dofs.");
   if (!m_nh.getParam("/propulsion/thrusters/num", m_num_thrusters))
     ROS_FATAL("Failed to read parameter number of thrusters.");
-  if (!m_nh.getParam("/propulsion/dofs/which", m_active_degrees_of_freedom))
-    ROS_FATAL("Failed to read parameter which dofs.");
   if (!m_nh.getParam("/propulsion/thrusters/direction", m_direction))
   {
     ROS_WARN("Failed to read parameter thruster direction.");
@@ -57,17 +54,17 @@ Allocator::Allocator(ros::NodeHandle nh)
   ROS_INFO("Initialized.");
 }
 
-void Allocator::callback(const geometry_msgs::Wrench &msg_in) const
+void Allocator::forceWrenchCallback(const geometry_msgs::Wrench &msg_in) const
 {
-  const Eigen::VectorXd rov_forces = rovForcesMsgToEigen(msg_in);
+  const Eigen::VectorXd body_frame_forces = bodyFrameForcesWrenchToEigen(msg_in);
 
-  if (!healthyWrench(rov_forces))
+  if (!healthyWrench(body_frame_forces))
   {
     ROS_ERROR("ROV forces vector invalid, ignoring.");
     return;
   }
 
-  Eigen::VectorXd thruster_forces = m_pseudoinverse_allocator->compute(rov_forces);
+  Eigen::VectorXd thruster_forces = m_pseudoinverse_allocator->compute(body_frame_forces);
 
   if (isFucked(thruster_forces))
   {
@@ -88,25 +85,13 @@ void Allocator::callback(const geometry_msgs::Wrench &msg_in) const
   m_pub.publish(msg_out);
 }
 
-Eigen::VectorXd Allocator::rovForcesMsgToEigen(const geometry_msgs::Wrench &msg) const
+Eigen::VectorXd Allocator::bodyFrameForcesWrenchToEigen(const geometry_msgs::Wrench &msg) const
 {
-  Eigen::VectorXd rov_forces(m_num_degrees_of_freedom);
-  unsigned i = 0;
-  if (m_active_degrees_of_freedom.at("surge"))
-    rov_forces(i++) = msg.force.x;
-  if (m_active_degrees_of_freedom.at("sway"))
-    rov_forces(i++) = msg.force.y;
-  if (m_active_degrees_of_freedom.at("yaw"))
-    rov_forces(i++) = msg.torque.z;
-
-  if (i != m_num_degrees_of_freedom)
-  {
-    ROS_WARN_STREAM("Invalid length of rov_forces vector. Is " << i << ", should be " << m_num_degrees_of_freedom <<
-                    ". Returning zero thrust vector.");
-    return Eigen::VectorXd::Zero(m_num_degrees_of_freedom);
-  }
-
-  return rov_forces;
+  Eigen::VectorXd body_frame_forces(m_num_degrees_of_freedom);
+  body_frame_forces(0) = msg.force.x;   //surge
+  body_frame_forces(1) = msg.force.y;   //sway
+  body_frame_forces(2) = msg.torque.z;  //yaw
+  return body_frame_forces;
 }
 
 bool Allocator::healthyWrench(const Eigen::VectorXd &v) const
