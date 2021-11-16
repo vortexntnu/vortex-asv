@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- Namespace arguments -->
+<arg name="ns_guidance"    default="guidance"/>
+<arg name="ns_controller"    default="controllers"/>
+
+<!-- Guidance nodes -->
+<group ns="$(arg ns_guidance)">
+    <node pkg="los_guidance"    type="los_guidance_node.py" name="los" output="screen"/>
+</group>
+
+
+<!-- controller nodes -->
+<group ns="$(arg ns_controller)">
+<node pkg="los_controller"  type="los_controller_node.py"   name="los"   output="screen" />
+</group>
+
+</launch>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
