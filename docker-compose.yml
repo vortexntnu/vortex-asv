@@ -6,7 +6,8 @@ services:
     user: vortex
     privileged: true
     volumes:
-      - ".:/home/vortex/asv_ws/src" # Shared volume to avoid rebuilding when starting a new container
+      - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
+      - "/dev:/dev"
     environment:
       DISPLAY: :0
     stdin_open: true
