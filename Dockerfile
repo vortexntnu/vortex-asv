@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y python3-catkin-tools
 
 
 # ROS package dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ros-$distro-roslint \
     ros-$distro-move-base-msgs \
     ros-$distro-tf \
