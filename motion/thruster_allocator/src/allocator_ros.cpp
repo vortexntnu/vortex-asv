@@ -17,8 +17,12 @@ Allocator::Allocator(ros::NodeHandle nh)
   m_min_thrust(-std::numeric_limits<double>::infinity()),
   m_max_thrust(std::numeric_limits<double>::infinity())
 {
-  m_sub = m_nh.subscribe(m_nh.get_param("/asv/thruster_manager/input"), 1, &Allocator::forceWrenchCallback, this);   //MUST BE CHANGED when we have the other nodes
-  m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>(m_hn.get_param("/asv/thruster_manager/thruster_forces"), 1);
+  std::string sub_topic;
+  std::string pub_topic;
+  m_nh.getParam("/asv/thruster_manager/input",sub_topic);
+  m_nh.getParam("/asv/thruster_manager/thruster_forces",pub_topic);
+  m_sub = m_nh.subscribe(sub_topic, 1, &Allocator::forceWrenchCallback, this);   //MUST BE CHANGED when we have the other nodes
+  m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>(pub_topic, 1);
 
   if (!m_nh.getParam("/propulsion/dofs/num", m_num_degrees_of_freedom))
     ROS_FATAL("Failed to read parameter number of dofs.");
@@ -58,7 +62,7 @@ Allocator::Allocator(ros::NodeHandle nh)
 
 void Allocator::forceWrenchCallback(const geometry_msgs::Wrench &msg_in) const
 {
-  const Eigen::VectorXd body_frame_forces = bodyFrameForcesWrenchToEigen(msg_in);
+  const Eigen::VectorXd body_frame_forces = WrenchMsgToEigen(msg_in);
 
   if (!healthyWrench(body_frame_forces))
   {
