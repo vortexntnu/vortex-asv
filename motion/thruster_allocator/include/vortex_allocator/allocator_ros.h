@@ -34,7 +34,7 @@ private:
 
   std::unique_ptr<PseudoinverseAllocator> m_pseudoinverse_allocator;
 
-  Eigen::VectorXd bodyFrameForcesWrenchToEigen(const geometry_msgs::Wrench &msg) const;
+  Eigen::VectorXd WrenchMsgToEigen(const geometry_msgs::Wrench &msg) const;
   bool healthyWrench(const Eigen::VectorXd &v) const;
 };
 

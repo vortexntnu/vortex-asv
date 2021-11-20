@@ -87,7 +87,7 @@ void Allocator::forceWrenchCallback(const geometry_msgs::Wrench &msg_in) const
   m_pub.publish(msg_out);
 }
 
-Eigen::VectorXd Allocator::bodyFrameForcesWrenchToEigen(const geometry_msgs::Wrench &msg) const
+Eigen::VectorXd Allocator::WrenchMsgToEigen(const geometry_msgs::Wrench &msg) const
 {
   Eigen::VectorXd body_frame_forces(m_num_degrees_of_freedom);
   body_frame_forces(0) = msg.force.x;   //surge
