@@ -17,7 +17,7 @@ public:
       /**
      * @brief Callback function for converting force wrench in body frame to ThrusterForces msg
      * 
-     * @param msg Wrench message
+     * @param msg Wrench message containing linear and angular forces in BODY frame
     */
   void forceWrenchCallback(const geometry_msgs::Wrench &msg) const;
 private:
