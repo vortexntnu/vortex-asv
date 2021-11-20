@@ -9,14 +9,16 @@
 #include "vortex_allocator/eigen_typedefs.h"
 #include "vortex_allocator/eigen_helper.h"
 
+
+
 Allocator::Allocator(ros::NodeHandle nh)
   :
   m_nh(nh),
   m_min_thrust(-std::numeric_limits<double>::infinity()),
   m_max_thrust(std::numeric_limits<double>::infinity())
 {
-  m_sub = m_nh.subscribe("/auv/thruster_manager/input", 1, &Allocator::forceWrenchCallback, this);   //MUST BE CHANGED when we have the other nodes
-  m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>("/thrust/thruster_forces", 1);
+  m_sub = m_nh.subscribe(m_nh.get_param("/asv/thruster_manager/input"), 1, &Allocator::forceWrenchCallback, this);   //MUST BE CHANGED when we have the other nodes
+  m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>(m_hn.get_param("/asv/thruster_manager/thruster_forces"), 1);
 
   if (!m_nh.getParam("/propulsion/dofs/num", m_num_degrees_of_freedom))
     ROS_FATAL("Failed to read parameter number of dofs.");

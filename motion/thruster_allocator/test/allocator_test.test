@@ -3,6 +3,9 @@
     command="load"
     file="$(find asv_setup)/config/robots/temp_config.yaml"
   />
+  <rosparam 
+  command="load" 
+  file="$(find asv_setup)/config/topics.yaml"/>
 
   <node
     pkg="thruster_allocator"
