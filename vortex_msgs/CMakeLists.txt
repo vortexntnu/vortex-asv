@@ -26,7 +26,9 @@ add_message_files(
 add_service_files(
    FILES
     ControlMode.srv
-    SetPidGains.srv
+    SetPidGains.srv'
+    WaypointUpdate.srv
+    WaypointRemove.srv
 )
 
 add_action_files(

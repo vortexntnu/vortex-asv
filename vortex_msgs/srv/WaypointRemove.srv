@@ -1,0 +1,3 @@
+float32[] waypoint # waypoint to be removed
+---
+bool success
