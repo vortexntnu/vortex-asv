@@ -1,0 +1,6 @@
+# This file defines the ROS topics used by the packeges in Vortex-ASV
+
+asv:
+  thruster_manager:
+    input: "/asv/thruster_manager/input"
+    thruster_forces: "/asv/thuster_manager/thruster_forces"
