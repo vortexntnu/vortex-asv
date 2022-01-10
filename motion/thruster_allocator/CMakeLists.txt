@@ -50,12 +50,12 @@ add_dependencies(${PROJECT_NAME}_node
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
 
-  add_rostest_gtest(${PROJECT_NAME}-test
+  add_rostest_gtest(${PROJECT_NAME}_test
     test/allocator_test.test
     test/allocator_test.cpp
   )
 
-  target_link_libraries(${PROJECT_NAME}-test
+  target_link_libraries(${PROJECT_NAME}_test
     ${catkin_LIBRARIES}
   )
 
