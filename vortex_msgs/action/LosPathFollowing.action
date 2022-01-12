@@ -1,5 +1,5 @@
 #goal definition
-geometry_msgs/Point next_waypoint
+geometry_msgs/Point waypoints[2]
 float32 forward_speed
 float32 sphereOfAcceptance
 ---
