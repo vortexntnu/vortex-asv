@@ -1,3 +1,5 @@
-float32[] waypoint # waypoint to be removed
+#request: waypoint to be removed
+float32[] waypoint
 ---
+#response
 bool success
