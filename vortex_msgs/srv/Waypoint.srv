@@ -1,4 +1,4 @@
-#request: waypoint to be removed
+#request
 float32[] waypoint
 ---
 #response
