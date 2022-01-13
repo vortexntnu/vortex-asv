@@ -67,85 +67,6 @@ class LOSControllerPID:
 		return tau
 
 
-	def depthController(self, z_d, z, t):
-		"""
-		Calculate force to maintain fixed depth.
-
-		Args:
-			z_d	  desired depth
-			z	  current depth
-			t	  time
-
-		Returns:
-			float:	A restoring force output by the controller.
-		"""
-
-		e = z_d - z
-
-		tau = self.controller.regulate(e, t)
-		return tau
-
-# Not in use?
-class CameraPID:
-
-	"""
-	(0,0)	increase->
-	----------------> X
-	|
-	|
-	| increase 
-	|	 |
-	|    v
-	v
-
-	Y
-
-	"""
-
-	def __init__(self):
-
-		self.sway = PIDRegulator(0.01, 0.0001, 0.0, 7.5)
-		#self.heading = PIDRegulator(0.02, 0.0, 0.0, 0.15)
-		self.heading = PIDRegulator(25,0.002, 0.0, 100)
-		self.depth = PIDRegulator(25, 0.024, 3.5, 5.0)
-		self.speed = PIDRegulator(25, 0.024, 3.5, 5.0)
-
-	def swayController(self, px_d, px, t):
-
-		# error
-		e = px_d - px
-
-		tau = self.sway.regulate(e, t)
-
-		return tau
-
-	def depthController(self, z_d, z, t):
-
-		e = z_d - z
-
-		tau = self.depth.regulate(e, t)
-
-		return tau
-
-
-	def speedController(self, u_d, u, t):
-
-		e = u_d - u
-
-		tau = self.speed.regulate(e, t)
-
-		return tau
-
-	def headingController(self, psi_d, psi, t):
-
-		# error ENU
-		e_rot = psi_d - psi
-
-		# regulate(err, t)
-		tau = self.heading.regulate(e_rot, t)
-
-		return tau
-
 class LOSControllerBackstepping:
 	"""
 	Wrapper for the backstepping controller.
@@ -158,7 +79,7 @@ class LOSControllerBackstepping:
 												# 0.75, 30, 12, 2.5
 		self.controller = BacksteppingControl(3.75, 45.0, 28.0, 10.5)
 
-	
+#k3 is probably not necessary. Could be removed, but need to find dependencies.
 	def updateGains(self, c, k1, k2, k3):
 		"""
 		Update the backstepping controller gains.
@@ -262,7 +183,6 @@ class LOSController:
 				msg.r_d,
 				msg.r_d_dot)
 
-		tau_depth_hold = self.PID.depthController(msg.z_d, msg.z, msg.t)
 
 		# add speed controllers here
 
@@ -273,7 +193,6 @@ class LOSController:
 			thrust_msg.force.x = tau_d[0]
 
 		thrust_msg.force.y = tau_d[1]
-		thrust_msg.force.z = tau_depth_hold
 
 		thrust_msg.torque.z = tau_d[2]
 
@@ -306,13 +225,13 @@ class LOSController:
 			A Config type containing the updated config argument.
 		"""
 
-		# Old parameters
+		# Old parameters							
 		p_old = self.PID.controller.p
 		i_old = self.PID.controller.i
 		d_old = self.PID.controller.d
 		sat_old = self.PID.controller.sat
 
-		c_old = self.Backstepping.controller.c
+		c_old = self.Backstepping.controller.c		
 		K = self.Backstepping.controller.K
 
 		# Reconfigured PID parameters
