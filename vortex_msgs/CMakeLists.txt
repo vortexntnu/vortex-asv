@@ -27,8 +27,7 @@ add_service_files(
    FILES
     ControlMode.srv
     SetPidGains.srv
-    WaypointUpdate.srv
-    WaypointRemove.srv
+    Waypoint.srv
 )
 
 add_action_files(
