@@ -8,7 +8,7 @@ RUN useradd -ms /bin/bash \
     --home /home/vortex  vortex
 RUN echo "vortex:vortex" | chpasswd
 RUN usermod -aG sudo vortex
-RUN apt-get update && apt-get install -y python3-catkin-tools
+RUN apt-get update && apt-get install -y 
 
 
 # ROS package dependencies
@@ -24,7 +24,10 @@ RUN apt-get update && apt-get install -y \
     libglfw3-dev \
     libglew-dev \
     libjsoncpp-dev \
-    libtclap-dev
+    libtclap-dev \
+    python3-catkin-tools \
+    python3-vcstool
+
 
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc

@@ -18,7 +18,9 @@ After building the image, you can run any service using
 sudo docker-compose up -d <service_name>
 ```
 
-Running without a service name runs every container listed in the docker-compose file.
+Running without a service name runs every container listed in the docker-compose file. Available services are:
+vortex_avsv - for running on hardware
+vortex_asv_sim - for running on simulator
 The -d flag (detach) runs the container in the background.
 
 To open the terminal inside the container, run
