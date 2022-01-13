@@ -2,4 +2,4 @@ repositories:
   ouster_example:
     type: git
     url: https://github.com/vortexntnu/ouster_example.git
-    version: noetic
+    version: master
