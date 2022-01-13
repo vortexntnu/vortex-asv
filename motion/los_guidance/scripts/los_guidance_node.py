@@ -95,13 +95,13 @@ class LOS:
 		# Update position
 		self.x = x
 		self.y = y
-		self.z = z
+#		self.z = z											remove?
 
 		# Update velocities
 		self.u_dot = (u - self.u) / self.h
 		self.u = u
 		self.v = v
-		self.w = w
+#		self.w = w											remove?
 		
 		self.psi = psi
 		self.r = r
@@ -469,7 +469,7 @@ class LosPathFollowing(object):
 		self.los.speed = _goal.forward_speed.linear.x
 
 		# depth hold
-		self.los.z_d = _goal.desired_depth.z
+#		self.los.z_d = _goal.desired_depth.z						remove?
 
 		# sphere of acceptance
 		self.los.R = _goal.sphereOfAcceptance
