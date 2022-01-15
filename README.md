@@ -59,4 +59,9 @@ sudo docker-compose down <service_name>
 ## Volumes
 A volume is a folder which is linked between the container and the host the container the running on.  /home/vortex/asv_ws/ is a volume, meaning making any changes in the volume from the container also changes the asv_ws folder in the host. 
 
-Right now, the container is pretty empty, but it will be updated with the dependencies needed to run the ASV as the project continues.
+When new drivers are added, ensure that they are installed correctly through dependencies.repos, and make the driver directory a volume by adding it to the volumes in the vortex service in docker-compose.yml.
+
+```
+    - "../ouster_example:/home/vortex/asv_ws/src/ouster_example"
+```
+Note that the service vortex_sim does not need access to the drivers.

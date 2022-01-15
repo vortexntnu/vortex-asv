@@ -29,6 +29,7 @@ services:
     stdin_open: true
     tty: true
     network_mode: host
+    
 #To add additional services, such as a simulator:
 # simulator_service:
 #   build: .

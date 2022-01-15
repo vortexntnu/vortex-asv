@@ -8,11 +8,12 @@ RUN useradd -ms /bin/bash \
     --home /home/vortex  vortex
 RUN echo "vortex:vortex" | chpasswd
 RUN usermod -aG sudo vortex
-RUN apt-get update && apt-get install -y 
+
 
 
 # ROS package dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt update && \
+    apt install -y \
     ros-$distro-roslint \
     ros-$distro-move-base-msgs \
     ros-$distro-tf \
@@ -20,15 +21,16 @@ RUN apt-get update && apt-get install -y \
     ros-$distro-eigen-conversions \
     ros-$distro-tf2-geometry-msgs \
     ros-$distro-pcl-ros \
+    ros-$distro-rviz \
     libeigen3-dev \
     libglfw3-dev \
     libglew-dev \
     libjsoncpp-dev \
     libtclap-dev \
     python3-catkin-tools \
-    python3-vcstool
-
-
+    python3-vcstool \
+    net-tools \     
+    tcpdump 
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc
 RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
