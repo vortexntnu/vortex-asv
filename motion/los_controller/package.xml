@@ -3,7 +3,7 @@
   <name>los_controller</name>
   <version>0.0.0</version>
   <description>The los_controller package</description>
-  <maintainer email="kristoffer@todo.todo">kristoffer</maintainer>
+  <maintainer email="viktor.enaas@gmail.com">Viktor Naas</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>

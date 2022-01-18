@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # Written by Kristoffer Rakstad Solberg, Student
 # Documented by Christopher Strom and Jae Hyeong Hwang
 # Copyright (c) 2020 Manta AUV, Vortex NTNU.
@@ -49,7 +49,7 @@ class LOS:
 		# current position
 		self.x = 0.0
 		self.y = 0.0
-		self.z = 0.0
+
 
 		# previous waypoint
 		self.x_k = 0.0
@@ -59,8 +59,6 @@ class LOS:
 		self.x_kp1 = 0.0
 		self.y_kp1 = 0.0
 
-		# depth hold depth
-		self.z_d = 0.0
 
 		# desired speed
 		self.speed = 0
@@ -73,7 +71,7 @@ class LOS:
 		self.delta = 1.0*Lpp
 
 
-	def updateState(self, x, y, z, u, v, w, psi, r, time):
+	def updateState(self, x, y, u, v, psi, r, time):
 		"""
 		Update all state values contained in the LOS class.
 
@@ -95,13 +93,12 @@ class LOS:
 		# Update position
 		self.x = x
 		self.y = y
-		self.z = z
 
 		# Update velocities
 		self.u_dot = (u - self.u) / self.h
 		self.u = u
 		self.v = v
-		self.w = w
+
 		
 		self.psi = psi
 		self.r = r
@@ -350,8 +347,8 @@ class LosPathFollowing(object):
 		self.psi = self.los.quat2euler(msg)
 
 		# update position and velocities
-		self.los.updateState(msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z,
-							 msg.twist.twist.linear.x, msg.twist.twist.linear.y, msg.twist.twist.linear.z,
+		self.los.updateState(msg.pose.pose.position.x, msg.pose.pose.position.y,
+							 msg.twist.twist.linear.x, msg.twist.twist.linear.y,
 							 self.psi, msg.twist.twist.angular.z, msg.header.stamp.to_sec())
 
 		# update current goal
@@ -468,8 +465,6 @@ class LosPathFollowing(object):
 		# forward speed
 		self.los.speed = _goal.forward_speed.linear.x
 
-		# depth hold
-		self.los.z_d = _goal.desired_depth.z
 
 		# sphere of acceptance
 		self.los.R = _goal.sphereOfAcceptance
