@@ -155,7 +155,7 @@ class LOSController:
 		self.sub_guidance = rospy.Subscriber('/guidance/los_data', GuidanceData, self.guidance_data_callback, queue_size=1)
 
 		# Publishers
-		self.pub_thrust = rospy.Publisher('/auv/thruster_manager/input', Wrench, queue_size=1)
+		self.pub_thrust = rospy.Publisher(rospy.get_param("/asv/thruster_manager/input"), Wrench, queue_size=1)
 
 		# Dynamic reconfigure 
 		self.config = {}

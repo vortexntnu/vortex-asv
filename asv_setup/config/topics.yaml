@@ -2,5 +2,5 @@
 
 asv:
   thruster_manager:
-    input: "/asv/thruster_manager/input"
-    thruster_forces: "/asv/thuster_manager/thruster_forces"
+    input: "/thrust/desired_forces" # 3DOF thrust vector
+    output: "/thrust/thruster_forces" # Actuator forces

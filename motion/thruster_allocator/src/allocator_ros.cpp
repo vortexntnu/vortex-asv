@@ -19,7 +19,7 @@ Allocator::Allocator(ros::NodeHandle nh)
   std::string sub_topic;
   std::string pub_topic;
   m_nh.getParam("/asv/thruster_manager/input",sub_topic);
-  m_nh.getParam("/asv/thruster_manager/thruster_forces",pub_topic);
+  m_nh.getParam("/asv/thruster_manager/output",pub_topic);
   m_sub = m_nh.subscribe(sub_topic, 1, &Allocator::forceWrenchCallback, this);   //MUST BE CHANGED when we have the other nodes
   m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>(pub_topic, 1);
 
