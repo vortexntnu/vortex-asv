@@ -26,7 +26,14 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
   control_mode_service_ = m_nh.advertiseService("controlmode_service",&Controller::controlModeCallback, this);
 
   // Publishers
-  m_wrench_pub  = m_nh.advertise<geometry_msgs::Wrench>("/auv/thruster_manager/input", 1);
+  std::string thrust_topic;
+
+  if (!m_nh.getParam("/controllers/dp/thrust_topic", thrust_topic)) {
+    thrust_topic = "/thrust/desired_forces";
+    ROS_WARN("Failed to read parameter thrust_topic, defaulting to /thrust/desired_forces");
+  }
+
+  m_wrench_pub  = m_nh.advertise<geometry_msgs::Wrench>(thrust_topic, 1);
   m_mode_pub    = m_nh.advertise<std_msgs::String>("controller/mode", 10);
   m_debug_pub   = m_nh.advertise<vortex_msgs::Debug>("debug/controlstates", 10);
 

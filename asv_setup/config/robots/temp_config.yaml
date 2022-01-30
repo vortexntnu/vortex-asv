@@ -15,7 +15,8 @@
 #
 
 physical:
-  weight: 24.00     # kg
+  mass_kg: 24.00 
+  displacement_m3: 0
   buoyancy: 24.00   # kg
   center_of_mass: [0, 0, 0]        # mm (x,y,z)
   center_of_buoyancy: [0, 0, 0]   # mm (x,y,z)
@@ -31,7 +32,7 @@ propulsion:
   thrusters:
     num: 4
     configuration_matrix:
-      [[-0.70711,  -0.70711,  -0.70711,  -0.70711], # Surge
+      [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
        [ 0.70711,  -0.70711,   0.70711,  -0.70711], # Sway
        [ 0.32557,   0.32557,  -0.32557,  -0.32557]] # Yaw
 
@@ -40,3 +41,51 @@ propulsion:
     map: [0, 1, 2, 3]  
     direction: [1,  1,  1, 1]
     offset: [80, 80, 80, 80] # Offset IN PWM!
+  command:
+    wrench:
+      max:     [33.9, 33.9, 48.0, 7.6, 3.2, 9.9]
+      scaling: [ 0.4,  0.4,  0.6, 0.3, 0.7, 0.4]
+
+  
+
+
+guidance:
+  LOS:
+    rate: 20
+    delta: 0.7
+    odom_topic: "/odometry/filtered"
+    action_server: "/guidance_interface/los_server"
+
+controllers:
+  dp:
+    thrust_topic: "/thrust/desired_forces"
+    odometry_topic: "/odometry/filtered"
+    circleOfAcceptance: 0.10
+    frequency: 40
+    velocity_gain: 1.0    # lower (1.0) is good when using slightly noisy state estimates  
+    position_gain: 35.0 
+    attitude_gain: 7.5  
+    integral_gain: 0.065
+  los_controller: # Note: Not loaded by the backstepping/pid controllers yet! Make sure to do this after tuning with dyn. reconf.
+    PID:
+      p: 25.0
+      i: 0.0024
+      d: 3.5
+      sat: 40.0
+    backstepping:
+      c:  0.5
+      k1: 25.0
+      k2: 10.0
+      k3: 10.0
+  los:
+    thrust_topic: "/thrust/desired_forces"
+
+
+joystick:
+  scaling:
+    surge: 60
+    sway: 60
+    heave: 60
+    roll: 35
+    pitch: -30
+    yaw: 20

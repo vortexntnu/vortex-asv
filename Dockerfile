@@ -19,6 +19,8 @@ RUN apt update && \
     ros-$distro-tf \
     ros-$distro-tf2 \
     ros-$distro-eigen-conversions \
+    libeigen3-dev \
+    ros-$distro-joy \
     ros-$distro-tf2-geometry-msgs \
     ros-$distro-pcl-ros \
     ros-$distro-rviz \
