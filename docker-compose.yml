@@ -8,12 +8,28 @@ services:
     volumes:
       - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
       - "/dev:/dev"
+      - "../ouster_example:/home/vortex/asv_ws/src/ouster_example"
+      
     environment:
       DISPLAY: :0
     stdin_open: true
     tty: true
     network_mode: host
 
+  vortex_sim:
+    container_name: vortex_asv_sim
+    build: .
+    user: vortex
+    privileged: true
+    volumes:
+      - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
+      - "/dev:/dev"
+    environment:
+      DISPLAY: :0
+    stdin_open: true
+    tty: true
+    network_mode: host
+    
 #To add additional services, such as a simulator:
 # simulator_service:
 #   build: .
