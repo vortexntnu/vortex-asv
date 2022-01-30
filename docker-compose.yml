@@ -9,6 +9,7 @@ services:
       - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
       - "/dev:/dev"
       - "../ouster_example:/home/vortex/asv_ws/src/ouster_example"
+      - "../stim300:/home/vortex/asv_ws/src/stim300"
       
     environment:
       DISPLAY: :0
