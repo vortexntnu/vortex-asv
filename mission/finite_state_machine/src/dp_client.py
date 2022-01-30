@@ -3,14 +3,14 @@
 
 import rospy
 import actionlib
-from geometry_msgs import Pose2D
+from geometry_msgs import Pose, PoseStamped
 from rospy.core import rospydebug
-from vortex_msgs.msg import (
-    DpMoveBaseAction,
-    DpMoveBaseGoal,
-    DpMoveBaseResult,
-    DpMoveBaseFeedback
+from tf.transformations import (
+    euler_from_quaternion,
+    quaternion_from_euler,
+    create
 )
+from move_base_msgs.msg import MoveBaseAction, MoveBaseActionResult, MoveBaseActionGoal
 from vortex_msgs.srv import ControlMode, ControlModeRequest, ControlModeResponse
 
 #ENUM
@@ -32,13 +32,13 @@ def change_control_mode_client(requested_mode):
 
 def dp_move_base(x, y, yaw, controlMode):
     #action client
-    action_client = actionlib.SimpleActionClient("move_base", DpMoveBaseAction)
+    action_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
     action_client.wait_for_server()
-    goal = DpMoveBaseGoal()
+    goal = MoveBaseActionGoal()
 
-    goal.dpBase.x = x
-    goal.dpBase.y = y
-    goal.dpBase.theta = yaw
+    goal.target_pose.pose.position.x = x
+    goal.target_pose.pose.position.y = y
+    goal.target_pose.pose.orientation = quaternion_from_euler(0, 0, yaw)
     action_client.send_goal(goal)
     
     action_client.wait_for_result()

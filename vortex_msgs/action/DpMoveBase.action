@@ -1,9 +1,0 @@
-#goal
-geometry_msg/Pose2D dpBase
-float32 circleOfAcceptance
----
-#result
-bool success
----
-#feedback
-float32 distanceToGoal
