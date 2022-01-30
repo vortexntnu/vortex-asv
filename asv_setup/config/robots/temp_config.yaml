@@ -32,7 +32,7 @@ propulsion:
   thrusters:
     num: 4
     configuration_matrix:
-      [[-0.70711,  -0.70711,  -0.70711,  -0.70711], # Surge
+      [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
        [ 0.70711,  -0.70711,   0.70711,  -0.70711], # Sway
        [ 0.32557,   0.32557,  -0.32557,  -0.32557]] # Yaw
 
@@ -79,3 +79,13 @@ controllers:
       k3: 10.0
   los:
     thrust_topic: "/thrust/desired_forces"
+
+
+joystick:
+  scaling:
+    surge: 60
+    sway: 60
+    heave: 60
+    roll: 35
+    pitch: -30
+    yaw: 20

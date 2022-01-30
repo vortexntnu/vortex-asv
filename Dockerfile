@@ -19,7 +19,8 @@ RUN apt-get install -y \
     ros-$distro-tf \
     ros-$distro-tf2 \
     ros-$distro-eigen-conversions \
-    libeigen3-dev
+    libeigen3-dev \
+    ros-$distro-joy
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc
 RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
