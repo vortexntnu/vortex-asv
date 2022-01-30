@@ -1,5 +1,5 @@
 #goal
-geometry_msg/Point basepoint
+geometry_msg/Pose2D dpBase
 float32 circleOfAcceptance
 ---
 #result
