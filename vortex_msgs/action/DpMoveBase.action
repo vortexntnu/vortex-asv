@@ -1,0 +1,9 @@
+#goal
+geometry_msg/Point basepoint
+float32 circleOfAcceptance
+---
+#result
+bool success
+---
+#feedback
+float32 distanceToGoal
