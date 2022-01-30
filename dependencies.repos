@@ -1,0 +1,10 @@
+repositories:
+  ouster_example:
+    type: git
+    url: https://github.com/vortexntnu/ouster_example.git
+    version: master
+  stim300:
+    type: git
+    url: https://github.com/vortexntnu/stim300.git
+    version: master
+    
