@@ -243,25 +243,6 @@ private:
                             const Eigen::Vector6d &velocity_state);
   
 
-  /**
-   * @brief Control mode for keeping constant depth
-   * 
-   * @param tau_openloop            A 6d torque vector from the open loop control
-   * 
-   * @param position_state          A 3d vector containing the current body position
-   * @param orientation_state       A quaternion containing the current orientation
-   * @param velocity_state          A 6d vector containing the current velocity
-   * 
-   * @param position_setpoint       A 3d vector containing the position setpoint  
-   * 
-   * @return  A feedback torque vector for maintaining constant depth
-  */
-  Eigen::Vector6d depthHold(const Eigen::Vector6d &tau_openloop,
-                            const Eigen::Vector3d &position_state,
-                            const Eigen::Quaterniond &orientation_state,
-                            const Eigen::Vector6d &velocity_state,
-                            const Eigen::Vector3d &position_setpoint);
-
 
   /**
    * @brief Control mode for keeping a fixed heading

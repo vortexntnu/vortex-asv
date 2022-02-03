@@ -228,7 +228,6 @@ void Controller::spin()
   Eigen::Vector6d    tau_openloop         = Eigen::VectorXd::Zero(6);
   Eigen::Vector6d    tau_restoring        = Eigen::VectorXd::Zero(6);
   Eigen::Vector6d    tau_staylevel        = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_depthhold        = Eigen::VectorXd::Zero(6);
   Eigen::Vector6d    tau_headinghold      = Eigen::VectorXd::Zero(6);
   Eigen::Vector6d    tau_poseheadinghold  = Eigen::VectorXd::Zero(6);
   Eigen::Vector6d    tau_posehold         = Eigen::VectorXd::Zero(6);  
@@ -284,19 +283,6 @@ void Controller::spin()
       
       break;
 
-      // 3D coordinates with heading
-      case ControlModes::DEPTH_HOLD:
-      tau_depthhold = depthHold(tau_openloop,
-                                position_state,
-                                orientation_state,
-                                velocity_state,
-                                position_setpoint);
-      tau_command = tau_openloop + tau_depthhold;
-
-      tf::wrenchEigenToMsg(tau_command, msg);
-      m_wrench_pub.publish(msg);
-
-      break;
 
       // adjust roll and pitch
       case ControlModes::POSE_HEADING_HOLD:
@@ -326,21 +312,6 @@ void Controller::spin()
       tf::wrenchEigenToMsg(tau_command, msg);
       m_wrench_pub.publish(msg);
 
-      break;
-
-      // only depth and heading
-      case ControlModes::DEPTH_HEADING_HOLD:
-      tau_depthhold = depthHold(tau_openloop,
-                                position_state,
-                                orientation_state,
-                                velocity_state,
-                                position_setpoint);
-
-      tau_command = tau_openloop + tau_depthhold + tau_headinghold;
-      
-      tf::wrenchEigenToMsg(tau_command, msg);
-      m_wrench_pub.publish(msg);
-      
       break;
 
       default:
@@ -580,35 +551,6 @@ Eigen::Vector6d Controller::stayLevel(const Eigen::Quaterniond &orientation_stat
   return tau;
 }
 
-Eigen::Vector6d Controller::depthHold(const Eigen::Vector6d &tau_openloop,
-                                      const Eigen::Vector3d &position_state,
-                                      const Eigen::Quaterniond &orientation_state,
-                                      const Eigen::Vector6d &velocity_state,
-                                      const Eigen::Vector3d &position_setpoint)
-{
-  Eigen::Vector6d tau;
-
-  bool activate_depthhold = fabs(tau_openloop(PoseIndex::HEAVE)) < c_normalized_force_deadzone;
-  if (activate_depthhold)
-  {
-    tau = m_controller->getFeedback(position_state, Eigen::Quaterniond::Identity(), velocity_state,
-                                    position_setpoint, Eigen::Quaterniond::Identity());
-
-    // Allow only heave feedback command
-    tau(SURGE) = 0;
-    tau(SWAY)  = 0;
-    tau(ROLL)  = 0;
-    tau(PITCH) = 0;
-    tau(YAW)   = 0;
-  }
-  else
-  {
-    updateSetpoint(HEAVE);
-    tau.setZero();
-  }
-
-  return tau;
-}
 
 Eigen::Vector6d Controller::headingHold(const Eigen::Vector6d &tau_openloop,
                                         const Eigen::Vector3d &position_state,
@@ -649,24 +591,10 @@ Eigen::Vector6d Controller::poseHold(const Eigen::Vector6d &tau_openloop,
 {
   Eigen::Vector6d tau;
 
-  bool activate_depthhold = fabs(tau_openloop(PoseIndex::HEAVE)) < c_normalized_force_deadzone;
-  if (activate_depthhold)
-  {
-    tau = m_controller->getFeedback(position_state, orientation_state, velocity_state,
-                                    position_setpoint, orientation_setpoint);
-
-    // Allow only surge,sway,heave feedback command
-    tau(ROLL)  = 0;
-    tau(PITCH) = 0;
-    tau(YAW)   = 0;
-  }
-  else
-  {
-    updateSetpoint(SURGE);
-    updateSetpoint(SWAY);
-    updateSetpoint(HEAVE);
-    tau.setZero();
-  }
+  updateSetpoint(SURGE);
+  updateSetpoint(SWAY);
+  updateSetpoint(HEAVE);
+  tau.setZero();
 
   return tau;
 }
@@ -680,25 +608,11 @@ Eigen::Vector6d Controller::poseHeadingHold(const Eigen::Vector6d &tau_openloop,
 {
   Eigen::Vector6d tau;
 
-  bool activate_depthhold = fabs(tau_openloop(PoseIndex::HEAVE)) < c_normalized_force_deadzone;
-  if (activate_depthhold)
-  {
-    tau = m_controller->getFeedback(position_state, orientation_state, velocity_state,
-                                    position_setpoint, orientation_setpoint);
-
-    // Allow only surge,sway,heave feedback command
-    tau(ROLL)  = 0;
-    tau(PITCH) = 0;
-    //tau(YAW)   = 0;
-  }
-  else
-  {
     updateSetpoint(SURGE);
     updateSetpoint(SWAY);
     updateSetpoint(HEAVE);
     updateSetpoint(YAW);
     tau.setZero();
-  }
 
   return tau;
 }
