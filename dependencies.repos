@@ -7,4 +7,8 @@ repositories:
     type: git
     url: https://github.com/vortexntnu/stim300.git
     version: master
+  ASV-Simulator:
+    type: git
+    url: https://github.com/vortexntnu/ASV-Simulator.git
+    version: main
     
