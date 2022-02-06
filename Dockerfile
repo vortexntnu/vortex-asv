@@ -39,7 +39,7 @@ RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
 
 RUN mkdir -p /home/vortex/asv_ws
 RUN chown vortex /home/vortex/asv_ws
-RUN chmod a+rw /dev/ttyUSB*
+RUN chmod a+rw /dev/tty*
 
 
 CMD ["/bin/bash"]
