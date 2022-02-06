@@ -49,7 +49,7 @@ class LOS:
 		# current position
 		self.x = 0.0
 		self.y = 0.0
-
+		self.psi = 0
 
 		# previous waypoint
 		self.x_k = 0.0
@@ -454,20 +454,20 @@ class LosPathFollowing(object):
 		"""
 
 		self.publish_guidance_data = True
-		_goal = self.action_server.accept_new_goal()
+		goal = self.action_server.accept_new_goal()
 
 		# set goal
-		self.los.x_k = self.los.x
-		self.los.y_k = self.los.y
-		self.los.x_kp1 = _goal.next_waypoint.x
-		self.los.y_kp1 = _goal.next_waypoint.y
+		self.los.x_k = goal.waypoints[0].x
+		self.los.y_k = goal.waypoints[0].y
+		self.los.x_kp1 = goal.waypoints[1].x
+		self.los.y_kp1 = goal.waypoints[1].y
 
 		# forward speed
-		self.los.speed = _goal.forward_speed.linear.x
+		self.los.speed = goal.forward_speed
 
 
 		# sphere of acceptance
-		self.los.R = _goal.sphereOfAcceptance
+		self.los.R = goal.sphereOfAcceptance
 
 		self.reference_model = ReferenceModel(np.array((self.los.u, self.los.psi)), self.los.h)
 
