@@ -19,6 +19,7 @@ RUN apt update && \
     ros-$distro-tf \
     ros-$distro-tf2 \
     ros-$distro-eigen-conversions \
+    ros-$distro-geographic-msgs \
     libeigen3-dev \
     ros-$distro-joy \
     ros-$distro-tf2-geometry-msgs \
@@ -32,14 +33,15 @@ RUN apt update && \
     python3-catkin-tools \
     python3-vcstool \
     net-tools \     
-    tcpdump 
+    tcpdump \
+    libgeographic-dev
 
 RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc
 RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
 
 RUN mkdir -p /home/vortex/asv_ws
 RUN chown vortex /home/vortex/asv_ws
-RUN chmod a+rw /dev/ttyUSB*
+#RUN chmod a+rw /dev/ttyUSB*
 
 
 CMD ["/bin/bash"]
