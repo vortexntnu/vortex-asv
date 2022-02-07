@@ -29,6 +29,7 @@ RUN apt update && \
     libglew-dev \
     libjsoncpp-dev \
     libtclap-dev \
+    libgeographic-dev \
     python3-catkin-tools \
     python3-vcstool \
     net-tools \     
@@ -39,7 +40,7 @@ RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
 
 RUN mkdir -p /home/vortex/asv_ws
 RUN chown vortex /home/vortex/asv_ws
-RUN chmod a+rw /dev/ttyUSB*
+RUN chmod a+rw /dev/tty*
 
 
 CMD ["/bin/bash"]
