@@ -29,6 +29,7 @@ RUN apt update && \
     libglew-dev \
     libjsoncpp-dev \
     libtclap-dev \
+    libgeographic-dev \
     python3-catkin-tools \
     python3-vcstool \
     net-tools \     
