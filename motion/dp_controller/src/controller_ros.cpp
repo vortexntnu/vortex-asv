@@ -18,7 +18,7 @@
 Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
 {
   // Subscribers
-  //m_state_sub = m_nh.subscribe("/amove
+  m_state_sub = m_nh.subscribe("/odometry/filtered", 10, &Controller::stateCallback, this);
   // Publishers
   std::string thrust_topic;
 
@@ -45,7 +45,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
     s = "pc-debug";
     ROS_WARN("Failed to read parameter computer");
   }
-  if (s == "pc-debug")
+  //if (s == "pc-debug")
     m_debug_mode = true;
 
   if(!m_nh.getParam("/controllers/dp/circleOfAcceptance", R)){
@@ -72,6 +72,8 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
   mActionServer->registerPreemptCallback(boost::bind(&Controller::preemptCallBack, this));
   mActionServer->start();
   ROS_INFO("Started action server.");
+  mControlModeService = m_nh.advertiseService("control_mode_service", &Controller::controlModeCallback, this);
+  ROS_INFO("Started service server.");
 }
 
 /* SERVICE SERVER */
@@ -81,7 +83,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
   {
 
     ControlMode new_control_mode = m_control_mode;
-    int mode = req.controlmode;
+    int mode = req.controlMode;
 
     try {
       new_control_mode = getControlMode(mode);
@@ -152,7 +154,7 @@ void Controller::actionGoalCallBack()
   mGoal = mActionServer->acceptNewGoal()->target_pose;
 
   // print the current goal
-  ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f", mGoal.pose.position.x, mGoal.pose.position.y, mGoal.pose.position.z);
+  ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f", mGoal.pose.position.x, mGoal.pose.position.y, mGoal.pose.orientation.z);
 
   // Transform from Msg to Eigen
   tf::pointMsgToEigen(mGoal.pose.position, setpoint_position);

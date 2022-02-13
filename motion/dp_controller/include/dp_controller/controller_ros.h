@@ -311,6 +311,8 @@ protected:
 
   MoveBaseActionServer* mActionServer;  /** Action server object */
 
+  ros::ServiceServer mControlModeService; /** Service server object */
+
   move_base_msgs::MoveBaseFeedback feedback_; /** Current feedback value*/
   
   float R;  /** Radius of the circle of acceptance */

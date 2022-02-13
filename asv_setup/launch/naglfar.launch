@@ -13,6 +13,9 @@
     <group if="$(eval type == 'real')">
     <!-- Put drivers here -->
     </group>
+    
+    <!-- Remap ground truth from heron simulator-->
+    <remap from="/pose_gt" to="/odometry/filtered"/>
 
     <!-- INCLUDES-->
     <include file="$(find motion_launch)/launch/motion.launch"              pass_all_args="true"/>

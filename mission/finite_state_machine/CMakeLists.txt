@@ -11,6 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rospy
   vortex_msgs
+  move_base_msgs
+  actionlib
+  message_generation
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -56,8 +60,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
-#   Service1.srv
-#   Service2.srv
+#   ControlMode.srv
 # )
 
 ## Generate actions in the 'action' folder
