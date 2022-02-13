@@ -10,7 +10,6 @@ RUN echo "vortex:vortex" | chpasswd
 RUN usermod -aG sudo vortex
 
 
-
 # ROS package dependencies
 RUN apt update && \
     apt install -y \
@@ -22,8 +21,12 @@ RUN apt update && \
     libeigen3-dev \
     ros-$distro-joy \
     ros-$distro-tf2-geometry-msgs \
+    ros-$distro-geographic-msgs \
     ros-$distro-pcl-ros \
     ros-$distro-rviz \
+    ros-$distro-rtabmap \
+    ros-$distro-rtabmap-ros \
+    ros-noetic-imu-tools \
     libeigen3-dev \
     libglfw3-dev \
     libglew-dev \
