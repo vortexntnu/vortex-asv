@@ -26,7 +26,8 @@ class LOSControllerPID:
 		Initialize the PID controller with fixed gains and saturation limit.
 		"""
 
-		self.controller = PIDRegulator(25, 0.024, 3.5, 5.0)	# Args: p, i, d, sat
+		self.controller_psi = PIDRegulator(25, 0.024, 3.5, 5.0)	# Args: p, i, d, sat
+
 
 
 	def updateGains(self, p, i, d, sat):
@@ -63,7 +64,27 @@ class LOSControllerPID:
 		e_rot = psi_d - psi
 
 		# regulate(err, t)
-		tau = self.controller.regulate(e_rot, t)
+		tau = self.controller_psi.regulate(e_rot, t)
+		return tau
+
+	def speedController(self, u_d, u, t):
+		"""
+		Calculate force to maintain fixed speed.
+
+		Args:
+			u_d	desired speed
+			u     current speed
+			t       time
+
+		Returns:
+			float:	A restoring force output by the controller.
+		"""
+
+		# error ENU
+		e_speed = u_d - u
+
+		# regulate(err, t)
+		tau = self.controller_u.regulate(e_speed, t)
 		return tau
 
 
@@ -171,17 +192,7 @@ class LOSController:
 		"""
 
 		# Control forces
-		tau_d = self.Backstepping.regulate(
-				msg.u,
-				msg.u_dot,
-				msg.u_d,
-				msg.u_d_dot,
-				msg.v,
-				msg.psi,
-				msg.psi_d, 
-				msg.r,
-				msg.r_d,
-				msg.r_d_dot)
+		#tau_d = self.PID.headingController(msg.psi_d, msg.psi, msg.t)
 
 
 		# add speed controllers here
@@ -189,12 +200,8 @@ class LOSController:
 		thrust_msg = Wrench()
 
 		# Thrust message forces and torque
-		if tau_d[0] > 0.0:
-			thrust_msg.force.x = tau_d[0]
-
-		thrust_msg.force.y = tau_d[1]
-
-		thrust_msg.torque.z = tau_d[2]
+		thrust_msg.force.x = self.PID.speedController(msg.u_d, msg.u, msg.t)
+		thrust_msg.torque.z = self.PID.headingController(msg.psi_d, msg.psi, msg.t)
 
 		# Publish the thrust message to /auv/thruster_manager/input
 		self.pub_thrust.publish(thrust_msg)
@@ -214,7 +221,7 @@ class LOSController:
 
 
 	def config_callback(self, config, level):
-		"""
+		"""motion/los_controller/src/los_controller_node.pychange
 		Handle updated configuration values.
 		
 		Args:
