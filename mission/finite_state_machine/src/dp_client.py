@@ -16,7 +16,8 @@ from vortex_msgs.srv import ControlMode, ControlModeRequest, ControlModeResponse
 OPEN_LOOP           = 0
 POSE_HOLD           = 1
 HEADING_HOLD        = 2
-CONTROL_MODE_END    = 3
+POSE_HEADING_HOLD   = 3
+CONTROL_MODE_END    = 4
 
 
 def change_control_mode_client(requested_mode):
@@ -56,7 +57,7 @@ def dp_move_base(x, y, yaw):
 if __name__ == '__main__':
     try:
         rospy.init_node('dp_move_base')
-        change_control_mode_client(POSE_HOLD)
+        change_control_mode_client(POSE_HEADING_HOLD)
         dp_move_base(-0.4,0.3,1)     
         rospy.spin()
     except rospy.ROSInternalException as e:

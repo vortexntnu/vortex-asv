@@ -18,7 +18,7 @@
 Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
 {
   // Subscribers
-  m_state_sub = m_nh.subscribe("/odometry/filtered", 10, &Controller::stateCallback, this);
+  m_state_sub = m_nh.subscribe("/pose_gt", 10, &Controller::stateCallback, this);
   // Publishers
   std::string thrust_topic;
 
@@ -187,6 +187,7 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg)
 
   // takes a odometry message and transforms to Eigen message
   m_state->set(position, orientation, velocity);
+  ROS_INFO("State set");
 
 
   // ACTION SERVER
@@ -194,12 +195,15 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg)
   // save current state to private variable
   // geometry_msgs/PoseStamped Pose
   if (!mActionServer->isActive())
+      ROS_INFO("Action client is not active");
       return;
 
   // return a feedback message to the client
   feedback_.base_position.header.stamp = ros::Time::now();
   feedback_.base_position.pose = msg.pose.pose;
+  ROS_INFO("Publishing feedback");
   mActionServer->publishFeedback(feedback_);
+  ROS_INFO("Published feedback");
 
 
   // if within circle of acceptance, return result succeeded
