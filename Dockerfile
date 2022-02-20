@@ -10,7 +10,6 @@ RUN echo "vortex:vortex" | chpasswd
 RUN usermod -aG sudo vortex
 
 
-
 # ROS package dependencies
 RUN apt update && \
     apt install -y \
@@ -21,9 +20,13 @@ RUN apt update && \
     ros-$distro-eigen-conversions \
     ros-$distro-joy \
     ros-$distro-tf2-geometry-msgs \
+    ros-$distro-geographic-msgs \
     ros-$distro-pcl-ros \
     ros-$distro-rviz \
+    ros-$distro-rtabmap \
+    ros-$distro-rtabmap-ros \
     ros-$distro-geographic-msgs \
+    ros-noetic-imu-tools \
     libeigen3-dev \
     libglfw3-dev \
     libglew-dev \
@@ -40,7 +43,7 @@ RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
 
 RUN mkdir -p /home/vortex/asv_ws
 RUN chown vortex /home/vortex/asv_ws
-RUN chmod a+rw /dev/ttyUSB*
+RUN chmod a+rw /dev/tty*
 
 
 CMD ["/bin/bash"]

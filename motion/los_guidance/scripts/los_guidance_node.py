@@ -49,7 +49,7 @@ class LOS:
 		# current position
 		self.x = 0.0
 		self.y = 0.0
-
+		self.psi = 0
 
 		# previous waypoint
 		self.x_k = 0.0
@@ -406,9 +406,6 @@ class LosPathFollowing(object):
 			guidance_data.r_d = r_d
 			guidance_data.r_d_dot = r_d_dot
 
-			guidance_data.z = self.los.z
-			guidance_data.z_d = self.los.z_d
-
 			guidance_data.v = self.los.v
 			guidance_data.t = self.los.t
 
@@ -433,6 +430,7 @@ class LosPathFollowing(object):
 			self._result.terminalSector = True
 			self.action_server.set_succeeded(self._result, text="goal completed")
 			self.publish_guidance_data = False
+			rospy.loginfo("Waypoint reached!")
 
 	def preemptCB(self):
 		"""
@@ -454,21 +452,17 @@ class LosPathFollowing(object):
 		"""
 
 		self.publish_guidance_data = True
-		_goal = self.action_server.accept_new_goal()
+		goal = self.action_server.accept_new_goal()
 
 		# set goal
-		self.los.x_k = self.los.x
-		self.los.y_k = self.los.y
-		self.los.x_kp1 = _goal.next_waypoint.x
-		self.los.y_kp1 = _goal.next_waypoint.y
+		self.los.x_k = goal.waypoints[0].x
+		self.los.y_k = goal.waypoints[0].y
+		self.los.x_kp1 = goal.waypoints[1].x
+		self.los.y_kp1 = goal.waypoints[1].y
 
 		# forward speed
-		self.los.speed = _goal.forward_speed.linear.x
-
-
-		# sphere of acceptance
-		self.los.R = _goal.sphereOfAcceptance
-
+		self.los.speed = goal.forward_speed
+		
 		self.reference_model = ReferenceModel(np.array((self.los.u, self.los.psi)), self.los.h)
 
 	def config_callback(self, config, level):

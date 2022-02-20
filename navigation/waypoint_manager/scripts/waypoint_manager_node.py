@@ -14,7 +14,7 @@ from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 
 
 class WaypointManager:
-    """ 
+    """
     Nodes created:
         WaypointManager
 
@@ -29,13 +29,13 @@ class WaypointManager:
 
         self.waypoint_list = []
 
-        #Action client
+        # Action client
         self.action_client = actionlib.SimpleActionClient(
-            "los_action_server", LosPathFollowingAction
+            "/guidance/los_action_server", LosPathFollowingAction
         )
         self.action_client.wait_for_server()
 
-        #Services
+        # Services
         self.add_waypoint_service = rospy.Service(
             "add_waypoint", Waypoint, self.add_waypoint_to_list
         )
@@ -43,15 +43,16 @@ class WaypointManager:
             "remove_waypoint", Waypoint, self.remove_waypoint_from_list
         )
 
-    #req is a waypoint
-    def add_waypoint_to_list(self, req):        
-        self.waypoint_list.append(req)
+
+    def add_waypoint_to_list(self, req):
+        self.waypoint_list.append(req.waypoint)
         rospy.loginfo("add waypoint to waypoint_list")
+
+        return WaypointResponse(True)
 
     def remove_waypoint_from_list(self, req):
         self.waypoint_list.remove(req)
         rospy.loginfo("remove waypoint from waypoint_list")
-
 
     def spin(self):
         index_waypoint_k = 0
@@ -60,12 +61,14 @@ class WaypointManager:
                 if index_waypoint_k < len(self.waypoint_list) - 1:
                     goal = LosPathFollowingGoal()
                     rospy.loginfo("define goal to send to los_guidance_node")
-            
-                    goal.waypoints[0] = self.waypoint_list[index_waypoint_k]
-                    goal.waypoints[1] = self.waypoint_list[index_waypoint_k + 1]
+
+                    goal.waypoints[0].x = self.waypoint_list[index_waypoint_k][0]
+                    goal.waypoints[0].y = self.waypoint_list[index_waypoint_k][1]
+                    goal.waypoints[1].x = self.waypoint_list[index_waypoint_k][0]
+                    goal.waypoints[1].y = self.waypoint_list[index_waypoint_k][1]
                     rospy.loginfo("add waypoints to goal")
 
-                    self.action_client.send_goal(self._goal)
+                    self.action_client.send_goal(goal)
                     rospy.loginfo("send goal to los_guidance_node")
                     self.action_client.wait_for_result()
                     rospy.loginfo("receive result from los_guidance_node")
