@@ -231,81 +231,111 @@ private:
                        const Eigen::Vector3d    &position_setpoint,
                        const Eigen::Quaterniond &orientation_setpoint);
 
+   Eigen::Vector6d stayLevel(const Eigen::Quaterniond& orientation_state, const Eigen::Vector6d& velocity_state);
+
   /**
-   * @brief Control mode for staying level
-   * 
+   * @brief Control mode for keeping constant depth
+   *   *
+   * @param position_state          A 3d vector containing the current body position
    * @param orientation_state       A quaternion containing the current orientation
    * @param velocity_state          A 6d vector containing the current velocity
-   * 
-   * @return  A feedback torque vector for maintaining a level pose
-  */
-  Eigen::Vector6d stayLevel(const Eigen::Quaterniond &orientation_state,
-                            const Eigen::Vector6d &velocity_state);
-  
-
+   *
+   * @param position_setpoint       A 3d vector containing the position setpoint
+   *
+   * @return  A wrench vector for maintaining constant depth
+   */
+  Eigen::Vector6d depthHold(const Eigen::Vector3d& position_state, const Eigen::Quaterniond& orientation_state,
+                            const Eigen::Vector6d& velocity_state, const Eigen::Vector3d& position_setpoint);
 
   /**
    * @brief Control mode for keeping a fixed heading
-   * 
-   * @param tau_openloop            A 6d torque vector from the open loop control
-   * 
+   *
    * @param position_state          A 3d vector containing the current body position
    * @param orientation_state       A quaternion containing the current orientation
    * @param velocity_state          A 6d vector containing the current velocity
-   * 
+   *
    * @param orientation_setpoint    A quaternion containing the orientation setpoint
-   * 
-   * @return  A feedback torque vector for maintaining constant heading
-  */
-  Eigen::Vector6d headingHold(const Eigen::Vector6d &tau_openloop,
-                              const Eigen::Vector3d &position_state,
-                              const Eigen::Quaterniond &orientation_state,
-                              const Eigen::Vector6d &velocity_state,
-                              const Eigen::Quaterniond &orientation_setpoint);
+   *
+   * @return  A wrench vector for maintaining constant heading
+   */
+  Eigen::Vector6d headingHold(const Eigen::Quaterniond& orientation_state, const Eigen::Vector6d& velocity_state,
+                              const Eigen::Quaterniond& orientation_setpoint);
 
+  /**
+   * @brief Control mode for keeping a fixed position
+   *
+   * @param position_state          A 3d vector containing the current body position
+   * @param orientation_state       A quaternion containing the current orientation
+   * @param velocity_state          A 6d vector containing the current velocity
+   *
+   * @param position_setpoint       A 3d vector containing the position setpoint
+   * @param orientation_setpoint    A quaternion containing the orientation setpoint
+   *
+   * @return  A wrench vector for maintaining a fixed position
+   */
+  Eigen::Vector6d positionHold(const Eigen::Vector3d& position_state, const Eigen::Quaterniond& orientation_state,
+                               const Eigen::Vector6d& velocity_state, const Eigen::Vector3d& position_setpoint,
+                               const Eigen::Quaterniond& orientation_setpoint);
+
+  /**
+   * @brief Control mode for keeping both fixed position and fixed heading
+   *
+   * @param position_state          A 3d vector containing the current body position
+   * @param orientation_state       A quaternion containing the current orientation
+   * @param velocity_state          A 6d vector containing the current velocity
+   *
+   * @param position_setpoint       A 3d vector containing the position setpoint
+   * @param orientation_setpoint    A quaternion containing the orientation setpoint
+   *
+   * @return  A wrench vector for maintaining both a fixed position and heading
+   */
+  Eigen::Vector6d positionHeadingHold(const Eigen::Vector3d& position_state,
+                                      const Eigen::Quaterniond& orientation_state,
+                                      const Eigen::Vector6d& velocity_state, const Eigen::Vector3d& position_setpoint,
+                                      const Eigen::Quaterniond& orientation_setpoint);
 
   /**
    * @brief Control mode for keeping a fixed pose
-   * 
-   * @param tau_openloop            A 6d torque vector from the open loop control
-   * 
+   *
    * @param position_state          A 3d vector containing the current body position
    * @param orientation_state       A quaternion containing the current orientation
    * @param velocity_state          A 6d vector containing the current velocity
-   * 
-   * @param position_setpoint       A 3d vector containing the position setpoint   
+   *
+   * @param position_setpoint       A 3d vector containing the position setpoint
    * @param orientation_setpoint    A quaternion containing the orientation setpoint
-   * 
-   * @return  A feedback torque vector for maintaining a fixed pose
-  */
-  Eigen::Vector6d poseHold(const Eigen::Vector6d &tau_openloop,
-                           const Eigen::Vector3d &position_state,
-                           const Eigen::Quaterniond &orientation_state,
-                           const Eigen::Vector6d &velocity_state,
-                           const Eigen::Vector3d &position_setpoint,
-                           const Eigen::Quaterniond &orientation_setpoint);
-
+   *
+   * @return  A feedback wrench for maintaining a fixed pose
+   */
+  Eigen::Vector6d poseHold(const Eigen::Vector3d& position_state, const Eigen::Quaterniond& orientation_state,
+                           const Eigen::Vector6d& velocity_state, const Eigen::Vector3d& position_setpoint,
+                           const Eigen::Quaterniond& orientation_setpoint);
 
   /**
-   * @brief Control mode for keeping both fixed pose and fixed heading
-   *  
-   * @param tau_openloop            A 6d torque vector from the open loop control
-   * 
+   * @brief Control mode for keeping a fixed orientation
+   *
+   * @param orientation_state A quaternion containing the current orientation
+   * @param velocity_state A 6d vector containing the current velocity
+   * @param orientation_setpoint A quaternion containing the orientation setpoint
+   * @return Eigen::Vector6d
+   */
+  Eigen::Vector6d orientationHold(const Eigen::Quaterniond& orientation_state, const Eigen::Vector6d& velocity_state,
+                                  const Eigen::Quaterniond& orientation_setpoint);
+
+  /**
+   * @brief Control mode for keeping orientation and depth
+   *
    * @param position_state          A 3d vector containing the current body position
    * @param orientation_state       A quaternion containing the current orientation
    * @param velocity_state          A 6d vector containing the current velocity
-   * 
-   * @param position_setpoint       A 3d vector containing the position setpoint   
+   *
+   * @param position_setpoint       A 3d vector containing the position setpoint
    * @param orientation_setpoint    A quaternion containing the orientation setpoint
-   * 
-   * @return  A feedback torque vector for maintaining both a fixed pose and heading
-  */
-  Eigen::Vector6d poseHeadingHold(const Eigen::Vector6d &tau_openloop,
-                                  const Eigen::Vector3d &position_state,
-                                  const Eigen::Quaterniond &orientation_state,
-                                  const Eigen::Vector6d &velocity_state,
-                                  const Eigen::Vector3d &position_setpoint,
-                                  const Eigen::Quaterniond &orientation_setpoint);
+   *
+   * @return  A feedback wrench for maintaining a fixed pose
+   */
+  Eigen::Vector6d orientationDepthHold(const Eigen::Vector3d& position_state, const Eigen::Quaterniond& orientation_state,
+                                      const Eigen::Vector6d& velocity_state, const Eigen::Vector3d& position_setpoint,
+                                      const Eigen::Quaterniond& orientation_setpoint);
 
 protected:
 

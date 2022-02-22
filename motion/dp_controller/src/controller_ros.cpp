@@ -76,35 +76,126 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
   ROS_INFO("Started service server.");
 }
 
+void Controller::spin()
+{
+  // Declaration of general forces
+  Eigen::Vector6d    rpm_command          = Eigen::VectorXd::Zero(6);
+  Eigen::Vector6d    tau_command          = Eigen::VectorXd::Zero(6);
+  Eigen::Vector6d    tau_openloop         = Eigen::VectorXd::Zero(6);
+  Eigen::Vector6d    tau_restoring        = Eigen::VectorXd::Zero(6);
+  Eigen::Vector6d    tau_staylevel        = Eigen::VectorXd::Zero(6);
+  Eigen::Vector6d    tau_headinghold      = Eigen::VectorXd::Zero(6);
+  Eigen::Vector6d    tau_poseheadinghold  = Eigen::VectorXd::Zero(6);
+  Eigen::Vector6d    tau_posehold         = Eigen::VectorXd::Zero(6);  
+
+  Eigen::Vector3d    position_state       = Eigen::Vector3d::Zero();
+  Eigen::Quaterniond orientation_state    = Eigen::Quaterniond::Identity();
+  Eigen::Vector6d    velocity_state       = Eigen::VectorXd::Zero(6);
+
+  Eigen::Vector3d    position_setpoint    = Eigen::Vector3d::Zero();
+  Eigen::Quaterniond orientation_setpoint = Eigen::Quaterniond::Identity();
+
+  // Message declaration
+  geometry_msgs::Wrench msg;
+
+  vortex_msgs::Debug    dbg_msg;
+
+  ros::Rate rate(m_frequency);
+  while (ros::ok())
+  {
+    
+    // gets the newest state and newest setpoints as Eigen
+    m_state->get(&position_state, &orientation_state, &velocity_state);
+    m_setpoints->get(&position_setpoint, &orientation_setpoint);
+    m_setpoints->get(&tau_openloop);
+
+
+    Eigen::Vector6d tau_command = Eigen::VectorXd::Zero(6);
+
+    //ROS_INFO("Position_setpoint: %2.4f, %2.4f", position_setpoint[0], position_setpoint[1]);
+
+    if (m_debug_mode)
+    publishDebugMsg(position_state, orientation_state, velocity_state,
+                    position_setpoint, orientation_setpoint);
+
+
+
+    switch (m_control_mode)
+    {
+      case ControlModes::OPEN_LOOP: {
+        tau_command(SURGE) = 0;
+        tau_command(SWAY) = 0;
+        tau_command(YAW) = 0;
+        break;
+      }
+
+      case ControlModes::POSITION_HOLD: {
+        tau_command = m_controller->getFeedback(position_state, Eigen::Quaterniond::Identity(), velocity_state, position_setpoint, Eigen::Quaterniond::Identity());
+        tau_command(YAW) = 0;
+        break;
+      }
+
+      case ControlModes::HEADING_HOLD: {
+        tau_command = m_controller->getFeedback(Eigen::Vector3d::Zero(), orientation_state, velocity_state, Eigen::Vector3d::Zero(), orientation_setpoint);
+        tau_command(SURGE) = 0;
+        tau_command(SWAY) = 0;
+        break;
+      }
+
+      case ControlModes::POSE_HOLD: {
+        tau_command = m_controller->getFeedback(position_state, orientation_state, velocity_state, position_setpoint, orientation_setpoint);
+        break;
+      }
+
+      default: {
+        ROS_ERROR("Default control mode reached.");
+      }
+
+    }
+
+    tau_command(HEAVE) = 0;
+    tau_command(ROLL) = 0;
+    tau_command(PITCH) = 0;
+    
+    geometry_msgs::Wrench tau_msg;
+    tf::wrenchEigenToMsg(tau_command, tau_msg);
+    m_wrench_pub.publish(tau_msg);
+
+    ros::spinOnce();
+    rate.sleep();
+  }
+}
+
+
 /* SERVICE SERVER */
 
-  bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request  &req,
-                                       vortex_msgs::ControlMode::Response &res)
+bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request  &req,
+                                      vortex_msgs::ControlMode::Response &res)
+{
+
+  ControlMode new_control_mode = m_control_mode;
+  int mode = req.controlMode;
+
+  try {
+    new_control_mode = getControlMode(mode);
+    res.result = "success";
+    ROS_INFO("successfull callback");
+
+    // TO AVOID AGGRESSIVE SWITCHING
+    // set current target position to previous position
+    m_controller->x_d_prev = position;
+    m_controller->x_d_prev_prev = position;
+    m_controller->x_ref_prev = position;
+    m_controller->x_ref_prev_prev = position;
+
+    // Integral action reset
+    m_controller->integral = Eigen::Vector6d::Zero(); 
+
+  } catch (const std::exception& e)
   {
-
-    ControlMode new_control_mode = m_control_mode;
-    int mode = req.controlMode;
-
-    try {
-      new_control_mode = getControlMode(mode);
-      res.result = "success";
-      ROS_INFO("successfull callback");
-
-      // TO AVOID AGGRESSIVE SWITCHING
-      // set current target position to previous position
-      m_controller->x_d_prev = position;
-      m_controller->x_d_prev_prev = position;
-      m_controller->x_ref_prev = position;
-      m_controller->x_ref_prev_prev = position;
-
-      // Integral action reset
-      m_controller->integral = Eigen::Vector6d::Zero(); 
-
-    } catch (const std::exception& e)
-    {
-      res.result = "failed";
-      ROS_INFO("failed callback");
-    }
+    res.result = "failed";
+    ROS_INFO("failed callback");
+  }
 
     
   if (new_control_mode != m_control_mode)
@@ -153,23 +244,19 @@ void Controller::actionGoalCallBack()
   // accept the new goal - do I have to cancel a pre-existing one first?
   mGoal = mActionServer->acceptNewGoal()->target_pose;
 
-  // print the current goal
-  ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f", mGoal.pose.position.x, mGoal.pose.position.y, mGoal.pose.orientation.z);
-
   // Transform from Msg to Eigen
   tf::pointMsgToEigen(mGoal.pose.position, setpoint_position);
   tf::quaternionMsgToEigen(mGoal.pose.orientation, setpoint_orientation);
 
-  // setpoint declared as private variable
+  Eigen::Vector3d euler = setpoint_orientation.toRotationMatrix().eulerAngles(2, 1, 0);
+  ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f", setpoint_position[0], setpoint_position[1], 180.0 / M_PI * euler[0]);
+  
   m_setpoints->set(setpoint_position, setpoint_orientation);
-
   // Integral action reset
   m_controller->integral = Eigen::Vector6d::Zero();
 
 }
 
-
-//void Controller::stateCallback(const vortex_msgs::RovState &msg)
 void Controller::stateCallback(const nav_msgs::Odometry &msg)
 {
 
@@ -187,7 +274,7 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg)
 
   // takes a odometry message and transforms to Eigen message
   m_state->set(position, orientation, velocity);
-  ROS_INFO("State set");
+  // ROS_INFO("State set"); this is the case
 
 
   // ACTION SERVER
@@ -195,24 +282,20 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg)
   // save current state to private variable
   // geometry_msgs/PoseStamped Pose
   if (!mActionServer->isActive())
-      ROS_INFO("Action client is not active");
       return;
 
   // return a feedback message to the client
   feedback_.base_position.header.stamp = ros::Time::now();
   feedback_.base_position.pose = msg.pose.pose;
-  ROS_INFO("Publishing feedback");
   mActionServer->publishFeedback(feedback_);
-  ROS_INFO("Published feedback");
-
 
   // if within circle of acceptance, return result succeeded
   if (m_controller->circleOfAcceptance(position,setpoint_position,R)){
   	mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(), "Goal reached.");
+    resetSetpoints();
   }
 
 }
-
 
 void Controller::configCallback(const dp_controller::VortexControllerConfig &config, uint32_t level)
 {
@@ -223,111 +306,6 @@ void Controller::configCallback(const dp_controller::VortexControllerConfig &con
   ROS_INFO("\t integral_gain: %2.4f", config.integral_gain);
 
   m_controller->setGains(config.velocity_gain, config.position_gain, config.attitude_gain, config.integral_gain);
-}
-
-
-void Controller::spin()
-{
-  // Declaration of general forces
-  Eigen::Vector6d    rpm_command          = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_command          = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_openloop         = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_restoring        = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_staylevel        = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_headinghold      = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_poseheadinghold  = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d    tau_posehold         = Eigen::VectorXd::Zero(6);  
-
-  Eigen::Vector3d    position_state       = Eigen::Vector3d::Zero();
-  Eigen::Quaterniond orientation_state    = Eigen::Quaterniond::Identity();
-  Eigen::Vector6d    velocity_state       = Eigen::VectorXd::Zero(6);
-
-  Eigen::Vector3d    position_setpoint    = Eigen::Vector3d::Zero();
-  Eigen::Quaterniond orientation_setpoint = Eigen::Quaterniond::Identity();
-
-  // Message declaration
-  geometry_msgs::Wrench msg;
-
-  vortex_msgs::Debug    dbg_msg;
-
-  ros::Rate rate(m_frequency);
-  while (ros::ok())
-  {
-    
-    // gets the newest state and newest setpoints as Eigen
-    m_state->get(&position_state, &orientation_state, &velocity_state);
-    m_setpoints->get(&position_setpoint, &orientation_setpoint);
-    m_setpoints->get(&tau_openloop);
-
-    if (m_debug_mode)
-    publishDebugMsg(position_state, orientation_state, velocity_state,
-                    position_setpoint, orientation_setpoint);
-
-    tau_command.setZero();
-
-    switch (m_control_mode)
-    {
-
-      // idle
-      case ControlModes::OPEN_LOOP:
-      tau_command = tau_openloop;
-      break;
-
-      // 3D coordinates
-      case ControlModes::POSE_HOLD:
-  
-      tau_posehold = poseHold(tau_openloop,
-                                position_state,
-                                orientation_state,
-                                velocity_state,
-                                position_setpoint,
-                                orientation_setpoint);
-      tau_command = tau_posehold;
-
-      tf::wrenchEigenToMsg(tau_command, msg);
-      m_wrench_pub.publish(msg);
-      
-      break;
-
-
-      // adjust roll and pitch
-      case ControlModes::POSE_HEADING_HOLD:
-      tau_poseheadinghold = poseHeadingHold(tau_openloop,
-                                position_state,
-                                orientation_state,
-                                velocity_state,
-                                position_setpoint,
-                                orientation_setpoint);
-
-      tau_command = tau_openloop + tau_poseheadinghold;
-
-      tf::wrenchEigenToMsg(tau_command, msg);
-      m_wrench_pub.publish(msg);
-
-      break;
-
-      // only heading
-      case ControlModes::HEADING_HOLD:
-      tau_headinghold = headingHold(tau_openloop,
-                                    position_state,
-                                    orientation_state,
-                                    velocity_state,
-                                    orientation_setpoint);
-      tau_command = tau_headinghold;
-
-      tf::wrenchEigenToMsg(tau_command, msg);
-      m_wrench_pub.publish(msg);
-
-      break;
-
-      default:
-      ROS_ERROR("Default control mode reached.");
-      break;
-    }
-
-    ros::spinOnce();
-    rate.sleep();
-  }
 }
 
 void Controller::initSetpoints()
@@ -528,97 +506,4 @@ void Controller::publishDebugMsg(const Eigen::Vector3d    &position_state,
 
   // publish
   m_debug_pub.publish(dbg_msg);
-}
-
-Eigen::Vector6d Controller::stayLevel(const Eigen::Quaterniond &orientation_state,
-                                      const Eigen::Vector6d &velocity_state)
-{
-  // Convert quaternion setpoint to euler angles (ZYX convention)
-  Eigen::Vector3d euler;
-  euler = orientation_state.toRotationMatrix().eulerAngles(2, 1, 0);
-
-  // Set pitch and roll setpoints to zero
-  euler(EULER_PITCH) = 0;
-  euler(EULER_ROLL)  = 0;
-
-  // Convert euler setpoint back to quaternions
-  Eigen::Matrix3d R;
-  R = Eigen::AngleAxisd(euler(EULER_YAW),   Eigen::Vector3d::UnitZ())
-    * Eigen::AngleAxisd(euler(EULER_PITCH), Eigen::Vector3d::UnitY())
-    * Eigen::AngleAxisd(euler(EULER_ROLL),  Eigen::Vector3d::UnitX());
-  Eigen::Quaterniond orientation_staylevel(R);
-
-  Eigen::Vector6d tau = m_controller->getFeedback(Eigen::Vector3d::Zero(), orientation_state, velocity_state,
-                                                Eigen::Vector3d::Zero(), orientation_staylevel);
-
-  tau(ROLL)  = 0;
-  tau(PITCH) = 0;
-
-  return tau;
-}
-
-
-Eigen::Vector6d Controller::headingHold(const Eigen::Vector6d &tau_openloop,
-                                        const Eigen::Vector3d &position_state,
-                                        const Eigen::Quaterniond &orientation_state,
-                                        const Eigen::Vector6d &velocity_state,
-                                        const Eigen::Quaterniond &orientation_setpoint)
-{
-  Eigen::Vector6d tau;
-
-  bool activate_headinghold = fabs(tau_openloop(PoseIndex::YAW)) < c_normalized_force_deadzone;
-  if (activate_headinghold)
-  {
-    tau = m_controller->getFeedback(Eigen::Vector3d::Zero(), orientation_state, velocity_state,
-                                  Eigen::Vector3d::Zero(), orientation_setpoint);
-
-    // Allow only yaw feedback command
-    tau(SURGE) = 0;
-    tau(SWAY)  = 0;
-    tau(HEAVE) = 0;
-    tau(ROLL)  = 0;
-    tau(PITCH) = 0;
-  }
-  else
-  {
-    updateSetpoint(YAW);
-    tau.setZero();
-  }
-
-  return tau;
-}
-
-Eigen::Vector6d Controller::poseHold(const Eigen::Vector6d &tau_openloop,
-                                      const Eigen::Vector3d &position_state,
-                                      const Eigen::Quaterniond &orientation_state,
-                                      const Eigen::Vector6d &velocity_state,
-                                      const Eigen::Vector3d &position_setpoint,
-                                      const Eigen::Quaterniond &orientation_setpoint)
-{
-  Eigen::Vector6d tau;
-
-  updateSetpoint(SURGE);
-  updateSetpoint(SWAY);
-  updateSetpoint(HEAVE);
-  tau.setZero();
-
-  return tau;
-}
-
-Eigen::Vector6d Controller::poseHeadingHold(const Eigen::Vector6d &tau_openloop,
-                                            const Eigen::Vector3d &position_state,
-                                            const Eigen::Quaterniond &orientation_state,
-                                            const Eigen::Vector6d &velocity_state,
-                                            const Eigen::Vector3d &position_setpoint,
-                                            const Eigen::Quaterniond &orientation_setpoint)
-{
-  Eigen::Vector6d tau;
-
-    updateSetpoint(SURGE);
-    updateSetpoint(SWAY);
-    updateSetpoint(HEAVE);
-    updateSetpoint(YAW);
-    tau.setZero();
-
-  return tau;
 }
