@@ -7,52 +7,47 @@
 
 #include <string>
 
-
-namespace ControlModes
-{
-enum ControlMode
-{
-  OPEN_LOOP           = 0,
-  POSITION_HOLD           = 1,
-  HEADING_HOLD        = 2,
-  POSE_HOLD   = 3,
-  CONTROL_MODE_END    = 4
+namespace ControlModes {
+enum ControlMode {
+  OPEN_LOOP = 0,
+  POSITION_HOLD = 1,
+  HEADING_HOLD = 2,
+  POSE_HOLD = 3,
+  CONTROL_MODE_END = 4
 };
-}  // namespace ControlModes
+} // namespace ControlModes
 typedef ControlModes::ControlMode ControlMode;
 
 /**
  * @brief Convert controlMode to a string representation
- * 
+ *
  * @param control_mode the control mode to be converted to a string
- * 
-*/
-inline std::string controlModeString(ControlMode control_mode)
-{
+ *
+ */
+inline std::string controlModeString(ControlMode control_mode) {
   std::string s;
-  switch (control_mode)
-  {
-    case ControlModes::OPEN_LOOP:
+  switch (control_mode) {
+  case ControlModes::OPEN_LOOP:
     s = "OPEN LOOP";
     break;
 
-    case ControlModes::POSITION_HOLD:
+  case ControlModes::POSITION_HOLD:
     s = "POSITION HOLD";
     break;
 
-    case ControlModes::HEADING_HOLD:
+  case ControlModes::HEADING_HOLD:
     s = "HEADING HOLD";
     break;
 
-    case ControlModes::POSE_HOLD:
+  case ControlModes::POSE_HOLD:
     s = "POSE HOLD";
     break;
 
-    default:
+  default:
     s = "INVALID CONTROL MODE";
     break;
   }
   return s;
 }
 
-#endif  // VORTEX_CONTROLLER_CONTROL_MODES_H
+#endif // VORTEX_CONTROLLER_CONTROL_MODES_H
