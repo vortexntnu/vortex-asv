@@ -55,6 +55,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10)
   m_state.reset(new State());
   initSetpoints();
   initPositionHoldController();
+  m_goal_reached = false;
 
   // Set up a dynamic reconfigure server
   dynamic_reconfigure::Server<dp_controller::VortexControllerConfig>::CallbackType dr_cb;
@@ -118,6 +119,8 @@ void Controller::spin()
     publishDebugMsg(position_state, orientation_state, velocity_state,
                     position_setpoint, orientation_setpoint);
 
+    
+
 
 
     switch (m_control_mode)
@@ -132,6 +135,12 @@ void Controller::spin()
       case ControlModes::POSITION_HOLD: {
         tau_command = m_controller->getFeedback(position_state, Eigen::Quaterniond::Identity(), velocity_state, position_setpoint, Eigen::Quaterniond::Identity());
         tau_command(YAW) = 0;
+
+        if(m_controller->circleOfAcceptanceXY(position_state, position_setpoint, R)) {
+          ROS_INFO("Reached setpoint, switching mode to OPEN_LOOP");
+          m_control_mode = ControlModes::OPEN_LOOP;
+          m_goal_reached = true;
+        }
         break;
       }
 
@@ -139,11 +148,24 @@ void Controller::spin()
         tau_command = m_controller->getFeedback(Eigen::Vector3d::Zero(), orientation_state, velocity_state, Eigen::Vector3d::Zero(), orientation_setpoint);
         tau_command(SURGE) = 0;
         tau_command(SWAY) = 0;
+
+        if(m_controller->circleOfAcceptanceYaw(orientation_state, orientation_setpoint, 0.05)) {
+          ROS_INFO("Reached setpoint, switching mode to OPEN_LOOP");
+          m_control_mode = ControlModes::OPEN_LOOP;
+          m_goal_reached = true;
+        }
+
         break;
       }
 
       case ControlModes::POSE_HOLD: {
         tau_command = m_controller->getFeedback(position_state, orientation_state, velocity_state, position_setpoint, orientation_setpoint);
+        if(m_controller->circleOfAcceptanceYaw(orientation_state, orientation_setpoint, 0.05) &&
+           m_controller->circleOfAcceptanceXY(position_state, position_setpoint, R)) {
+          ROS_INFO("Reached setpoint, switching mode to OPEN_LOOP");
+          m_control_mode = ControlModes::OPEN_LOOP;
+          m_goal_reached = true;
+        }
         break;
       }
 
@@ -290,9 +312,10 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg)
   mActionServer->publishFeedback(feedback_);
 
   // if within circle of acceptance, return result succeeded
-  if (m_controller->circleOfAcceptance(position,setpoint_position,R)){
+  if (m_goal_reached){
   	mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(), "Goal reached.");
     resetSetpoints();
+    m_goal_reached = false;
   }
 
 }

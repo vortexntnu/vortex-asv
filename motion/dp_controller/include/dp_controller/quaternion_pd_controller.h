@@ -114,10 +114,12 @@ public:
    * 
    * @return true if inside circle of acceptance, false if not.
   */
-  bool circleOfAcceptance(const Eigen::Vector3d   &x,
-                          const Eigen::Vector3d   &x_d,
-                                float             R);
+  bool circleOfAcceptanceXY(const Eigen::Vector3d   &x,
+                                                const Eigen::Vector3d   &x_d,
+                                                const double            R);
 
+
+  bool circleOfAcceptanceYaw(const Eigen::Quaterniond orientation, const Eigen::Quaterniond orientation_d, const double R);
 
   Eigen::Vector6d integral          = Eigen::Vector6d::Zero();  /** Integral error vector                     */
   Eigen::Vector3d x_d_prev          = Eigen::Vector3d::Zero();  /** Previous desired body position            */

@@ -143,6 +143,7 @@ private:
   bool m_debug_mode = false;                        /** Bool to run in debug mode                   */
   const double c_normalized_force_deadzone = 0.01;  /** Normalized force deadzone                   */
   const double c_max_quat_norm_deviation = 0.1;     /** Maximum normalized deviation (quaternion)   */
+  bool m_goal_reached;
 
   std::unique_ptr<State>                  m_state;      /** Current states (position, orientation, velocity)  */
   std::unique_ptr<Setpoints>              m_setpoints;  /** Current setpoints (wrench, orientation, velocity) */
