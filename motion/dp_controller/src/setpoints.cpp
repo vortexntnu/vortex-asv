@@ -44,6 +44,7 @@ bool Setpoints::get(Eigen::Vector3d *position) {
     return false;
 
   *position = m_position;
+  return true;
 }
 
 bool Setpoints::get(Eigen::Quaterniond *orientation) {
@@ -51,6 +52,7 @@ bool Setpoints::get(Eigen::Quaterniond *orientation) {
     return false;
 
   *orientation = m_orientation;
+  return true;
 }
 
 bool Setpoints::getEuler(Eigen::Vector3d *orientation) {
@@ -71,6 +73,7 @@ bool Setpoints::getEuler(Eigen::Vector3d *orientation) {
       std::atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z)); // YAW
 
   *orientation = euler_orientation;
+  return true;
 }
 
 void Setpoints::set(const Eigen::Vector3d &position,
