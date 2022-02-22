@@ -1,8 +1,3 @@
-/*   Written by Kristoffer Rakstad Solberg, Student
-     Documented by Christopher Strøm
-     Copyright (c) 2019 Manta AUV, Vortex NTNU.
-     All rights reserved. */
-
 /**
  * @file
  * @brief Class declaration for the Setpoint class

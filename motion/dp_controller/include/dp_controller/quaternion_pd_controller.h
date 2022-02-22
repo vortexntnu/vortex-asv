@@ -1,9 +1,3 @@
-/*   Written by Kristoffer Rakstad Solberg, Student
-     Documentation written by Jae Hyeong Hwang and
-     copied to Doxygen format by Christopher Strøm
-     Copyright (c) 2019 Manta AUV, Vortex NTNU.
-     All rights reserved. */
-
 /**
  * @file
  * @brief A nonlinear PID controller for position and orientation

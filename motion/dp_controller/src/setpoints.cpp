@@ -1,7 +1,3 @@
-/*   Written by Kristoffer Rakstad Solberg, Student
-     Copyright (c) 2019 Manta AUV, Vortex NTNU.
-     All rights reserved. */
-
 #include "dp_controller/setpoints.h"
 
 Setpoints::Setpoints(const Eigen::Vector6d &wrench_scaling,

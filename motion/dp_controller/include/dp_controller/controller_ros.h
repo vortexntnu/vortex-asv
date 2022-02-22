@@ -1,9 +1,3 @@
-
-/*   Written by Kristoffer Rakstad Solberg, Student
-     Documented by Christopher Strøm
-     Copyright (c) 2019 Manta AUV, Vortex NTNU.
-     All rights reserved. */
-
 /**
  * @file
  * @brief A ROS wrapper layer for the quaternion PID controller

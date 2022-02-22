@@ -1,7 +1,3 @@
-/*   Written by Kristoffer Rakstad Solberg, Student
-     Copyright (c) 2019 Manta AUV, Vortex NTNU.
-     All rights reserved. */
-
 #include "dp_controller/controller_ros.h"
 
 #include "dp_controller/eigen_helper.h"
