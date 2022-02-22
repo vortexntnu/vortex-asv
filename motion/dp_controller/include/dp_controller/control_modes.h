@@ -13,9 +13,9 @@ namespace ControlModes
 enum ControlMode
 {
   OPEN_LOOP           = 0,
-  POSE_HOLD           = 1,
+  POSITION_HOLD           = 1,
   HEADING_HOLD        = 2,
-  POSE_HEADING_HOLD   = 3,
+  POSE_HOLD   = 3,
   CONTROL_MODE_END    = 4
 };
 }  // namespace ControlModes
@@ -36,16 +36,16 @@ inline std::string controlModeString(ControlMode control_mode)
     s = "OPEN LOOP";
     break;
 
-    case ControlModes::POSE_HOLD:
-    s = "POSE HOLD";
+    case ControlModes::POSITION_HOLD:
+    s = "POSITION HOLD";
     break;
 
     case ControlModes::HEADING_HOLD:
     s = "HEADING HOLD";
     break;
 
-    case ControlModes::POSE_HEADING_HOLD:
-    s = "POSE HEADING HOLD";
+    case ControlModes::POSE_HOLD:
+    s = "POSE HOLD";
     break;
 
     default:
