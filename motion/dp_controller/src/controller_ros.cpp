@@ -51,7 +51,42 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
 
   m_state.reset(new State());
   initSetpoints();
-  initPositionHoldController();
+  
+  // Initialize the controller itself
+  // Read controller gains from parameter server
+  double a, b, c, i;
+  if (!m_nh.getParam("/controllers/dp/velocity_gain", a))
+    ROS_ERROR("Failed to read parameter velocity_gain.");
+  if (!m_nh.getParam("/controllers/dp/position_gain", b))
+    ROS_ERROR("Failed to read parameter position_gain.");
+  if (!m_nh.getParam("/controllers/dp/attitude_gain", c))
+    ROS_ERROR("Failed to read parameter attitude_gain.");
+  if (!m_nh.getParam("/controllers/dp/integral_gain", i))
+    ROS_ERROR("Failed to read parameter integral_gain.");
+
+  // Read center of gravity and buoyancy vectors from <auv>.yaml
+  std::vector<double> r_G_vec, r_B_vec;
+  if (!m_nh.getParam("/physical/center_of_mass", r_G_vec))
+    ROS_FATAL("Failed to read robot center of mass parameter.");
+  if (!m_nh.getParam("/physical/center_of_buoyancy", r_B_vec))
+    ROS_FATAL("Failed to read robot center of buoyancy parameter.");
+  Eigen::Vector3d r_G(r_G_vec.data());
+  Eigen::Vector3d r_B(r_B_vec.data());
+
+  // Read and calculate ROV weight and buoyancy from <auv>.yaml
+  double mass, displacement, acceleration_of_gravity, density_of_water;
+  if (!m_nh.getParam("/physical/mass_kg", mass))
+    ROS_FATAL("Failed to read parameter mass.");
+  if (!m_nh.getParam("/physical/displacement_m3", displacement))
+    ROS_FATAL("Failed to read parameter displacement.");
+  if (!m_nh.getParam("/gravity/acceleration", acceleration_of_gravity))
+    ROS_FATAL("Failed to read parameter acceleration of gravity");
+  if (!m_nh.getParam("/water/density", density_of_water))
+    ROS_FATAL("Failed to read parameter density of water");
+  double W = mass * acceleration_of_gravity;
+  double B = density_of_water * displacement * acceleration_of_gravity;
+
+  m_controller.reset(new QuaternionPdController(a, b, c, i, W, B, r_G, r_B));
   m_goal_reached = false;
 
   // Set up a dynamic reconfigure server
@@ -80,15 +115,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
 }
 
 void Controller::spin() {
-  // Declaration of general forces
-  Eigen::Vector6d rpm_command = Eigen::VectorXd::Zero(6);
   Eigen::Vector6d tau_command = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d tau_openloop = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d tau_restoring = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d tau_staylevel = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d tau_headinghold = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d tau_poseheadinghold = Eigen::VectorXd::Zero(6);
-  Eigen::Vector6d tau_posehold = Eigen::VectorXd::Zero(6);
 
   Eigen::Vector3d position_state = Eigen::Vector3d::Zero();
   Eigen::Quaterniond orientation_state = Eigen::Quaterniond::Identity();
@@ -97,18 +124,12 @@ void Controller::spin() {
   Eigen::Vector3d position_setpoint = Eigen::Vector3d::Zero();
   Eigen::Quaterniond orientation_setpoint = Eigen::Quaterniond::Identity();
 
-  // Message declaration
-  geometry_msgs::Wrench msg;
-
-  vortex_msgs::Debug dbg_msg;
-
   ros::Rate rate(m_frequency);
   while (ros::ok()) {
 
     // gets the newest state and newest setpoints as Eigen
     m_state->get(&position_state, &orientation_state, &velocity_state);
     m_setpoints->get(&position_setpoint, &orientation_setpoint);
-    m_setpoints->get(&tau_openloop);
 
     Eigen::Vector6d tau_command = Eigen::VectorXd::Zero(6);
 
@@ -192,158 +213,8 @@ void Controller::spin() {
   }
 }
 
-/* SERVICE SERVER */
 
-bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request &req,
-                                     vortex_msgs::ControlMode::Response &res) {
-
-  ControlMode new_control_mode = m_control_mode;
-  int mode = req.controlMode;
-
-  try {
-    new_control_mode = getControlMode(mode);
-    res.result = "success";
-    ROS_INFO("successfull callback");
-
-    // TO AVOID AGGRESSIVE SWITCHING
-    // set current target position to previous position
-    m_controller->x_d_prev = position;
-    m_controller->x_d_prev_prev = position;
-    m_controller->x_ref_prev = position;
-    m_controller->x_ref_prev_prev = position;
-
-    // Integral action reset
-    m_controller->integral = Eigen::Vector6d::Zero();
-
-  } catch (const std::exception &e) {
-    res.result = "failed";
-    ROS_INFO("failed callback");
-  }
-
-  if (new_control_mode != m_control_mode) {
-    m_control_mode = new_control_mode;
-    // resetSetpoints();
-    ROS_INFO_STREAM("Changing mode to " << controlModeString(m_control_mode)
-                                        << ".");
-  }
-  publishControlMode();
-  return true;
-}
-
-ControlMode Controller::getControlMode(int mode) {
-  ControlMode new_control_mode = m_control_mode;
-  return static_cast<ControlMode>(mode);
-}
-
-/* ACTION SERVER */
-
-// This action is event driven, the action code only runs when the callbacks
-// occur therefore a preempt callback is created to ensure that the action
-// responds promptly to a cancel request. The callback function takes no
-// arguments and sets preempted on the action server. I wonder whether this
-// needs to be mutexed.
-
-void Controller::preemptCallBack() {
-
-  // notify the ActionServer that we've successfully preempted
-  ROS_DEBUG_NAMED("move_base", "Move base preempting the current goal");
-
-  // set the action state to preempted
-  mActionServer->setPreempted();
-}
-
-void Controller::actionGoalCallBack() {
-
-  // set current target position to previous position
-  m_controller->x_d_prev = position;
-  m_controller->x_d_prev_prev = position;
-  m_controller->x_ref_prev = position;
-  m_controller->x_ref_prev_prev = position;
-
-  // accept the new goal - do I have to cancel a pre-existing one first?
-  mGoal = mActionServer->acceptNewGoal()->target_pose;
-
-  // Transform from Msg to Eigen
-  tf::pointMsgToEigen(mGoal.pose.position, setpoint_position);
-  tf::quaternionMsgToEigen(mGoal.pose.orientation, setpoint_orientation);
-
-  Eigen::Vector3d euler =
-      setpoint_orientation.toRotationMatrix().eulerAngles(2, 1, 0);
-  ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f",
-           setpoint_position[0], setpoint_position[1], 180.0 / M_PI * euler[0]);
-
-  m_setpoints->set(setpoint_position, setpoint_orientation);
-  // Integral action reset
-  m_controller->integral = Eigen::Vector6d::Zero();
-}
-
-void Controller::stateCallback(const nav_msgs::Odometry &msg) {
-
-  // Convert to eigen for computation
-  tf::pointMsgToEigen(msg.pose.pose.position, position);
-  tf::quaternionMsgToEigen(msg.pose.pose.orientation, orientation);
-  tf::twistMsgToEigen(msg.twist.twist, velocity);
-
-  bool orientation_invalid =
-      (abs(orientation.norm() - 1) > c_max_quat_norm_deviation);
-  if (isFucked(position) || isFucked(velocity) || orientation_invalid) {
-    ROS_WARN_THROTTLE(1, "Invalid state estimate received, ignoring...");
-    return;
-  }
-
-  // takes a odometry message and transforms to Eigen message
-  m_state->set(position, orientation, velocity);
-  // ROS_INFO("State set"); this is the case
-
-  // ACTION SERVER
-
-  // save current state to private variable
-  // geometry_msgs/PoseStamped Pose
-  if (!mActionServer->isActive())
-    return;
-
-  // return a feedback message to the client
-  feedback_.base_position.header.stamp = ros::Time::now();
-  feedback_.base_position.pose = msg.pose.pose;
-  mActionServer->publishFeedback(feedback_);
-
-  // if within circle of acceptance, return result succeeded
-  if (m_goal_reached) {
-    mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(),
-                                "Goal reached.");
-    resetSetpoints();
-    m_goal_reached = false;
-  }
-}
-
-void Controller::configCallback(
-    const dp_controller::VortexControllerConfig &config, uint32_t level) {
-  ROS_INFO("DP controller reconfigure:");
-  ROS_INFO("\t velocity_gain: %2.4f", config.velocity_gain);
-  ROS_INFO("\t position_gain: %2.4f", config.position_gain);
-  ROS_INFO("\t attitude_gain: %2.4f", config.attitude_gain);
-  ROS_INFO("\t integral_gain: %2.4f", config.integral_gain);
-
-  m_controller->setGains(config.velocity_gain, config.position_gain,
-                         config.attitude_gain, config.integral_gain);
-}
-
-void Controller::initSetpoints() {
-  std::vector<double> v;
-
-  if (!m_nh.getParam("/propulsion/command/wrench/max", v))
-    ROS_FATAL("Failed to read parameter max wrench command.");
-  const Eigen::Vector6d wrench_command_max =
-      Eigen::Vector6d::Map(v.data(), v.size());
-
-  if (!m_nh.getParam("/propulsion/command/wrench/scaling", v))
-    ROS_FATAL("Failed to read parameter scaling wrench command.");
-  const Eigen::Vector6d wrench_command_scaling =
-      Eigen::Vector6d::Map(v.data(), v.size());
-
-  m_setpoints.reset(new Setpoints(wrench_command_scaling, wrench_command_max));
-}
-
+/* SETPOINTS */
 void Controller::resetSetpoints() {
   // Reset setpoints to be equal to state
   Eigen::Vector3d position;
@@ -388,76 +259,154 @@ void Controller::updateSetpoint(PoseIndex axis) {
   }
 }
 
-void Controller::initPositionHoldController() {
-  // Read controller gains from parameter server
-  double a, b, c, i;
-  if (!m_nh.getParam("/controllers/dp/velocity_gain", a))
-    ROS_ERROR("Failed to read parameter velocity_gain.");
-  if (!m_nh.getParam("/controllers/dp/position_gain", b))
-    ROS_ERROR("Failed to read parameter position_gain.");
-  if (!m_nh.getParam("/controllers/dp/attitude_gain", c))
-    ROS_ERROR("Failed to read parameter attitude_gain.");
-  if (!m_nh.getParam("/controllers/dp/integral_gain", i))
-    ROS_ERROR("Failed to read parameter integral_gain.");
+/* SERVICE SERVER */
+bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request &req,
+                                     vortex_msgs::ControlMode::Response &res) {
 
-  // Read center of gravity and buoyancy vectors from <auv>.yaml
-  std::vector<double> r_G_vec, r_B_vec;
-  if (!m_nh.getParam("/physical/center_of_mass", r_G_vec))
-    ROS_FATAL("Failed to read robot center of mass parameter.");
-  if (!m_nh.getParam("/physical/center_of_buoyancy", r_B_vec))
-    ROS_FATAL("Failed to read robot center of buoyancy parameter.");
-  Eigen::Vector3d r_G(r_G_vec.data());
-  Eigen::Vector3d r_B(r_B_vec.data());
+  ControlMode new_control_mode = m_control_mode;
+  int mode = req.controlMode;
 
-  // Read and calculate ROV weight and buoyancy from <auv>.yaml
-  double mass, displacement, acceleration_of_gravity, density_of_water;
-  if (!m_nh.getParam("/physical/mass_kg", mass))
-    ROS_FATAL("Failed to read parameter mass.");
-  if (!m_nh.getParam("/physical/displacement_m3", displacement))
-    ROS_FATAL("Failed to read parameter displacement.");
-  if (!m_nh.getParam("/gravity/acceleration", acceleration_of_gravity))
-    ROS_FATAL("Failed to read parameter acceleration of gravity");
-  if (!m_nh.getParam("/water/density", density_of_water))
-    ROS_FATAL("Failed to read parameter density of water");
-  double W = mass * acceleration_of_gravity;
-  double B = density_of_water * displacement * acceleration_of_gravity;
+  try {
+    new_control_mode = getControlMode(mode);
+    res.result = "success";
+    ROS_INFO("successfull callback");
 
-  m_controller.reset(new QuaternionPdController(a, b, c, i, W, B, r_G, r_B));
-}
+    // TO AVOID AGGRESSIVE SWITCHING
+    // set current target position to previous position
+    m_controller->x_d_prev = position;
+    m_controller->x_d_prev_prev = position;
+    m_controller->x_ref_prev = position;
+    m_controller->x_ref_prev_prev = position;
 
-bool Controller::healthyMessage(const vortex_msgs::PropulsionCommand &msg) {
-  // Check that motion commands are in range
-  for (int i = 0; i < msg.motion.size(); ++i) {
-    if (msg.motion[i] > 1 || msg.motion[i] < -1) {
-      ROS_WARN("Motion command out of range, ignoring message...");
-      return false;
-    }
+    // Integral action reset
+    m_controller->integral = Eigen::Vector6d::Zero();
+
+  } catch (const std::exception &e) {
+    res.result = "failed";
+    ROS_INFO("failed callback");
   }
 
-  // Check correct length of control mode vector
-  if (msg.control_mode.size() != ControlModes::CONTROL_MODE_END) {
-    ROS_WARN_STREAM_THROTTLE(1, "Control mode vector has "
-                                    << msg.control_mode.size()
-                                    << " element(s), should have "
-                                    << ControlModes::CONTROL_MODE_END);
-    return false;
+  if (new_control_mode != m_control_mode) {
+    m_control_mode = new_control_mode;
+    // resetSetpoints();
+    ROS_INFO_STREAM("Changing mode to " << controlModeString(m_control_mode)
+                                        << ".");
   }
-
-  // Check that exactly zero or one control mode is requested
-  int num_requested_modes = 0;
-  for (int i = 0; i < msg.control_mode.size(); ++i)
-    if (msg.control_mode[i])
-      num_requested_modes++;
-  if (num_requested_modes > 1) {
-    ROS_WARN_STREAM("Attempt to set "
-                    << num_requested_modes
-                    << " control modes at once, ignoring message...");
-    return false;
-  }
-
+  publishControlMode();
   return true;
 }
 
+ControlMode Controller::getControlMode(int mode) {
+  ControlMode new_control_mode = m_control_mode;
+  return static_cast<ControlMode>(mode);
+}
+
+/* ACTION SERVER */
+void Controller::preemptCallBack() {
+
+  // notify the ActionServer that we've successfully preempted
+  ROS_DEBUG_NAMED("move_base", "Move base preempting the current goal");
+
+  // set the action state to preempted
+  mActionServer->setPreempted();
+}
+
+void Controller::actionGoalCallBack() {
+
+  // set current target position to previous position
+  m_controller->x_d_prev = position;
+  m_controller->x_d_prev_prev = position;
+  m_controller->x_ref_prev = position;
+  m_controller->x_ref_prev_prev = position;
+
+  // accept the new goal - do I have to cancel a pre-existing one first?
+  mGoal = mActionServer->acceptNewGoal()->target_pose;
+
+  // Transform from Msg to Eigen
+  tf::pointMsgToEigen(mGoal.pose.position, setpoint_position);
+  tf::quaternionMsgToEigen(mGoal.pose.orientation, setpoint_orientation);
+
+  Eigen::Vector3d euler =
+      setpoint_orientation.toRotationMatrix().eulerAngles(2, 1, 0);
+  ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f",
+           setpoint_position[0], setpoint_position[1], 180.0 / M_PI * euler[0]);
+
+  m_setpoints->set(setpoint_position, setpoint_orientation);
+  // Integral action reset
+  m_controller->integral = Eigen::Vector6d::Zero();
+}
+
+/* DYNAMIC RECONFIGURE */
+void Controller::configCallback(
+    const dp_controller::VortexControllerConfig &config, uint32_t level) {
+  ROS_INFO("DP controller reconfigure:");
+  ROS_INFO("\t velocity_gain: %2.4f", config.velocity_gain);
+  ROS_INFO("\t position_gain: %2.4f", config.position_gain);
+  ROS_INFO("\t attitude_gain: %2.4f", config.attitude_gain);
+  ROS_INFO("\t integral_gain: %2.4f", config.integral_gain);
+
+  m_controller->setGains(config.velocity_gain, config.position_gain,
+                         config.attitude_gain, config.integral_gain);
+}
+
+void Controller::initSetpoints() {
+  std::vector<double> v;
+
+  if (!m_nh.getParam("/propulsion/command/wrench/max", v))
+    ROS_FATAL("Failed to read parameter max wrench command.");
+  const Eigen::Vector6d wrench_command_max =
+      Eigen::Vector6d::Map(v.data(), v.size());
+
+  if (!m_nh.getParam("/propulsion/command/wrench/scaling", v))
+    ROS_FATAL("Failed to read parameter scaling wrench command.");
+  const Eigen::Vector6d wrench_command_scaling =
+      Eigen::Vector6d::Map(v.data(), v.size());
+
+  m_setpoints.reset(new Setpoints(wrench_command_scaling, wrench_command_max));
+}
+
+
+/* SUBSCRIBER CALLBACKS */
+void Controller::stateCallback(const nav_msgs::Odometry &msg) {
+
+  // Convert to eigen for computation
+  tf::pointMsgToEigen(msg.pose.pose.position, position);
+  tf::quaternionMsgToEigen(msg.pose.pose.orientation, orientation);
+  tf::twistMsgToEigen(msg.twist.twist, velocity);
+
+  bool orientation_invalid =
+      (abs(orientation.norm() - 1) > c_max_quat_norm_deviation);
+  if (isFucked(position) || isFucked(velocity) || orientation_invalid) {
+    ROS_WARN_THROTTLE(1, "Invalid state estimate received, ignoring...");
+    return;
+  }
+
+  // takes a odometry message and transforms to Eigen message
+  m_state->set(position, orientation, velocity);
+  // ROS_INFO("State set"); this is the case
+
+  // ACTION SERVER
+
+  // save current state to private variable
+  // geometry_msgs/PoseStamped Pose
+  if (!mActionServer->isActive())
+    return;
+
+  // return a feedback message to the client
+  feedback_.base_position.header.stamp = ros::Time::now();
+  feedback_.base_position.pose = msg.pose.pose;
+  mActionServer->publishFeedback(feedback_);
+
+  // if within circle of acceptance, return result succeeded
+  if (m_goal_reached) {
+    mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(),
+                                "Goal reached.");
+    resetSetpoints();
+    m_goal_reached = false;
+  }
+}
+
+/* PUBLISH HELPERS */
 void Controller::publishControlMode() {
   std::string s = controlModeString(m_control_mode);
   std_msgs::String msg;
@@ -522,3 +471,4 @@ void Controller::publishDebugMsg(
   // publish
   m_debug_pub.publish(dbg_msg);
 }
+
