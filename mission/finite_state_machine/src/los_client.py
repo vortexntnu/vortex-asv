@@ -46,9 +46,11 @@ class LosClient:
 if __name__ == "__main__":
     try:
         los_client = LosClient()
-        los_client.send_wp([0, 1])
-        los_client.send_wp([0, 2])
-
+        los_client.send_wp([0, 0])
+        los_client.send_wp([5, 0])
+        # los_client.send_wp([5, 5])
+        # los_client.send_wp([0, 5])
+        # los_client.send_wp([0, 0])
         rospy.spin()
     except rospy.ROSInterruptException:
         pass

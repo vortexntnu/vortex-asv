@@ -247,7 +247,7 @@ class LosPathFollowing(object):
 		los
 
 	Subscribes to:
-		/odometry/filtered
+		/pose_gt
 	
 	Publishes to:
 		/guidance/los_data
@@ -276,7 +276,7 @@ class LosPathFollowing(object):
 		rospy.init_node('los')
 
 		# Subscribers
-		self.sub = rospy.Subscriber('/odometry/filtered', Odometry, self.callback, queue_size=1) # 20hz
+		self.sub = rospy.Subscriber('/pose_gt', Odometry, self.callback, queue_size=1) # 20hz
 
 		# Publishers
 		self.pub_desired = rospy.Publisher('/auv/los_desired', Odometry, queue_size=1)
@@ -331,7 +331,7 @@ class LosPathFollowing(object):
 
 	def callback(self, msg): 
 		"""
-		The callback used in the subscribed topic /odometry/filtered.
+		The callback used in the subscribed topic /pose_gt.
 		When called, position and velocity states are updated, and 
 		a new current goal is set.
 
