@@ -1,8 +1,8 @@
 #ifndef VORTEX_ALLOCATOR_ALLOCATOR_ROS_H
 #define VORTEX_ALLOCATOR_ALLOCATOR_ROS_H
 
-#include "ros/ros.h"
 #include "geometry_msgs/Wrench.h"
+#include "ros/ros.h"
 
 #include "vortex_allocator/pseudoinverse_allocator.h"
 
@@ -10,20 +10,22 @@
 #include <string>
 #include <vector>
 
-class Allocator
-{
+class Allocator {
 public:
   explicit Allocator(ros::NodeHandle nh);
-      /**
-     * @brief Callback function for converting force wrench in body frame to ThrusterForces msg
-     * 
-     * @param msg Wrench message containing linear and angular forces in BODY frame
-    */
+  /**
+   * @brief Callback function for converting force wrench in body frame to
+   * ThrusterForces msg
+   *
+   * @param msg Wrench message containing linear and angular forces in BODY
+   * frame
+   */
   void forceWrenchCallback(const geometry_msgs::Wrench &msg) const;
+
 private:
   ros::NodeHandle m_nh;
   ros::Subscriber m_sub;
-  ros::Publisher  m_pub;
+  ros::Publisher m_pub;
 
   int m_num_degrees_of_freedom;
   int m_num_thrusters;
@@ -38,4 +40,4 @@ private:
   bool healthyWrench(const Eigen::VectorXd &v) const;
 };
 
-#endif  // VORTEX_ALLOCATOR_ALLOCATOR_ROS_H
+#endif // VORTEX_ALLOCATOR_ALLOCATOR_ROS_H
