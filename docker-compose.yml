@@ -1,30 +1,12 @@
+
+
+
 version: '3.8'
 services:
   vortex:
-    container_name: vortex_asv
+    container_name: asv
     build: .
-    user: vortex
-    privileged: true
-    volumes:
-      - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
-      - "/dev:/dev"
-      - "../ouster_example:/home/vortex/asv_ws/src/ouster_example"
-      - "../stim300:/home/vortex/asv_ws/src/stim300"
-      
-    environment:
-      DISPLAY: :0
-    stdin_open: true
-    tty: true
-    network_mode: host
-
-  vortex_sim:
-    container_name: vortex_asv_sim
-    build: .
-    user: vortex
-    privileged: true
-    volumes:
-      - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
-      - "/dev:/dev"
+    privileged: true      
     environment:
       DISPLAY: :0
     stdin_open: true

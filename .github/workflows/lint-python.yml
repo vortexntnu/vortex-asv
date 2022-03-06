@@ -1,0 +1,12 @@
+name: black-action
+on: [push, pull_request]
+jobs:
+  linter_name:
+    name: runner / black formatter
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: jpetrucciani/black-check@21.12b0
+        with:
+          path: "."
+          black_flags: "--check"
