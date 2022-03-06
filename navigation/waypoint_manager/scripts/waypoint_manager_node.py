@@ -64,8 +64,8 @@ class WaypointManager:
 
                     goal.waypoints[0].x = self.waypoint_list[index_waypoint_k][0]
                     goal.waypoints[0].y = self.waypoint_list[index_waypoint_k][1]
-                    goal.waypoints[1].x = self.waypoint_list[index_waypoint_k][0]
-                    goal.waypoints[1].y = self.waypoint_list[index_waypoint_k][1]
+                    goal.waypoints[1].x = self.waypoint_list[index_waypoint_k + 1][0]
+                    goal.waypoints[1].y = self.waypoint_list[index_waypoint_k + 1][1]
                     rospy.loginfo("add waypoints to goal")
 
                     self.action_client.send_goal(goal)
