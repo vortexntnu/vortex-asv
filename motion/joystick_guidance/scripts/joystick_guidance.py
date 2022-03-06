@@ -48,7 +48,6 @@ class JoystickGuidanceNode:
         self.pub.publish(joystick_msg)
 
 
-
 if __name__ == "__main__":
 
     rospy.init_node("joystick_guidance")
