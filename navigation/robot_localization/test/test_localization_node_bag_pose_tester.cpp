@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
+#include <ros/ros.h>
 
 #include <gtest/gtest.h>
 
@@ -41,13 +41,9 @@
 
 nav_msgs::Odometry filtered_;
 
-void filterCallback(const nav_msgs::OdometryConstPtr &msg)
-{
-  filtered_ = *msg;
-}
+void filterCallback(const nav_msgs::OdometryConstPtr &msg) { filtered_ = *msg; }
 
-TEST(BagTest, PoseCheck)
-{
+TEST(BagTest, PoseCheck) {
   ros::NodeHandle nh;
   ros::NodeHandle nhLocal("~");
 
@@ -65,26 +61,23 @@ TEST(BagTest, PoseCheck)
   nhLocal.param("output_final_position", outputFinalPosition, false);
   nhLocal.param("output_location", finalPositionFile, std::string("test.txt"));
 
-  ros::Subscriber filteredSub = nh.subscribe("/odometry/filtered", 1, &filterCallback);
+  ros::Subscriber filteredSub =
+      nh.subscribe("/odometry/filtered", 1, &filterCallback);
 
-  while (ros::ok())
-  {
+  while (ros::ok()) {
     ros::spinOnce();
     ros::Duration(0.0333333).sleep();
   }
 
-  if (outputFinalPosition)
-  {
-    try
-    {
+  if (outputFinalPosition) {
+    try {
       std::ofstream posOut;
       posOut.open(finalPositionFile.c_str(), std::ofstream::app);
-      posOut << filtered_.pose.pose.position.x << " " << filtered_.pose.pose.position.y << " " <<
-                filtered_.pose.pose.position.z << std::endl;
+      posOut << filtered_.pose.pose.position.x << " "
+             << filtered_.pose.pose.position.y << " "
+             << filtered_.pose.pose.position.z << std::endl;
       posOut.close();
-    }
-    catch(...)
-    {
+    } catch (...) {
       ROS_ERROR_STREAM("Unable to open output file.\n");
     }
   }
@@ -93,11 +86,10 @@ TEST(BagTest, PoseCheck)
   double yDiff = filtered_.pose.pose.position.y - finalY;
   double zDiff = filtered_.pose.pose.position.z - finalZ;
 
-  EXPECT_LT(::sqrt(xDiff*xDiff + yDiff*yDiff + zDiff*zDiff), tolerance);
+  EXPECT_LT(::sqrt(xDiff * xDiff + yDiff * yDiff + zDiff * zDiff), tolerance);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
 
   ros::init(argc, argv, "localization_node-bag-pose-tester");
@@ -108,4 +100,3 @@ int main(int argc, char **argv)
 
   return RUN_ALL_TESTS();
 }
-

@@ -36,47 +36,37 @@
 
 #include <vector>
 
-namespace RobotLocalization
-{
-RobotLocalizationEstimator::RobotLocalizationEstimator(unsigned int buffer_capacity,
-                                                       FilterType filter_type,
-                                                       const Eigen::MatrixXd& process_noise_covariance,
-                                                       const std::vector<double>& filter_args)
-{
+namespace RobotLocalization {
+RobotLocalizationEstimator::RobotLocalizationEstimator(
+    unsigned int buffer_capacity, FilterType filter_type,
+    const Eigen::MatrixXd &process_noise_covariance,
+    const std::vector<double> &filter_args) {
   state_buffer_.set_capacity(buffer_capacity);
 
   // Set up the filter that is used for predictions
-  if ( filter_type == FilterTypes::EKF )
-  {
+  if (filter_type == FilterTypes::EKF) {
     filter_ = new Ekf;
-  }
-  else if ( filter_type == FilterTypes::UKF )
-  {
+  } else if (filter_type == FilterTypes::UKF) {
     filter_ = new Ukf(filter_args);
   }
 
   filter_->setProcessNoiseCovariance(process_noise_covariance);
 }
 
-RobotLocalizationEstimator::~RobotLocalizationEstimator()
-{
-  delete filter_;
-}
+RobotLocalizationEstimator::~RobotLocalizationEstimator() { delete filter_; }
 
-void RobotLocalizationEstimator::setState(const EstimatorState& state)
-{
+void RobotLocalizationEstimator::setState(const EstimatorState &state) {
   // If newly received state is newer than any in the buffer, push back
-  if ( state_buffer_.empty() || state.time_stamp > state_buffer_.back().time_stamp )
-  {
+  if (state_buffer_.empty() ||
+      state.time_stamp > state_buffer_.back().time_stamp) {
     state_buffer_.push_back(state);
   }
   // If it is older, put it in the right position
-  else
-  {
-    for ( boost::circular_buffer<EstimatorState>::iterator it = state_buffer_.begin(); it != state_buffer_.end(); ++it )
-    {
-      if ( state.time_stamp < it->time_stamp )
-      {
+  else {
+    for (boost::circular_buffer<EstimatorState>::iterator it =
+             state_buffer_.begin();
+         it != state_buffer_.end(); ++it) {
+      if (state.time_stamp < it->time_stamp) {
         state_buffer_.insert(it, state);
         return;
       }
@@ -84,12 +74,11 @@ void RobotLocalizationEstimator::setState(const EstimatorState& state)
   }
 }
 
-EstimatorResult RobotLocalizationEstimator::getState(const double time,
-                                                     EstimatorState& state) const
-{
+EstimatorResult
+RobotLocalizationEstimator::getState(const double time,
+                                     EstimatorState &state) const {
   // If there's nothing in the buffer, there's nothing to give.
-  if ( state_buffer_.size() == 0 )
-  {
+  if (state_buffer_.size() == 0) {
     return EstimatorResults::EmptyBuffer;
   }
 
@@ -102,83 +91,67 @@ EstimatorResult RobotLocalizationEstimator::getState(const double time,
   bool previous_state_found = false;
   bool next_state_found = false;
 
-  for (boost::circular_buffer<EstimatorState>::const_reverse_iterator it = state_buffer_.rbegin();
-       it != state_buffer_.rend(); ++it)
-  {
+  for (boost::circular_buffer<EstimatorState>::const_reverse_iterator it =
+           state_buffer_.rbegin();
+       it != state_buffer_.rend(); ++it) {
     /* If the time stamp of the current state from the buffer is
      * older than the requested time, store it as the last state
      * before the requested time. If it is younger, save it as the
      * next one after, and go on to find the last one before.
      */
-    if ( it->time_stamp == time )
-    {
+    if (it->time_stamp == time) {
       state = *it;
       return EstimatorResults::Exact;
-    }
-    else if ( it->time_stamp <= time )
-    {
+    } else if (it->time_stamp <= time) {
       last_state_before_time = *it;
       previous_state_found = true;
       break;
-    }
-    else
-    {
+    } else {
       next_state_after_time = *it;
       next_state_found = true;
     }
   }
 
   // If we found a previous state and a next state, we can do interpolation
-  if ( previous_state_found && next_state_found )
-  {
+  if (previous_state_found && next_state_found) {
     interpolate(last_state_before_time, next_state_after_time, time, state);
     return EstimatorResults::Interpolation;
   }
 
   // If only a previous state is found, we can do extrapolation into the future
-  else if ( previous_state_found )
-  {
+  else if (previous_state_found) {
     extrapolate(last_state_before_time, time, state);
     return EstimatorResults::ExtrapolationIntoFuture;
   }
 
   // If only a next state is found, we'll have to extrapolate into the past.
-  else if ( next_state_found )
-  {
+  else if (next_state_found) {
     extrapolate(next_state_after_time, time, state);
     return EstimatorResults::ExtrapolationIntoPast;
   }
 
-  else
-  {
+  else {
     return EstimatorResults::Failed;
   }
 }
 
-void RobotLocalizationEstimator::setBufferCapacity(const int capacity)
-{
+void RobotLocalizationEstimator::setBufferCapacity(const int capacity) {
   state_buffer_.set_capacity(capacity);
 }
 
-void RobotLocalizationEstimator::clearBuffer()
-{
-  state_buffer_.clear();
-}
+void RobotLocalizationEstimator::clearBuffer() { state_buffer_.clear(); }
 
-unsigned int RobotLocalizationEstimator::getBufferCapacity() const
-{
+unsigned int RobotLocalizationEstimator::getBufferCapacity() const {
   return state_buffer_.capacity();
 }
 
-unsigned int RobotLocalizationEstimator::getSize() const
-{
+unsigned int RobotLocalizationEstimator::getSize() const {
   return state_buffer_.size();
 }
 
-void RobotLocalizationEstimator::extrapolate(const EstimatorState& boundary_state,
-                                             const double requested_time,
-                                             EstimatorState& state_at_req_time) const
-{
+void RobotLocalizationEstimator::extrapolate(
+    const EstimatorState &boundary_state, const double requested_time,
+    EstimatorState &state_at_req_time) const {
   // Set up the filter with the boundary state
   filter_->setState(boundary_state.state);
   filter_->setEstimateErrorCovariance(boundary_state.covariance);
@@ -196,17 +169,16 @@ void RobotLocalizationEstimator::extrapolate(const EstimatorState& boundary_stat
   return;
 }
 
-void RobotLocalizationEstimator::interpolate(const EstimatorState& given_state_1,
-                                             const EstimatorState& given_state_2,
-                                             const double requested_time,
-                                             EstimatorState& state_at_req_time) const
-{
+void RobotLocalizationEstimator::interpolate(
+    const EstimatorState &given_state_1, const EstimatorState &given_state_2,
+    const double requested_time, EstimatorState &state_at_req_time) const {
   /*
-   * TODO: Right now, we only extrapolate from the last known state before the requested time. But as the state after
-   * the requested time is also known, we may want to perform interpolation between states.
+   * TODO: Right now, we only extrapolate from the last known state before the
+   * requested time. But as the state after the requested time is also known, we
+   * may want to perform interpolation between states.
    */
   extrapolate(given_state_1, requested_time, state_at_req_time);
   return;
 }
 
-}  // namespace RobotLocalization
+} // namespace RobotLocalization

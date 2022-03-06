@@ -1,16 +1,15 @@
-#include "ros/ros.h"
-#include <gtest/gtest.h>
 #include "geometry_msgs/Wrench.h"
+#include "ros/ros.h"
 #include "vortex_msgs/ThrusterForces.h"
+#include <gtest/gtest.h>
 #include <vector>
 
-class AllocatorTest : public ::testing::Test
-{
+class AllocatorTest : public ::testing::Test {
 public:
-  AllocatorTest()
-  {
+  AllocatorTest() {
     pub = nh.advertise<geometry_msgs::Wrench>("body_frame_forces", 10);
-    sub = nh.subscribe("thruster_forces", 10, &AllocatorTest::forceWrenchCallback, this);
+    sub = nh.subscribe("thruster_forces", 10,
+                       &AllocatorTest::forceWrenchCallback, this);
     message_received = false;
 
     if (!nh.getParam("/propulsion/thrusters/num", num_thrusters))
@@ -19,63 +18,55 @@ public:
     thrust.resize(num_thrusters);
   }
 
-  void SetUp()
-  {
+  void SetUp() {
     while (!IsNodeReady())
       ros::spinOnce();
   }
 
-  void Publish(double surge, double sway, double yaw)
-  {
+  void Publish(double surge, double sway, double yaw) {
     geometry_msgs::Wrench msg;
-    msg.force.x  = surge;
-    msg.force.y  = sway;
+    msg.force.x = surge;
+    msg.force.y = sway;
     msg.torque.z = yaw;
     pub.publish(msg);
   }
 
-  void ExpectThrustNear(double* arr)
-  {
+  void ExpectThrustNear(double *arr) {
     for (int i = 0; i < thrust.size(); ++i)
       EXPECT_NEAR(thrust[i], arr[i], MAX_ERROR);
   }
 
-  void WaitForMessage()
-  {
+  void WaitForMessage() {
     while (!message_received)
       ros::spinOnce();
   }
 
-  int                 num_thrusters;
+  int num_thrusters;
   std::vector<double> thrust;
-  const double        MAX_ERROR = 1e-4;
+  const double MAX_ERROR = 1e-4;
 
 private:
   ros::NodeHandle nh;
-  ros::Publisher  pub;
+  ros::Publisher pub;
   ros::Subscriber sub;
   bool message_received;
 
-  void Callback(const vortex_msgs::ThrusterForces& msg)
-  {
+  void Callback(const vortex_msgs::ThrusterForces &msg) {
     thrust = msg.thrust;
     message_received = true;
   }
 
-  bool IsNodeReady()
-  {
+  bool IsNodeReady() {
     return (pub.getNumSubscribers() > 0) && (sub.getNumPublishers() > 0);
   }
 };
 
-TEST_F(AllocatorTest, CheckResponsiveness)
-{
+TEST_F(AllocatorTest, CheckResponsiveness) {
   Publish(0, 0, 0);
   WaitForMessage();
 }
 
-TEST_F(AllocatorTest, ZeroInput)
-{
+TEST_F(AllocatorTest, ZeroInput) {
   Publish(0, 0, 0);
   WaitForMessage();
 
@@ -88,8 +79,8 @@ TEST_F(AllocatorTest, ZeroInput)
 //   Publish(1, 0, 0);
 //   WaitForMessage();
 
-//   double thrust_expected[] = {0.35356, 0.35356, -0.35356, -0.35356, -0.20639, 0.20639};
-//   ExpectThrustNear(thrust_expected);
+//   double thrust_expected[] = {0.35356, 0.35356, -0.35356, -0.35356, -0.20639,
+//   0.20639}; ExpectThrustNear(thrust_expected);
 // }
 
 // TEST_F(AllocatorTest, Sideways)
@@ -97,8 +88,8 @@ TEST_F(AllocatorTest, ZeroInput)
 //   Publish(0, 1, 0);
 //   WaitForMessage();
 
-//   double thrust_expected[] = {0.35356, -0.35356, -0.35356, 0.35356, 0.0, 0.0};
-//   ExpectThrustNear(thrust_expected);
+//   double thrust_expected[] = {0.35356, -0.35356, -0.35356, 0.35356, 0.0,
+//   0.0}; ExpectThrustNear(thrust_expected);
 // }
 
 // TEST_F(AllocatorTest, Downward)
@@ -119,8 +110,7 @@ TEST_F(AllocatorTest, ZeroInput)
 //   ExpectThrustNear(thrust_expected);
 // }
 
-TEST_F(AllocatorTest, TurnRight)
-{
+TEST_F(AllocatorTest, TurnRight) {
   Publish(0, 0, 1);
   WaitForMessage();
 
@@ -128,8 +118,7 @@ TEST_F(AllocatorTest, TurnRight)
   ExpectThrustNear(thrust_expected);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "allocator_test");
 

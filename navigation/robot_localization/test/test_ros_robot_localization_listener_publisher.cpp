@@ -38,23 +38,26 @@
 #include <tf2/utils.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   ros::init(argc, argv, "test_robot_localization_listener_publisher");
 
   ros::NodeHandle nh;
-  ros::Publisher odom_pub = nh.advertise<nav_msgs::Odometry>("odometry/filtered", 1);
-  ros::Publisher accel_pub = nh.advertise<geometry_msgs::AccelWithCovarianceStamped>("accel/filtered", 1);
+  ros::Publisher odom_pub =
+      nh.advertise<nav_msgs::Odometry>("odometry/filtered", 1);
+  ros::Publisher accel_pub =
+      nh.advertise<geometry_msgs::AccelWithCovarianceStamped>("accel/filtered",
+                                                              1);
   tf2_ros::StaticTransformBroadcaster transform_broadcaster;
 
   ros::Time end_time = ros::Time::now() + ros::Duration(10);
-  while (ros::ok() && ros::Time::now() < end_time)
-  {
+  while (ros::ok() && ros::Time::now() < end_time) {
     ros::Time time1(1000);
-    double x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az;
-    x = y = z = roll = pitch = yaw = vy = vz = vroll = vpitch = vyaw = ax = ay = az = 0.0;
+    double x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay,
+        az;
+    x = y = z = roll = pitch = yaw = vy = vz = vroll = vpitch = vyaw = ax = ay =
+        az = 0.0;
     vx = 1.0;
-    vroll = M_PI/4.0;
+    vroll = M_PI / 4.0;
 
     tf2::Quaternion q;
     q.setRPY(0, 0, 0);
@@ -101,7 +104,7 @@ int main(int argc, char **argv)
     transformStamped.transform.translation.z = 0.0;
     {
       tf2::Quaternion q;
-      q.setRPY(0, 0, M_PI/2);
+      q.setRPY(0, 0, M_PI / 2);
       transformStamped.transform.rotation.x = q.x();
       transformStamped.transform.rotation.y = q.y();
       transformStamped.transform.rotation.z = q.z();
