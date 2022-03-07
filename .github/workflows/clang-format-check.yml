@@ -1,0 +1,22 @@
+name: clang-format Check
+on: [push]
+jobs:
+  formatting-check:
+    name: Formatting Check
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        path:
+          - 'asv_setup'
+          - 'mission'
+          - 'motion'
+          - 'navigation'
+          - 'vortex_msgs'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run clang-format style check for C/C++ packages
+      uses: jidicula/clang-format-action@v4.5.0
+      with:
+        clang-format-version: '13'
+        check-path: ${{ matrix.path }}
+        fallback-style: 'llvm' # for when the .clang-format file does not exist

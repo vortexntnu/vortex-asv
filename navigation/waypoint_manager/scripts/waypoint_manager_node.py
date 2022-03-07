@@ -43,7 +43,6 @@ class WaypointManager:
             "remove_waypoint", Waypoint, self.remove_waypoint_from_list
         )
 
-
     def add_waypoint_to_list(self, req):
         self.waypoint_list.append(req.waypoint)
         rospy.loginfo("add waypoint to waypoint_list")

@@ -1,6 +1,6 @@
 #include "dp_controller/controller_ros.h"
-
 #include "dp_controller/eigen_helper.h"
+
 #include "std_msgs/String.h"
 #include <eigen_conversions/eigen_msg.h>
 #include <tf/transform_datatypes.h>
@@ -14,6 +14,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   // Subscribers
   m_state_sub =
       m_nh.subscribe("/pose_gt", 10, &Controller::stateCallback, this);
+
   // Publishers
   std::string thrust_topic;
 
@@ -337,6 +338,7 @@ void Controller::actionGoalCallBack() {
 }
 
 /* DYNAMIC RECONFIGURE */
+
 void Controller::configCallback(
     const dp_controller::VortexControllerConfig &config, uint32_t level) {
   ROS_INFO("DP controller reconfigure:");
@@ -364,7 +366,6 @@ void Controller::initSetpoints() {
 
   m_setpoints.reset(new Setpoints(wrench_command_scaling, wrench_command_max));
 }
-
 
 /* SUBSCRIBER CALLBACKS */
 void Controller::stateCallback(const nav_msgs::Odometry &msg) {
@@ -471,4 +472,3 @@ void Controller::publishDebugMsg(
   // publish
   m_debug_pub.publish(dbg_msg);
 }
-

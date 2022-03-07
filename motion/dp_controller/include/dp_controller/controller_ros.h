@@ -135,7 +135,7 @@ private:
   const double c_max_quat_norm_deviation =
       0.1; /** Maximum normalized deviation (quaternion)   */
   bool m_goal_reached;
-
+  
   std::unique_ptr<State>
       m_state; /** Current states (position, orientation, velocity)  */
   std::unique_ptr<Setpoints>

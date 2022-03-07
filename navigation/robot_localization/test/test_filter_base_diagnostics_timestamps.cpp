@@ -30,16 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ros/ros.h>
-#include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
+#include <nav_msgs/Odometry.h>
+#include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
 
+#include "robot_localization/SetPose.h"
 #include "robot_localization/filter_base.h"
 #include "robot_localization/filter_common.h"
-#include "robot_localization/SetPose.h"
-
 
 #include <diagnostic_msgs/DiagnosticArray.h>
 
@@ -47,45 +46,37 @@
 
 #include <vector>
 
-namespace RobotLocalization
-{
+namespace RobotLocalization {
 
 /*
   Convenience functions to get valid messages.
 */
 
-geometry_msgs::PoseWithCovarianceStamped getValidPose()
-{
+geometry_msgs::PoseWithCovarianceStamped getValidPose() {
   geometry_msgs::PoseWithCovarianceStamped pose_msg;
   pose_msg.header.frame_id = "base_link";
   pose_msg.pose.pose.position.x = 1;
   pose_msg.pose.pose.orientation.w = 1;
-  for (size_t i = 0; i < 6 ; i++)
-  {
-    pose_msg.pose.covariance[i*6 + i] = 1;
+  for (size_t i = 0; i < 6; i++) {
+    pose_msg.pose.covariance[i * 6 + i] = 1;
   }
   return pose_msg;
 }
 
-geometry_msgs::TwistWithCovarianceStamped getValidTwist()
-{
+geometry_msgs::TwistWithCovarianceStamped getValidTwist() {
   geometry_msgs::TwistWithCovarianceStamped twist_msg;
   twist_msg.header.frame_id = "base_link";
-  for (size_t i = 0; i < 6 ; i++)
-  {
-    twist_msg.twist.covariance[i*6 + i] = 1;
+  for (size_t i = 0; i < 6; i++) {
+    twist_msg.twist.covariance[i * 6 + i] = 1;
   }
   return twist_msg;
 }
 
-
-sensor_msgs::Imu getValidImu()
-{
+sensor_msgs::Imu getValidImu() {
   sensor_msgs::Imu imu_msg;
   imu_msg.header.frame_id = "base_link";
   imu_msg.orientation.w = 1;
-  for (size_t i = 0; i < 3 ; i++)
-  {
+  for (size_t i = 0; i < 3; i++) {
     imu_msg.orientation_covariance[i * 3 + i] = 1;
     imu_msg.angular_velocity_covariance[i * 3 + i] = 1;
     imu_msg.linear_acceleration_covariance[i * 3 + i] = 1;
@@ -93,8 +84,7 @@ sensor_msgs::Imu getValidImu()
   return imu_msg;
 }
 
-nav_msgs::Odometry getValidOdometry()
-{
+nav_msgs::Odometry getValidOdometry() {
   nav_msgs::Odometry odom_msg;
   odom_msg.header.frame_id = "odom";
   odom_msg.child_frame_id = "base_link";
@@ -110,9 +100,8 @@ nav_msgs::Odometry getValidOdometry()
 
   All diagnostic messages are stored into the public diagnostics attribute.
 */
-class DiagnosticsHelper
-{
- private:
+class DiagnosticsHelper {
+private:
   ros::Publisher odom_pub_;
   ros::Publisher pose_pub_;
   ros::Publisher twist_pub_;
@@ -126,11 +115,10 @@ class DiagnosticsHelper
   ros::Subscriber diagnostic_sub_;
   ros::ServiceClient set_pose_;
 
- public:
-  std::vector< diagnostic_msgs::DiagnosticArray > diagnostics;
+public:
+  std::vector<diagnostic_msgs::DiagnosticArray> diagnostics;
 
-  DiagnosticsHelper()
-  {
+  DiagnosticsHelper() {
     ros::NodeHandle nh;
     ros::NodeHandle nhLocal("~");
 
@@ -142,21 +130,22 @@ class DiagnosticsHelper
 
     // subscribe to diagnostics and create publishers for the odometry messages.
     odom_pub_ = nh.advertise<nav_msgs::Odometry>("example/odom", 10);
-    pose_pub_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("example/pose", 10);
-    twist_pub_ = nh.advertise<geometry_msgs::TwistWithCovarianceStamped>("example/twist", 10);
+    pose_pub_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>(
+        "example/pose", 10);
+    twist_pub_ = nh.advertise<geometry_msgs::TwistWithCovarianceStamped>(
+        "example/twist", 10);
     imu_pub_ = nh.advertise<sensor_msgs::Imu>("example/imu/data", 10);
 
-    diagnostic_sub_ = nh.subscribe("/diagnostics", 10, &DiagnosticsHelper::diagnosticCallback, this);
+    diagnostic_sub_ = nh.subscribe(
+        "/diagnostics", 10, &DiagnosticsHelper::diagnosticCallback, this);
     set_pose_ = nh.serviceClient<robot_localization::SetPose>("/set_pose");
   }
 
-  void diagnosticCallback(const diagnostic_msgs::DiagnosticArrayPtr &msg)
-  {
+  void diagnosticCallback(const diagnostic_msgs::DiagnosticArrayPtr &msg) {
     diagnostics.push_back(*msg);
   }
 
-  void publishMessages(ros::Time t)
-  {
+  void publishMessages(ros::Time t) {
     odom_msg_.header.stamp = t;
     odom_msg_.header.seq++;
     odom_pub_.publish(odom_msg_);
@@ -174,8 +163,7 @@ class DiagnosticsHelper
     imu_pub_.publish(imu_msg_);
   }
 
-  void setPose(ros::Time t)
-  {
+  void setPose(ros::Time t) {
     robot_localization::SetPose pose_;
     pose_.request.pose = getValidPose();
     pose_.request.pose.header.stamp = t;
@@ -183,14 +171,13 @@ class DiagnosticsHelper
   }
 };
 
-}  // namespace RobotLocalization
+} // namespace RobotLocalization
 
 /*
   First test; we run for a bit; then send messagse with an empty timestamp.
   Then we check if the diagnostics showed a warning.
 */
-TEST(FilterBaseDiagnosticsTest, EmptyTimestamps)
-{
+TEST(FilterBaseDiagnosticsTest, EmptyTimestamps) {
   RobotLocalization::DiagnosticsHelper dh_;
 
   // keep track of which diagnostic messages are detected.
@@ -201,8 +188,7 @@ TEST(FilterBaseDiagnosticsTest, EmptyTimestamps)
 
   // For about a second, send correct messages.
   ros::Rate loopRate(10);
-  for (size_t i = 0; i < 10; ++i)
-  {
+  for (size_t i = 0; i < 10; ++i) {
     ros::spinOnce();
     dh_.publishMessages(ros::Time::now());
     loopRate.sleep();
@@ -220,38 +206,34 @@ TEST(FilterBaseDiagnosticsTest, EmptyTimestamps)
 
   // The filter runs and sends the diagnostics every second.
   // Just run this for two seconds to ensure we get all the diagnostic message.
-  for (size_t i = 0; i < 20; ++i)
-  {
+  for (size_t i = 0; i < 20; ++i) {
     ros::spinOnce();
     loopRate.sleep();
   }
 
   /*
-    Now the diagnostic messages have to be investigated to see whether they contain our warning.
+    Now the diagnostic messages have to be investigated to see whether they
+    contain our warning.
   */
-  for (size_t i=0; i < dh_.diagnostics.size(); i++)
-  {
-    for (size_t status_index=0; status_index < dh_.diagnostics[i].status.size(); status_index++)
-    {
-      for (size_t key=0; key < dh_.diagnostics[i].status[status_index].values.size(); key++)
-      {
-        diagnostic_msgs::KeyValue kv = dh_.diagnostics[i].status[status_index].values[key];
+  for (size_t i = 0; i < dh_.diagnostics.size(); i++) {
+    for (size_t status_index = 0;
+         status_index < dh_.diagnostics[i].status.size(); status_index++) {
+      for (size_t key = 0;
+           key < dh_.diagnostics[i].status[status_index].values.size(); key++) {
+        diagnostic_msgs::KeyValue kv =
+            dh_.diagnostics[i].status[status_index].values[key];
         // Now the keys can be checked to see whether we found our warning.
 
-        if (kv.key == "imu0_timestamp")
-        {
+        if (kv.key == "imu0_timestamp") {
           received_warning_imu = true;
         }
-        if (kv.key == "odom0_timestamp")
-        {
+        if (kv.key == "odom0_timestamp") {
           received_warning_odom = true;
         }
-        if (kv.key == "twist0_timestamp")
-        {
+        if (kv.key == "twist0_timestamp") {
           received_warning_twist = true;
         }
-        if (kv.key == "pose0_timestamp")
-        {
+        if (kv.key == "pose0_timestamp") {
           received_warning_pose = true;
         }
       }
@@ -263,8 +245,7 @@ TEST(FilterBaseDiagnosticsTest, EmptyTimestamps)
   EXPECT_TRUE(received_warning_pose);
 }
 
-TEST(FilterBaseDiagnosticsTest, TimestampsBeforeSetPose)
-{
+TEST(FilterBaseDiagnosticsTest, TimestampsBeforeSetPose) {
   RobotLocalization::DiagnosticsHelper dh_;
 
   // keep track of which diagnostic messages are detected.
@@ -275,8 +256,7 @@ TEST(FilterBaseDiagnosticsTest, TimestampsBeforeSetPose)
 
   // For about a second, send correct messages.
   ros::Rate loopRate(10);
-  for (size_t i = 0; i < 10; ++i)
-  {
+  for (size_t i = 0; i < 10; ++i) {
     ros::spinOnce();
     dh_.publishMessages(ros::Time::now());
     loopRate.sleep();
@@ -292,38 +272,34 @@ TEST(FilterBaseDiagnosticsTest, TimestampsBeforeSetPose)
 
   // The filter runs and sends the diagnostics every second.
   // Just run this for two seconds to ensure we get all the diagnostic message.
-  for (size_t i = 0; i < 20; ++i)
-  {
+  for (size_t i = 0; i < 20; ++i) {
     ros::spinOnce();
     loopRate.sleep();
   }
 
   /*
-    Now the diagnostic messages have to be investigated to see whether they contain our warning.
+    Now the diagnostic messages have to be investigated to see whether they
+    contain our warning.
   */
-  for (size_t i=0; i < dh_.diagnostics.size(); i++)
-  {
-    for (size_t status_index=0; status_index < dh_.diagnostics[i].status.size(); status_index++)
-    {
-      for (size_t key=0; key < dh_.diagnostics[i].status[status_index].values.size(); key++)
-      {
-        diagnostic_msgs::KeyValue kv = dh_.diagnostics[i].status[status_index].values[key];
+  for (size_t i = 0; i < dh_.diagnostics.size(); i++) {
+    for (size_t status_index = 0;
+         status_index < dh_.diagnostics[i].status.size(); status_index++) {
+      for (size_t key = 0;
+           key < dh_.diagnostics[i].status[status_index].values.size(); key++) {
+        diagnostic_msgs::KeyValue kv =
+            dh_.diagnostics[i].status[status_index].values[key];
         // Now the keys can be checked to see whether we found our warning.
 
-        if (kv.key == "imu0_timestamp")
-        {
+        if (kv.key == "imu0_timestamp") {
           received_warning_imu = true;
         }
-        if (kv.key == "odom0_timestamp")
-        {
+        if (kv.key == "odom0_timestamp") {
           received_warning_odom = true;
         }
-        if (kv.key == "twist0_timestamp")
-        {
+        if (kv.key == "twist0_timestamp") {
           received_warning_twist = true;
         }
-        if (kv.key == "pose0_timestamp")
-        {
+        if (kv.key == "pose0_timestamp") {
           received_warning_pose = true;
         }
       }
@@ -335,8 +311,7 @@ TEST(FilterBaseDiagnosticsTest, TimestampsBeforeSetPose)
   EXPECT_TRUE(received_warning_pose);
 }
 
-TEST(FilterBaseDiagnosticsTest, TimestampsBeforePrevious)
-{
+TEST(FilterBaseDiagnosticsTest, TimestampsBeforePrevious) {
   RobotLocalization::DiagnosticsHelper dh_;
 
   // keep track of which diagnostic messages are detected.
@@ -351,8 +326,7 @@ TEST(FilterBaseDiagnosticsTest, TimestampsBeforePrevious)
 
   // For two seconds send correct messages.
   ros::Rate loopRate(10);
-  for (size_t i = 0; i < 20; ++i)
-  {
+  for (size_t i = 0; i < 20; ++i) {
     ros::spinOnce();
     dh_.publishMessages(ros::Time::now());
     loopRate.sleep();
@@ -364,48 +338,42 @@ TEST(FilterBaseDiagnosticsTest, TimestampsBeforePrevious)
 
   // The filter runs and sends the diagnostics every second.
   // Just run this for two seconds to ensure we get all the diagnostic message.
-  for (size_t i = 0; i < 20; ++i)
-  {
+  for (size_t i = 0; i < 20; ++i) {
     ros::spinOnce();
     loopRate.sleep();
   }
 
   /*
-    Now the diagnostic messages have to be investigated to see whether they contain our warning.
+    Now the diagnostic messages have to be investigated to see whether they
+    contain our warning.
   */
-  for (size_t i=0; i < dh_.diagnostics.size(); i++)
-  {
-    for (size_t status_index=0; status_index < dh_.diagnostics[i].status.size(); status_index++)
-    {
-      for (size_t key=0; key < dh_.diagnostics[i].status[status_index].values.size(); key++)
-      {
-        diagnostic_msgs::KeyValue kv = dh_.diagnostics[i].status[status_index].values[key];
+  for (size_t i = 0; i < dh_.diagnostics.size(); i++) {
+    for (size_t status_index = 0;
+         status_index < dh_.diagnostics[i].status.size(); status_index++) {
+      for (size_t key = 0;
+           key < dh_.diagnostics[i].status[status_index].values.size(); key++) {
+        diagnostic_msgs::KeyValue kv =
+            dh_.diagnostics[i].status[status_index].values[key];
         // Now the keys can be checked to see whether we found our warning.
 
-        if (kv.key == "imu0_acceleration_timestamp")
-        {
+        if (kv.key == "imu0_acceleration_timestamp") {
           received_warning_imu_accel = true;
         }
-        if (kv.key == "imu0_pose_timestamp")
-        {
+        if (kv.key == "imu0_pose_timestamp") {
           received_warning_imu_pose = true;
         }
-        if (kv.key == "imu0_twist_timestamp")
-        {
+        if (kv.key == "imu0_twist_timestamp") {
           received_warning_imu_twist = true;
         }
 
-        if (kv.key == "odom0_twist_timestamp")
-        {
+        if (kv.key == "odom0_twist_timestamp") {
           received_warning_twist = true;
         }
 
-        if (kv.key == "pose0_timestamp")
-        {
+        if (kv.key == "pose0_timestamp") {
           received_warning_pose = true;
         }
-        if (kv.key == "twist0_timestamp")
-        {
+        if (kv.key == "twist0_timestamp") {
           received_warning_odom_twist = true;
         }
       }
@@ -420,9 +388,7 @@ TEST(FilterBaseDiagnosticsTest, TimestampsBeforePrevious)
   EXPECT_TRUE(received_warning_twist);
 }
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   ros::init(argc, argv, "filter_base_diagnostics_timestamps-test-interfaces");
   ros::Time::init();
 
