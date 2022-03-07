@@ -1,8 +1,8 @@
-name: clang-format Check
+name: clang-format check
 on: [push]
 jobs:
   formatting-check:
-    name: Formatting Check
+    name: C/C++ LLVM formatting check
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
