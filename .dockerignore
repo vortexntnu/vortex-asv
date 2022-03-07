@@ -1,0 +1,8 @@
+docker-compose.yml
+Dockerfile
+LICENSE
+.github
+.vscode
+.dockerignore
+.gitignore
+*.repos
