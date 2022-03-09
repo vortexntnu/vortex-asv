@@ -10,5 +10,5 @@ jobs:
       uses: jidicula/clang-format-action@v4.5.0
       with:
         clang-format-version: '13'
-        check-path: ${{ matrix.path }}
+        check-path: '.'
         fallback-style: 'llvm' # for when the .clang-format file does not exist
