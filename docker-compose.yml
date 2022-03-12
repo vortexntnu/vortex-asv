@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: asv
+    container_name: asv-dev
     user: vortex
     privileged: true
     volumes:
@@ -49,6 +49,21 @@ services:
   simulator:
     image: ghcr.io/vortexntnu/asv-simulator:main
     container_name: simulator
+    stdin_open: true
+    tty: true
+    network_mode: host
+
+  simulator-dev:
+    build:
+      context: ../ASV-Simulator
+      dockerfile: Dockerfile.dev
+    container_name: simulator-dev
+    user: vortex
+    privileged: true
+    volumes:
+      - "../ASV-Simulator:/home/vortex/sim_ws/src/ASV-Simulator" # Shared volume to avoid rebuilding when starting a new container
+      - "/dev:/dev"
+    entrypoint: /bin/bash
     environment:
       DISPLAY: :0
     stdin_open: true
