@@ -1,39 +1,33 @@
 version: '3.8'
 services:
-  vortex:
-    container_name: vortex_asv
-    build: .
-    user: vortex
-    privileged: true
+  asv:
+    image: ghcr.io/vortexntnu/vortex-asv:main
+    container_name: asv
+    environment:
+      DISPLAY: :0
     volumes:
-      - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
-      - "/dev:/dev"
-      - "../ouster_example:/home/vortex/asv_ws/src/ouster_example"
-      - "../stim300:/home/vortex/asv_ws/src/stim300"
-      
+      - /dev:/dev
+    stdin_open: true
+    tty: true
+    network_mode: host
+  
+  lidar:
+    image: ghcr.io/vortexntnu/ouster_lidar_driver:master
+    command: 
+      - "sensor_hostname:=XXX.XXX.XXX.XXX"
+      - "metadata:=/lidar_metadata"
+    container_name: lidar
     environment:
       DISPLAY: :0
     stdin_open: true
     tty: true
     network_mode: host
 
-  vortex_sim:
-    container_name: vortex_asv_sim
-    build: .
-    user: vortex
-    privileged: true
-    volumes:
-      - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
-      - "/dev:/dev"
+  simulator:
+    image: ghcr.io/vortexntnu/asv-simulator:main
+    container_name: simulator
     environment:
       DISPLAY: :0
     stdin_open: true
     tty: true
     network_mode: host
-    
-#To add additional services, such as a simulator:
-# simulator_service:
-#   build: .
-#   container_name: simulator_service
-#   etc.
-#   read more about the docker-compose here: https://docs.docker.com/compose/

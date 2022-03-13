@@ -38,20 +38,17 @@
 
 #include <memory>
 
-namespace RobotLocalization
-{
+namespace RobotLocalization {
 
-class EkfNodelet : public nodelet::Nodelet
-{
+class EkfNodelet : public nodelet::Nodelet {
 private:
   std::unique_ptr<RosEkf> ekf;
 
 public:
-  virtual void onInit()
-  {
+  virtual void onInit() {
     NODELET_DEBUG("Initializing nodelet...");
 
-    ros::NodeHandle nh      = getNodeHandle();
+    ros::NodeHandle nh = getNodeHandle();
     ros::NodeHandle nh_priv = getPrivateNodeHandle();
 
     ekf = std::make_unique<RosEkf>(nh, nh_priv, getName());
@@ -59,6 +56,6 @@ public:
   }
 };
 
-}  // namespace RobotLocalization
+} // namespace RobotLocalization
 
 PLUGINLIB_EXPORT_CLASS(RobotLocalization::EkfNodelet, nodelet::Nodelet);

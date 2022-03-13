@@ -34,13 +34,11 @@ class LOSControllerPID:
 	def updateGains(self, psi_p, psi_i, psi_d, psi_sat, u_p, u_i, u_d, u_sat):
 		"""
 		Update the controller gains and saturation limit.
-
 		Args:
 			psi_p	  proportional gain for psi (heading)
 			psi_i	  integral gain for psi
 			psi_d	  derivative gain for psi
 			psi_sat	  saturation limit psi
-
 			u_p	  proportional gain for u (velocity)
 			u_i	  integral gain for u
 			u_d	  derivative gain for u
@@ -61,12 +59,10 @@ class LOSControllerPID:
 	def headingController(self, psi_d, psi, t):
 		"""
 		Calculate force to maintain fixed heading.
-
 		Args:
 			psi_d	desired heading
 			psi     current heading
 			t       time
-
 		Returns:
 			float:	A restoring force output by the controller.
 		"""
@@ -81,12 +77,10 @@ class LOSControllerPID:
 	def speedController(self, u_d, u, t):
 		"""
 		Calculate force to maintain fixed speed.
-
 		Args:
 			u_d	desired speed
 			u     current speed
 			t       time
-
 		Returns:
 			float:	A restoring force output by the controller.
 		"""
@@ -132,7 +126,6 @@ class LOSControllerBackstepping:
 		"""
 		A wrapper for the controlLaw() method in the BacksteppingContoller
 		class, to make the los_controller code cleaner.
-
 		Args:
 			u         current velocity in the body-fixed x-direction	
 			u_dot     current acceleration in the body-fixed x-direction
@@ -144,7 +137,6 @@ class LOSControllerBackstepping:
 			r         current angular velocity around the body-fixed z-axis
 			r_d       desired angular velocity around the body-fixed z-axis
 			r_d_dot   desired angular acceleration around the body-fixed z-axis
-
 		Returns:
 			float[3]:	The control force vector tau
 		"""
@@ -159,16 +151,12 @@ class LOSController:
 	The ROS wrapper class for the LOSController. The los_controller is made up
 	of a PID and a backstepping controller, and is mainly used in
 	conjunction with the LOS guidance system.
-
 	Nodes created:
 		los_controller
-
 	Subscribes to:
 		/guidance/los_data
-
 	Publishes to:
 		/auv/thruster_manager/input
-
 	"""
 
 	def __init__(self):
@@ -211,7 +199,6 @@ class LOSController:
 	def log_value_if_updated(self, name, old_value, new_value):
 		"""
 		A helper function for the config_callback() method
-
 		Args:
 			name		The string name of the variable
 			old_value	A real number
@@ -229,7 +216,6 @@ class LOSController:
 		Args:
 			config	The dynamic reconfigure server's Config type variable
 			level	Ununsed variable
-
 		Returns:
 			A Config type containing the updated config argument.
 		"""

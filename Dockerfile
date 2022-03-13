@@ -2,14 +2,7 @@ FROM ros:noetic
 
 ARG distro=noetic
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Create vortex user
-RUN useradd -ms /bin/bash \
-    --home /home/vortex  vortex
-RUN echo "vortex:vortex" | chpasswd
-RUN usermod -aG sudo vortex
-
-
+SHELL ["/bin/bash", "-c"] 
 
 # ROS package dependencies
 RUN apt update && \
@@ -22,8 +15,12 @@ RUN apt update && \
     libeigen3-dev \
     ros-$distro-joy \
     ros-$distro-tf2-geometry-msgs \
+    ros-$distro-geographic-msgs \
     ros-$distro-pcl-ros \
     ros-$distro-rviz \
+    ros-$distro-rtabmap \
+    ros-$distro-rtabmap-ros \
+    ros-noetic-imu-tools \
     libeigen3-dev \
     libglfw3-dev \
     libglew-dev \
@@ -35,12 +32,8 @@ RUN apt update && \
     net-tools \     
     tcpdump 
 
-RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc
-RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
+COPY . /vortex_ws/src
+RUN source /opt/ros/noetic/setup.bash && cd /vortex_ws && catkin build
 
-RUN mkdir -p /home/vortex/asv_ws
-RUN chown vortex /home/vortex/asv_ws
-RUN chmod a+rw /dev/tty*
-
-
-CMD ["/bin/bash"]
+COPY ./entrypoint.sh /
+CMD ["/entrypoint.sh"]

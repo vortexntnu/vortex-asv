@@ -19,11 +19,8 @@ class WaypointManager:
     """
     Nodes created:
         WaypointManager
-
     Subscribes to:
-
     Publishes to:
-
     """
 
     def __init__(self):

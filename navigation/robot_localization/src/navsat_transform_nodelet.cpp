@@ -38,26 +38,24 @@
 
 #include <memory>
 
-namespace RobotLocalization
-{
+namespace RobotLocalization {
 
-class NavSatTransformNodelet : public nodelet::Nodelet
-{
+class NavSatTransformNodelet : public nodelet::Nodelet {
 private:
   std::unique_ptr<RobotLocalization::NavSatTransform> trans;
 
 public:
-  virtual void onInit()
-  {
+  virtual void onInit() {
     NODELET_DEBUG("Initializing nodelet...");
 
-    ros::NodeHandle nh      = getNodeHandle();
+    ros::NodeHandle nh = getNodeHandle();
     ros::NodeHandle nh_priv = getPrivateNodeHandle();
 
     trans = std::make_unique<RobotLocalization::NavSatTransform>(nh, nh_priv);
   }
 };
 
-}  // namespace RobotLocalization
+} // namespace RobotLocalization
 
-PLUGINLIB_EXPORT_CLASS(RobotLocalization::NavSatTransformNodelet, nodelet::Nodelet);
+PLUGINLIB_EXPORT_CLASS(RobotLocalization::NavSatTransformNodelet,
+                       nodelet::Nodelet);
