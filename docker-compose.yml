@@ -6,16 +6,31 @@ services:
   vortex:
     container_name: asv
     build: .
-    privileged: true      
+    privileged: true  
+    user: vortex
+    volumes:
+      - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
+      - "/dev:/dev"    
     environment:
       DISPLAY: :0
     stdin_open: true
     tty: true
     network_mode: host
     
-#To add additional services, such as a simulator:
-# simulator_service:
-#   build: .
-#   container_name: simulator_service
-#   etc.
-#   read more about the docker-compose here: https://docs.docker.com/compose/
+  simulator-dev:
+    build:
+      context: ../ASV-Simulator
+      dockerfile: Dockerfile.dev
+    container_name: simulator-dev
+    user: vortex
+    privileged: true
+    volumes:
+      - "../ASV-Simulator:/home/vortex/sim_ws/src/ASV-Simulator" 
+      - "./vortex_msgs:/home/vortex/sim_ws/src/vortex_msgs" 
+      - "/dev:/dev"
+    entrypoint: /bin/bash
+    environment:
+      DISPLAY: :0
+    stdin_open: true
+    tty: true
+    network_mode: host
