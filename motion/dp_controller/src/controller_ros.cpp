@@ -25,12 +25,10 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   }
 
   m_wrench_pub = m_nh.advertise<geometry_msgs::Wrench>(thrust_topic, 1);
-  m_mode_pub = m_nh.advertise<std_msgs::String>("controller/mode", 10);
   m_debug_pub = m_nh.advertise<vortex_msgs::Debug>("debug/controlstates", 10);
 
   // Initial control mode and
   m_control_mode = ControlModes::OPEN_LOOP;
-  m_debug_mode = true;
 
   // Launch file specifies <auv>.yaml as directory
   if (!m_nh.getParam("/controllers/dp/frequency", m_frequency))
@@ -117,10 +115,6 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
     ROS_FATAL("Failed to read parameter scaling wrench command.");
     tau_command_scaling = v;
   }
-
-  // for (int i = 0; i < 6; i++) {
-  //   std::cout << tau_command_max[i] << " " << tau_command_scaling[i] << "\n";
-  // }
 }
 
 void Controller::spin() {
@@ -129,17 +123,9 @@ void Controller::spin() {
 
   while (ros::ok()) {
 
-    // gets the newest state and newest setpoints as Eigen
-    //m_state->get(&position_state, &orientation_state, &velocity_state);
-    //m_setpoints->get(&position_setpoint, &orientation_setpoint);
-
-
     Eigen::Vector6d tau_command = Eigen::VectorXd::Zero(6);
 
-    // ROS_INFO("Position_setpoint: %2.4f, %2.4f", position_setpoint[0],
-    // position_setpoint[1]);
-
-    if (true) {
+    if (m_debug_mode) {
       publishDebugMsg(position_state, orientation_state, velocity_state,
                       position_setpoint, orientation_setpoint);
     }
@@ -158,10 +144,8 @@ void Controller::spin() {
           position_setpoint, Eigen::Quaterniond::Identity());
       tau_command(YAW) = 0;
 
-      if (m_controller->circleOfAcceptanceXY(position_state, position_setpoint,
-                                             R)) {
-        ROS_INFO("Reached setpoint, switching mode to OPEN_LOOP");
-        m_control_mode = ControlModes::OPEN_LOOP;
+      if (!m_goal_reached && isPositionInCOA()) {
+        ROS_INFO("Reached setpoint!");
         m_goal_reached = true;
       }
       break;
@@ -174,15 +158,8 @@ void Controller::spin() {
       tau_command(SURGE) = 0;
       tau_command(SWAY) = 0;
 
-      for(int i = 0; i < 6; i++) {
-        std::cout << tau_command(i) << " ";
-      }
-      std::cout << "\n";
-
-      if (m_controller->circleOfAcceptanceYaw(orientation_state,
-                                              orientation_setpoint, 0.05)) {
-        ROS_INFO("Reached setpoint, switching mode to OPEN_LOOP");
-        m_control_mode = ControlModes::OPEN_LOOP;
+      if (!m_goal_reached && isYawInCOA()) {
+        ROS_INFO("Reached setpoint!");
         m_goal_reached = true;
       }
 
@@ -193,12 +170,8 @@ void Controller::spin() {
       tau_command = m_controller->getFeedback(position_state, orientation_state,
                                               velocity_state, position_setpoint,
                                               orientation_setpoint);
-      if (m_controller->circleOfAcceptanceYaw(orientation_state,
-                                              orientation_setpoint, 0.05) &&
-          m_controller->circleOfAcceptanceXY(position_state, position_setpoint,
-                                             R)) {
-        ROS_INFO("Reached setpoint, switching mode to OPEN_LOOP");
-        m_control_mode = ControlModes::OPEN_LOOP;
+      if (!m_goal_reached && isYawInCOA() && isPositionInCOA()) {
+        ROS_INFO("Reached setpoint!");
         m_goal_reached = true;
       }
       break;
@@ -212,7 +185,7 @@ void Controller::spin() {
     tau_command(HEAVE) = 0;
     tau_command(ROLL) = 0;
     tau_command(PITCH) = 0;
-    
+
     geometry_msgs::Wrench tau_msg;
     tf::wrenchEigenToMsg(tau_command, tau_msg);
     m_wrench_pub.publish(tau_msg);
@@ -222,23 +195,12 @@ void Controller::spin() {
   }
 }
 
+bool Controller::isPositionInCOA() {
+  return m_controller->circleOfAcceptanceXY(position_state, position_setpoint, R);
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-/* SETPOINTS */
-void Controller::resetSetpoints() {
-  position_state = position_state;
-  orientation_state = orientation_state;
+bool Controller::isYawInCOA() {
+  return m_controller->circleOfAcceptanceYaw(orientation_state, orientation_setpoint, 0.05);
 }
 
 
@@ -246,42 +208,14 @@ void Controller::resetSetpoints() {
 bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request &req,
                                      vortex_msgs::ControlMode::Response &res) {
 
-  ControlMode new_control_mode = m_control_mode;
-  int mode = req.controlMode;
-
-  try {
-    new_control_mode = getControlMode(mode);
-    res.result = "success";
-    ROS_INFO("successfull callback");
-
-    // TO AVOID AGGRESSIVE SWITCHING
-    // set current target position to previous position
-    m_controller->x_d_prev = position_state;
-    m_controller->x_d_prev_prev = position_state;
-    m_controller->x_ref_prev = position_state;
-    m_controller->x_ref_prev_prev = position_state;
-
-    // Integral action reset
-    m_controller->integral = Eigen::Vector6d::Zero();
-
-  } catch (const std::exception &e) {
-    res.result = "failed";
-    ROS_INFO("failed callback");
-  }
-
+  ControlMode new_control_mode = static_cast<ControlMode>(req.controlMode);
   if (new_control_mode != m_control_mode) {
     m_control_mode = new_control_mode;
-    // resetSetpoints();
     ROS_INFO_STREAM("Changing mode to " << controlModeString(m_control_mode)
                                         << ".");
   }
-  publishControlMode();
+  res.result = "success";
   return true;
-}
-
-ControlMode Controller::getControlMode(int mode) {
-  ControlMode new_control_mode = m_control_mode;
-  return static_cast<ControlMode>(mode);
 }
 
 /* ACTION SERVER */
@@ -302,24 +236,20 @@ void Controller::actionGoalCallBack() {
   m_controller->x_ref_prev = position_state;
   m_controller->x_ref_prev_prev = position_state;
 
+  // Integral action reset
+  m_controller->integral = Eigen::Vector6d::Zero();
+
   // accept the new goal - do I have to cancel a pre-existing one first?
-  mGoal = mActionServer->acceptNewGoal()->target_pose;
+  geometry_msgs::PoseStamped new_goal = mActionServer->acceptNewGoal()->target_pose;
 
   // Transform from Msg to Eigen
-  Eigen::Vector3d position;
-  Eigen::Quaterniond orientation; 
-  tf::pointMsgToEigen(mGoal.pose.position, position);
-  tf::quaternionMsgToEigen(mGoal.pose.orientation, orientation);
+  tf::pointMsgToEigen(new_goal.pose.position, position_setpoint);
+  tf::quaternionMsgToEigen(new_goal.pose.orientation, orientation_setpoint);
 
   Eigen::Vector3d euler =
       orientation_setpoint.toRotationMatrix().eulerAngles(2, 1, 0);
   ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f",
            position_setpoint[0], position_setpoint[1], 180.0 / M_PI * euler[0]);
-
-  position_setpoint = position;
-  orientation_setpoint = orientation;
-  // Integral action reset
-  m_controller->integral = Eigen::Vector6d::Zero();
 }
 
 /* DYNAMIC RECONFIGURE */
@@ -370,27 +300,20 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg) {
     return;
 
   // return a feedback message to the client
-  feedback_.base_position.header.stamp = ros::Time::now();
-  feedback_.base_position.pose = msg.pose.pose;
-  mActionServer->publishFeedback(feedback_);
+  move_base_msgs::MoveBaseFeedback feedback;
+  feedback.base_position.header.stamp = ros::Time::now();
+  feedback.base_position.pose = msg.pose.pose;
+  mActionServer->publishFeedback(feedback);
 
   // if within circle of acceptance, return result succeeded
   if (m_goal_reached) {
     mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(),
                                 "Goal reached.");
-    resetSetpoints();
     m_goal_reached = false;
   }
 }
 
 /* PUBLISH HELPERS */
-void Controller::publishControlMode() {
-  std::string s = controlModeString(m_control_mode);
-  std_msgs::String msg;
-  msg.data = s;
-  m_mode_pub.publish(msg);
-}
-
 void Controller::publishDebugMsg(
     const Eigen::Vector3d &position_state,
     const Eigen::Quaterniond &orientation_state,

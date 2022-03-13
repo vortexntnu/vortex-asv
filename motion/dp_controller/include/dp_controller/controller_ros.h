@@ -109,34 +109,28 @@ public:
    */
   void spin();
 
-  ros::ServiceServer control_mode_service_; /** Control mode service server */
+  ros::ServiceServer control_mode_service_;
 
 private:
-  ros::NodeHandle m_nh; /** Nodehandle          */
+  ros::NodeHandle m_nh;
 
-  ros::Subscriber m_command_sub; /** Command subscriber  */
-  ros::Subscriber m_state_sub;   /** State subscriber    */
-  ros::Subscriber m_mode_sub;    /** Mode subscriber     */
+  ros::Subscriber m_command_sub;
+  ros::Subscriber m_state_sub;
 
-  ros::Publisher m_wrench_pub; /** Wrench publisher    */
-  ros::Publisher m_rpm_pub;    /** RPM publisher       */
-  ros::Publisher m_mode_pub;   /** Mode publisher      */
-  ros::Publisher m_debug_pub;  /** Debug publisher     */
+  ros::Publisher m_wrench_pub;
+  ros::Publisher m_debug_pub;
 
   dynamic_reconfigure::Server<dp_controller::VortexControllerConfig>
       m_dr_srv; /** dynamic_reconfigure server */
 
   ControlMode m_control_mode; /** Current control mode                        */
   int m_frequency;            /** Update frequency for controller (ros rate)  */
-  bool m_debug_mode = false;  /** Bool to run in debug mode                   */
-  const double c_normalized_force_deadzone =
-      0.01; /** Normalized force deadzone                   */
-  const double c_max_quat_norm_deviation =
-      0.1; /** Maximum normalized deviation (quaternion)   */
+  bool m_debug_mode = true; 
+  const double c_normalized_force_deadzone = 0.01;
+  const double c_max_quat_norm_deviation = 0.1;
   bool m_goal_reached;
   
-  std::unique_ptr<QuaternionPdController>
-      m_controller; /** The Quaternion PID controller object              */
+  std::unique_ptr<QuaternionPdController> m_controller; 
 
   // EIGEN CONVERSION INITIALIZE
   Eigen::Vector3d position_state;                /** Current position      */
@@ -185,17 +179,9 @@ private:
    */
   void updateSetpoint(PoseIndex axis);
 
-  /**
-   * @brief Read parameters and initialize the controller
-   *
-   * @see quaternion_pd_controller.h
-   */
-  void initPositionHoldController();
+  bool isPositionInCOA();
 
-  /**
-   * @brief Publish the control mode through the mode publisher
-   */
-  void publishControlMode();
+  bool isYawInCOA();
 
   /**
    * @brief Publish a vortex_msgs Debug message containing current state and
@@ -222,11 +208,7 @@ protected:
 
   ros::ServiceServer mControlModeService; /** Service server object */
 
-  move_base_msgs::MoveBaseFeedback feedback_; /** Current feedback value*/
-
   float R; /** Radius of the circle of acceptance */
-
-  geometry_msgs::PoseStamped mGoal; /** The current goal */
 };
 
 #endif // VORTEX_CONTROLLER_CONTROLLER_ROS_H
