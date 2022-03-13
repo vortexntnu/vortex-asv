@@ -11,26 +11,24 @@
 #include <vector>
 
 Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
+  
+  m_control_mode = ControlModes::OPEN_LOOP;
+  m_goal_reached = false;
   // Subscribers
   m_state_sub =
       m_nh.subscribe("/pose_gt", 10, &Controller::stateCallback, this);
 
   // Publishers
   std::string thrust_topic;
-
   if (!m_nh.getParam("/controllers/dp/thrust_topic", thrust_topic)) {
     thrust_topic = "/thrust/desired_forces";
     ROS_WARN("Failed to read parameter thrust_topic, defaulting to "
              "/thrust/desired_forces");
   }
-
   m_wrench_pub = m_nh.advertise<geometry_msgs::Wrench>(thrust_topic, 1);
   m_debug_pub = m_nh.advertise<vortex_msgs::Debug>("debug/controlstates", 10);
 
-  // Initial control mode and
-  m_control_mode = ControlModes::OPEN_LOOP;
-
-  // Launch file specifies <auv>.yaml as directory
+  // Launch file specifies <asv>.yaml as directory
   if (!m_nh.getParam("/controllers/dp/frequency", m_frequency))
     ROS_WARN(
         "Failed to read parameter controller frequency, defaulting to %i Hz.",
@@ -41,7 +39,6 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   }
   
   // Initialize the controller itself
-  // Read controller gains from parameter server
   double a, b, c, i;
   if (!m_nh.getParam("/controllers/dp/velocity_gain", a))
     ROS_ERROR("Failed to read parameter velocity_gain.");
@@ -52,7 +49,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   if (!m_nh.getParam("/controllers/dp/integral_gain", i))
     ROS_ERROR("Failed to read parameter integral_gain.");
 
-  // Read center of gravity and buoyancy vectors from <auv>.yaml
+  // Read center of gravity and buoyancy vectors from <asv>.yaml
   std::vector<double> r_G_vec, r_B_vec;
   if (!m_nh.getParam("/physical/center_of_mass", r_G_vec))
     ROS_FATAL("Failed to read robot center of mass parameter.");
@@ -61,7 +58,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   Eigen::Vector3d r_G(r_G_vec.data());
   Eigen::Vector3d r_B(r_B_vec.data());
 
-  // Read and calculate ROV weight and buoyancy from <auv>.yaml
+  // Read and calculate ASV weight and buoyancy from <asv>.yaml
   double mass, displacement, acceleration_of_gravity, density_of_water;
   if (!m_nh.getParam("/physical/mass_kg", mass))
     ROS_FATAL("Failed to read parameter mass.");
@@ -75,7 +72,16 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   double B = density_of_water * displacement * acceleration_of_gravity;
 
   m_controller.reset(new QuaternionPdController(a, b, c, i, W, B, r_G, r_B));
-  m_goal_reached = false;
+
+  std::vector<double> v;
+  if (!m_nh.getParam("/propulsion/command/wrench/max", v)) {
+    ROS_FATAL("Failed to read parameter max wrench command.");
+    tau_command_max = v;
+  }
+  if (!m_nh.getParam("/propulsion/command/wrench/scaling", v)) {
+    ROS_FATAL("Failed to read parameter scaling wrench command.");
+    tau_command_scaling = v;
+  }
 
   // Set up a dynamic reconfigure server
   dynamic_reconfigure::Server<
@@ -88,7 +94,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   /* Action server */
   // ros::NodeHandle nodeHandle("move_base");
   mActionServer =
-      new MoveBaseActionServer(m_nh, "move_base", /*autostart*/ false);
+      new MoveBaseActionServer(m_nh, "move_base", false);
 
   // register the goal and feeback callbacks
   mActionServer->registerGoalCallback(
@@ -100,19 +106,6 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   mControlModeService = m_nh.advertiseService(
       "control_mode_service", &Controller::controlModeCallback, this);
   ROS_INFO("Started service server.");
-
-
-  std::vector<double> v;
-
-  if (!m_nh.getParam("/propulsion/command/wrench/max", v)) {
-    ROS_FATAL("Failed to read parameter max wrench command.");
-    tau_command_max = v;
-  }
-  if (!m_nh.getParam("/propulsion/command/wrench/scaling", v)) {
-    
-    ROS_FATAL("Failed to read parameter scaling wrench command.");
-    tau_command_scaling = v;
-  }
 }
 
 void Controller::spin() {
@@ -143,8 +136,7 @@ void Controller::spin() {
       tau_command(YAW) = 0;
 
       if (!m_goal_reached && isPositionInCOA()) {
-        ROS_INFO("Reached setpoint!");
-        m_goal_reached = true;
+        reachedSetpoint();
       }
       break;
     }
@@ -157,8 +149,7 @@ void Controller::spin() {
       tau_command(SWAY) = 0;
 
       if (!m_goal_reached && isYawInCOA()) {
-        ROS_INFO("Reached setpoint!");
-        m_goal_reached = true;
+        reachedSetpoint();
       }
 
       break;
@@ -169,8 +160,7 @@ void Controller::spin() {
                                               velocity_state, position_setpoint,
                                               orientation_setpoint);
       if (!m_goal_reached && isYawInCOA() && isPositionInCOA()) {
-        ROS_INFO("Reached setpoint!");
-        m_goal_reached = true;
+        reachedSetpoint();
       }
       break;
     }
@@ -199,6 +189,12 @@ bool Controller::isPositionInCOA() {
 
 bool Controller::isYawInCOA() {
   return m_controller->circleOfAcceptanceYaw(orientation_state, orientation_setpoint, 0.05);
+}
+
+void Controller::reachedSetpoint() {
+  ROS_INFO("Reached setpoint!");
+  mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(), "Goal reached.");
+  m_goal_reached = true;
 }
 
 
@@ -248,6 +244,9 @@ void Controller::actionGoalCallBack() {
       orientation_setpoint.toRotationMatrix().eulerAngles(2, 1, 0);
   ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f",
            position_setpoint[0], position_setpoint[1], 180.0 / M_PI * euler[0]);
+
+  m_goal_reached = false;
+
 }
 
 /* DYNAMIC RECONFIGURE */
@@ -289,12 +288,6 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg) {
   feedback.base_position.pose = msg.pose.pose;
   mActionServer->publishFeedback(feedback);
 
-  // if within circle of acceptance, return result succeeded
-  if (m_goal_reached) {
-    mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(),
-                                "Goal reached.");
-    m_goal_reached = false;
-  }
 }
 
 /* PUBLISH HELPERS */

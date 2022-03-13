@@ -151,6 +151,8 @@ private:
 
   bool isYawInCOA();
 
+  void reachedSetpoint();
+
   /**
    * @brief Publish a vortex_msgs Debug message containing current state and
    * setpoint data
