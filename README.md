@@ -6,7 +6,7 @@ Vortex ASV software. Purpose built for competing in ASV competitions.
 Docker is a tool for creating a virtual environment with predetermined dependencies, much like a VM with fixed installation steps. In this case, we are using the the ROS noetic image as a base, and adding our own dependencies on top of it.
 To use Docker, make sure you have downloaded the [Docker Engine](https://docs.docker.com/engine/install/ubuntu/) and [Docker compose](https://docs.docker.com/compose/install/).
 
-We use Docker to be able to run the code on *any* PC that has the Docker installed. This first part is the basics of how to run a docker container on your PC. For developing, skip to the next part
+We use Docker to be able to run the code on *any* PC that has the Docker installed. This first part is the basics of how to run a docker container on your PC. For developing, skip to the [next part](https://github.com/vortexntnu/Vortex-ASV/edit/improvement/update_readme/README.md#docker-developer-guide)
 
 To run a service, navigate to Vortex-ASV where docker-compose.yml is located and run
 ```
