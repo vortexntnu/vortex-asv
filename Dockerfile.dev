@@ -1,8 +1,18 @@
+# The point of this Dockerfile is to make development easier, by
+# not running the custom entrypoint at deploy time, and instead relying on
+# the user to execute their code from inside the container
+
+
 FROM ros:noetic
 
 ARG distro=noetic
 ENV DEBIAN_FRONTEND=noninteractive
-SHELL ["/bin/bash", "-c"] 
+
+# Create vortex user
+RUN useradd -ms /bin/bash \
+    --home /home/vortex  vortex
+RUN echo "vortex:vortex" | chpasswd
+RUN usermod -aG sudo vortex
 
 # ROS package dependencies
 RUN apt update && \
@@ -12,6 +22,7 @@ RUN apt update && \
     ros-$distro-tf \
     ros-$distro-tf2 \
     ros-$distro-eigen-conversions \
+    libeigen3-dev \
     ros-$distro-joy \
     ros-$distro-tf2-geometry-msgs \
     ros-$distro-geographic-msgs \
@@ -19,7 +30,6 @@ RUN apt update && \
     ros-$distro-rviz \
     ros-$distro-rtabmap \
     ros-$distro-rtabmap-ros \
-    ros-$distro-geographic-msgs \
     ros-noetic-imu-tools \
     libeigen3-dev \
     libglfw3-dev \
@@ -32,8 +42,10 @@ RUN apt update && \
     net-tools \     
     tcpdump 
 
-COPY . /vortex_ws/src
-RUN source /opt/ros/noetic/setup.bash && cd /vortex_ws && catkin build
+RUN echo "source /opt/ros/noetic/setup.bash" >> /home/vortex/.bashrc
+RUN echo "source /home/vortex/asv_ws/devel/setup.bash" >> /home/vortex/.bashrc
 
-COPY ./entrypoint.sh /
-CMD ["/entrypoint.sh"]
+RUN mkdir -p /home/vortex/asv_ws
+RUN chown vortex /home/vortex/asv_ws
+
+CMD ["/bin/bash"]

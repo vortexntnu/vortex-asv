@@ -1,16 +1,46 @@
-
-
-
 version: '3.8'
 services:
-  asv-dev:
+
+  asv-xavier:
+    image: ghcr.io/vortexntnu/vortex-asv:main
     container_name: asv
-    build: .
-    privileged: true  
+    volumes:
+      - /dev:/dev
+    stdin_open: true
+    tty: true
+    network_mode: host
+
+  asv:
+    image: ghcr.io/vortexntnu/vortex-asv:main
+    container_name: asv
+    environment:
+      DISPLAY: :0
+    stdin_open: true
+    tty: true
+    network_mode: host
+
+  asv-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: asv-dev
     user: vortex
+    privileged: true
     volumes:
       - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
-      - "/dev:/dev"    
+      - "/dev:/dev"
+    environment:
+      DISPLAY: :0
+    stdin_open: true
+    tty: true
+    network_mode: host
+
+  lidar:
+    image: ghcr.io/vortexntnu/ouster_lidar_driver:master
+    command: 
+      - "sensor_hostname:=XXX.XXX.XXX.XXX"
+      - "metadata:=/lidar_metadata"
+    container_name: lidar
     environment:
       DISPLAY: :0
     stdin_open: true
@@ -23,7 +53,7 @@ services:
     stdin_open: true
     tty: true
     network_mode: host
-    
+   
   simulator-dev:
     build:
       context: ../ASV-Simulator
@@ -32,8 +62,7 @@ services:
     user: vortex
     privileged: true
     volumes:
-      - "../ASV-Simulator:/home/vortex/sim_ws/src/ASV-Simulator" 
-      - "./vortex_msgs:/home/vortex/sim_ws/src/vortex_msgs" 
+      - "../ASV-Simulator:/home/vortex/sim_ws/src/ASV-Simulator" # Shared volume to avoid rebuilding when starting a new container
       - "/dev:/dev"
     entrypoint: /bin/bash
     environment:
