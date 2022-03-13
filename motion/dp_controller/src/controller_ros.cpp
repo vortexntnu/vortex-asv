@@ -30,27 +30,18 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
 
   // Initial control mode and
   m_control_mode = ControlModes::OPEN_LOOP;
-  Eigen::Vector3d startPoint(5, -10, 0);
-  position = startPoint;
+  m_debug_mode = true;
 
   // Launch file specifies <auv>.yaml as directory
   if (!m_nh.getParam("/controllers/dp/frequency", m_frequency))
     ROS_WARN(
         "Failed to read parameter controller frequency, defaulting to %i Hz.",
         m_frequency);
-  std::string s;
-  if (!m_nh.getParam("/computer", s)) {
-    s = "pc-debug";
-    ROS_WARN("Failed to read parameter computer");
-  }
-  // if (s == "pc-debug")
-  m_debug_mode = true;
 
   if (!m_nh.getParam("/controllers/dp/circleOfAcceptance", R)) {
     ROS_WARN("Failed to read parameter circleOfAcceptance");
   }
 
-  m_state.reset(new State());
   initSetpoints();
   
   // Initialize the controller itself
@@ -116,30 +107,25 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
 }
 
 void Controller::spin() {
-  Eigen::Vector6d tau_command = Eigen::VectorXd::Zero(6);
-
-  Eigen::Vector3d position_state = Eigen::Vector3d::Zero();
-  Eigen::Quaterniond orientation_state = Eigen::Quaterniond::Identity();
-  Eigen::Vector6d velocity_state = Eigen::VectorXd::Zero(6);
-
-  Eigen::Vector3d position_setpoint = Eigen::Vector3d::Zero();
-  Eigen::Quaterniond orientation_setpoint = Eigen::Quaterniond::Identity();
 
   ros::Rate rate(m_frequency);
+
   while (ros::ok()) {
 
     // gets the newest state and newest setpoints as Eigen
-    m_state->get(&position_state, &orientation_state, &velocity_state);
-    m_setpoints->get(&position_setpoint, &orientation_setpoint);
+    //m_state->get(&position_state, &orientation_state, &velocity_state);
+    //m_setpoints->get(&position_setpoint, &orientation_setpoint);
+
 
     Eigen::Vector6d tau_command = Eigen::VectorXd::Zero(6);
 
     // ROS_INFO("Position_setpoint: %2.4f, %2.4f", position_setpoint[0],
     // position_setpoint[1]);
 
-    if (m_debug_mode)
+    if (true) {
       publishDebugMsg(position_state, orientation_state, velocity_state,
                       position_setpoint, orientation_setpoint);
+    }
 
     switch (m_control_mode) {
     case ControlModes::OPEN_LOOP: {
@@ -170,6 +156,11 @@ void Controller::spin() {
           Eigen::Vector3d::Zero(), orientation_setpoint);
       tau_command(SURGE) = 0;
       tau_command(SWAY) = 0;
+
+      for(int i = 0; i < 6; i++) {
+        std::cout << tau_command(i) << " ";
+      }
+      std::cout << "\n";
 
       if (m_controller->circleOfAcceptanceYaw(orientation_state,
                                               orientation_setpoint, 0.05)) {
@@ -215,50 +206,24 @@ void Controller::spin() {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* SETPOINTS */
 void Controller::resetSetpoints() {
-  // Reset setpoints to be equal to state
-  Eigen::Vector3d position;
-  Eigen::Quaterniond orientation;
-  m_state->get(&position, &orientation);
-  m_setpoints->set(position, orientation);
+  position_state = position_state;
+  orientation_state = orientation_state;
 }
 
-void Controller::updateSetpoint(PoseIndex axis) {
-  Eigen::Vector3d state;
-  Eigen::Vector3d setpoint;
-
-  switch (axis) {
-  case SURGE:
-  case SWAY:
-  case HEAVE:
-
-    m_state->get(&state);
-    m_setpoints->get(&setpoint);
-
-    setpoint[axis] = state[axis];
-    m_setpoints->set(setpoint);
-    break;
-
-  case ROLL:
-  case PITCH:
-  case YAW:
-
-    // calculate heading setpoint based on current position
-    // and location of position setpoint
-    m_state->getEuler(&state);
-    m_setpoints->getEuler(&setpoint);
-
-    setpoint[axis - 3] = state[axis - 3];
-    Eigen::Matrix3d R;
-    R = Eigen::AngleAxisd(setpoint(2), Eigen::Vector3d::UnitZ()) *
-        Eigen::AngleAxisd(setpoint(1), Eigen::Vector3d::UnitY()) *
-        Eigen::AngleAxisd(setpoint(0), Eigen::Vector3d::UnitX());
-    Eigen::Quaterniond quaternion_setpoint(R);
-    m_setpoints->set(quaternion_setpoint);
-    break;
-  }
-}
 
 /* SERVICE SERVER */
 bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request &req,
@@ -274,10 +239,10 @@ bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request &req,
 
     // TO AVOID AGGRESSIVE SWITCHING
     // set current target position to previous position
-    m_controller->x_d_prev = position;
-    m_controller->x_d_prev_prev = position;
-    m_controller->x_ref_prev = position;
-    m_controller->x_ref_prev_prev = position;
+    m_controller->x_d_prev = position_state;
+    m_controller->x_d_prev_prev = position_state;
+    m_controller->x_ref_prev = position_state;
+    m_controller->x_ref_prev_prev = position_state;
 
     // Integral action reset
     m_controller->integral = Eigen::Vector6d::Zero();
@@ -315,24 +280,27 @@ void Controller::preemptCallBack() {
 void Controller::actionGoalCallBack() {
 
   // set current target position to previous position
-  m_controller->x_d_prev = position;
-  m_controller->x_d_prev_prev = position;
-  m_controller->x_ref_prev = position;
-  m_controller->x_ref_prev_prev = position;
+  m_controller->x_d_prev = position_state;
+  m_controller->x_d_prev_prev = position_state;
+  m_controller->x_ref_prev = position_state;
+  m_controller->x_ref_prev_prev = position_state;
 
   // accept the new goal - do I have to cancel a pre-existing one first?
   mGoal = mActionServer->acceptNewGoal()->target_pose;
 
   // Transform from Msg to Eigen
-  tf::pointMsgToEigen(mGoal.pose.position, setpoint_position);
-  tf::quaternionMsgToEigen(mGoal.pose.orientation, setpoint_orientation);
+  Eigen::Vector3d position;
+  Eigen::Quaterniond orientation; 
+  tf::pointMsgToEigen(mGoal.pose.position, position);
+  tf::quaternionMsgToEigen(mGoal.pose.orientation, orientation);
 
   Eigen::Vector3d euler =
-      setpoint_orientation.toRotationMatrix().eulerAngles(2, 1, 0);
+      orientation_setpoint.toRotationMatrix().eulerAngles(2, 1, 0);
   ROS_INFO("Controller::actionGoalCallBack(): driving to %2.2f/%2.2f/%2.2f",
-           setpoint_position[0], setpoint_position[1], 180.0 / M_PI * euler[0]);
+           position_setpoint[0], position_setpoint[1], 180.0 / M_PI * euler[0]);
 
-  m_setpoints->set(setpoint_position, setpoint_orientation);
+  position_setpoint = position;
+  orientation_setpoint = orientation;
   // Integral action reset
   m_controller->integral = Eigen::Vector6d::Zero();
 }
@@ -363,32 +331,23 @@ void Controller::initSetpoints() {
     ROS_FATAL("Failed to read parameter scaling wrench command.");
   const Eigen::Vector6d wrench_command_scaling =
       Eigen::Vector6d::Map(v.data(), v.size());
-
-  m_setpoints.reset(new Setpoints(wrench_command_scaling, wrench_command_max));
 }
 
 /* SUBSCRIBER CALLBACKS */
 void Controller::stateCallback(const nav_msgs::Odometry &msg) {
 
   // Convert to eigen for computation
-  tf::pointMsgToEigen(msg.pose.pose.position, position);
-  tf::quaternionMsgToEigen(msg.pose.pose.orientation, orientation);
-  tf::twistMsgToEigen(msg.twist.twist, velocity);
+  tf::pointMsgToEigen(msg.pose.pose.position, position_state);
+  tf::quaternionMsgToEigen(msg.pose.pose.orientation, orientation_state);
+  tf::twistMsgToEigen(msg.twist.twist, velocity_state);
 
   bool orientation_invalid =
-      (abs(orientation.norm() - 1) > c_max_quat_norm_deviation);
-  if (isFucked(position) || isFucked(velocity) || orientation_invalid) {
+      (abs(orientation_state.norm() - 1) > c_max_quat_norm_deviation);
+  if (isFucked(position_state) || isFucked(velocity_state) || orientation_invalid) {
     ROS_WARN_THROTTLE(1, "Invalid state estimate received, ignoring...");
     return;
   }
 
-  // takes a odometry message and transforms to Eigen message
-  m_state->set(position, orientation, velocity);
-  // ROS_INFO("State set"); this is the case
-
-  // ACTION SERVER
-
-  // save current state to private variable
   // geometry_msgs/PoseStamped Pose
   if (!mActionServer->isActive())
     return;

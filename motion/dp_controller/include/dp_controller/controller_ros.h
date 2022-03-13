@@ -22,8 +22,7 @@
 #include <dp_controller/VortexControllerConfig.h>
 
 #include "dp_controller/quaternion_pd_controller.h"
-#include "dp_controller/setpoints.h"
-#include "dp_controller/state.h"
+
 
 // Action server
 #include <actionlib/server/simple_action_server.h>
@@ -136,21 +135,15 @@ private:
       0.1; /** Maximum normalized deviation (quaternion)   */
   bool m_goal_reached;
   
-  std::unique_ptr<State>
-      m_state; /** Current states (position, orientation, velocity)  */
-  std::unique_ptr<Setpoints>
-      m_setpoints; /** Current setpoints (wrench, orientation, velocity) */
   std::unique_ptr<QuaternionPdController>
       m_controller; /** The Quaternion PID controller object              */
 
   // EIGEN CONVERSION INITIALIZE
-  Eigen::Vector3d position;                /** Current position      */
-  Eigen::Quaterniond orientation;          /** Current orientation   */
-  Eigen::Vector6d velocity;                /** Current velocity      */
-  Eigen::Vector3d setpoint_position;       /** Position setpoint     */
-  Eigen::Quaterniond setpoint_orientation; /** Orientation setpoint  */
-  Eigen::Vector3d prev_setpoint_position;  /** Previous setpoint position
-                                              (initial position hardcoded)*/
+  Eigen::Vector3d position_state;                /** Current position      */
+  Eigen::Quaterniond orientation_state;          /** Current orientation   */
+  Eigen::Vector6d velocity_state;                /** Current velocity      */
+  Eigen::Vector3d position_setpoint;       /** Position setpoint     */
+  Eigen::Quaterniond orientation_setpoint; /** Orientation setpoint  */
 
   enum PoseIndex {
     SURGE = 0,
