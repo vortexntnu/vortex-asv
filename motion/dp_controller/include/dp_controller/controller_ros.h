@@ -145,6 +145,9 @@ private:
   Eigen::Vector3d position_setpoint;       /** Position setpoint     */
   Eigen::Quaterniond orientation_setpoint; /** Orientation setpoint  */
 
+  std::vector<double> tau_command_max;
+  std::vector<double> tau_command_scaling;
+
   enum PoseIndex {
     SURGE = 0,
     SWAY = 1,

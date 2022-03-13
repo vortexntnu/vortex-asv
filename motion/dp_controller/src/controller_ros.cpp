@@ -104,6 +104,23 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   mControlModeService = m_nh.advertiseService(
       "control_mode_service", &Controller::controlModeCallback, this);
   ROS_INFO("Started service server.");
+
+
+  std::vector<double> v;
+
+  if (!m_nh.getParam("/propulsion/command/wrench/max", v)) {
+    ROS_FATAL("Failed to read parameter max wrench command.");
+    tau_command_max = v;
+  }
+  if (!m_nh.getParam("/propulsion/command/wrench/scaling", v)) {
+    
+    ROS_FATAL("Failed to read parameter scaling wrench command.");
+    tau_command_scaling = v;
+  }
+
+  // for (int i = 0; i < 6; i++) {
+  //   std::cout << tau_command_max[i] << " " << tau_command_scaling[i] << "\n";
+  // }
 }
 
 void Controller::spin() {
@@ -195,7 +212,7 @@ void Controller::spin() {
     tau_command(HEAVE) = 0;
     tau_command(ROLL) = 0;
     tau_command(PITCH) = 0;
-
+    
     geometry_msgs::Wrench tau_msg;
     tf::wrenchEigenToMsg(tau_command, tau_msg);
     m_wrench_pub.publish(tau_msg);
