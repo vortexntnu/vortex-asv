@@ -39,8 +39,6 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   if (!m_nh.getParam("/controllers/dp/circleOfAcceptance", R)) {
     ROS_WARN("Failed to read parameter circleOfAcceptance");
   }
-
-  initSetpoints();
   
   // Initialize the controller itself
   // Read controller gains from parameter server
@@ -264,20 +262,6 @@ void Controller::configCallback(
 
   m_controller->setGains(config.velocity_gain, config.position_gain,
                          config.attitude_gain, config.integral_gain);
-}
-
-void Controller::initSetpoints() {
-  std::vector<double> v;
-
-  if (!m_nh.getParam("/propulsion/command/wrench/max", v))
-    ROS_FATAL("Failed to read parameter max wrench command.");
-  const Eigen::Vector6d wrench_command_max =
-      Eigen::Vector6d::Map(v.data(), v.size());
-
-  if (!m_nh.getParam("/propulsion/command/wrench/scaling", v))
-    ROS_FATAL("Failed to read parameter scaling wrench command.");
-  const Eigen::Vector6d wrench_command_scaling =
-      Eigen::Vector6d::Map(v.data(), v.size());
 }
 
 /* SUBSCRIBER CALLBACKS */

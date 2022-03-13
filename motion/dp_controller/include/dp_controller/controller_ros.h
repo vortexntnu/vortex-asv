@@ -32,6 +32,15 @@
 typedef actionlib::SimpleActionServer<move_base_msgs::MoveBaseAction>
     MoveBaseActionServer;
 
+enum PoseIndex {
+  SURGE = 0,
+  SWAY = 1,
+  HEAVE = 2,
+  ROLL = 3,
+  PITCH = 4,
+  YAW = 5
+};
+
 /**
  * @brief the Controller class
  *
@@ -109,19 +118,15 @@ public:
    */
   void spin();
 
-  ros::ServiceServer control_mode_service_;
-
 private:
   ros::NodeHandle m_nh;
 
-  ros::Subscriber m_command_sub;
   ros::Subscriber m_state_sub;
 
   ros::Publisher m_wrench_pub;
   ros::Publisher m_debug_pub;
 
-  dynamic_reconfigure::Server<dp_controller::VortexControllerConfig>
-      m_dr_srv; /** dynamic_reconfigure server */
+  dynamic_reconfigure::Server<dp_controller::VortexControllerConfig> m_dr_srv; 
 
   ControlMode m_control_mode; /** Current control mode                        */
   int m_frequency;            /** Update frequency for controller (ros rate)  */
@@ -141,43 +146,6 @@ private:
 
   std::vector<double> tau_command_max;
   std::vector<double> tau_command_scaling;
-
-  enum PoseIndex {
-    SURGE = 0,
-    SWAY = 1,
-    HEAVE = 2,
-    ROLL = 3,
-    PITCH = 4,
-    YAW = 5
-  };
-  enum EulerIndex { EULER_YAW = 0, EULER_PITCH = 1, EULER_ROLL = 2 };
-
-  /**
-   * @brief Convert integer to ControlMode
-   *
-   * @param mode  An integer that is to be converted to a ControlMode
-   *
-   * @return The ControlMode corresponding to the given @p mode integer
-   * as defined in control_modes.h
-   */
-  ControlMode getControlMode(int mode);
-
-  /**
-   * @brief Initialize setpoints by loading and setting default wrench params
-   */
-  void initSetpoints();
-
-  /**
-   * @brief Reset setpoints by setting them equal to current state
-   */
-  void resetSetpoints();
-
-  /**
-   * @brief Update the current setpoint for a given @p axis
-   *
-   * @param axis  The selected axis for which the setpoint updates
-   */
-  void updateSetpoint(PoseIndex axis);
 
   bool isPositionInCOA();
 
