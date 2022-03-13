@@ -3,7 +3,7 @@
 
 version: '3.8'
 services:
-  vortex:
+  asv-dev:
     container_name: asv
     build: .
     privileged: true  
