@@ -1,6 +1,6 @@
 # The point of this Dockerfile is to make development easier, by
 # not running the custom entrypoint at deploy time, and instead relying on
-# 
+# the user to execute their code from inside the container
 
 
 FROM ros:noetic
