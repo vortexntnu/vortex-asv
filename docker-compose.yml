@@ -16,6 +16,13 @@ services:
     stdin_open: true
     tty: true
     network_mode: host
+
+  simulator:
+    image: ghcr.io/vortexntnu/asv-simulator:main
+    container_name: simulator
+    stdin_open: true
+    tty: true
+    network_mode: host
     
   simulator-dev:
     build:
