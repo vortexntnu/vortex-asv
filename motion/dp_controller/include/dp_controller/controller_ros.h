@@ -23,7 +23,6 @@
 
 #include "dp_controller/quaternion_pd_controller.h"
 
-
 // Action server
 #include <actionlib/server/simple_action_server.h>
 #include <move_base_msgs/MoveBaseAction.h>
@@ -32,14 +31,7 @@
 typedef actionlib::SimpleActionServer<move_base_msgs::MoveBaseAction>
     MoveBaseActionServer;
 
-enum PoseIndex {
-  SURGE = 0,
-  SWAY = 1,
-  HEAVE = 2,
-  ROLL = 3,
-  PITCH = 4,
-  YAW = 5
-};
+enum PoseIndex { SURGE = 0, SWAY = 1, HEAVE = 2, ROLL = 3, PITCH = 4, YAW = 5 };
 
 /**
  * @brief the Controller class
@@ -126,21 +118,21 @@ private:
   ros::Publisher m_wrench_pub;
   ros::Publisher m_debug_pub;
 
-  dynamic_reconfigure::Server<dp_controller::VortexControllerConfig> m_dr_srv; 
+  dynamic_reconfigure::Server<dp_controller::VortexControllerConfig> m_dr_srv;
 
   ControlMode m_control_mode; /** Current control mode                        */
   int m_frequency;            /** Update frequency for controller (ros rate)  */
-  bool m_debug_mode = true; 
+  bool m_debug_mode = true;
   const double c_normalized_force_deadzone = 0.01;
   const double c_max_quat_norm_deviation = 0.1;
   bool m_goal_reached;
-  
-  std::unique_ptr<QuaternionPdController> m_controller; 
+
+  std::unique_ptr<QuaternionPdController> m_controller;
 
   // EIGEN CONVERSION INITIALIZE
-  Eigen::Vector3d position_state;                /** Current position      */
-  Eigen::Quaterniond orientation_state;          /** Current orientation   */
-  Eigen::Vector6d velocity_state;                /** Current velocity      */
+  Eigen::Vector3d position_state;          /** Current position      */
+  Eigen::Quaterniond orientation_state;    /** Current orientation   */
+  Eigen::Vector6d velocity_state;          /** Current velocity      */
   Eigen::Vector3d position_setpoint;       /** Position setpoint     */
   Eigen::Quaterniond orientation_setpoint; /** Orientation setpoint  */
 

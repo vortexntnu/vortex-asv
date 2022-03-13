@@ -11,7 +11,7 @@
 #include <vector>
 
 Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
-  
+
   m_control_mode = ControlModes::OPEN_LOOP;
   m_goal_reached = false;
   // Subscribers
@@ -37,7 +37,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
   if (!m_nh.getParam("/controllers/dp/circleOfAcceptance", R)) {
     ROS_WARN("Failed to read parameter circleOfAcceptance");
   }
-  
+
   // Initialize the controller itself
   double a, b, c, i;
   if (!m_nh.getParam("/controllers/dp/velocity_gain", a))
@@ -93,8 +93,7 @@ Controller::Controller(ros::NodeHandle nh) : m_nh(nh), m_frequency(10) {
 
   /* Action server */
   // ros::NodeHandle nodeHandle("move_base");
-  mActionServer =
-      new MoveBaseActionServer(m_nh, "move_base", false);
+  mActionServer = new MoveBaseActionServer(m_nh, "move_base", false);
 
   // register the goal and feeback callbacks
   mActionServer->registerGoalCallback(
@@ -184,19 +183,21 @@ void Controller::spin() {
 }
 
 bool Controller::isPositionInCOA() {
-  return m_controller->circleOfAcceptanceXY(position_state, position_setpoint, R);
+  return m_controller->circleOfAcceptanceXY(position_state, position_setpoint,
+                                            R);
 }
 
 bool Controller::isYawInCOA() {
-  return m_controller->circleOfAcceptanceYaw(orientation_state, orientation_setpoint, 0.05);
+  return m_controller->circleOfAcceptanceYaw(orientation_state,
+                                             orientation_setpoint, 0.05);
 }
 
 void Controller::reachedSetpoint() {
   ROS_INFO("Reached setpoint!");
-  mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(), "Goal reached.");
+  mActionServer->setSucceeded(move_base_msgs::MoveBaseResult(),
+                              "Goal reached.");
   m_goal_reached = true;
 }
-
 
 /* SERVICE SERVER */
 bool Controller::controlModeCallback(vortex_msgs::ControlMode::Request &req,
@@ -234,7 +235,8 @@ void Controller::actionGoalCallBack() {
   m_controller->integral = Eigen::Vector6d::Zero();
 
   // accept the new goal - do I have to cancel a pre-existing one first?
-  geometry_msgs::PoseStamped new_goal = mActionServer->acceptNewGoal()->target_pose;
+  geometry_msgs::PoseStamped new_goal =
+      mActionServer->acceptNewGoal()->target_pose;
 
   // Transform from Msg to Eigen
   tf::pointMsgToEigen(new_goal.pose.position, position_setpoint);
@@ -246,7 +248,6 @@ void Controller::actionGoalCallBack() {
            position_setpoint[0], position_setpoint[1], 180.0 / M_PI * euler[0]);
 
   m_goal_reached = false;
-
 }
 
 /* DYNAMIC RECONFIGURE */
@@ -273,7 +274,8 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg) {
 
   bool orientation_invalid =
       (abs(orientation_state.norm() - 1) > c_max_quat_norm_deviation);
-  if (isFucked(position_state) || isFucked(velocity_state) || orientation_invalid) {
+  if (isFucked(position_state) || isFucked(velocity_state) ||
+      orientation_invalid) {
     ROS_WARN_THROTTLE(1, "Invalid state estimate received, ignoring...");
     return;
   }
@@ -287,7 +289,6 @@ void Controller::stateCallback(const nav_msgs::Odometry &msg) {
   feedback.base_position.header.stamp = ros::Time::now();
   feedback.base_position.pose = msg.pose.pose;
   mActionServer->publishFeedback(feedback);
-
 }
 
 /* PUBLISH HELPERS */
