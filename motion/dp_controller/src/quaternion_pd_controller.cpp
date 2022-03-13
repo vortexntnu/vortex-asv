@@ -134,8 +134,9 @@ bool QuaternionPdController::circleOfAcceptanceYaw(
       orientation_d.toRotationMatrix().eulerAngles(2, 1, 0);
 
   double distance = euler[0] - euler_d[0];
+  double ssa = fmod(distance + M_PI, 2 * M_PI) - M_PI; 
 
-  return abs(distance) < R;
+  return abs(ssa) < R;
 }
 
 Eigen::Vector3d
