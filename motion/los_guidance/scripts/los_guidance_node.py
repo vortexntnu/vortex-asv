@@ -4,6 +4,7 @@
 # Copyright (c) 2020 Manta AUV, Vortex NTNU.
 # All rights reserved.
 
+
 import rospy
 import numpy as np
 import math
@@ -32,15 +33,12 @@ from reference_model.discrete_tustin import ReferenceModel
 class LOS:
     """
     The Line-Of-Sight guidance class, with an imported controller.
-
     Physical attributes referenced in the class:
     x, y, z: 	surge, sway, heave (position)
     u, v, w:	surge, sway, heave (velocity)
-
     alpha:	The path-tangential angle
     psi:	Heading angle required to reach the LOS intersection
                     point.
-
     R: sphere of acceptance. If the AUV is inside the sphere
        defined by this radius and the setpoint, it will be
        considered to have reached the setpoint.
@@ -78,16 +76,13 @@ class LOS:
     def updateState(self, x, y, u, v, psi, r, time):
         """
         Update all state values contained in the LOS class.
-
         Args:
                 x	  Surge; position in the direction of the x-axis.
                 y	  Sway;  position in the direction of the y-axis.
                 z	  Heave; position in the direction of the z-axis.
-
                 u	  Body fixed velocity in the x-direction.
                 v	  Body fixed velocity in the y-direction.
                 w	  Body fixed velocity in the z-direction.
-
                 psi	  Heading angle required to reach the LOS intersection
                           point.
                 r	  current angular velocity around the body-fixed z-axis
@@ -110,11 +105,9 @@ class LOS:
     def setWayPoints(self, x_k, y_k, x_kp1, y_kp1):
         """
         Set the previous and next waypoints
-
         Args:
                 x_k     x-component of the previous waypoint
                 y_k     y-component of the previous waypoint
-
                 x_kp1	x-component of the next waypoint
                 y_kp1	y-component of the next waypoint
         """
@@ -140,7 +133,6 @@ class LOS:
         The sphere of acceptance is a sphere around the setpoint.
         If the AUV is inside this sphere, it will be considered
         as having reached the setpoint.
-
         Returns:
                 bool:	True if the current position is less than the
                                 radius of the sphere of acceptance. False otherwise
@@ -154,10 +146,8 @@ class LOS:
         that contains the coordinates of the AUV in the
         path-fixed reference frame for a straight line going
         from the reference point to the target position.
-
         Returns:
                 float: The calculated epsilon vector
-
         """
 
         alpha = self.alpha
@@ -181,10 +171,8 @@ class LOS:
         """
         Calculate roll, pitch and yaw from the orientation
         quaternion with the axis sequence xyzw
-
         Args:
                 msg		A nav_msgs/Odometry message
-
         Returns:
                 float: The euler yaw angle calculated from the msg argument
         """
@@ -206,7 +194,6 @@ class LOS:
         Calculate the desired heading angle. This angle is
         the sum of the path-tangential angle and the velocity-
         path relative angle.
-
         Returns:
                 float: The desired heading angle chi_d
         """
@@ -242,7 +229,6 @@ class LOS:
 class LosPathFollowing(object):
     """
     This is the ROS wrapper class for the LOS class.
-
     Attributes:
             _feedback	A vortex_msgs action that contains the distance to goal
             _result		A vortex_msgs action, true if a goal is set within the
@@ -250,9 +236,8 @@ class LosPathFollowing(object):
 
     Nodes created:
             los
-
     Subscribes to:
-            /odometry/filtered
+            /pose_gt
 
     Publishes to:
             /guidance/los_data
@@ -282,7 +267,7 @@ class LosPathFollowing(object):
 
         # Subscribers
         self.sub = rospy.Subscriber(
-            "/odometry/filtered", Odometry, self.callback, queue_size=1
+            "/pose_gt", Odometry, self.callback, queue_size=1
         )  # 20hz
 
         # Publishers
@@ -352,14 +337,12 @@ class LosPathFollowing(object):
 
     def callback(self, msg):
         """
-        The callback used in the subscribed topic /odometry/filtered.
+        The callback used in the subscribed topic /pose_gt.
         When called, position and velocity states are updated, and
         a new current goal is set.
-
         If the self.publish_guidance_data attribute is True, we have not yet reached a goal
         and so a control force is published, alongside the desired
         pose.
-
         Args:
                 msg		A nav_msgs/Odometry ROS message type
         """
@@ -386,7 +369,6 @@ class LosPathFollowing(object):
             """
             Wrapping would have been avoided by using quaternions instead of Euler angles
             if you don't care about wrapping, use this instead:
-
             x_d = self.reference_model.discreteTustinMSD(np.array((self.los.speed,psi_d)))
             """
             x_d = self.fixHeadingWrapping()
@@ -472,7 +454,6 @@ class LosPathFollowing(object):
     def goalCB(self):
         """
         The goal callback for the action server.
-
         Once a goal has been recieved from the client, self.publish_guidance_data is set to True
         This means that this node will start publishing data for the controller
         """
@@ -500,7 +481,6 @@ class LosPathFollowing(object):
         Args:
                 config	The dynamic reconfigure server's config
                 level	Ununsed variable
-
         Returns:
                 The updated config argument.
         """
