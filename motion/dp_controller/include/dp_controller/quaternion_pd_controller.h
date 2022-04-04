@@ -1,9 +1,3 @@
-/*   Written by Kristoffer Rakstad Solberg, Student
-     Documentation written by Jae Hyeong Hwang and
-     copied to Doxygen format by Christopher Strøm
-     Copyright (c) 2019 Manta AUV, Vortex NTNU.
-     All rights reserved. */
-
 /**
  * @file
  * @brief A nonlinear PID controller for position and orientation
@@ -113,8 +107,12 @@ public:
    *
    * @return true if inside circle of acceptance, false if not.
    */
-  bool circleOfAcceptance(const Eigen::Vector3d &x, const Eigen::Vector3d &x_d,
-                          float R);
+  bool circleOfAcceptanceXY(const Eigen::Vector3d &x,
+                            const Eigen::Vector3d &x_d, const double R);
+
+  bool circleOfAcceptanceYaw(const Eigen::Quaterniond orientation,
+                             const Eigen::Quaterniond orientation_d,
+                             const double R);
 
   Eigen::Vector6d integral =
       Eigen::Vector6d::Zero(); /** Integral error vector                     */

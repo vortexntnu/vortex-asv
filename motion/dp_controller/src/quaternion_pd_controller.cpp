@@ -115,17 +115,28 @@ int QuaternionPdController::sgn(double x) {
   return 1;
 }
 
-bool QuaternionPdController::circleOfAcceptance(const Eigen::Vector3d &x,
-                                                const Eigen::Vector3d &x_d,
-                                                float R) {
-  // float R = 1.0;
-  float distance, e_squared;
-
+bool QuaternionPdController::circleOfAcceptanceXY(const Eigen::Vector3d &x,
+                                                  const Eigen::Vector3d &x_d,
+                                                  const double R) {
   Eigen::Vector3d e = x_d - x;
-  e_squared = pow(e[0], 2.0) + pow(e[1], 2.0) + pow(e[2], 2.0);
-  distance = sqrt(e_squared);
+  double e_squared = pow(e[0], 2.0) + pow(e[1], 2.0);
+  double distance = sqrt(e_squared);
 
-  return (distance < R);
+  return distance < R;
+}
+
+bool QuaternionPdController::circleOfAcceptanceYaw(
+    const Eigen::Quaterniond orientation,
+    const Eigen::Quaterniond orientation_d, const double R) {
+
+  Eigen::Vector3d euler = orientation.toRotationMatrix().eulerAngles(2, 1, 0);
+  Eigen::Vector3d euler_d =
+      orientation_d.toRotationMatrix().eulerAngles(2, 1, 0);
+
+  double distance = euler[0] - euler_d[0];
+  double ssa = fmod(distance + M_PI, 2 * M_PI) - M_PI;
+
+  return abs(ssa) < R;
 }
 
 Eigen::Vector3d

@@ -1,7 +1,3 @@
-/*   Written by Kristoffer Rakstad Solberg, Student
-     Copyright (c) 2019 Manta AUV, Vortex NTNU.
-     All rights reserved. */
-
 #ifndef VORTEX_CONTROLLER_CONTROL_MODES_H
 #define VORTEX_CONTROLLER_CONTROL_MODES_H
 
@@ -10,12 +6,10 @@
 namespace ControlModes {
 enum ControlMode {
   OPEN_LOOP = 0,
-  POSE_HOLD = 1,
+  POSITION_HOLD = 1,
   HEADING_HOLD = 2,
-  DEPTH_HEADING_HOLD = 3,
-  DEPTH_HOLD = 4,
-  POSE_HEADING_HOLD = 5,
-  CONTROL_MODE_END = 6
+  POSE_HOLD = 3,
+  CONTROL_MODE_END = 4
 };
 } // namespace ControlModes
 typedef ControlModes::ControlMode ControlMode;
@@ -33,24 +27,16 @@ inline std::string controlModeString(ControlMode control_mode) {
     s = "OPEN LOOP";
     break;
 
-  case ControlModes::POSE_HOLD:
-    s = "POSE HOLD";
+  case ControlModes::POSITION_HOLD:
+    s = "POSITION HOLD";
     break;
 
   case ControlModes::HEADING_HOLD:
     s = "HEADING HOLD";
     break;
 
-  case ControlModes::DEPTH_HEADING_HOLD:
-    s = "DEPTH HEADING HOLD";
-    break;
-
-  case ControlModes::DEPTH_HOLD:
-    s = "DEPTH HOLD";
-    break;
-
-  case ControlModes::POSE_HEADING_HOLD:
-    s = "POSE HEADING HOLD";
+  case ControlModes::POSE_HOLD:
+    s = "POSE HOLD";
     break;
 
   default:

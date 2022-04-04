@@ -11,6 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rospy
   vortex_msgs
+  move_base_msgs
+  actionlib
+  message_generation
+
 )
 
 ## System dependencies are found with CMake's conventions

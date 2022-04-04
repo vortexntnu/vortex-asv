@@ -12,7 +12,6 @@ RUN apt update && \
     ros-$distro-tf \
     ros-$distro-tf2 \
     ros-$distro-eigen-conversions \
-    libeigen3-dev \
     ros-$distro-joy \
     ros-$distro-tf2-geometry-msgs \
     ros-$distro-geographic-msgs \
@@ -20,6 +19,7 @@ RUN apt update && \
     ros-$distro-rviz \
     ros-$distro-rtabmap \
     ros-$distro-rtabmap-ros \
+    ros-$distro-geographic-msgs \
     ros-noetic-imu-tools \
     libeigen3-dev \
     libglfw3-dev \

@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+
   asv-xavier:
     image: ghcr.io/vortexntnu/vortex-asv:main
     container_name: asv
@@ -52,7 +53,7 @@ services:
     stdin_open: true
     tty: true
     network_mode: host
-
+   
   simulator-dev:
     build:
       context: ../ASV-Simulator
