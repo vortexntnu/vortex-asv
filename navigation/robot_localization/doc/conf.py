@@ -21,9 +21,9 @@ templates_path = [".templates"]
 source_suffix = ".rst"
 master_doc = "index"
 
-project = u"robot_localization"
-copyright = u"2016, Tom Moore"
-author = u"Tom Moore"
+project = "robot_localization"
+copyright = "2016, Tom Moore"
+author = "Tom Moore"
 version = catkin_package.version
 release = catkin_package.version
 
@@ -135,8 +135,8 @@ latex_documents = [
     (
         master_doc,
         "robot_localization.tex",
-        u"robot\\_localization Documentation",
-        u"Tom Moore",
+        "robot\\_localization Documentation",
+        "Tom Moore",
         "manual",
     ),
 ]
@@ -167,7 +167,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "robot_localization", u"robot_localization Documentation", [author], 1)
+    (master_doc, "robot_localization", "robot_localization Documentation", [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -183,7 +183,7 @@ texinfo_documents = [
     (
         master_doc,
         "robot_localization",
-        u"robot_localization Documentation",
+        "robot_localization Documentation",
         author,
         "robot_localization",
         "One line description of project.",
