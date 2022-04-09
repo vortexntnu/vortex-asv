@@ -13,7 +13,7 @@ jobs:
           python-version: 3.8
           
       - name: Install deps
-        run: pip install black 
+        run: pip install black==21.12b0
         
       - name: Run Python black formatting check
         run: python3 -m black . --check --diff
