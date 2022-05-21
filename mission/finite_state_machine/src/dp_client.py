@@ -60,6 +60,6 @@ if __name__ == "__main__":
     try:
         rospy.init_node("dp_move_base")
         change_control_mode_client(POSITION_HOLD)
-        dp_move_base(50.0, 50.0, -1.0)
+        dp_move_base(2.0, 1.0, -1.0)
     except rospy.ROSInternalException as e:
         rospy.logerr(e)
