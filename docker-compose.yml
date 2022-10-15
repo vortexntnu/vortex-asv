@@ -39,7 +39,7 @@ services:
     network_mode: host
 
   simulator:
-    image: ghcr.io/vortexntnu/asv-simulator:main
+    image: ghcr.io/vortexntnu/vortex-asv-simulator:main
     container_name: simulator
     user: vortex
     privileged: true
