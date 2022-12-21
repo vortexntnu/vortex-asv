@@ -22,10 +22,10 @@ class Tracker:
             [1.0, 1.0, 1.0, 1.0]), 
             dtype=float)
         self.P_pri = np.ndarray((4,4), buffer=np.array([
-            [0.1,0,  0,  0], 
-            [0,  0.1,0,  0], 
-            [0,  0,  0.1,0], 
-            [0,  0,  0,  0.1]]), 
+            [0.0,0,  0,  0], 
+            [0,  0.0,0,  0], 
+            [0,  0,  0.0,0], 
+            [0,  0,  0,0.0]]), 
             dtype = float)
 
         self.x_post = np.ndarray((4,), dtype=float)
@@ -34,6 +34,13 @@ class Tracker:
         self.L = np.ndarray((2,2), dtype=float)
 
         self.A = np.ndarray((4,4), buffer=np.array([
+            [1.002, 0, 0.002004, 0], 
+            [0, 1.002, 0, 0.002004],
+            [0, 0, 1.002, 0], #assuming constnat velocity
+            [0, 0, 0, 1.002]]),#assuming constnat velocity
+            dtype = float)
+
+        self.A_cont = np.ndarray((4,4), buffer=np.array([
             [1, 0, 1, 0], 
             [0, 1, 0, 1],
             [0, 0, 1, 0], #assuming constnat velocity
@@ -59,7 +66,7 @@ class Tracker:
 
     def prediction_step(self):
         self.x_pri = np.matmul(self.A,self.x_post)
-        self.P_pri = np.matmul(self.A, np.matmul(self.P_post,self.A.T))+ self.Q
+        self.P_pri = np.matmul(self.A, np.matmul(self.P_post,np.transpose(self.A)))+ self.Q
 
     def correction_step(self, y):
 
@@ -107,7 +114,7 @@ def test_KF_highQ():
     We simulate a baot standing still. 
     """
 
-    r = 0.5
+    r = 5
     theta = 0.3
     tollerance = 0.1
 
@@ -122,6 +129,7 @@ def test_KF_highQ():
         measurments[i, 1] = theta
 
     for y in measurments:
+        print(tracker.P_post)
         tracker.correction_step(y)
         tracker.prediction_step()
 
