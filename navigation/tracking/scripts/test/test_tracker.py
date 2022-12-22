@@ -19,13 +19,13 @@ class Tracker:
 
         self.time_step = 0.002
         self.x_pri = np.ndarray((4,), buffer = np.array(
-            [1.0, 1.0, 1.0, 1.0]), 
+            [0.0, 0.0, 0.0, 0.0]), 
             dtype=float)
         self.P_pri = np.ndarray((4,4), buffer=np.array([
-            [0.0,0,  0,  0], 
-            [0,  0.0,0,  0], 
-            [0,  0,  0.0,0], 
-            [0,  0,  0,0.0]]), 
+            [0.0  ,0.0,  0.0,  0.0], 
+            [0.0,  0.0,  0.0,  0.0], 
+            [0.0,  0.0,  0.0,  0.0], 
+            [0.0,  0.0,  0.0,  0.0]]), 
             dtype = float)
 
         self.x_post = np.ndarray((4,), dtype=float)
@@ -48,8 +48,8 @@ class Tracker:
             dtype = float)
 
         self.C = np.ndarray((2,4), buffer=np.array([
-            [1, 0, 0, 0], 
-            [0, 1, 0, 0]]),
+            [1.0, 0.0, 0.0, 0.0], 
+            [0.0, 1.0, 0.0, 0.0]]),
             dtype = float)
 
         self.Q = np.ndarray((4,4), buffer=np.array([
@@ -107,39 +107,88 @@ def test_correction():
     except:
         assert False
 
+
 def test_KF_highQ():
     """
-    Here we set the variance of disturbance high. 
-    Thus we expect the final estiamtes to be close to the measurments. 
     We simulate a baot standing still. 
+    High variance in the distrubance. 
+    Thus we expect estimates to be close to the measurments. 
     """
 
     r = 5
     theta = 0.3
     tollerance = 0.1
+    n_mes = 5
 
     tracker = Tracker()
 
     for i in range (len(tracker.x_post)):
         tracker.Q[i,i] = 10
 
-    measurments = np.ndarray((20,2), dtype = float)
-    for i in range(20):
+    for i in range(len(tracker.C)):
+        tracker.R[i, i] = 0.1
+
+    measurments = np.ndarray((n_mes,2), dtype = float)
+    for i in range(n_mes):
         measurments[i, 0] = r
         measurments[i, 1] = theta
 
     for y in measurments:
-        print(tracker.P_post)
+        
         tracker.correction_step(y)
+
         tracker.prediction_step()
 
-    print("posterior estimates: ", tracker.x_post)
+    print(tracker.x_post)
 
     assert abs(tracker.x_post[0] - r)     < tollerance  
     assert abs(tracker.x_post[1] - theta) < tollerance  
     assert abs(tracker.x_post[2])         < tollerance  
     assert abs(tracker.x_post[3])         < tollerance  
 
+def test_KF_highR():
+    """
+    We simulate a baot standing still. 
+    High variance in the measurments. 
+    Thus we expect estimates to be close to initial values (when initial velocity is 0). 
+    """
+
+    r = 5
+    theta = 0.3
+    tollerance = 0.1
+    n_mes = 5
+
+    tracker = Tracker()
+
+    
+    tracker.x_pri[0] = r
+    tracker.x_pri[1] = theta
+    tracker.x_pri[2] = 0
+    tracker.x_pri[3] = 0
+
+    for i in range (len(tracker.x_post)):
+        tracker.Q[i,i] = 0.001
+
+    for i in range(len(tracker.C)):
+        tracker.R[i, i] = 1
+
+    measurments = np.ndarray((n_mes,2), dtype = float)
+    for i in range(n_mes):
+        measurments[i, 0] = r
+        measurments[i, 1] = theta
+
+    for y in measurments:
+        
+        tracker.correction_step(y)
+
+        tracker.prediction_step()
+
+    print(tracker.x_post)
+
+    assert abs(tracker.x_post[0] - r)     < tollerance  
+    assert abs(tracker.x_post[1] - theta) < tollerance  
+    assert abs(tracker.x_post[2])         < tollerance  
+    assert abs(tracker.x_post[3])         < tollerance  
 
 
 
