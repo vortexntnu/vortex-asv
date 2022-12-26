@@ -7,16 +7,7 @@ import numpy as np
 from geometry_msgs.msg import PoseStamped, Point
 
 """
-Task: Estimate position and velocity of surronding boats. 
-Sub task: Detect boats based on LIDAR data. 
-Sub task: Distinguish boats from each other and other objects.
-Sub task: Estimate position and velocity for each boat realtive to the vessel (given measurements for the boats position).
-    - Set up KF. 
-        Use Kalmanfilter with 4 states: r - radius, theta - angle, r_der - change in radius, thetha_der - change in angle.
-        There are 2 measurments: r and theta. 
-        Define A and C matricies. B and u are 0. 
-        Define Q and R matricies. Can R be updated real time based on the certanty of the detections? 
-    - Should we use a different type of KF? 
+Estimate position and velocity for each boat realtive to the vessel (given measurements for the boats position).
 """
 
 
@@ -28,57 +19,97 @@ class Tracker:
     """
 
     def __init__(self):
+
         rospy.init_node("Tracker")
+        rospy.Subscriber("position_measurments", Point, self.cb_function)
+        self.pub = rospy.Publisher("position_velocity_estimates", Point, queue_size=10)
 
-        #x = [r, thetha, r', theta']
+        # x = [r, thetha, r', theta']
 
-        self.time_step = 0.002
-        self.x_pri = np.ones(4)
-        self.P_pri = np.matrix([
-            [0.1,0,  0,  0], 
-            [0,  0.1,0,  0], 
-            [0,  0,  0.1,0], 
-            [0,  0,  0,  0.1]])
-
-        self.x_post = np.ones(4)
-        self.P_post = np.matrix([
-            [0.1,0,  0,  0], 
-            [0,  0.1,0,  0], 
-            [0,  0,  0.1,0], 
-            [0,  0,  0,  0.1]])
-
-        self.A = np.matrix([
-            [1, 0, 1, 0], 
-            [0, 1, 0, 1],
-            [0, 0, 1, 0], #assuming constnat velocity
-            [0, 0, 0, 1]])#assuming constnat velocity
-
-        self.C = np.matrix([
-            [1, 0, 0, 0], 
-            [0, 1, 0, 0]]
+        self.time_step = 0.1
+        self.x_pri = np.ndarray(
+            (4,), buffer=np.array([0.0, 0.0, 0.0, 0.0]), dtype=float
+        )
+        self.P_pri = np.ndarray(
+            (4, 4),
+            buffer=np.array(
+                [
+                    [0.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0],
+                ]
+            ),
+            dtype=float,
         )
 
-        self.Q = np.matrix([
-            [0.001, 0, 0, 0], 
-            [0, 0.001, 0, 0],
-            [0, 0, 0.1, 0], 
-            [0, 0, 0, 0.1]])
+        self.x_post = np.ndarray((4,), dtype=float)
+        self.P_post = np.ndarray((4, 4), dtype=float)
 
-        self.R = np.matrix([
-            [0.1, 0], 
-            [0, 0.1]])
+        self.L = np.ndarray((2, 2), dtype=float)
 
-    def spin(self):
+        self.C = np.ndarray(
+            (2, 4),
+            buffer=np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]]),
+            dtype=float,
+        )
 
-        while not rospy.is_shutdown():
-            write_something = 2
+        self.A = np.ndarray(
+            (4, 4),
+            buffer=np.array(
+                [
+                    [1.0, 0.0, self.time_step, 0],
+                    [0, 1.0, 0, self.time_step],
+                    [0, 0, 1.0, 0],  # assuming constnat velocity
+                    [0, 0, 0, 1.0],
+                ]
+            ),  # assuming constnat velocity
+            dtype=float,
+        )
 
+        self.Q = np.ndarray(
+            (4, 4),
+            buffer=np.array(
+                [[0.001, 0, 0, 0], [0, 0.001, 0, 0], [0, 0, 0.1, 0], [0, 0, 0, 0.1]]
+            ),
+            dtype=float,
+        )
+
+        self.R = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
+
+    def prediction_step(self):
+        self.x_pri = np.matmul(self.A, self.x_post)
+        self.P_pri = (
+            np.matmul(self.A, np.matmul(self.P_post, np.transpose(self.A))) + self.Q
+        )
+
+    def correction_step(self, y):
+
+        temp1 = np.matmul(self.P_pri, np.transpose(self.C))
+        temp2 = np.matmul(self.C, temp1)
+        self.L = np.matmul(temp1, np.linalg.inv(temp2 + self.R))
+
+        temp3 = np.matmul(self.C, self.x_pri)
+        self.x_post = self.x_pri + np.matmul(self.L, (y - temp3))
+
+        temp4 = np.identity(len(self.x_pri)) - np.matmul(self.L, self.C)
+        temp5 = np.matmul(self.L, np.matmul(self.R, np.transpose(self.L)))
+        self.P_post = (
+            np.matmul(temp4, np.matmul(self.P_pri, np.transpose(temp4))) + temp5
+        )
+
+    def cb_function(self, data):
+
+        self.correction_step(data)
+        self.prediction_step()
+
+        self.pub.publish(self.x_post)
 
 
 if __name__ == "__main__":
     try:
         tracker = Tracker()
+        rospy.spin()
 
-        tracker.spin()
     except rospy.ROSInterruptException:
         pass
