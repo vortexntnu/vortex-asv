@@ -90,7 +90,7 @@ class PDAF:
         self.gate_radius = 5  # the gating window will be a circle around the predicted position, or elipsiod based on the predicted variance; eq (7.17).
 
         self.residual_vector = np.ndarray((2,), dtype=float)
-        self.p_no_match = 0.5  # probabiity that no observations matches the track
+        self.p_no_match = 0.1  # probabiity that no observations matches the track
         self.p_match_arr = np.ndarray(
             (2,), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
@@ -176,6 +176,36 @@ class PDAF:
                 + correction_term
             )
 
+    def create_observations_for_one_timestep(self, r, theta):
+        "Only used for testing. Not part of the tracker algorithm."
+
+        n_obs = np.random.randint(0, 10)
+
+        obs = np.ndarray((n_obs, 2), dtype=float)
+        #add obs that are scaterd far apart
+        for i in range(n_obs):
+            obs[i, 0] = r + np.random.randn(1) * 5
+            obs[i, 1] = theta + np.random.randn(1) * 2
+
+        #add obs that corresponds to the acctual track (1-p_no_match)*100 prosent of the time. 
+        random_int = np.random.randint(0, 100)
+        if (random_int < 100*(1-self.p_no_match)) and (n_obs > 0):
+            obs[-1, 0] = r + np.random.randn(1) * self.R[0, 0]
+            obs[-1, 1] = theta + np.random.randn(1) * self.R[1, 1]
+
+        return obs
+
+    def create_observations_for_one_timestep_simple_version(self, r, theta):
+
+        n_obs = np.random.randint(0, 10)
+
+        obs = np.ndarray((n_obs, 2), dtype=float)
+        for i in range(n_obs):
+            obs[i, 0] = r + np.random.randn(1) * self.R[0, 0]
+            obs[i, 1] = theta + np.random.randn(1) * self.R[1, 1]
+
+        return obs
+
 
 # -----------------------------------
 
@@ -245,23 +275,12 @@ def test_compute_residual_vector():
 
     print(pdaf.residual_vector)
 
-def create_observations_for_one_timestep(r, theta, pdaf):
-
-    n_obs = np.random.randint(0, 10)
-
-    obs = np.ndarray((n_obs, 2), dtype=float)
-    for i in range(n_obs):
-        obs[i, 0] = r + np.random.randn(1) * pdaf.R[0, 0]
-        obs[i, 1] = theta + np.random.randn(1) * pdaf.R[1, 1]
-
-    return obs
-
 def test_pdaf_zero_velocity():
 
     r = 5
     theta = 1
     tollerance = 0.3
-    n_time_steps = 50
+    n_timesteps = 50
 
     pdaf = PDAF()
 
@@ -276,9 +295,9 @@ def test_pdaf_zero_velocity():
     for i in range(len(pdaf.C)):
         pdaf.R[i, i] = 0.1
 
-    for k in range(n_time_steps):
+    for k in range(n_timesteps):
 
-        o_time_k = create_observations_for_one_timestep(r, theta, pdaf)
+        o_time_k = pdaf.create_observations_for_one_timestep_simple_version(r, theta)
 
         pdaf.correction_step(o_time_k)
 
@@ -293,6 +312,71 @@ def test_pdaf_zero_velocity():
     assert abs(pdaf.x_post[1] - theta) < tollerance
     assert abs(pdaf.x_post[2]) < tollerance
     assert abs(pdaf.x_post[3]) < tollerance
+
+def test_pdaf_constant_vel():
+    """
+    We simulate a boat with constant velocity in both r and theta.
+    """
+
+    r = 5
+    r_der = 0.9
+    theta = 1.2
+    theta_der = 0.8
+    tollerance = 0.5
+    n_timesteps = 200
+
+    pdaf = PDAF()
+
+    pdaf.x_pri[0] = 0
+    pdaf.x_pri[1] = 0
+    pdaf.x_pri[2] = 10
+    pdaf.x_pri[3] = 10
+
+    for i in range(len(pdaf.x_post)):
+        pdaf.Q[i, i] = 0.1
+
+    for i in range(len(pdaf.C)):
+        pdaf.R[i, i] = 0.1
+
+    measurments = np.ndarray((n_timesteps, 2), dtype=float)
+    for i in range(n_timesteps):
+        measurments[i, 0] = (
+            r + i * r_der * pdaf.time_step + np.random.randn(1) * pdaf.R[0, 0]
+        )
+        measurments[i, 1] = (
+            theta
+            + i * theta_der * pdaf.time_step
+            + np.random.randn(1) * pdaf.R[1, 1]
+        )
+
+    for k in range(n_timesteps):
+
+        o_time_k = pdaf.create_observations_for_one_timestep_simple_version(
+            r + k * r_der * pdaf.time_step , 
+            theta+ k * theta_der * pdaf.time_step)
+
+        pdaf.correction_step(o_time_k)
+
+        pdaf.prediction_step()
+
+    print("final true state: ", (r + r_der * (n_timesteps - 1) * pdaf.time_step), (theta + theta_der * (n_timesteps - 1) * pdaf.time_step), r_der, theta_der)
+    
+    print("final observations: ", o_time_k)
+
+    print("final estimates: ", pdaf.x_post)
+
+    assert (
+        abs(pdaf.x_post[0] - (r + r_der * (n_timesteps - 1) * pdaf.time_step))
+        < tollerance
+    )
+    assert (
+        abs(pdaf.x_post[1] - (theta + theta_der * (n_timesteps - 1) * pdaf.time_step))
+        < tollerance
+    )
+    assert abs(pdaf.x_post[2] - r_der) < tollerance
+    assert abs(pdaf.x_post[3] - theta_der) < tollerance
+
+
 
 
 
