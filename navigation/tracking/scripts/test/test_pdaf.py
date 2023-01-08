@@ -7,8 +7,6 @@ Single object tracking
 
 Sub tasks: 
 
-    Need a model for how the object moves.
-
     Compute probability of matching observations to your track
         Based on mahalanobis distance, give a weight to each observation. 
         Remeber it's a posibilty not to obsevre anything.
@@ -109,7 +107,7 @@ class PDAF:
                 within_gate.append(o_i)
 
         self.o_within_gate_arr = np.array(within_gate)
-        
+
 
     def compute_probability_of_matching_observations(self):
 
@@ -120,25 +118,20 @@ class PDAF:
         self.p_match_arr = np.ndarray(
             (len(self.o_within_gate_arr) +1,), dtype=float
         )
+        self.p_match_arr[0] = self.p_no_match
 
-        if len(self.o_within_gate_arr) == 0:  # no observations
-            self.p_match_arr[0] = 1.0  # probability that no observations match the track
+        for i, y_i in enumerate(self.o_within_gate_arr):
+            delta_r = abs(y_i[0] - self.x_pri[0])  # use euclidian distance for now
+            if (
+                delta_r <= 0.1
+            ):  # In order to avoid infinte high weights. Choose an approriate threshold.
+                score[i] = 10
+            else:
+                score[i] = 1 / delta_r
 
-        else:
-            self.p_match_arr[0] = self.p_no_match
-
-            for i, y_i in enumerate(self.o_within_gate_arr):
-                delta_r = abs(y_i[0] - self.x_pri[0])  # use euclidian distance for now
-                if (
-                    delta_r <= 0.1
-                ):  # In order to avoid infinte high weights. Choose an approriate threshold.
-                    score[i] = 10
-                else:
-                    score[i] = 1 / delta_r
-
-            score_sum = np.sum(score)
-            for i in range(len(self.o_within_gate_arr)):
-                self.p_match_arr[i + 1] = (score[i] / score_sum) * (1 - self.p_no_match)
+        score_sum = np.sum(score)
+        for i in range(len(self.o_within_gate_arr)):
+            self.p_match_arr[i + 1] = (score[i] / score_sum) * (1 - self.p_no_match)
 
     def compute_residual_vector(self):
         #Can this be correct??
@@ -252,19 +245,28 @@ def test_compute_residual_vector():
 
     print(pdaf.residual_vector)
 
+def create_observations_for_one_timestep(r, theta, pdaf):
+
+    n_obs = np.random.randint(0, 10)
+
+    obs = np.ndarray((n_obs, 2), dtype=float)
+    for i in range(n_obs):
+        obs[i, 0] = r + np.random.randn(1) * pdaf.R[0, 0]
+        obs[i, 1] = theta + np.random.randn(1) * pdaf.R[1, 1]
+
+    return obs
+
 def test_pdaf_zero_velocity():
 
     r = 5
     theta = 1
     tollerance = 0.3
-    n_time_steps = 100
-    n_obs = 5 #this value will in relaity vary
-
+    n_time_steps = 50
 
     pdaf = PDAF()
 
-    pdaf.x_pri[0] = r
-    pdaf.x_pri[1] = theta
+    pdaf.x_pri[0] = 0
+    pdaf.x_pri[1] = 0
     pdaf.x_pri[2] = 10
     pdaf.x_pri[3] = 0.5
 
@@ -274,20 +276,16 @@ def test_pdaf_zero_velocity():
     for i in range(len(pdaf.C)):
         pdaf.R[i, i] = 0.1
 
-    observations= np.ndarray((n_time_steps, n_obs, 2), dtype=float)
+    for k in range(n_time_steps):
 
-    #for i in range(n_time_steps):
-    #   for j in range(n_obs):
-    #       observations[i, j, 0] = r + np.random.randn(1) * pdaf.R[0, 0]
-    #        observations[i, j, 1] = theta + np.random.randn(1) * pdaf.R[1, 1]
-
-    observations[0] = None
-
-    for o_time_k in observations:
+        o_time_k = create_observations_for_one_timestep(r, theta, pdaf)
 
         pdaf.correction_step(o_time_k)
 
         pdaf.prediction_step()
+
+        #print("observations: ", o_time_k)
+        #print("estimates: ", pdaf.x_post)
 
     print(pdaf.x_post)
 
