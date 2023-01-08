@@ -14,7 +14,7 @@ Sub tasks:
         Remeber it's a posibilty not to obsevre anything.
 
     Update step 
-        Use a weighted combination of observations when calculating the residual vector.
+        Use a weighted combination of observations when calculating the residual vector. But how??
         How do we compute the posterior covariance? How to we incorporate the uncertanty from the data assiciation? 
 
     Prediction step
@@ -89,8 +89,7 @@ class PDAF:
 
         self.R = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
 
-        self.gate_radius = 5  # the gating window will be a circle around the predicted position (5 is just a random number for now)
-        # gate could also vary based on the predicted variance, and be an elipsiod. Predicted variance is given by  eq (7.17).
+        self.gate_radius = 5  # the gating window will be a circle around the predicted position, or elipsiod based on the predicted variance; eq (7.17).
 
         self.residual_vector = np.ndarray((2,), dtype=float)
         self.p_no_match = 0.5  # probabiity that no observations matches the track
@@ -142,6 +141,7 @@ class PDAF:
                 self.p_match_arr[i + 1] = (score[i] / score_sum) * (1 - self.p_no_match)
 
     def compute_residual_vector(self):
+        #Can this be correct??
 
         self.residual_vector[0] = 0  # r
         self.residual_vector[1] = 0  # theta
@@ -156,22 +156,21 @@ class PDAF:
             np.matmul(self.A, np.matmul(self.P_post, np.transpose(self.A))) + self.Q
         )
 
-    def correction_step(self, y):
+    def correction_step(self, o):
 
         P_CT = np.matmul(self.P_pri, np.transpose(self.C))
         C_P_CT = np.matmul(self.C, P_CT)
         self.L = np.matmul(P_CT, np.linalg.inv(C_P_CT + self.R))
 
-        #within gate?
-        #use p match arr
-        p = self.compute_probability_of_matching_observations(y)
+        self.filter_observations_outside_gate(o)
 
-        if len(y) == 0:  # there where no detections
+        if len(self.o_within_gate_arr) == 0:  
             self.x_post = self.x_pri
             self.P_post = self.P_pri
 
         else:
-            self.compute_residual_vector(y, p)
+            self.compute_probability_of_matching_observations()
+            self.compute_residual_vector()
             self.x_post = self.x_pri + np.matmul(self.L, self.residual_vector)
 
             I_LC = np.identity(len(self.x_pri)) - np.matmul(self.L, self.C)
@@ -179,13 +178,15 @@ class PDAF:
                 self.L, np.matmul(self.R, np.transpose(self.L))
             )  # OBS: correction term should reflect uncertain data association
             self.P_post = (
-                p[0] * self.P_pri + (1 - p[0]) * I_LC * self.P_pri + correction_term
+                self.p_match_arr[0] * self.P_pri 
+                + (1 - self.p_match_arr[0]) * I_LC * self.P_pri 
+                + correction_term
             )
 
 
 # -----------------------------------
 
-def test_filter_observations_within_gate():
+def test_filter_observations_outside_gate():
 
     pdaf = PDAF()
 
@@ -219,10 +220,8 @@ def test_compute_probability_of_matching_observations():
     observations = np.ndarray((n_obs, 2), dtype=float)
     
     for i in range(n_obs):
-        observations[i, 0] = r 
+        observations[i, 0] = r + i*0.1
         observations[i, 1] = theta 
-
-    observations = None
 
     pdaf.filter_observations_outside_gate(observations)
     pdaf.compute_probability_of_matching_observations()
@@ -232,6 +231,68 @@ def test_compute_probability_of_matching_observations():
     assert(np.sum(pdaf.p_match_arr) - 1 < 0.00001)
     assert(pdaf.p_match_arr[0] == pdaf.p_no_match or len(pdaf.o_within_gate_arr)==0)
 
+
+def test_compute_residual_vector():
+
+    pdaf = PDAF()
+
+    n_obs = 10
+    r = 4
+    theta = 0.5
+
+    observations = np.ndarray((n_obs, 2), dtype=float)
+    
+    for i in range(n_obs):
+        observations[i, 0] = r 
+        observations[i, 1] = theta 
+
+    pdaf.filter_observations_outside_gate(observations)
+    pdaf.compute_probability_of_matching_observations()
+    pdaf.compute_residual_vector()
+
+    print(pdaf.residual_vector)
+
+def test_pdaf_zero_velocity():
+
+    r = 5
+    theta = 1
+    tollerance = 0.3
+    n_time_steps = 100
+    n_obs = 5 #this value will in relaity vary
+
+
+    pdaf = PDAF()
+
+    pdaf.x_pri[0] = r
+    pdaf.x_pri[1] = theta
+    pdaf.x_pri[2] = 10
+    pdaf.x_pri[3] = 0.5
+
+    for i in range(len(pdaf.x_post)):
+        pdaf.Q[i, i] = 0.1
+
+    for i in range(len(pdaf.C)):
+        pdaf.R[i, i] = 0.1
+
+    observations= np.ndarray((n_time_steps, n_obs, 2), dtype=float)
+
+    for i in range(n_time_steps):
+        for j in range(n_obs):
+            observations[i, j, 0] = r + np.random.randn(1) * pdaf.R[0, 0]
+            observations[i, j, 1] = theta + np.random.randn(1) * pdaf.R[1, 1]
+
+    for o_time_k in observations:
+
+        pdaf.correction_step(o_time_k)
+
+        pdaf.prediction_step()
+
+    print(pdaf.x_post)
+
+    assert abs(pdaf.x_post[0] - r) < tollerance
+    assert abs(pdaf.x_post[1] - theta) < tollerance
+    assert abs(pdaf.x_post[2]) < tollerance
+    assert abs(pdaf.x_post[3]) < tollerance
 
 
 
