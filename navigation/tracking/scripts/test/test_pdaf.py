@@ -276,10 +276,12 @@ def test_pdaf_zero_velocity():
 
     observations= np.ndarray((n_time_steps, n_obs, 2), dtype=float)
 
-    for i in range(n_time_steps):
-        for j in range(n_obs):
-            observations[i, j, 0] = r + np.random.randn(1) * pdaf.R[0, 0]
-            observations[i, j, 1] = theta + np.random.randn(1) * pdaf.R[1, 1]
+    #for i in range(n_time_steps):
+    #   for j in range(n_obs):
+    #       observations[i, j, 0] = r + np.random.randn(1) * pdaf.R[0, 0]
+    #        observations[i, j, 1] = theta + np.random.randn(1) * pdaf.R[1, 1]
+
+    observations[0] = None
 
     for o_time_k in observations:
 
