@@ -3,24 +3,34 @@ import control
 import scipy.signal
 
 """
-Single object tracking 
+Single object tracking
 
-Need a model for how the object moves.
-Need a model/distribution for detection? 
+Sub tasks: 
 
-Compute probability of matching obsercations to your track
-    Based on mahalanobis distance, give a weight to each observation. 
-    It's aslo a posibilty not to obsevre anything.
+    Need a model for how the object moves.
 
-Update step 
-    Use a weighted combination of observations
-    x^ = sum(p_i*(o_i - Cx))
-    P = (see pdf from psu edu)
+    Compute probability of matching observations to your track
+        Based on mahalanobis distance, give a weight to each observation. 
+        Remeber it's a posibilty not to obsevre anything.
 
+    Update step 
+        Use a weighted combination of observations when calculating the residual vector.
+        How do we compute the posterior covariance? How to we incorporate the uncertanty from the data assiciation? 
 
-Prediction step
-    Seems to be the same as for a KF.
+    Prediction step
+        Seems to be the same as for a KF.
 
+    How to initialize tracks? How to delete tracks? 
+        Don't think we have to worry about this for single object tracking. 
+        Initially we assume there is one and only one object. 
+
+    Include an exitance variable in the state vector (e.g. implement ipda)
+
+    Define a gating window based on the predicted variance. 
+
+    Find a good way to deal with scenario of no observations.
+
+    Find a good way to deal with varying array lengths.
 """
 
 
@@ -63,9 +73,9 @@ class PDAF:
                     [1.0, 0.0, self.time_step, 0],
                     [0, 1.0, 0, self.time_step],
                     [0, 0, 1.0, 0],  # assuming constnat velocity
-                    [0, 0, 0, 1.0],
+                    [0, 0, 0, 1.0],  # assuming constnat velocity
                 ]
-            ),  # assuming constnat velocity
+            ),
             dtype=float,
         )
 
@@ -79,38 +89,66 @@ class PDAF:
 
         self.R = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
 
+        self.gate_radius = 5  # the gating window will be a circle around the predicted position (5 is just a random number for now)
+        # gate could also vary based on the predicted variance, and be an elipsiod. Predicted variance is given by  eq (7.17).
 
-        self.gate_radius = 5 #the gating window will be a circle around the predicted position (5 is just a random number for now) 
         self.residual_vector = np.ndarray((2,), dtype=float)
+        self.p_no_match = 0.5  # probabiity that no observations matches the track
+        self.p_match_arr = np.ndarray(
+            (2,), dtype=float
+        )  # Lengt of this array will vary based on how many observations there are.
+        self.o_within_gate_arr = np.ndarray(
+            (2,2), dtype=float
+        )  # Lengt of this array will vary based on how many observations there are.
 
-    def compute_probability_of_matching_observations(self, y):
-        a = np.ndarray((len( y+ 1),), dtype=float) #score for each observation based on distance from predicted position
-        p = np.ndarray((len( y+ 1),), dtype=float) #probability of matching observation i to the track
+    def filter_observations_outside_gate(self, o):
 
-        a[0] = 1.0 #considering the probability that no observations match. Choose an approriate value. 
-        for i, y_i in enumerate(y):
-            delta_r = y_i[0] - self.x_pri[0] #use euclidian distance for now
-            if delta_r <= 0.1: #In order to avoid infinte high weights. Choose an approriate threshold.
-                a[i+1] = 10
-            else:
-                a[i+1] = 1/delta_r
+        within_gate = []
 
-        a_sum = np.sum(a)
-        for i, a_i in enumerate(a):
-            p[i] = a_i/a_sum
+        for o_i in o:
+            if (o_i[0]-self.x_pri[0]) < self.gate_radius:
+                within_gate.append(o_i)
 
-        return p
-
-
-    def compute_residual_vector(self, y, p):
-
-        self.residual_vector[0] = 0 #r
-        self.residual_vector[1] = 0 #theta
-
-        for i in range(len(y)):
-            self.residual_vector[0] += p[i+1]*(y[i][0] - self.x_pri[0])
-            self.residual_vector[1] += p[i+1]*(y[i][1] - self.x_pri[1])
+        self.o_within_gate_arr = np.array(within_gate)
         
+
+    def compute_probability_of_matching_observations(self):
+
+        score = np.ndarray(
+            (len(self.o_within_gate_arr),), dtype=float
+        )  # score for each observation based on distance from predicted position
+
+        self.p_match_arr = np.ndarray(
+            (len(self.o_within_gate_arr) +1,), dtype=float
+        )
+
+        if len(self.o_within_gate_arr) == 0:  # no observations
+            self.p_match_arr[0] = 1.0  # probability that no observations match the track
+
+        else:
+            self.p_match_arr[0] = self.p_no_match
+
+            for i, y_i in enumerate(self.o_within_gate_arr):
+                delta_r = abs(y_i[0] - self.x_pri[0])  # use euclidian distance for now
+                if (
+                    delta_r <= 0.1
+                ):  # In order to avoid infinte high weights. Choose an approriate threshold.
+                    score[i] = 10
+                else:
+                    score[i] = 1 / delta_r
+
+            score_sum = np.sum(score)
+            for i in range(len(self.o_within_gate_arr)):
+                self.p_match_arr[i + 1] = (score[i] / score_sum) * (1 - self.p_no_match)
+
+    def compute_residual_vector(self):
+
+        self.residual_vector[0] = 0  # r
+        self.residual_vector[1] = 0  # theta
+
+        for i in range(len(self.o_within_gate_arr)):
+            self.residual_vector[0] += self.p_match_arr[i + 1] * (self.o_within_gate_arr[i][0] - self.x_pri[0])
+            self.residual_vector[1] += self.p_match_arr[i + 1] * (self.o_within_gate_arr[i][1] - self.x_pri[1])
 
     def prediction_step(self):
         self.x_pri = np.matmul(self.A, self.x_post)
@@ -120,22 +158,82 @@ class PDAF:
 
     def correction_step(self, y):
 
-
         P_CT = np.matmul(self.P_pri, np.transpose(self.C))
         C_P_CT = np.matmul(self.C, P_CT)
         self.L = np.matmul(P_CT, np.linalg.inv(C_P_CT + self.R))
 
+        #within gate?
+        #use p match arr
         p = self.compute_probability_of_matching_observations(y)
-        self.compute_residual_vector(y, p)
-        self.x_post = self.x_pri + np.matmul(self.L, self.residual_vector)
 
-        self.P_post = p[0]*self.P_pri + (1-p[0])*
+        if len(y) == 0:  # there where no detections
+            self.x_post = self.x_pri
+            self.P_post = self.P_pri
 
-        #I_LC = np.identity(len(self.x_pri)) - np.matmul(self.L, self.C)
-        #correction_term = np.matmul(self.L, np.matmul(self.R, np.transpose(self.L)))
-        #self.P_post = (#must be modified to incorporate weighted matches
-        #    np.matmul(I_LC, np.matmul(self.P_pri, np.transpose(I_LC))) + correction_term
-        #)
+        else:
+            self.compute_residual_vector(y, p)
+            self.x_post = self.x_pri + np.matmul(self.L, self.residual_vector)
+
+            I_LC = np.identity(len(self.x_pri)) - np.matmul(self.L, self.C)
+            correction_term = np.matmul(
+                self.L, np.matmul(self.R, np.transpose(self.L))
+            )  # OBS: correction term should reflect uncertain data association
+            self.P_post = (
+                p[0] * self.P_pri + (1 - p[0]) * I_LC * self.P_pri + correction_term
+            )
 
 
 # -----------------------------------
+
+def test_filter_observations_within_gate():
+
+    pdaf = PDAF()
+
+    n_obs = 10
+    r = 4
+    theta = 0.5
+
+    observations = np.ndarray((n_obs, 2), dtype=float)
+    for i in range(n_obs):
+        observations[i, 0] = r 
+        observations[i, 1] = theta 
+
+    for i in range(n_obs-5):
+        observations[i, 0] = r +2
+        observations[i, 1] = theta 
+
+    print("observations: ", observations)
+
+    pdaf.filter_observations_outside_gate(observations)
+
+    print("observations within gate: ", pdaf.o_within_gate_arr)
+
+def test_compute_probability_of_matching_observations():
+
+    pdaf = PDAF()
+
+    n_obs = 10
+    r = 4
+    theta = 0.5
+
+    observations = np.ndarray((n_obs, 2), dtype=float)
+    
+    for i in range(n_obs):
+        observations[i, 0] = r 
+        observations[i, 1] = theta 
+
+    observations = None
+
+    pdaf.filter_observations_outside_gate(observations)
+    pdaf.compute_probability_of_matching_observations()
+
+    print("p of matches: ", pdaf.p_match_arr)
+
+    assert(np.sum(pdaf.p_match_arr) - 1 < 0.00001)
+    assert(pdaf.p_match_arr[0] == pdaf.p_no_match or len(pdaf.o_within_gate_arr)==0)
+
+
+
+
+
+
