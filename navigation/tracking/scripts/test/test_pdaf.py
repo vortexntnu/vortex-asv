@@ -29,12 +29,16 @@ Sub tasks:
     Find a good way to deal with scenario of no observations.
 
     Find a good way to deal with varying array lengths.
+
+    Use cartesian coordinates in stead. 
+
+    Track manager.
 """
 
 
 class PDAF:
     def __init__(self):
-        # x = [r, thetha, r', theta']
+        # x = [x, y, x', y']
 
         self.time_step = 0.1
         self.x_pri = np.ndarray(
@@ -90,7 +94,7 @@ class PDAF:
         self.gate_radius = 5  # the gating window will be a circle around the predicted position, or elipsiod based on the predicted variance; eq (7.17).
 
         self.residual_vector = np.ndarray((2,), dtype=float)
-        self.p_no_match = 0.1  # probabiity that no observations matches the track
+        self.p_no_match = 0.2  # probabiity that no observations matches the track
         self.p_match_arr = np.ndarray(
             (2,), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
@@ -101,9 +105,10 @@ class PDAF:
     def filter_observations_outside_gate(self, o):
 
         within_gate = []
-
+        r_pri = np.sqrt(self.x_pri[0]**2 + self.x_pri[1]**2)
         for o_i in o:
-            if (o_i[0]-self.x_pri[0]) < self.gate_radius:
+            r_o = np.sqrt(o_i[0]**2 + o_i**2)
+            if (r_pri-r_o) < self.gate_radius:
                 within_gate.append(o_i)
 
         self.o_within_gate_arr = np.array(within_gate)
