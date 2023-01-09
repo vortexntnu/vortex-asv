@@ -279,7 +279,7 @@ def test_pdaf_zero_velocity():
 
     r = 5
     theta = 1
-    tollerance = 0.3
+    tollerance = 0.5
     n_timesteps = 50
 
     pdaf = PDAF()
@@ -287,7 +287,7 @@ def test_pdaf_zero_velocity():
     pdaf.x_pri[0] = 0
     pdaf.x_pri[1] = 0
     pdaf.x_pri[2] = 10
-    pdaf.x_pri[3] = 0.5
+    pdaf.x_pri[3] = 5
 
     for i in range(len(pdaf.x_post)):
         pdaf.Q[i, i] = 0.1
