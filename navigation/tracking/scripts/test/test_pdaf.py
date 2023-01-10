@@ -1,19 +1,11 @@
 import numpy as np
-import control
-import scipy.signal
 
 """
 Single object tracking
 
 Sub tasks: 
 
-    Compute probability of matching observations to your track
-        Based on mahalanobis distance, give a weight to each observation. 
-        Or, find better method. 
-
     Include an exitance variable in the state vector (e.g. implement ipda)
-
-    Define a gating window based on the predicted variance. 
 
     Track manager. See 2&M/N in Brekke.
 
@@ -24,9 +16,9 @@ Sub tasks:
 
     Port to CPP ? 
 
-    Replace np.transpose with a.T
-
     Vizualize test. 
+
+    TEST
 """
 
 
@@ -102,7 +94,7 @@ class PDAF:
         "Compute mahaloanobis distance between observation and predicted observation."
         o_predicted = np.matmul(self.C, self.state_pri)
         diff = o-o_predicted
-        mah_dist = np.matmul(np.transpose(diff.reshape(2,1)), np.matmul(np.linalg.inv(self.S), diff.reshape(2,1)))
+        mah_dist = np.matmul(diff.reshape(2,1).T, np.matmul(np.linalg.inv(self.S), diff.reshape(2,1)))
         return mah_dist
 
     def filter_observations_outside_gate(self, o):
@@ -161,10 +153,10 @@ class PDAF:
 
     def compute_S(self):
         C_P = np.matmul(self.C, self.P_pri)
-        self.S = np.matmul(C_P, np.transpose(self.C)) + self.R
+        self.S = np.matmul(C_P, self.C.T) + self.R
 
     def compute_L(self):
-        P_CT = np.matmul(self.P_pri, np.transpose(self.C))
+        P_CT = np.matmul(self.P_pri, self.C.T)
         C_P_CT = np.matmul(self.C, P_CT)
         self.L = np.matmul(P_CT, np.linalg.inv(C_P_CT + self.R))
 
@@ -175,12 +167,12 @@ class PDAF:
         temp1 = np.ndarray((2, 2), dtype=float)
         for i, o_i in enumerate(self.o_within_gate_arr):
             ny_ak = o_i - np.matmul(self.C, self.state_pri)
-            temp1 += self.p_match_arr[i + 1] * np.matmul(ny_ak, np.transpose(ny_ak))
+            temp1 += self.p_match_arr[i + 1] * np.matmul(ny_ak, ny_ak.T)
 
-        temp2 = temp1 - np.matmul(self.residual_vector, np.transpose(self.residual_vector))
+        temp2 = temp1 - np.matmul(self.residual_vector, self.residual_vector.T)
 
-        spread_of_innovations =  np.matmul(self.L, np.matmul(temp2, np.transpose(self.L))) #given by (7.26) Brekke
-        L_S_LT = np.matmul(self.L, np.matmul(self.S, np.transpose(self.L)))
+        spread_of_innovations =  np.matmul(self.L, np.matmul(temp2, self.L.T)) #given by (7.26) Brekke
+        L_S_LT = np.matmul(self.L, np.matmul(self.S, self.L.T))
 
         self.P_post = self.P_pri -(1-self.p_no_match)*L_S_LT + spread_of_innovations #given by (7.25) Brekke
 
@@ -188,7 +180,7 @@ class PDAF:
     def prediction_step(self):
         self.state_pri = np.matmul(self.A, self.state_post)
         self.P_pri = (
-            np.matmul(self.A, np.matmul(self.P_post, np.transpose(self.A))) + self.Q
+            np.matmul(self.A, np.matmul(self.P_post, self.A.T)) + self.Q
         )
 
     def correction_step(self, o):
