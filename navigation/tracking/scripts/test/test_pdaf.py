@@ -23,6 +23,8 @@ Sub tasks:
         use std ros msgs
 
     Port to CPP ? 
+
+    Replace np.transpose with a.T
 """
 
 
@@ -83,7 +85,7 @@ class PDAF:
 
         self.S = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
 
-        self.gate_radius = 5  # the gating window will be a circle around the predicted position, or elipsiod based on the predicted variance; eq (7.17).
+        self.validation_gate_scaling_param = 5  #number of standard deviations we are willing to consider. 
 
         self.residual_vector = np.ndarray((2,), dtype=float)
         self.p_no_match = 0.2  # probabiity that no observations matches the track
@@ -96,12 +98,18 @@ class PDAF:
 
     def filter_observations_outside_gate(self, o):
 
+        self.compute_S()
+        o_predicted = np.matmul(self.C, self.state_pri)
+
         within_gate = []
-        r_pri = compute_r(self.state_pri[0], self.state_pri[1])
+
         for o_i in o:
-            r_o = compute_r(o_i[0], o_i[1]) 
-            if abs(r_pri-r_o) < self.gate_radius:
+            diff = o_i-o_predicted
+            diffT_Sinv_diff = np.matmul(np.transpose(diff.reshape(2,1)), np.matmul(np.linalg.inv(self.S), diff.reshape(2,1)))
+            if diffT_Sinv_diff < self.validation_gate_scaling_param**2:
                 within_gate.append(o_i)
+            #else: 
+                #print("o outside gate! o_predicted: ", o_predicted, " o: ", o_i)
 
         self.o_within_gate_arr = np.array(within_gate)
 
@@ -232,7 +240,7 @@ def test_filter_observations_outside_gate():
     pdaf = PDAF()
 
     n_obs = 10
-    x = 4
+    x = 1
     y = 0.5
 
     observations = np.ndarray((n_obs, 2), dtype=float)
