@@ -25,6 +25,8 @@ Sub tasks:
     Port to CPP ? 
 
     Replace np.transpose with a.T
+
+    Vizualize test. 
 """
 
 
@@ -96,20 +98,25 @@ class PDAF:
             (2,2), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
 
+    def compute_mah_dist(self, o):
+        "Compute mahaloanobis distance between observation and predicted observation."
+        o_predicted = np.matmul(self.C, self.state_pri)
+        diff = o-o_predicted
+        mah_dist = np.matmul(np.transpose(diff.reshape(2,1)), np.matmul(np.linalg.inv(self.S), diff.reshape(2,1)))
+        return mah_dist
+
     def filter_observations_outside_gate(self, o):
 
         self.compute_S()
-        o_predicted = np.matmul(self.C, self.state_pri)
 
         within_gate = []
 
         for o_i in o:
-            diff = o_i-o_predicted
-            diffT_Sinv_diff = np.matmul(np.transpose(diff.reshape(2,1)), np.matmul(np.linalg.inv(self.S), diff.reshape(2,1)))
-            if diffT_Sinv_diff < self.validation_gate_scaling_param**2:
+            mah_dist = self.compute_mah_dist(o_i)
+            if mah_dist < self.validation_gate_scaling_param**2:
                 within_gate.append(o_i)
-            #else: 
-                #print("o outside gate! o_predicted: ", o_predicted, " o: ", o_i)
+            else: 
+                print("o outside gate! o: ", o_i)
 
         self.o_within_gate_arr = np.array(within_gate)
 
@@ -123,18 +130,22 @@ class PDAF:
         self.p_match_arr = np.ndarray(
             (len(self.o_within_gate_arr) +1,), dtype=float
         )
-        self.p_match_arr[0] = self.p_no_match
 
-        r_pri = compute_r(self.state_pri[0], self.state_pri[1])
+        if len(self.o_within_gate_arr)==0:
+            self.p_match_arr[0] = 1.0
+        else: 
+            self.p_match_arr[0] = self.p_no_match
+
+
         for i, o_i in enumerate(self.o_within_gate_arr):
-            r_o = compute_r(o_i[0], o_i[1])
-            delta_r = abs(r_o-r_pri)  # use euclidian distance for now
+
+            mah_distance = self.compute_mah_dist(o_i)
             if (
-                delta_r <= 0.1
+                mah_distance <= 0.1
             ):  # In order to avoid infinte high weights. Choose an approriate threshold.
                 score[i] = 10
             else:
-                score[i] = 1 / delta_r
+                score[i] = 1 / mah_distance
 
         score_sum = np.sum(score)
         for i in range(len(self.o_within_gate_arr)):
@@ -263,7 +274,7 @@ def test_compute_probability_of_matching_observations():
     pdaf = PDAF()
 
     n_obs = 10
-    x = 4
+    x = 1
     y = 0.5
 
     observations = np.ndarray((n_obs, 2), dtype=float)
@@ -276,8 +287,9 @@ def test_compute_probability_of_matching_observations():
     pdaf.compute_probability_of_matching_observations()
 
     print("p of matches: ", pdaf.p_match_arr)
+    print("p sum: ", np.sum(pdaf.p_match_arr))
 
-    assert(np.sum(pdaf.p_match_arr) - 1 < 0.00001)
+    assert(abs(np.sum(pdaf.p_match_arr) - 1 )< 0.00001)
     assert(pdaf.p_match_arr[0] == pdaf.p_no_match or len(pdaf.o_within_gate_arr)==0)
 
 
