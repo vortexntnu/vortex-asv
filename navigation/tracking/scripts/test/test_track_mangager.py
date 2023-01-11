@@ -1,98 +1,56 @@
-import numpy as np
-from enum import Enum
-from typing import List
+from track_manager import TRACK_MANAGER
 
-from test_pdaf import PDAF
+def test_cb():
 
-"""
+    manager = TRACK_MANAGER()
 
-Track manager:
+    x = 1
+    y = 1
+    tollerance = 0.5
+    n_timesteps = 10
 
-    Define a different validation gate then what is used for confirmed tracks.
-    How should velocity be initialized? 
-    Write "add tentative tracks".
-    Can we make do with fewer classes? 
-    Multilpe fiels? 
-    TEST
-"""
 
-class TRACK_MANAGER:
-    def __init__(self):
-        #subscripe to topic with detections from point cloud 
-        #publish state of main track if status is confirmed
+    for i in range(n_timesteps):
+        print("\n timestep", i, "\n")
+        o_arr = manager.main_track.create_observations_for_one_timestep(x, y)
+        print("observations: ", o_arr)
+        manager.cb(o_arr)
 
-        self.prev_detections: List[np.ndarray]= [] 
-        self.tentative_tracks: List[TRACK] = [] 
+        for track in manager.tentative_tracks:
+            print("state: ", track.state_pri[:2])
+            print("n: ", track.n)
 
-        self.main_track = TRACK()
+    print("final estimates: ", manager.main_track.state_post)
 
-    def cb(self, o_arr):
-        if self.main_track.status == TRACK_STATUS.tentative_confirm:
-            self.update_status_on_tentative_tracks(o_arr)
-            self.add_tentative_tracks(o_arr)
+def test_add_tentative_tracks():
 
-        elif self.main_track.status == TRACK_STATUS.confirmed:
-            self.main_track.pdaf.correction_step(o_arr)
-            self.main_track.pdaf.prediction_step()
+    manager = TRACK_MANAGER()
 
-            if self.main_track.pdaf.o_within_gate_arr == 0:
-                self.main_track.status = TRACK_STATUS.tentative_delete
-                self.main_track.m = 0
-                self.main_track.n = 0
+    x = 0
+    y = 0
+    tollerance = 0.5
+    n_timesteps = 15
 
-        elif self.main_track.status == TRACK_STATUS.tentative_delete:
-            self.main_track.pdaf.correction_step(o_arr)
-            self.main_track.pdaf.prediction_step()  
+    manager.main_track.R[0,0] = 0.001
+    manager.main_track.R[1,1] = 0.001
 
-            self.main_track.m += 1
-            if self.main_track.pdaf.o_within_gate_arr == 0:
-                self.main_track.n += 1
 
-            if self.main_track.n == self.main_track.N:
-                self.main_track.status = TRACK_STATUS.confirmed
-            elif self.main_track.m == self.main_track.M:
-                self.main_track.status = TRACK_STATUS.tentative_confirm        
+    for i in range(n_timesteps):
+        print("\n timestep", i, "\n")
 
-    def add_tentative_tracks(self, o_arr):
-        a = 2
-        #for each prev detection:
-        #   search for new detections within a validation gate based on maks dist to new predicted state pluss noise. 
+        o_arr = manager.main_track.create_observations_for_one_timestep(x, y)
+        print(len(manager.tentative_tracks),"tentative tracks: ")
+        for track in manager.tentative_tracks:
+            print("state: ", track.state_pri[:2])
+            print("n: ", track.n)
 
-    def update_status_on_tentative_tracks(self, o_arr):
-        for track in self.tentative_tracks:
-            track.update_confirmation_count(o_arr)
-            if track.n == track.N:
-                self.main_track.status = TRACK_STATUS.confirmed
-                self.tentative_tracks.remove(track)
-            elif track.m == track.M:
-                self.tentative_tracks.remove(track)
+        print("observations: ", o_arr)
 
-class TRACK_STATUS(Enum):
-    tentative_confirm = 1
-    confirmed = 2
-    tentative_delete = 3
+        manager.update_status_on_tentative_tracks(o_arr)
+        new_o_arr = manager.remove_o_incorporated_in_tracks(o_arr)
+        manager.add_tentative_tracks(new_o_arr)
 
-class TRACK:
-    def __init__(self, o):
-        self.N = 3
-        self.M = 5
-        self.n = 0
-        self.m = 0
+        manager.prev_observations = new_o_arr
 
-        self.status = TRACK_STATUS.tentative
 
-        self.pdaf = PDAF()
-        self.pdaf.state_pri[0] = o[0] #x
-        self.pdaf.state_pri[1] = o[1] #y
-        self.pdaf.state_pri[2] = 0    #x'
-        self.pdaf.state_pri[3] = 0    #y'
 
-    def update_confirmation_count(self, o_arr):
-        self.m += 1
-        
-        self.pdaf.prediction_step()
-
-        self.pdaf.correction_step(o_arr)
-
-        if self.pdaf.o_within_gate_arr > 0: #OBS: might not be good enough, considering boats with high speed. 
-            self.n += 1
