@@ -1,4 +1,30 @@
-#!/usr/bin/python3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Written by Kristoffer Rakstad Solberg, Student
 # Documented by Christopher Strom and Jae Hyeong Hwang
 # Copyright (c) 2020 Manta AUV, Vortex NTNU.
@@ -28,7 +54,6 @@ from vortex_msgs.msg import (
 
 # modules included in this package
 from reference_model.discrete_tustin import ReferenceModel
-
 
 class LOS:
     """
@@ -228,12 +253,7 @@ class LOS:
 
 class LosPathFollowing(object):
     """
-    This is the ROS wrapper class for the LOS class.
-    Attributes:
-            _feedback	A vortex_msgs action that contains the distance to goal
-            _result		A vortex_msgs action, true if a goal is set within the
-                                    sphereof acceptance, false if not
-
+        self.reference_mod
     Nodes created:
             los
     Subscribes to:
