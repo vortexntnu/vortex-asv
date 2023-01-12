@@ -4,10 +4,10 @@ def test_cb():
 
     manager = TRACK_MANAGER()
 
-    x = 1
-    y = 1
+    x = 20
+    y = 20
     tollerance = 0.5
-    n_timesteps = 10
+    n_timesteps = 50
 
 
     for i in range(n_timesteps):
@@ -18,7 +18,7 @@ def test_cb():
 
         for track in manager.tentative_tracks:
             print("state: ", track.state_pri[:2])
-            print("n: ", track.n)
+            print("n: ", track.n, "m: ", track.m)
 
     print("final estimates: ", manager.main_track.state_post)
 
@@ -29,7 +29,7 @@ def test_add_tentative_tracks():
     x = 0
     y = 0
     tollerance = 0.5
-    n_timesteps = 15
+    n_timesteps = 50
 
     manager.main_track.R[0,0] = 0.001
     manager.main_track.R[1,1] = 0.001
@@ -51,6 +51,9 @@ def test_add_tentative_tracks():
         manager.add_tentative_tracks(new_o_arr)
 
         manager.prev_observations = new_o_arr
+
+
+
 
 
 
