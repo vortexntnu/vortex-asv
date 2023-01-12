@@ -1,4 +1,31 @@
+import sys
+sys.path.insert(0,'/home/hannahcl/Documents/vortex/monkey_tracking/data_generation')
+from scenarios import BaseScenario, plot
+import argparse
+import matplotlib.pyplot as plt
+
+from constant_velocity_object import CVObject, Measurement
+
+from utility import time_from_step
+from load_config import load_yaml_into_dotdict
+
 from track_manager import TRACK_MANAGER
+
+
+def data_generation():
+
+    config = load_yaml_into_dotdict('scenario.yaml')
+
+    scenario = BaseScenario(config)
+
+    measurements, ground_truths = scenario.run()
+
+    for measurements_at_t in measurements:
+        for measurement in measurements_at_t:
+            print(measurement)
+        print()
+
+    #plot(scenario, measurements, ground_truths
 
 def test_cb():
 

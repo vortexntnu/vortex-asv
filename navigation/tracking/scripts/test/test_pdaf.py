@@ -1,6 +1,37 @@
 from pdaf import PDAF
 import numpy as np
 
+import sys
+sys.path.insert(0,'/home/hannahcl/Documents/vortex/monkey_tracking/data_generation')
+from scenarios import BaseScenario, plot, plot_with_estimates, plot_pos_and_vel
+import argparse
+import matplotlib.pyplot as plt
+
+from constant_velocity_object import CVObject, Measurement
+
+from utility import time_from_step
+from load_config import load_yaml_into_dotdict
+
+from track_manager import TRACK_MANAGER
+
+
+def data_generation():
+
+    config = load_yaml_into_dotdict('scenario.yaml')
+
+    scenario = BaseScenario(config)
+
+    measurements, ground_truths = scenario.run()
+
+    # for measurements_at_t in measurements:
+    #     for measurement in measurements_at_t:
+    #         print(measurement)
+    #     print()
+
+    #plot(scenario, measurements, ground_truths
+
+    return scenario, measurements, ground_truths
+
 def test_filter_observations_outside_gate():
 
     pdaf = PDAF()
@@ -197,6 +228,91 @@ def test_pdaf_constant_vel():
     )
     assert abs(pdaf.state_post[2] - x_der) < tollerance
     assert abs(pdaf.state_post[3] - y_der) < tollerance
+
+
+def test_pdaf_constant_vel_data():
+    """
+    We simulate a boat with constant velocity in both x and y.
+    """
+
+    pdaf = PDAF()
+
+    pdaf.state_pri[0] = -100
+    pdaf.state_pri[1] = 100
+    pdaf.state_pri[2] = 0
+    pdaf.state_pri[3] = 0
+
+    for i in range(len(pdaf.state_post)):
+        pdaf.Q[i, i] = 0.1
+
+    for i in range(len(pdaf.C)):
+        pdaf.R[i, i] = 0.1
+
+    scenario, measurements, ground_truths = data_generation()
+    estimates = []
+
+    for o_time_k in measurements:
+
+        # print("new time step")
+        # print(o_time_k)
+
+        o_list = []
+        for o in o_time_k:
+            o_list.append(o.pos)
+
+        pdaf.correction_step(o_list)
+
+        pdaf.prediction_step()   
+
+        estimates.append(pdaf.state_post[:2])
+    
+    print("final observations: ", measurements[-1])
+
+    print("final gt: ", ground_truths[-1])
+
+    print("final estimates: ", pdaf.state_post)
+
+    plot_with_estimates(scenario, measurements, ground_truths, estimates)
+
+# def test_plot_pos_and_vel():
+
+#     pdaf = PDAF()
+
+#     pdaf.state_pri[0] = 0
+#     pdaf.state_pri[1] = 0
+#     pdaf.state_pri[2] = 10
+#     pdaf.state_pri[3] = 5
+
+#     for i in range(len(pdaf.state_post)):
+#         pdaf.Q[i, i] = 0.1
+
+#     for i in range(len(pdaf.C)):
+#         pdaf.R[i, i] = 0.1
+
+#     scenario, measurements, ground_truths = data_generation()
+#     estimates = []
+
+#     for o_time_k in measurements:
+ 
+#         o_list = []
+#         for o in o_time_k:
+#             o_list.append(o.pos)
+
+#         pdaf.correction_step(o_list)
+
+#         pdaf.prediction_step()   
+
+#         estimates.append(pdaf.state_post)
+    
+#     print("final observations: ", measurements[-1])
+
+#     print("final gt: ", ground_truths[-1])
+
+#     print("final estimates: ", pdaf.state_post)
+
+#     plot_pos_and_vel(estimates)
+
+
 
 
 

@@ -1,0 +1,29 @@
+steps: 100
+
+dt: 0.1
+
+n_starting_targets: 1
+
+birth:
+  intensity: 0.0
+  position:
+    mean: [-5,5]
+    var: [[1, 0], [0, 1]]
+  velocity:
+    mean: [0, 0]
+    var: [[1, 0], [0, 1]]
+
+probability:
+  survival: 1
+  detection: 0.9
+
+noise:
+  measurement: 0.1
+  process: 1.0
+  clutter_intensity: 1
+
+sensor:
+  range:
+    max: 50
+    min: 0.1
+  position: [0, 0]

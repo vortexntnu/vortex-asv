@@ -7,8 +7,6 @@ from pdaf import PDAF
 """
 
 Track manager:
-    Only works when init pos is close to measurments. 
-
     How should velocity and position be initialized? 
     How to take into account noise when defining validation gate max size? 
     TEST
@@ -28,7 +26,7 @@ class TRACK_MANAGER:
         
         self.main_track_status = TRACK_STATUS.tentative_confirm
 
-        self.max_vel = 2 #[m/s]
+        self.max_vel = 4 #[m/s]
         self.sd = 1.0 #[m/s] standard deviation for measurments. Same thing as R, but I want it in 1x1, not 2x2. 
         self.time_step = self.main_track.time_step
 
@@ -36,7 +34,7 @@ class TRACK_MANAGER:
         if self.main_track_status == TRACK_STATUS.tentative_confirm:
             self.update_status_on_tentative_tracks(o_arr) #check if observation are close to tentative trakcs
             remaining_o_arr = self.remove_o_incorporated_in_tracks(o_arr) #make this prettier/better
-            self.add_tentative_tracks(remaining_o_arr) #check if observation are close to previous observations. Obs: will end up with multiple tentative trakcs for the same track. 
+            self.add_tentative_tracks(remaining_o_arr) #check if observation are close to previous observations. 
             self.prev_observations = remaining_o_arr
 
             print("tentative confirm with ", len(self.tentative_tracks), " tracks.")
@@ -51,7 +49,8 @@ class TRACK_MANAGER:
                 self.main_track.m = 0
                 self.main_track.n = 0
 
-            print("track confirmed")
+            print("track still confirmed")
+            print("state: ", self.main_track.state_post)
 
         elif self.main_track_status == TRACK_STATUS.tentative_delete:
             self.main_track.correction_step(o_arr)
@@ -61,12 +60,14 @@ class TRACK_MANAGER:
             if len(self.main_track.o_within_gate_arr) == 0:
                 self.main_track.n += 1
 
-            if self.main_track.n == self.main_track.N:
+            if self.main_track.n == self.N:
                 self.main_track_status = TRACK_STATUS.confirmed
-            elif self.main_track.m == self.main_track.M:
+            elif self.main_track.m == self.M:
                 self.main_track_status = TRACK_STATUS.tentative_confirm 
+                print("track deleted")
 
-            print("tentative delete")  
+            print("tentative delete") 
+            print("state: ", self.main_track.state_post) 
    
 
     def add_tentative_tracks(self, o_arr):
@@ -77,10 +78,12 @@ class TRACK_MANAGER:
                 print("track added")
                 tentative_track = PDAF() 
 
-                tentative_track.state_pri[0] = prev_o[0] #x #can improve. this point is one timestep delayed.
-                tentative_track.state_pri[1] = prev_o[1] #y
-                tentative_track.state_pri[2] = 0    #x'
-                tentative_track.state_pri[3] = 0    #y'
+                tentative_track.state_post[0] = prev_o[0] #x #can improve. this point is one timestep delayed.
+                tentative_track.state_post[1] = prev_o[1] #y
+                tentative_track.state_post[2] = 0    #x'
+                tentative_track.state_post[3] = 0    #y'
+
+                tentative_track.Q
 
                 self.tentative_tracks.append(tentative_track) 
 
@@ -107,6 +110,7 @@ class TRACK_MANAGER:
             if track.n == self.N:
                 print("track confirmed")
                 self.main_track_status = TRACK_STATUS.confirmed
+                self.main_track = track
                 self.tentative_tracks.remove(track)
             elif track.m == self.M:
                 print("track deleted")
@@ -122,11 +126,11 @@ class TRACK_MANAGER:
 
         return n, m
 
-    def n_observations_inside_max_size_gate(self, curr_pos, o_arr):
+    def n_observations_inside_max_size_gate(self, predicted_position, o_arr):
         n = 0
 
         for o in o_arr:
-            dist = np.sqrt((o[0]-curr_pos[0])**2 + (o[1]-curr_pos[1])**2)
+            dist = np.sqrt((o[0]-predicted_position[0])**2 + (o[1]-predicted_position[1])**2)
             #print("dist:", dist, "range:", self.max_vel*self.time_step + self.sd )
             if dist < self.max_vel*self.time_step + self.sd:
                 n += 1
