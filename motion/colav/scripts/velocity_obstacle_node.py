@@ -68,7 +68,7 @@ class Velocity_Obstacle:
 
         #Determine the direction of the obstacle, and which cone angle to follow
 
-        if theta_ro> 0 and math.atan2(velocity_r.y/velocity_r.x) < math.pi/2 and math.atan2(velocity_r.y/velocity_r.x) > -math.pi/2 :
+        if theta_ro> 0 and math.atan2(velocity_r.y/velocity_r.x) < math.pi/2 and math.atan2(velocity_r.y/velocity_r.x) > -math.pi/2 or not (theta_ro> 0 and math.atan2(velocity_r.y/velocity_r.x) < math.pi/2 or math.atan2(velocity_r.y/velocity_r.x) > -math.pi/2):
             new_angle = self.left_angle + buffer_angle 
         else:
             new_angle = self.right_angle - buffer_angle
