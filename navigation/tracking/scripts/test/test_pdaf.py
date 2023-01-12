@@ -237,8 +237,8 @@ def test_pdaf_constant_vel_data():
 
     pdaf = PDAF()
 
-    pdaf.state_pri[0] = -100
-    pdaf.state_pri[1] = 100
+    pdaf.state_pri[0] = 0
+    pdaf.state_pri[1] = 0
     pdaf.state_pri[2] = 0
     pdaf.state_pri[3] = 0
 

@@ -9,7 +9,29 @@ from pdaf import PDAF
 Track manager:
     How should velocity and position be initialized? 
     How to take into account noise when defining validation gate max size? 
+    
     TEST
+
+        - Are traks deleted when tracks disapreas from surveilance region? 
+        - Visualize tentative trakcs, confirmed trakcs, and tentative deletion tracks. 
+        - What happens if there is a static object in addition to a track? 
+        - How low can the detection probability be, and the track is still confirmed? 
+        - How high can false detection probability be before false tracks are confirmed? 
+
+        -Are estimates within a resonable tollerance from gt when there is resonable
+            measurment noise
+            prosses noise
+            p of detection
+            range of area
+            size of validation gate
+            size of max validation gate
+            N
+            M
+
+
+Integration:
+    Integrate with ros
+    Publish nav_msgs/Pose
 """
 
 class TRACK_MANAGER:
@@ -32,9 +54,9 @@ class TRACK_MANAGER:
 
     def cb(self, o_arr):
         if self.main_track_status == TRACK_STATUS.tentative_confirm:
-            self.update_status_on_tentative_tracks(o_arr) #check if observation are close to tentative trakcs
+            self.update_status_on_tentative_tracks(o_arr) 
             remaining_o_arr = self.remove_o_incorporated_in_tracks(o_arr) #make this prettier/better
-            self.add_tentative_tracks(remaining_o_arr) #check if observation are close to previous observations. 
+            self.add_tentative_tracks(remaining_o_arr) 
             self.prev_observations = remaining_o_arr
 
             print("tentative confirm with ", len(self.tentative_tracks), " tracks.")

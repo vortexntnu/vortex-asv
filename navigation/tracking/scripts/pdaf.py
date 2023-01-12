@@ -5,24 +5,14 @@ Single object tracking
 
 Sub tasks: 
 
-    Include an exitance variable in the state vector (e.g. implement ipda)
-
-    Track manager. See 2&M/N in Brekke.
-
     Use a kalam gain so that the filter is numerically stable. 
 
-    Integrate with ROS. 
-        use std ros msgs
-
-    Port to CPP ? 
-
-    Vizualize test. 
-
-    Use nam_msgs/odometry.
-
-    How to deal with singulaer matricies? L
-
     TEST
+        - Visualize position estimates with clutter.
+        - Visualize velocity estimates with vectors. 
+        - Visualize validation gate. 
+        - Does the frequency of "zero detections within gate" correspond with p of detection? 
+
 """
 
 
