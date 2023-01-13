@@ -1,10 +1,13 @@
 import sys
 sys.path.insert(0,'/home/hannahcl/Documents/vortex/monkey_tracking/data_generation')
 from scenarios import BaseScenario
-import matplotlib.pyplot as plt
 from utility import time_from_step
+
 from track_manager import TRACK_STATUS
 
+import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
+import numpy as np
 
 
 def plot_with_estimates(scenario, measurements, ground_truths, estimates):
@@ -170,6 +173,7 @@ def plot_interactive(
         for measurement in measurements[k]:
             alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
             color = "r" if measurement.is_clutter else "k"
+        
             plt.scatter(
                 measurement.pos[0],
                 measurement.pos[1],
@@ -182,12 +186,14 @@ def plot_interactive(
             for tentative_estimate in tentative_estimates[k_ten]:
                 #alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
                 color = "y"
+                area = tentative_estimate.P[0, 0]**2
                 plt.scatter(
                     tentative_estimate[0],
                     tentative_estimate[1],
                     marker="+",
                     color=color,
                     #alpha=alpha,
+                    s = area
                 )
             k_ten += 1
 
@@ -223,7 +229,17 @@ def plot_interactive(
 
     plt.waitforbuttonpress()
 
+def plot_validation_gates():
+    x = 5
+    y = 5
+    w = 0.5
+    h = 1
 
+    ell = Ellipse(xy=(np.mean(x), np.mean(y)),
+              width=w, height=h,
+              color='black')
+
+    ell.
 
 
 

@@ -4,8 +4,10 @@ from scenarios import BaseScenario
 from load_config import load_yaml_into_dotdict
 
 from track_manager import TRACK_MANAGER, TRACK_STATUS
-import numpy as np
 import plots
+
+import numpy as np
+
 
 
 def data_generation():
@@ -158,6 +160,8 @@ def test_plot_interactive():
     #print(estimate_status)
 
     plots.plot_interactive(scenario, measurements, ground_truths, tentative_estimates, conf_estimates, tentative_del_estimates, estimate_status, wait_for_btn_press)
+
+
 
 
 
