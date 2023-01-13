@@ -50,11 +50,23 @@ def test_tentative_confirm_del():
 
     manager = TRACK_MANAGER()
 
+    manager.N = 3
+    manager.M = 8
+
     scenario, measurements, ground_truths = data_generation()
     
     manager.main_track.p_no_match = 1 - scenario.config.probability.detection    
     manager.main_track.time_step = scenario.config.dt
+
     manager.sd = scenario.config.noise.measurement
+
+    for i in range(len(manager.main_track.state_post)):
+        manager.main_track.Q[i, i] = scenario.config.noise.process
+
+    for i in range(len(manager.main_track.C)):
+        manager.main_track.R[i, i] = scenario.config.noise.measurement
+
+    manager.max_vel = 3
 
     tentative_estimates = []
     conf_estimates = []

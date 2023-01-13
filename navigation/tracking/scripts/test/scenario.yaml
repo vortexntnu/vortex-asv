@@ -15,11 +15,11 @@ birth:
 
 probability:
   survival: 1
-  detection: 0.9
+  detection: 0.95
 
 noise:
   measurement: 0.1
-  process: 1.0
+  process: 0.5
   clutter_intensity: 1
 
 sensor:
