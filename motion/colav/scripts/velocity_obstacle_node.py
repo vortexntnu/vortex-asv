@@ -25,6 +25,8 @@ class Velocity_Obstacle:
         
         self.left_angle = 0.0
         self.right_angle = 0.0
+
+        self.truncated_time = 5 #placeholder
         
 
     def set_cone_angles(self):
@@ -39,13 +41,20 @@ class Velocity_Obstacle:
 
     def check_if_collision(self):
         """
-        Returns true if the current velocity results in a collision.
+        Returns true if the current velocity results in a collision. Uses a truncated VO collision cone
         """
+        point = self.obstacle.pose.pose.position
         velocity_r = self.vessel.twist.twist.linear
         velocity_o = self.obstacle.twist.twist.linear
         translated_vel = Vector3(velocity_r.x-velocity_o.x,velocity_r.y-velocity_o.y,0)
         angle = math.atan2(translated_vel.y,translated_vel.x)
-        return angle > self.right_angle and angle < self.left_angle 
+
+        acceptance_radius = (self.radius_o + self.radius_r)/self.truncated_time
+        max_truncated_veloctiy = math.sqrt(point.x**2+point.y**2)/self.truncated_time - acceptance_radius
+
+        return angle > self.right_angle and angle < self.left_angle and math.sqrt(velocity_r.x**2+velocity_r.y**2) > max_truncated_veloctiy
+
+
 
     #Elias sin tentative løsning, ja riktig tentativ    
 
@@ -70,9 +79,9 @@ class Velocity_Obstacle:
 
         #Determine the direction of the obstacle, and which cone angle to follow
 
-        if (theta_ro>= 0 and math.atan2(velocity_o.y,velocity_o.x) < math.pi/2 and math.atan2(velocity_o.y,velocity_o.x) >= -math.pi/2) or not (theta_ro>= 0 and math.atan2(velocity_o.y,velocity_o.x) <= math.pi/2 or math.atan2(velocity_o.y,velocity_o.x) >= -math.pi/2):
+        if self.choose_left_cone():
             new_angle = self.left_angle + buffer_angle 
-            print("balle")
+        
         else:
             new_angle = self.right_angle - buffer_angle
         abs_vel = math.sqrt((velocity_r.x)**2+(velocity_r.y)**2)
@@ -80,6 +89,14 @@ class Velocity_Obstacle:
         new_velocity.x = new_velocity.x/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
         new_velocity.y = new_velocity.y/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
         return new_velocity
+
+
+    def choose_left_cone(self):
+        point = self.obstacle.pose.pose.position
+        theta_ro = math.atan2(point.y,point.x)
+        velocity_o = self.obstacle.twist.twist.linear
+        return (theta_ro>= 0 and math.atan2(velocity_o.y,velocity_o.x) < math.pi/2 and math.atan2(velocity_o.y,velocity_o.x) >= -math.pi/2) or not (theta_ro>= 0 and math.atan2(velocity_o.y,velocity_o.x) <= math.pi/2 or math.atan2(velocity_o.y,velocity_o.x) >= -math.pi/2)
+
         
 
 
