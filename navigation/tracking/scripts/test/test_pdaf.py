@@ -3,14 +3,10 @@ import numpy as np
 
 import sys
 sys.path.insert(0,'/home/hannahcl/Documents/vortex/monkey_tracking/data_generation')
-from scenarios import BaseScenario, plot, plot_with_estimates, plot_pos_and_vel
-import argparse
-import matplotlib.pyplot as plt
-
-from constant_velocity_object import CVObject, Measurement
-
-from utility import time_from_step
+from scenarios import BaseScenario
 from load_config import load_yaml_into_dotdict
+
+import plots
 
 from track_manager import TRACK_MANAGER
 
@@ -185,19 +181,6 @@ def test_pdaf_constant_vel():
     for i in range(len(pdaf.C)):
         pdaf.R[i, i] = 0.1
 
-    # measurments = np.ndarray((n_timesteps, 2), dtype=float)
-    # for i in range(n_timesteps):
-    #     measurments[i, 0] = (
-    #         x 
-    #         + i * x_der * pdaf.time_step 
-    #         + np.random.randn(1) * pdaf.R[0, 0]
-    #     )
-    #     measurments[i, 1] = (
-    #         y
-    #         + i * y_der * pdaf.time_step
-    #         + np.random.randn(1) * pdaf.R[1, 1]
-    #     )
-
     for k in range(n_timesteps):
 
         o_time_k = pdaf.create_observations_for_one_timestep_simple_version(
@@ -272,7 +255,7 @@ def test_pdaf_constant_vel_data():
 
     print("final estimates: ", pdaf.state_post)
 
-    plot_with_estimates(scenario, measurements, ground_truths, estimates)
+    plots.plot_with_estimates(scenario, measurements, ground_truths, estimates)
 
 # def test_plot_pos_and_vel():
 

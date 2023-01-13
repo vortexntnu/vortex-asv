@@ -9,7 +9,8 @@ from pdaf import PDAF
 Track manager:
     How should velocity and position be initialized? 
     How to take into account noise when defining validation gate max size? 
-    
+    How to differ static objects from boats? 
+
     TEST
 
         - Are traks deleted when tracks disapreas from surveilance region? 
@@ -27,6 +28,7 @@ Track manager:
             size of max validation gate
             N
             M
+            time_step
 
 
 Integration:
@@ -50,7 +52,6 @@ class TRACK_MANAGER:
 
         self.max_vel = 4 #[m/s]
         self.sd = 1.0 #[m/s] standard deviation for measurments. Same thing as R, but I want it in 1x1, not 2x2. 
-        self.time_step = self.main_track.time_step
 
     def cb(self, o_arr):
         if self.main_track_status == TRACK_STATUS.tentative_confirm:
@@ -115,7 +116,7 @@ class TRACK_MANAGER:
         for track in self.tentative_tracks:
             for i, o in enumerate(remaining_o):
                 dist = np.sqrt((o[0]-track.state_pri[0])**2 + (o[1]-track.state_pri[1])**2)
-                if dist < self.max_vel*self.time_step + self.sd:
+                if dist < self.max_vel*self.main_track.time_step + self.sd:
                     remaining_o.pop(i)
                     print(o, "deleted from o_arr")
 
@@ -154,7 +155,7 @@ class TRACK_MANAGER:
         for o in o_arr:
             dist = np.sqrt((o[0]-predicted_position[0])**2 + (o[1]-predicted_position[1])**2)
             #print("dist:", dist, "range:", self.max_vel*self.time_step + self.sd )
-            if dist < self.max_vel*self.time_step + self.sd:
+            if dist < self.max_vel*self.main_track.time_step + self.sd:
                 n += 1
                 
         return n
