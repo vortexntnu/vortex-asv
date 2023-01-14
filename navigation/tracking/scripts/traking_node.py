@@ -22,11 +22,14 @@ class Tracker:
     def __init__(self):
 
         rospy.init_node("Tracker")
-        rospy.Subscriber("position_measurments", Point, self.cb_function) #what type should be used? 
-        self.pub = rospy.Publisher("position_velocity_estimates", Point, queue_size=10) #use nav_msgs/odometry
+        rospy.Subscriber(
+            "position_measurments", Point, self.cb_function
+        )  # what type should be used?
+        self.pub = rospy.Publisher(
+            "position_velocity_estimates", Point, queue_size=10
+        )  # use nav_msgs/odometry
 
         self.track_manager = TRACK_MANAGER()
-
 
     def cb_function(self, data):
 
@@ -35,7 +38,7 @@ class Tracker:
 
     def publish(self):
         a = 3
-        #if track is confirmed, publish odometry
+        # if track is confirmed, publish odometry
 
 
 if __name__ == "__main__":

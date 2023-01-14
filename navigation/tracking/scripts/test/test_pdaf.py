@@ -2,13 +2,15 @@ from pdaf import PDAF
 import numpy as np
 
 import sys
-sys.path.insert(0,'/home/hannahcl/Documents/vortex/monkey_tracking/data_generation')
+
+sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/data_generation")
 from scenarios import BaseScenario
 from load_config import load_yaml_into_dotdict
 
 import plots
 
 from track_manager import TRACK_MANAGER
+
 
 def test_pdaf_zero_velocity():
 
@@ -38,8 +40,8 @@ def test_pdaf_zero_velocity():
 
         pdaf.prediction_step()
 
-        #print("observations: ", o_time_k)
-        #print("estimates: ", pdaf.x_post)
+        # print("observations: ", o_time_k)
+        # print("estimates: ", pdaf.x_post)
 
     print(pdaf.state_post)
 
@@ -47,6 +49,7 @@ def test_pdaf_zero_velocity():
     assert abs(pdaf.state_post[1] - y) < tollerance
     assert abs(pdaf.state_post[2]) < tollerance
     assert abs(pdaf.state_post[3]) < tollerance
+
 
 def test_pdaf_constant_vel():
     """
@@ -76,19 +79,21 @@ def test_pdaf_constant_vel():
     for k in range(n_timesteps):
 
         o_time_k = pdaf.create_observations_for_one_timestep_simple_version(
-            x + k * x_der * pdaf.time_step , 
-            y + k * y_der * pdaf.time_step)
+            x + k * x_der * pdaf.time_step, y + k * y_der * pdaf.time_step
+        )
 
         pdaf.correction_step(o_time_k)
 
         pdaf.prediction_step()
 
-    print("final true state: ", 
-    (x + x_der * (n_timesteps - 1) * pdaf.time_step), 
-    (y + y_der * (n_timesteps - 1) * pdaf.time_step), 
-    x_der, 
-    y_der)
-    
+    print(
+        "final true state: ",
+        (x + x_der * (n_timesteps - 1) * pdaf.time_step),
+        (y + y_der * (n_timesteps - 1) * pdaf.time_step),
+        x_der,
+        y_der,
+    )
+
     print("final observations: ", o_time_k)
 
     print("final estimates: ", pdaf.state_post)
@@ -107,7 +112,7 @@ def test_pdaf_constant_vel():
 
 def data_generation():
 
-    config = load_yaml_into_dotdict('scenario.yaml')
+    config = load_yaml_into_dotdict("scenario.yaml")
 
     scenario = BaseScenario(config)
 
@@ -118,9 +123,10 @@ def data_generation():
     #         print(measurement)
     #     print()
 
-    #plot(scenario, measurements, ground_truths
+    # plot(scenario, measurements, ground_truths
 
     return scenario, measurements, ground_truths
+
 
 def test_filter_observations_outside_gate():
 
@@ -132,18 +138,19 @@ def test_filter_observations_outside_gate():
 
     observations = np.ndarray((n_obs, 2), dtype=float)
     for i in range(n_obs):
-        observations[i, 0] = x 
-        observations[i, 1] = y 
+        observations[i, 0] = x
+        observations[i, 1] = y
 
-    for i in range(n_obs-5):
-        observations[i, 0] = x +2
-        observations[i, 1] = y 
+    for i in range(n_obs - 5):
+        observations[i, 0] = x + 2
+        observations[i, 1] = y
 
     print("observations: ", observations)
 
     pdaf.filter_observations_outside_gate(observations)
 
     print("observations within gate: ", pdaf.o_within_gate_arr)
+
 
 def test_compute_probability_of_matching_observations():
 
@@ -154,10 +161,10 @@ def test_compute_probability_of_matching_observations():
     y = 0.5
 
     observations = np.ndarray((n_obs, 2), dtype=float)
-    
+
     for i in range(n_obs):
-        observations[i, 0] = x + i*0.1
-        observations[i, 1] = y 
+        observations[i, 0] = x + i * 0.1
+        observations[i, 1] = y
 
     pdaf.filter_observations_outside_gate(observations)
     pdaf.compute_probability_of_matching_observations()
@@ -165,8 +172,8 @@ def test_compute_probability_of_matching_observations():
     print("p of matches: ", pdaf.p_match_arr)
     print("p sum: ", np.sum(pdaf.p_match_arr))
 
-    assert(abs(np.sum(pdaf.p_match_arr) - 1 )< 0.00001)
-    assert(pdaf.p_match_arr[0] == pdaf.p_no_match or len(pdaf.o_within_gate_arr)==0)
+    assert abs(np.sum(pdaf.p_match_arr) - 1) < 0.00001
+    assert pdaf.p_match_arr[0] == pdaf.p_no_match or len(pdaf.o_within_gate_arr) == 0
 
 
 def test_compute_residual_vector():
@@ -178,16 +185,17 @@ def test_compute_residual_vector():
     y = 0.5
 
     observations = np.ndarray((n_obs, 2), dtype=float)
-    
+
     for i in range(n_obs):
-        observations[i, 0] = x 
-        observations[i, 1] = y 
+        observations[i, 0] = x
+        observations[i, 1] = y
 
     pdaf.filter_observations_outside_gate(observations)
     pdaf.compute_probability_of_matching_observations()
     pdaf.compute_residual_vector()
 
     print(pdaf.residual_vector)
+
 
 def test_correct_P():
     pdaf = PDAF()
@@ -197,10 +205,10 @@ def test_correct_P():
     y = 0.5
 
     observations = np.ndarray((n_obs, 2), dtype=float)
-    
+
     for i in range(n_obs):
-        observations[i, 0] = x 
-        observations[i, 1] = y 
+        observations[i, 0] = x
+        observations[i, 1] = y
 
     pdaf.compute_L()
     pdaf.compute_S()
@@ -213,7 +221,6 @@ def test_correct_P():
     pdaf.correct_P()
 
 
-
 # def test_pdaf_constant_vel_data():
 #     """
 #     We simulate a boat with constant velocity in both x and y.
@@ -246,10 +253,10 @@ def test_correct_P():
 
 #         pdaf.correction_step(o_list)
 
-#         pdaf.prediction_step()   
+#         pdaf.prediction_step()
 
 #         estimates.append(pdaf.state_post[:2])
-    
+
 #     print("final observations: ", measurements[-1])
 
 #     print("final gt: ", ground_truths[-1])
@@ -259,7 +266,6 @@ def test_correct_P():
 #     plots.plot_with_estimates(scenario, measurements, ground_truths, estimates)        pdaf.prediction_step()
 
 
-
 # def test_pdaf_constant_vel_data():
 #     """
 #     We simulate a boat with constant velocity in both x and y.
@@ -292,10 +298,10 @@ def test_correct_P():
 
 #         pdaf.correction_step(o_list)
 
-#         pdaf.prediction_step()   
+#         pdaf.prediction_step()
 
 #         estimates.append(pdaf.state_post[:2])
-    
+
 #     print("final observations: ", measurements[-1])
 
 #     print("final gt: ", ground_truths[-1])
@@ -323,17 +329,17 @@ def test_correct_P():
 #     estimates = []
 
 #     for o_time_k in measurements:
- 
+
 #         o_list = []
 #         for o in o_time_k:
 #             o_list.append(o.pos)
 
 #         pdaf.correction_step(o_list)
 
-#         pdaf.prediction_step()   
+#         pdaf.prediction_step()
 
 #         estimates.append(pdaf.state_post)
-    
+
 #     print("final observations: ", measurements[-1])
 
 #     print("final gt: ", ground_truths[-1])
@@ -341,12 +347,3 @@ def test_correct_P():
 #     print("final estimates: ", pdaf.state_post)
 
 #     plot_pos_and_vel(estimates)
-
-
-
-
-
-
-
-
-

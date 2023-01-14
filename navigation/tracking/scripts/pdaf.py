@@ -74,7 +74,9 @@ class PDAF:
 
         self.S = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
 
-        self.validation_gate_scaling_param = 5  #number of standard deviations we are willing to consider. 
+        self.validation_gate_scaling_param = (
+            5  # number of standard deviations we are willing to consider.
+        )
 
         self.residual_vector = np.ndarray((2,), dtype=float)
         self.p_no_match = 0.01  # probabiity that no observations matches the track
@@ -82,17 +84,19 @@ class PDAF:
             (2,), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
         self.o_within_gate_arr = np.ndarray(
-            (2,2), dtype=float
+            (2, 2), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
 
-        self.n = 0 #used for N/M track manager
-        self.m = 0 #used for N/M track manager
+        self.n = 0  # used for N/M track manager
+        self.m = 0  # used for N/M track manager
 
     def compute_mah_dist(self, o):
         "Compute mahaloanobis distance between observation and predicted observation."
         o_predicted = np.matmul(self.C, self.state_pri)
-        diff = o-o_predicted
-        mah_dist = np.matmul(diff.reshape(2,1).T, np.matmul(np.linalg.inv(self.S), diff.reshape(2,1)))
+        diff = o - o_predicted
+        mah_dist = np.matmul(
+            diff.reshape(2, 1).T, np.matmul(np.linalg.inv(self.S), diff.reshape(2, 1))
+        )
         return mah_dist
 
     def filter_observations_outside_gate(self, o):
@@ -106,22 +110,18 @@ class PDAF:
 
         self.o_within_gate_arr = np.array(within_gate)
 
-
     def compute_probability_of_matching_observations(self):
 
         score = np.ndarray(
             (len(self.o_within_gate_arr),), dtype=float
         )  # score for each observation based on distance from predicted position
 
-        self.p_match_arr = np.ndarray(
-            (len(self.o_within_gate_arr) +1,), dtype=float
-        )
+        self.p_match_arr = np.ndarray((len(self.o_within_gate_arr) + 1,), dtype=float)
 
-        if len(self.o_within_gate_arr)==0:
+        if len(self.o_within_gate_arr) == 0:
             self.p_match_arr[0] = 1.0
-        else: 
+        else:
             self.p_match_arr[0] = self.p_no_match
-
 
         for i, o_i in enumerate(self.o_within_gate_arr):
 
@@ -142,8 +142,12 @@ class PDAF:
         self.residual_vector[1] = 0  # y
 
         for i in range(len(self.o_within_gate_arr)):
-            self.residual_vector[0] += self.p_match_arr[i + 1] * (self.o_within_gate_arr[i][0] - self.state_pri[0])
-            self.residual_vector[1] += self.p_match_arr[i + 1] * (self.o_within_gate_arr[i][1] - self.state_pri[1])
+            self.residual_vector[0] += self.p_match_arr[i + 1] * (
+                self.o_within_gate_arr[i][0] - self.state_pri[0]
+            )
+            self.residual_vector[1] += self.p_match_arr[i + 1] * (
+                self.o_within_gate_arr[i][1] - self.state_pri[1]
+            )
 
     def compute_S(self):
         C_P = np.matmul(self.C, self.P_pri)
@@ -167,19 +171,20 @@ class PDAF:
             temp1 += self.p_match_arr[i + 1] * np.matmul(ny_ak, ny_ak.T)
         temp2 = temp1 - np.matmul(self.residual_vector, self.residual_vector.T)
 
-        spread_of_innovations =  np.matmul(self.L, np.matmul(temp2, self.L.T)) #given by (7.26) Brekke
+        spread_of_innovations = np.matmul(
+            self.L, np.matmul(temp2, self.L.T)
+        )  # given by (7.26) Brekke
         L_S_LT = np.matmul(self.L, np.matmul(self.S, self.L.T))
 
-        self.P_post = self.P_pri -(1-self.p_no_match)*L_S_LT + spread_of_innovations #given by (7.25) Brekke
+        self.P_post = (
+            self.P_pri - (1 - self.p_no_match) * L_S_LT + spread_of_innovations
+        )  # given by (7.25) Brekke
 
         # print("\n -------- P post --------------- \n", self.P_post)
 
-
     def prediction_step(self):
         self.state_pri = np.matmul(self.A, self.state_post)
-        self.P_pri = (
-            np.matmul(self.A, np.matmul(self.P_post, self.A.T)) + self.Q
-        )
+        self.P_pri = np.matmul(self.A, np.matmul(self.P_post, self.A.T)) + self.Q
 
         # print("\n -------- P pri --------------- \n", self.P_pri)
 
@@ -189,9 +194,9 @@ class PDAF:
         self.compute_S()
 
         self.filter_observations_outside_gate(o)
-        #print("obs within gate: ", self.o_within_gate_arr)
+        # print("obs within gate: ", self.o_within_gate_arr)
 
-        if len(self.o_within_gate_arr) == 0:  
+        if len(self.o_within_gate_arr) == 0:
             self.state_post = self.state_pri
             self.P_post = self.P_pri
 
@@ -208,14 +213,14 @@ class PDAF:
         n_obs = np.random.randint(0, 10)
 
         obs = np.ndarray((n_obs, 2), dtype=float)
-        #add obs that are scaterd far apart
+        # add obs that are scaterd far apart
         for i in range(n_obs):
             obs[i, 0] = x + np.random.randn(1) * 100
             obs[i, 1] = y + np.random.randn(1) * 100
 
-        #add obs that corresponds to the acctual track (1-p_no_match)*100 prosent of the time. 
+        # add obs that corresponds to the acctual track (1-p_no_match)*100 prosent of the time.
         random_int = np.random.randint(0, 100)
-        if (random_int < 100*(1-self.p_no_match)) and (n_obs > 0):
+        if (random_int < 100 * (1 - self.p_no_match)) and (n_obs > 0):
             obs[-1, 0] = x + np.random.randn(1) * self.R[0, 0]
             obs[-1, 1] = y + np.random.randn(1) * self.R[1, 1]
 
@@ -232,4 +237,3 @@ class PDAF:
             obs[i, 1] = y + np.random.randn(1) * self.R[1, 1]
 
         return obs
-

@@ -1,5 +1,6 @@
 import sys
-sys.path.insert(0,'/home/hannahcl/Documents/vortex/monkey_tracking/data_generation')
+
+sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/data_generation")
 from scenarios import BaseScenario
 from utility import time_from_step
 
@@ -20,7 +21,7 @@ def plot_with_estimates(scenario, measurements, ground_truths, estimates):
         track = target.track
         x = track[:, 1]
         y = track[:, 2]
-        #alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
+        # alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
         alpha = None
         plt.scatter(x, y, alpha=alpha)
 
@@ -29,20 +30,19 @@ def plot_with_estimates(scenario, measurements, ground_truths, estimates):
 
         # opacity based on time
         for measurement in measurements_at_t:
-            #alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
+            # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
             color = "r" if measurement.is_clutter else "k"
             plt.scatter(
                 measurement.pos[0],
                 measurement.pos[1],
                 marker="x",
                 color=color,
-                #alpha=alpha,
+                # alpha=alpha,
             )
-
 
     for estimates_at_t in estimates:
         # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-        color = "b" 
+        color = "b"
         plt.scatter(
             estimates_at_t[0],
             estimates_at_t[1],
@@ -51,7 +51,6 @@ def plot_with_estimates(scenario, measurements, ground_truths, estimates):
             # alpha=alpha,
         )
 
-
     plt.xlabel("x [m]")
     plt.ylabel("y [m]")
 
@@ -59,7 +58,15 @@ def plot_with_estimates(scenario, measurements, ground_truths, estimates):
     plt.grid()
     plt.show()
 
-def plot_tentative_confirm_del(scenario, measurements, ground_truths, tentative_estimates, conf_estimates, tentative_del_estimates):
+
+def plot_tentative_confirm_del(
+    scenario,
+    measurements,
+    ground_truths,
+    tentative_estimates,
+    conf_estimates,
+    tentative_del_estimates,
+):
 
     end_time = time_from_step(scenario.k, scenario.config.dt)
     min_alpha = 0.5
@@ -69,7 +76,7 @@ def plot_tentative_confirm_del(scenario, measurements, ground_truths, tentative_
         track = target.track
         x = track[:, 1]
         y = track[:, 2]
-        #alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
+        # alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
         alpha = None
         plt.scatter(x, y, alpha=alpha)
 
@@ -90,20 +97,19 @@ def plot_tentative_confirm_del(scenario, measurements, ground_truths, tentative_
 
     for tentative_estimates_at_t in tentative_estimates:
         for tentative_estimates in tentative_estimates_at_t:
-            #alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
+            # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
             color = "y"
             plt.scatter(
                 tentative_estimates[0],
                 tentative_estimates[1],
                 marker="+",
                 color=color,
-                #alpha=alpha,
+                # alpha=alpha,
             )
-
 
     for estimates_at_t in conf_estimates:
         # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-        color = "g" 
+        color = "g"
         plt.scatter(
             estimates_at_t[0],
             estimates_at_t[1],
@@ -114,7 +120,7 @@ def plot_tentative_confirm_del(scenario, measurements, ground_truths, tentative_
 
     for del_estimates_at_t in tentative_del_estimates:
         # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-        color = "r" 
+        color = "r"
         plt.scatter(
             del_estimates_at_t[0],
             del_estimates_at_t[1],
@@ -132,15 +138,15 @@ def plot_tentative_confirm_del(scenario, measurements, ground_truths, tentative_
 
 
 def plot_interactive(
-    scenario, 
-    measurements, 
-    ground_truths, 
-    tentative_estimates, 
-    conf_estimates, 
-    tentative_del_estimates, 
+    scenario,
+    measurements,
+    ground_truths,
+    tentative_estimates,
+    conf_estimates,
+    tentative_del_estimates,
     estimate_status,
-    wait_for_btn_press
-    ):
+    wait_for_btn_press,
+):
 
     plt.ion()
 
@@ -152,7 +158,7 @@ def plot_interactive(
         track = target.track
         x = track[:, 1]
         y = track[:, 2]
-        #alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
+        # alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
         alpha = None
         plt.scatter(x, y, alpha=alpha)
 
@@ -173,7 +179,7 @@ def plot_interactive(
         for measurement in measurements[k]:
             alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
             color = "r" if measurement.is_clutter else "k"
-        
+
             plt.scatter(
                 measurement.pos[0],
                 measurement.pos[1],
@@ -184,7 +190,7 @@ def plot_interactive(
 
         if estimate_status[k] == TRACK_STATUS.tentative_confirm:
             for tentative_estimate in tentative_estimates[k_ten]:
-                #alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
+                # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
                 color = "y"
 
                 plt.scatter(
@@ -192,14 +198,13 @@ def plot_interactive(
                     tentative_estimate[1],
                     marker="+",
                     color=color,
-                    #alpha=alpha,
-
+                    # alpha=alpha,
                 )
             k_ten += 1
 
         if estimate_status[k] == TRACK_STATUS.confirmed:
             estimates_at_t = conf_estimates[k_conf]
-            color = "g" 
+            color = "g"
 
             plt.scatter(
                 estimates_at_t[0],
@@ -207,13 +212,12 @@ def plot_interactive(
                 marker="+",
                 color=color,
                 # alpha=alpha,
-
             )
             k_conf += 1
 
         if estimate_status[k] == TRACK_STATUS.tentative_delete:
             del_estimates_at_t = tentative_del_estimates[k_del]
-            color = "r" 
+            color = "r"
             plt.scatter(
                 del_estimates_at_t[0],
                 del_estimates_at_t[1],
@@ -232,10 +236,6 @@ def plot_interactive(
     plt.waitforbuttonpress()
 
 
-
-
-
-
 # def plot_pos_and_vel(estimates):
 #     x = []
 #     y = []
@@ -249,7 +249,7 @@ def plot_interactive(
 
 #     fig, ax = plt.subplots(figsize =(14, 8))
 #     ax.quiver(x, y, u, v)
-    
+
 #     # ax.xaxis.set_ticks([])
 #     # ax.yaxis.set_ticks([])
 #     # ax.axis([-0.3, 2.3, -0.3, 2.3])
@@ -257,5 +257,5 @@ def plot_interactive(
 
 #     ax.set_xlim(-100, 100)
 #     ax.set_ylim(-100, 100)
-    
+
 #     plt.show()
