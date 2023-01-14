@@ -160,7 +160,7 @@ def test_KF_highQ():
 
     r = 5
     theta = 1
-    tollerance = 0.5
+    tolerance = 0.5
     n_mes = 1000
 
     tracker = Tracker()
@@ -189,10 +189,10 @@ def test_KF_highQ():
 
     print(tracker.x_post)
 
-    assert abs(tracker.x_post[0] - r) < tollerance
-    assert abs(tracker.x_post[1] - theta) < tollerance
-    assert abs(tracker.x_post[2]) < tollerance
-    assert abs(tracker.x_post[3]) < tollerance
+    assert abs(tracker.x_post[0] - r) < tolerance
+    assert abs(tracker.x_post[1] - theta) < tolerance
+    assert abs(tracker.x_post[2]) < tolerance
+    assert abs(tracker.x_post[3]) < tolerance
 
 
 def test_KF_highR():
@@ -204,7 +204,7 @@ def test_KF_highR():
 
     r = 5
     theta = 1
-    tollerance = 0.5
+    tolerance = 0.5
     n_mes = 200
 
     tracker = Tracker()
@@ -233,10 +233,10 @@ def test_KF_highR():
 
     print(tracker.x_post)
 
-    assert abs(tracker.x_post[0] - r) < tollerance
-    assert abs(tracker.x_post[1] - theta) < tollerance
-    assert abs(tracker.x_post[2]) < tollerance
-    assert abs(tracker.x_post[3]) < tollerance
+    assert abs(tracker.x_post[0] - r) < tolerance
+    assert abs(tracker.x_post[1] - theta) < tolerance
+    assert abs(tracker.x_post[2]) < tolerance
+    assert abs(tracker.x_post[3]) < tolerance
 
 
 def test_KF_high():
@@ -248,7 +248,7 @@ def test_KF_high():
     r_der = 0.9
     theta = 0.3
     theta_der = 0.8
-    tollerance = 0.2
+    tolerance = 0.2
     n_mes = 100
 
     tracker = Tracker()
@@ -287,11 +287,11 @@ def test_KF_high():
 
     assert (
         abs(tracker.x_post[0] - (r + r_der * (n_mes - 1) * tracker.time_step))
-        < tollerance
+        < tolerance
     )
     assert (
         abs(tracker.x_post[1] - (theta + theta_der * (n_mes - 1) * tracker.time_step))
-        < tollerance
+        < tolerance
     )
-    assert abs(tracker.x_post[2] - r_der) < tollerance
-    assert abs(tracker.x_post[3] - theta_der) < tollerance
+    assert abs(tracker.x_post[2] - r_der) < tolerance
+    assert abs(tracker.x_post[3] - theta_der) < tolerance

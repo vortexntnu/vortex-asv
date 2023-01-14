@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/home/hannahcl/Documents/vortex/monkey_tracking/data_generation')
 from scenarios import BaseScenario
 from load_config import load_yaml_into_dotdict
+import pytest
 
 from track_manager import TRACK_MANAGER, TRACK_STATUS
 import plots
@@ -101,10 +102,10 @@ def test_tentative_confirm_del():
 
     plots.plot_tentative_confirm_del(scenario, measurements, ground_truths, tentative_estimates, conf_estimates, tentative_del_estimates)
 
-
+#@pytest.mark.plot
 def test_plot_interactive():
 
-    wait_for_btn_press = True
+    wait_for_btn_press = False
 
     manager = TRACK_MANAGER()
 
@@ -146,7 +147,6 @@ def test_plot_interactive():
             last_addition_to_tentative_tracks = []
             for track in manager.tentative_tracks:
                 last_addition_to_tentative_tracks.append(track.state_post[:2])
-            
             tentative_estimates.append(last_addition_to_tentative_tracks)
 
         if manager.main_track_status == TRACK_STATUS.confirmed:
@@ -161,6 +161,7 @@ def test_plot_interactive():
 
     plots.plot_interactive(scenario, measurements, ground_truths, tentative_estimates, conf_estimates, tentative_del_estimates, estimate_status, wait_for_btn_press)
 
+    assert True
 
 
 

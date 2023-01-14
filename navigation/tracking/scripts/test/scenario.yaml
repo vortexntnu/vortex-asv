@@ -7,7 +7,7 @@ n_starting_targets: 1
 birth:
   intensity: 0.0
   position:
-    mean: [0, 0]
+    mean: [10, 10]
     var: [[1, 0], [0, 1]]
   velocity:
     mean: [0, 0]

@@ -7,15 +7,22 @@ from pdaf import PDAF
 """
 
 Track manager:
+
+Manage single object tracking based on M/N method. 
+Subtasks: 
+
+    Read NIS NEES 
     How should velocity and position be initialized? 
     How to take into account noise when defining validation gate max size? 
-    How to differ static objects from boats? 
+
+    P: Seems like track jumps far away from previous estimates, even though it had status "confirmed".
+    P: Seems like estimates are confirmed even though there has not been a tentative track close by. 
+
 
     TEST
 
-        - Are traks deleted when tracks disapreas from surveilance region? 
-        - Visualize tentative trakcs, confirmed trakcs, and tentative deletion tracks. 
-        - What happens if there is a static object in addition to a track? 
+        - Are traks deleted when tracks disaperas from surveilance region? 
+        - Visualize tentative trakcs, confirmed trakcs, and tentative deletion tracks.  
         - How low can the detection probability be, and the track is still confirmed? 
         - How high can false detection probability be before false tracks are confirmed? 
 
@@ -23,7 +30,7 @@ Track manager:
             measurment noise
             prosses noise
             p of detection
-            range of area
+            lidar range 
             size of validation gate
             size of max validation gate
             N
@@ -115,6 +122,7 @@ class TRACK_MANAGER:
 
         for track in self.tentative_tracks:
             for i, o in enumerate(remaining_o):
+                print("\n --- dist ---- \n", o[0]-track.state_pri[0], o[1]-track.state_pri[0])
                 dist = np.sqrt((o[0]-track.state_pri[0])**2 + (o[1]-track.state_pri[1])**2)
                 if dist < self.max_vel*self.main_track.time_step + self.sd:
                     remaining_o.pop(i)
@@ -153,6 +161,7 @@ class TRACK_MANAGER:
         n = 0
 
         for o in o_arr:
+            #print("\n --- dist ---- \n", o[0]-predicted_position[0], o[1]-predicted_position[1])
             dist = np.sqrt((o[0]-predicted_position[0])**2 + (o[1]-predicted_position[1])**2)
             #print("dist:", dist, "range:", self.max_vel*self.time_step + self.sd )
             if dist < self.max_vel*self.main_track.time_step + self.sd:

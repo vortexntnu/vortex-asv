@@ -6,6 +6,7 @@ Single object tracking
 Sub tasks: 
 
     Use a kalam gain so that the filter is numerically stable. 
+    SINGULAR MATRICIES
 
     TEST
         - Visualize position estimates with clutter.
@@ -96,16 +97,12 @@ class PDAF:
 
     def filter_observations_outside_gate(self, o):
 
-        self.compute_S()
-
         within_gate = []
 
         for o_i in o:
             mah_dist = self.compute_mah_dist(o_i)
             if mah_dist < self.validation_gate_scaling_param**2:
                 within_gate.append(o_i)
-            # else: 
-            #     print("o outside gate! o: ", o_i)
 
         self.o_within_gate_arr = np.array(within_gate)
 
@@ -157,6 +154,9 @@ class PDAF:
         C_P_CT = np.matmul(self.C, P_CT)
         self.L = np.matmul(P_CT, np.linalg.inv(C_P_CT + self.R))
 
+        # print("\n --- L ---\n")
+        # print(self.L)
+
     def correct_state_vector(self):
         self.state_post = self.state_pri + np.matmul(self.L, self.residual_vector)
 
@@ -165,13 +165,14 @@ class PDAF:
         for i, o_i in enumerate(self.o_within_gate_arr):
             ny_ak = o_i - np.matmul(self.C, self.state_pri)
             temp1 += self.p_match_arr[i + 1] * np.matmul(ny_ak, ny_ak.T)
-
         temp2 = temp1 - np.matmul(self.residual_vector, self.residual_vector.T)
 
         spread_of_innovations =  np.matmul(self.L, np.matmul(temp2, self.L.T)) #given by (7.26) Brekke
         L_S_LT = np.matmul(self.L, np.matmul(self.S, self.L.T))
 
         self.P_post = self.P_pri -(1-self.p_no_match)*L_S_LT + spread_of_innovations #given by (7.25) Brekke
+
+        # print("\n -------- P post --------------- \n", self.P_post)
 
 
     def prediction_step(self):
@@ -180,11 +181,12 @@ class PDAF:
             np.matmul(self.A, np.matmul(self.P_post, self.A.T)) + self.Q
         )
 
+        # print("\n -------- P pri --------------- \n", self.P_pri)
+
     def correction_step(self, o):
 
         self.compute_L()
         self.compute_S()
-
 
         self.filter_observations_outside_gate(o)
         #print("obs within gate: ", self.o_within_gate_arr)

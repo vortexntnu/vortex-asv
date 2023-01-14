@@ -29,14 +29,14 @@ def plot_with_estimates(scenario, measurements, ground_truths, estimates):
 
         # opacity based on time
         for measurement in measurements_at_t:
-            alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
+            #alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
             color = "r" if measurement.is_clutter else "k"
             plt.scatter(
                 measurement.pos[0],
                 measurement.pos[1],
                 marker="x",
                 color=color,
-                alpha=alpha,
+                #alpha=alpha,
             )
 
 
@@ -186,26 +186,28 @@ def plot_interactive(
             for tentative_estimate in tentative_estimates[k_ten]:
                 #alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
                 color = "y"
-                area = tentative_estimate.P[0, 0]**2
+
                 plt.scatter(
                     tentative_estimate[0],
                     tentative_estimate[1],
                     marker="+",
                     color=color,
                     #alpha=alpha,
-                    s = area
+
                 )
             k_ten += 1
 
         if estimate_status[k] == TRACK_STATUS.confirmed:
             estimates_at_t = conf_estimates[k_conf]
             color = "g" 
+
             plt.scatter(
                 estimates_at_t[0],
                 estimates_at_t[1],
                 marker="+",
                 color=color,
                 # alpha=alpha,
+
             )
             k_conf += 1
 
@@ -229,17 +231,7 @@ def plot_interactive(
 
     plt.waitforbuttonpress()
 
-def plot_validation_gates():
-    x = 5
-    y = 5
-    w = 0.5
-    h = 1
 
-    ell = Ellipse(xy=(np.mean(x), np.mean(y)),
-              width=w, height=h,
-              color='black')
-
-    ell.
 
 
 

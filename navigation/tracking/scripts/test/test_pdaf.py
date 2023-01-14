@@ -10,6 +10,100 @@ import plots
 
 from track_manager import TRACK_MANAGER
 
+def test_pdaf_zero_velocity():
+
+    x = 5
+    y = 1
+    tollerance = 0.5
+    n_timesteps = 200
+
+    pdaf = PDAF()
+
+    pdaf.state_pri[0] = 0
+    pdaf.state_pri[1] = 0
+    pdaf.state_pri[2] = 10
+    pdaf.state_pri[3] = 5
+
+    for i in range(len(pdaf.state_post)):
+        pdaf.Q[i, i] = 0.1
+
+    for i in range(len(pdaf.C)):
+        pdaf.R[i, i] = 0.01
+
+    for k in range(n_timesteps):
+
+        o_time_k = pdaf.create_observations_for_one_timestep_simple_version(x, y)
+
+        pdaf.correction_step(o_time_k)
+
+        pdaf.prediction_step()
+
+        #print("observations: ", o_time_k)
+        #print("estimates: ", pdaf.x_post)
+
+    print(pdaf.state_post)
+
+    assert abs(pdaf.state_post[0] - x) < tollerance
+    assert abs(pdaf.state_post[1] - y) < tollerance
+    assert abs(pdaf.state_post[2]) < tollerance
+    assert abs(pdaf.state_post[3]) < tollerance
+
+def test_pdaf_constant_vel():
+    """
+    We simulate a boat with constant velocity in both x and y.
+    """
+
+    x = 5
+    x_der = 0.9
+    y = 1.2
+    y_der = 0.8
+    tollerance = 0.5
+    n_timesteps = 200
+
+    pdaf = PDAF()
+
+    pdaf.state_pri[0] = 0
+    pdaf.state_pri[1] = 0
+    pdaf.state_pri[2] = 10
+    pdaf.state_pri[3] = 10
+
+    for i in range(len(pdaf.state_post)):
+        pdaf.Q[i, i] = 0.1
+
+    for i in range(len(pdaf.C)):
+        pdaf.R[i, i] = 0.1
+
+    for k in range(n_timesteps):
+
+        o_time_k = pdaf.create_observations_for_one_timestep_simple_version(
+            x + k * x_der * pdaf.time_step , 
+            y + k * y_der * pdaf.time_step)
+
+        pdaf.correction_step(o_time_k)
+
+        pdaf.prediction_step()
+
+    print("final true state: ", 
+    (x + x_der * (n_timesteps - 1) * pdaf.time_step), 
+    (y + y_der * (n_timesteps - 1) * pdaf.time_step), 
+    x_der, 
+    y_der)
+    
+    print("final observations: ", o_time_k)
+
+    print("final estimates: ", pdaf.state_post)
+
+    assert (
+        abs(pdaf.state_post[0] - (x + x_der * (n_timesteps - 1) * pdaf.time_step))
+        < tollerance
+    )
+    assert (
+        abs(pdaf.state_post[1] - (y + y_der * (n_timesteps - 1) * pdaf.time_step))
+        < tollerance
+    )
+    assert abs(pdaf.state_post[2] - x_der) < tollerance
+    assert abs(pdaf.state_post[3] - y_der) < tollerance
+
 
 def data_generation():
 
@@ -118,144 +212,97 @@ def test_correct_P():
 
     pdaf.correct_P()
 
-def test_pdaf_zero_velocity():
 
-    x = 5
-    y = 1
-    tollerance = 0.5
-    n_timesteps = 200
 
-    pdaf = PDAF()
+# def test_pdaf_constant_vel_data():
+#     """
+#     We simulate a boat with constant velocity in both x and y.
+#     """
 
-    pdaf.state_pri[0] = 0
-    pdaf.state_pri[1] = 0
-    pdaf.state_pri[2] = 10
-    pdaf.state_pri[3] = 5
+#     pdaf = PDAF()
 
-    for i in range(len(pdaf.state_post)):
-        pdaf.Q[i, i] = 0.1
+#     pdaf.state_pri[0] = 0
+#     pdaf.state_pri[1] = 0
+#     pdaf.state_pri[2] = 0
+#     pdaf.state_pri[3] = 0
 
-    for i in range(len(pdaf.C)):
-        pdaf.R[i, i] = 0.01
+#     for i in range(len(pdaf.state_post)):
+#         pdaf.Q[i, i] = 0.1
 
-    for k in range(n_timesteps):
+#     for i in range(len(pdaf.C)):
+#         pdaf.R[i, i] = 0.1
 
-        o_time_k = pdaf.create_observations_for_one_timestep_simple_version(x, y)
+#     scenario, measurements, ground_truths = data_generation()
+#     estimates = []
 
-        pdaf.correction_step(o_time_k)
+#     for o_time_k in measurements:
 
-        pdaf.prediction_step()
+#         # print("new time step")
+#         # print(o_time_k)
 
-        #print("observations: ", o_time_k)
-        #print("estimates: ", pdaf.x_post)
+#         o_list = []
+#         for o in o_time_k:
+#             o_list.append(o.pos)
 
-    print(pdaf.state_post)
+#         pdaf.correction_step(o_list)
 
-    assert abs(pdaf.state_post[0] - x) < tollerance
-    assert abs(pdaf.state_post[1] - y) < tollerance
-    assert abs(pdaf.state_post[2]) < tollerance
-    assert abs(pdaf.state_post[3]) < tollerance
+#         pdaf.prediction_step()   
 
-def test_pdaf_constant_vel():
-    """
-    We simulate a boat with constant velocity in both r and theta.
-    """
-
-    x = 5
-    x_der = 0.9
-    y = 1.2
-    y_der = 0.8
-    tollerance = 0.5
-    n_timesteps = 200
-
-    pdaf = PDAF()
-
-    pdaf.state_pri[0] = 0
-    pdaf.state_pri[1] = 0
-    pdaf.state_pri[2] = 10
-    pdaf.state_pri[3] = 10
-
-    for i in range(len(pdaf.state_post)):
-        pdaf.Q[i, i] = 0.1
-
-    for i in range(len(pdaf.C)):
-        pdaf.R[i, i] = 0.1
-
-    for k in range(n_timesteps):
-
-        o_time_k = pdaf.create_observations_for_one_timestep_simple_version(
-            x + k * x_der * pdaf.time_step , 
-            y + k * y_der * pdaf.time_step)
-
-        pdaf.correction_step(o_time_k)
-
-        pdaf.prediction_step()
-
-    print("final true state: ", 
-    (x + x_der * (n_timesteps - 1) * pdaf.time_step), 
-    (y + y_der * (n_timesteps - 1) * pdaf.time_step), 
-    x_der, 
-    y_der)
+#         estimates.append(pdaf.state_post[:2])
     
-    print("final observations: ", o_time_k)
+#     print("final observations: ", measurements[-1])
 
-    print("final estimates: ", pdaf.state_post)
+#     print("final gt: ", ground_truths[-1])
 
-    assert (
-        abs(pdaf.state_post[0] - (x + x_der * (n_timesteps - 1) * pdaf.time_step))
-        < tollerance
-    )
-    assert (
-        abs(pdaf.state_post[1] - (y + y_der * (n_timesteps - 1) * pdaf.time_step))
-        < tollerance
-    )
-    assert abs(pdaf.state_post[2] - x_der) < tollerance
-    assert abs(pdaf.state_post[3] - y_der) < tollerance
+#     print("final estimates: ", pdaf.state_post)
+
+#     plots.plot_with_estimates(scenario, measurements, ground_truths, estimates)        pdaf.prediction_step()
 
 
-def test_pdaf_constant_vel_data():
-    """
-    We simulate a boat with constant velocity in both x and y.
-    """
 
-    pdaf = PDAF()
+# def test_pdaf_constant_vel_data():
+#     """
+#     We simulate a boat with constant velocity in both x and y.
+#     """
 
-    pdaf.state_pri[0] = 0
-    pdaf.state_pri[1] = 0
-    pdaf.state_pri[2] = 0
-    pdaf.state_pri[3] = 0
+#     pdaf = PDAF()
 
-    for i in range(len(pdaf.state_post)):
-        pdaf.Q[i, i] = 0.1
+#     pdaf.state_pri[0] = 0
+#     pdaf.state_pri[1] = 0
+#     pdaf.state_pri[2] = 0
+#     pdaf.state_pri[3] = 0
 
-    for i in range(len(pdaf.C)):
-        pdaf.R[i, i] = 0.1
+#     for i in range(len(pdaf.state_post)):
+#         pdaf.Q[i, i] = 0.1
 
-    scenario, measurements, ground_truths = data_generation()
-    estimates = []
+#     for i in range(len(pdaf.C)):
+#         pdaf.R[i, i] = 0.1
 
-    for o_time_k in measurements:
+#     scenario, measurements, ground_truths = data_generation()
+#     estimates = []
 
-        # print("new time step")
-        # print(o_time_k)
+#     for o_time_k in measurements:
 
-        o_list = []
-        for o in o_time_k:
-            o_list.append(o.pos)
+#         # print("new time step")
+#         # print(o_time_k)
 
-        pdaf.correction_step(o_list)
+#         o_list = []
+#         for o in o_time_k:
+#             o_list.append(o.pos)
 
-        pdaf.prediction_step()   
+#         pdaf.correction_step(o_list)
 
-        estimates.append(pdaf.state_post[:2])
+#         pdaf.prediction_step()   
+
+#         estimates.append(pdaf.state_post[:2])
     
-    print("final observations: ", measurements[-1])
+#     print("final observations: ", measurements[-1])
 
-    print("final gt: ", ground_truths[-1])
+#     print("final gt: ", ground_truths[-1])
 
-    print("final estimates: ", pdaf.state_post)
+#     print("final estimates: ", pdaf.state_post)
 
-    plots.plot_with_estimates(scenario, measurements, ground_truths, estimates)
+#     plots.plot_with_estimates(scenario, measurements, ground_truths, estimates)
 
 # def test_plot_pos_and_vel():
 
