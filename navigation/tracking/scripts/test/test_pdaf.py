@@ -30,7 +30,7 @@ def test_pdaf_zero_velocity():
         pdaf.Q[i, i] = 0.1
 
     for i in range(len(pdaf.C)):
-        pdaf.R[i, i] = 0.01
+        pdaf.R[i, i] = 0.1
 
     for k in range(n_timesteps):
 

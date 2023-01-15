@@ -233,7 +233,7 @@ def plot_interactive(
         else:
             plt.pause(0.1)
 
-    plt.waitforbuttonpress()
+    plt.show()
 
 
 # def plot_pos_and_vel(estimates):

@@ -16,7 +16,9 @@ Subtasks:
     How to take into account noise when defining validation gate max size? 
 
     P: Seems like track jumps far away from previous estimates, even though it had status "confirmed".
+        Seems like this is due to estimates jumping a lot in one step. Look an evolution of P and L.
     P: Seems like estimates are confirmed even though there has not been a tentative track close by. 
+        See if this is solved by deleting tentative tracks when transitioning state. 
 
 
     TEST
@@ -53,13 +55,14 @@ class TRACK_MANAGER:
         self.tentative_tracks: List[PDAF] = []
 
         self.N = 4
-        self.M = 10
+        self.M = 8
         self.main_track = PDAF()
 
         self.main_track_status = TRACK_STATUS.tentative_confirm
 
-        self.max_vel = 4  # [m/s]
+        self.max_vel = 5  # [m/s]
         self.sd = 1.0  # [m/s] standard deviation for measurments. Same thing as R, but I want it in 1x1, not 2x2.
+        self.initial_update_error_covariance = 1.0
 
     def cb(self, o_arr):
         if self.main_track_status == TRACK_STATUS.tentative_confirm:
@@ -116,7 +119,8 @@ class TRACK_MANAGER:
                 tentative_track.state_post[2] = 0  # x'
                 tentative_track.state_post[3] = 0  # y'
 
-                tentative_track.Q
+                for i in range(len(tentative_track.state_pri)):
+                    tentative_track.P_pri[i][i] = self.initial_update_error_covariance
 
                 self.tentative_tracks.append(tentative_track)
 
@@ -125,17 +129,17 @@ class TRACK_MANAGER:
 
         for track in self.tentative_tracks:
             for i, o in enumerate(remaining_o):
-                print(
-                    "\n --- dist ---- \n",
-                    o[0] - track.state_pri[0],
-                    o[1] - track.state_pri[0],
-                )
+                # print(
+                #     "\n --- dist ---- \n",
+                #     o[0] - track.state_pri[0],
+                #     o[1] - track.state_pri[0],
+                # )
                 dist = np.sqrt(
                     (o[0] - track.state_pri[0]) ** 2 + (o[1] - track.state_pri[1]) ** 2
                 )
                 if dist < self.max_vel * self.main_track.time_step + self.sd:
                     remaining_o.pop(i)
-                    print(o, "deleted from o_arr")
+                    # print(o, "deleted from o_arr")
 
         return remaining_o
 
