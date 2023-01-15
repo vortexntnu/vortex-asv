@@ -39,6 +39,10 @@ Subtasks:
             M
             time_step
 
+    observations: 
+        Tentative tracks follow GT for a long time without confirming the track. 
+        When computing dist under "n obs inside gate" the dist is unaturally large. Range is only 0.4.
+
 
 Integration:
     Integrate with ros
@@ -59,6 +63,7 @@ class TRACK_MANAGER:
         self.main_track = PDAF()
 
         self.main_track_status = TRACK_STATUS.tentative_confirm
+        self.main_track_status_trans = TRACK_STATUS_TRANSITION.none
 
         self.max_vel = 5  # [m/s]
         self.sd = 1.0  # [m/s] standard deviation for measurments. Same thing as R, but I want it in 1x1, not 2x2.
@@ -74,6 +79,11 @@ class TRACK_MANAGER:
             self.prev_observations = remaining_o_arr
 
             print("tentative confirm with ", len(self.tentative_tracks), " tracks.")
+
+            for track in self.tentative_tracks:
+                print("state: ", track.state_pri[:2])
+                print("n: ", track.n, "m: ", track.m)
+
 
         elif self.main_track_status == TRACK_STATUS.confirmed:
             self.main_track.correction_step(o_arr)
@@ -103,6 +113,11 @@ class TRACK_MANAGER:
 
             print("tentative delete")
             print("state: ", self.main_track.state_post)
+
+        #actions when transitionning between states
+        if self.main_track_status_trans == TRACK_STATUS_TRANSITION.tentative_conf_to_conf:
+            self.tentative_tracks = [] #delete tentative trakcs
+            self.main_track_status_trans = TRACK_STATUS_TRANSITION.none
 
     def add_tentative_tracks(self, o_arr):
         # can this be written in a more efficient way?
@@ -154,6 +169,7 @@ class TRACK_MANAGER:
             if track.n == self.N:
                 print("track confirmed")
                 self.main_track_status = TRACK_STATUS.confirmed
+                self.main_track_status_trans = TRACK_STATUS_TRANSITION.tentative_conf_to_conf
                 self.main_track = track
                 self.tentative_tracks.remove(track)
             elif track.m == self.M:
@@ -179,7 +195,7 @@ class TRACK_MANAGER:
                 (o[0] - predicted_position[0]) ** 2
                 + (o[1] - predicted_position[1]) ** 2
             )
-            # print("dist:", dist, "range:", self.max_vel*self.time_step + self.sd )
+            print("dist:", dist, "range:", self.max_vel*self.main_track.time_step + self.sd )
             if dist < self.max_vel * self.main_track.time_step + self.sd:
                 n += 1
 
@@ -190,3 +206,9 @@ class TRACK_STATUS(Enum):
     tentative_confirm = 1
     confirmed = 2
     tentative_delete = 3
+
+class TRACK_STATUS_TRANSITION(Enum):
+    none = 0
+    tentative_conf_to_conf = 1
+    conf_to_tentative_del = 2
+    tentative_del_to_tentative_conf = 3
