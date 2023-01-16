@@ -41,7 +41,8 @@ Subtasks:
 
     observations: 
         Tentative tracks follow GT for a long time without confirming the track. 
-        When computing dist under "n obs inside gate" the dist is unaturally large. Range is only 0.4.
+        Estimate is largely affected when there is more then one obs inside validation gate (when status is confirmed).
+        When track is deleted, n stays at zero even though there is obs within gate.
 
 
 Integration:
@@ -66,7 +67,7 @@ class TRACK_MANAGER:
         self.main_track_status_trans = TRACK_STATUS_TRANSITION.none
 
         self.max_vel = 7  # [m/s]
-        self.initial_measurement_covariance = 20 
+        self.initial_measurement_covariance = 20
         self.initial_update_error_covariance = 1.0
 
     def cb(self, o_arr):
@@ -105,12 +106,14 @@ class TRACK_MANAGER:
         elif self.main_track_status == TRACK_STATUS.tentative_delete:
             print("\n ------------tentative delete")
             print("state: ", self.main_track.state_post)
+            print("n: ", self.main_track.n, "m: ", self.main_track.m)
+
 
             self.main_track.correction_step(o_arr)
             self.main_track.prediction_step()
 
             self.main_track.m += 1
-            if len(self.main_track.o_within_gate_arr) == 0:
+            if len(self.main_track.o_within_gate_arr) > 0:
                 self.main_track.n += 1
 
             if self.main_track.n == self.N:
