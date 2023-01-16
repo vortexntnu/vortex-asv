@@ -65,27 +65,34 @@ class TRACK_MANAGER:
         self.main_track_status = TRACK_STATUS.tentative_confirm
         self.main_track_status_trans = TRACK_STATUS_TRANSITION.none
 
-        self.max_vel = 5  # [m/s]
-        self.sd = 1.0  # [m/s] standard deviation for measurments. Same thing as R, but I want it in 1x1, not 2x2.
+        self.max_vel = 7  # [m/s]
+        self.initial_measurement_covariance = 20 
         self.initial_update_error_covariance = 1.0
 
     def cb(self, o_arr):
         if self.main_track_status == TRACK_STATUS.tentative_confirm:
-            self.update_status_on_tentative_tracks(o_arr)
-            remaining_o_arr = self.remove_o_incorporated_in_tracks(
-                o_arr
-            )  # make this prettier/better
-            self.add_tentative_tracks(remaining_o_arr)
-            self.prev_observations = remaining_o_arr
-
-            print("tentative confirm with ", len(self.tentative_tracks), " tracks.")
+            print("\n ------------ tentative confirm with ", len(self.tentative_tracks), " tracks.")
 
             for track in self.tentative_tracks:
                 print("state: ", track.state_pri[:2])
                 print("n: ", track.n, "m: ", track.m)
+                #print("S: ", track.S)
+
+            print("update status on tentative tracks")
+            self.update_status_on_tentative_tracks(o_arr)
+            remaining_o_arr = self.remove_o_incorporated_in_tracks(
+                o_arr
+            )  # make this prettier/better
+            print("add tentative tracks")
+            self.add_tentative_tracks(remaining_o_arr)
+            self.prev_observations = remaining_o_arr
+
 
 
         elif self.main_track_status == TRACK_STATUS.confirmed:
+            print("\n ------------track still confirmed")
+            print("state: ", self.main_track.state_post)
+
             self.main_track.correction_step(o_arr)
             self.main_track.prediction_step()
 
@@ -94,10 +101,11 @@ class TRACK_MANAGER:
                 self.main_track.m = 0
                 self.main_track.n = 0
 
-            print("track still confirmed")
-            print("state: ", self.main_track.state_post)
 
         elif self.main_track_status == TRACK_STATUS.tentative_delete:
+            print("\n ------------tentative delete")
+            print("state: ", self.main_track.state_post)
+
             self.main_track.correction_step(o_arr)
             self.main_track.prediction_step()
 
@@ -111,8 +119,6 @@ class TRACK_MANAGER:
                 self.main_track_status = TRACK_STATUS.tentative_confirm
                 print("track deleted")
 
-            print("tentative delete")
-            print("state: ", self.main_track.state_post)
 
         #actions when transitionning between states
         if self.main_track_status_trans == TRACK_STATUS_TRANSITION.tentative_conf_to_conf:
@@ -152,7 +158,7 @@ class TRACK_MANAGER:
                 dist = np.sqrt(
                     (o[0] - track.state_pri[0]) ** 2 + (o[1] - track.state_pri[1]) ** 2
                 )
-                if dist < self.max_vel * self.main_track.time_step + self.sd:
+                if dist < self.max_vel * self.main_track.time_step + self.initial_measurement_covariance:
                     remaining_o.pop(i)
                     # print(o, "deleted from o_arr")
 
@@ -179,7 +185,8 @@ class TRACK_MANAGER:
     def update_confirmation_count(self, pdaf: PDAF, o_arr):
         m = pdaf.m + 1
 
-        if self.n_observations_inside_max_size_gate(pdaf.state_pri[:2], o_arr) > 0:
+        predicted_o = np.matmul(pdaf.C, pdaf.state_pri)
+        if self.n_observations_inside_max_size_gate(predicted_o, o_arr) > 0:
             n = pdaf.n + 1
         else:
             n = pdaf.n
@@ -195,8 +202,8 @@ class TRACK_MANAGER:
                 (o[0] - predicted_position[0]) ** 2
                 + (o[1] - predicted_position[1]) ** 2
             )
-            print("dist:", dist, "range:", self.max_vel*self.main_track.time_step + self.sd )
-            if dist < self.max_vel * self.main_track.time_step + self.sd:
+            print("dist:", dist, "range:", self.max_vel*self.main_track.time_step + self.initial_measurement_covariance)
+            if dist < self.max_vel * self.main_track.time_step + self.initial_measurement_covariance:
                 n += 1
 
         return n

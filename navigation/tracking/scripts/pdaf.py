@@ -68,6 +68,8 @@ class PDAF:
             dtype=float,
         )
 
+        self.o_pri =  np.ndarray((2,), dtype=float) #predicted observation
+
         self.Q = np.ndarray(
             (4, 4),
             buffer=np.array(
@@ -191,11 +193,12 @@ class PDAF:
             self.P_pri - (1 - self.p_no_match) * L_S_LT + spread_of_innovations
         )  # given by (7.25) Brekke
 
-        print("\n -------- P post --------------- \n", self.P_post)
+        #print("\n -------- P post --------------- \n", self.P_post)
 
     def prediction_step(self):
         self.state_pri = np.matmul(self.A, self.state_post)
         self.P_pri = np.matmul(self.A, np.matmul(self.P_post, self.A.T)) + self.Q
+        self.o_pri = np.matmul(self.C, self.state_pri)
 
         # print("\n -------- P pri --------------- \n", self.P_pri)
 
@@ -205,7 +208,7 @@ class PDAF:
         self.compute_S()
 
         self.filter_observations_outside_gate(o)
-        # print("obs within gate: ", self.o_within_gate_arr)
+        print("obs within gate: ", self.o_within_gate_arr)
 
         if len(self.o_within_gate_arr) == 0:
             self.state_post = self.state_pri

@@ -62,7 +62,7 @@ def test_tentative_confirm_del():
     manager.main_track.p_no_match = 1 - scenario.config.probability.detection
     manager.main_track.time_step = scenario.config.dt
 
-    manager.sd = scenario.config.noise.measurement
+    manager.initial_measurement_covariance = scenario.config.noise.measurement
 
     for i in range(len(manager.main_track.state_post)):
         manager.main_track.Q[i, i] = scenario.config.noise.process
@@ -125,7 +125,7 @@ def test_plot_interactive():
     manager.main_track.p_no_match = 1 - scenario.config.probability.detection
     manager.main_track.time_step = scenario.config.dt
 
-    manager.sd = scenario.config.noise.measurement
+    manager.initial_measurement_covariance = scenario.config.noise.measurement
 
     for i in range(len(manager.main_track.state_post)):
         manager.main_track.Q[i, i] = scenario.config.noise.process
