@@ -14,12 +14,15 @@ Subtasks:
     Read NIS NEES 
     How should velocity and position be initialized? 
     How to take into account noise when defining validation gate max size? 
+    Is there a way to model velocity constaints? 
 
     P: Seems like track jumps far away from previous estimates, even though it had status "confirmed".
         Seems like this is due to estimates jumping a lot in one step. Look an evolution of P and L.
-    P: Seems like estimates are confirmed even though there has not been a tentative track close by. 
-        See if this is solved by deleting tentative tracks when transitioning state. 
+    P: Sometimes L and P are Nan. 
 
+    observations: 
+        Estimate is largely affected when there is more then one obs inside validation gate (when status is confirmed).
+        Seems like standard validation gate is larger then max size validation gate :) 
 
     TEST
 
@@ -38,12 +41,6 @@ Subtasks:
             N
             M
             time_step
-
-    observations: 
-        Tentative tracks follow GT for a long time without confirming the track. 
-        Estimate is largely affected when there is more then one obs inside validation gate (when status is confirmed).
-        When track is deleted, n stays at zero even though there is obs within gate.
-
 
 Integration:
     Integrate with ros

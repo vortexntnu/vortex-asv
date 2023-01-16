@@ -4,7 +4,6 @@ sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/data_generat
 sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/config")
 from scenarios import BaseScenario
 from load_config import load_yaml_into_dotdict
-import pytest
 
 from track_manager import TRACK_MANAGER, TRACK_STATUS
 import plots
@@ -21,11 +20,6 @@ def data_generation():
     measurements, ground_truths = scenario.run()
 
     return scenario, measurements, ground_truths
-
-
-def test_data_generation():
-    manager = TRACK_MANAGER()
-    scenario, measurements, ground_truths = data_generation()
 
 
 def test_cb():

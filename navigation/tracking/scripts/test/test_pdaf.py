@@ -178,23 +178,45 @@ def test_compute_probability_of_matching_observations():
 
 def test_compute_residual_vector():
 
-    pdaf = PDAF()
-
-    n_obs = 10
+    n_obs = 2
     x = 4
     y = 0.5
 
-    observations = np.ndarray((n_obs, 2), dtype=float)
+    pdaf = PDAF()
 
-    for i in range(n_obs):
-        observations[i, 0] = x
-        observations[i, 1] = y
+    pdaf.state_pri[0] = x
+    pdaf.state_pri[1] = y
+
+    pdaf.validation_gate_scaling_param = 50
+    pdaf.p_no_match = 0.1
+
+    observations = []
+
+    o_1 = [x+1, y-1]
+    observations.append(o_1)
 
     pdaf.filter_observations_outside_gate(observations)
     pdaf.compute_probability_of_matching_observations()
     pdaf.compute_residual_vector()
 
-    print(pdaf.residual_vector)
+    print("obs: \n ", pdaf.o_within_gate_arr)
+    print("p arr: ", pdaf.p_match_arr)
+    print("residual vector: ", pdaf.residual_vector)
+
+    o_2 = [10, 5]
+    observations.append(o_2)
+    o_3 = [0, 0]
+    observations.append(o_3)
+    o_4 = [10, 5]
+    observations.append(o_4)
+
+    pdaf.filter_observations_outside_gate(observations)
+    pdaf.compute_probability_of_matching_observations()
+    pdaf.compute_residual_vector()
+
+    print("obs: ", pdaf.o_within_gate_arr)
+    print("p arr: ", pdaf.p_match_arr)
+    print("residual vector: ", pdaf.residual_vector)
 
 
 def test_correct_P():

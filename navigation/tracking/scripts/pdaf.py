@@ -17,9 +17,6 @@ Sub tasks:
     Observations: 
         P pri and post are not symmetrical.
         P post grows to values over 1000.
-        When a measurment not orriginating from the target is within the validation gate -> P post explodes and the estimates jumps. But then rains its self inn pretty fast. 
-        Negative elements in P post!!
-
 """
 
 
@@ -83,7 +80,7 @@ class PDAF:
         self.S = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
 
         self.validation_gate_scaling_param = (
-            5  # number of standard deviations we are willing to consider.
+            2  # number of standard deviations we are willing to consider.
         )
 
         self.residual_vector = np.ndarray((2,), dtype=float)
