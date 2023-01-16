@@ -233,6 +233,7 @@ def plot_interactive(
         else:
             plt.pause(0.1)
 
+    plt.ioff()
     plt.show()
 
 

@@ -18,7 +18,7 @@ Sub tasks:
         P pri and post are not symmetrical.
         P post grows to values over 1000.
         When a measurment not orriginating from the target is within the validation gate -> P post explodes and the estimates jumps. But then rains its self inn pretty fast. 
-
+        Negative elements in P post!!
 
 """
 
@@ -164,8 +164,8 @@ class PDAF:
         C_P_CT = np.matmul(self.C, P_CT)
         self.L = np.matmul(P_CT, np.linalg.inv(C_P_CT + self.R))
 
-        print("\n --- L ---\n")
-        print(self.L)
+        # print("\n --- L ---\n")
+        # print(self.L)
 
     def correct_state_vector(self):
         self.state_post = self.state_pri + np.matmul(self.L, self.residual_vector)
@@ -174,13 +174,18 @@ class PDAF:
         temp1 = np.ndarray((2, 2), dtype=float)
         for i, o_i in enumerate(self.o_within_gate_arr):
             ny_ak = o_i - np.matmul(self.C, self.state_pri)
-            temp1 += self.p_match_arr[i + 1] * np.matmul(ny_ak, ny_ak.T)
-        temp2 = temp1 - np.matmul(self.residual_vector, self.residual_vector.T)
+            temp1 += self.p_match_arr[i + 1] * np.matmul(ny_ak.reshape(2,1), ny_ak.reshape(2,1).T)
+        temp2 = temp1 - np.matmul(self.residual_vector.reshape(2,1), self.residual_vector.reshape(2,1).T)
 
         spread_of_innovations = np.matmul(
             self.L, np.matmul(temp2, self.L.T)
         )  # given by (7.26) Brekke
         L_S_LT = np.matmul(self.L, np.matmul(self.S, self.L.T))
+
+        # print("\n -------- P pri --------------- \n", self.P_pri)
+        # print("\n -------- L*S*L^T --------------- \n", L_S_LT)
+        # print("\n -------- P ~ --------------- \n", spread_of_innovations)
+        # print("\n -------- temp 2 --------------- \n", temp2)
 
         self.P_post = (
             self.P_pri - (1 - self.p_no_match) * L_S_LT + spread_of_innovations
@@ -192,7 +197,7 @@ class PDAF:
         self.state_pri = np.matmul(self.A, self.state_post)
         self.P_pri = np.matmul(self.A, np.matmul(self.P_post, self.A.T)) + self.Q
 
-        print("\n -------- P pri --------------- \n", self.P_pri)
+        # print("\n -------- P pri --------------- \n", self.P_pri)
 
     def correction_step(self, o):
 
@@ -200,7 +205,7 @@ class PDAF:
         self.compute_S()
 
         self.filter_observations_outside_gate(o)
-        print("obs within gate: ", self.o_within_gate_arr)
+        # print("obs within gate: ", self.o_within_gate_arr)
 
         if len(self.o_within_gate_arr) == 0:
             self.state_post = self.state_pri
