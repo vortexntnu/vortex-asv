@@ -1,6 +1,7 @@
 import sys
 
 sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/data_generation")
+sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/config")
 from scenarios import BaseScenario
 from load_config import load_yaml_into_dotdict
 import pytest
@@ -13,7 +14,7 @@ import numpy as np
 
 def data_generation():
 
-    config = load_yaml_into_dotdict("scenario.yaml")
+    config = load_yaml_into_dotdict("/home/hannahcl/Documents/vortex/monkey_tracking/config/scenario.yaml")
 
     scenario = BaseScenario(config)
 
