@@ -133,7 +133,7 @@ def test_plot_interactive():
     for i in range(len(manager.main_track.C)):
         manager.main_track.R[i, i] = scenario.config.noise.measurement
 
-    manager.max_vel = 3
+    manager.max_vel = 4
 
     tentative_estimates = []
     conf_estimates = []
