@@ -293,7 +293,7 @@ class LosPathFollowing(object):
         #Services
         #placeholder srv name
         self.pause_srv = rospy.Service(
-            "pause", SetBool, self.pause_los
+            "/pause_los", SetBool, self.pause_los
         )
 
         # Publishers
@@ -361,7 +361,14 @@ class LosPathFollowing(object):
 
         return x_d
 
-    def pause_los(self,setbool): 
+    def pause_los(self,setbool):
+        """
+        
+        Callback used for the pause_los service.
+        Used in the collision avoidance Njord tasks, to pause
+        LOS when collision avoidance is running.
+        
+        """ 
         self.publish_guidance_data = not setbool
 
 

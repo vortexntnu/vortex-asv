@@ -8,6 +8,9 @@ class Velocity_Obstacle:
     """
     The Velocity Obstacle class
 
+        A computational class used by the collision avoidance system 
+        to determine if a collison can occur, and how the UAV should respond
+
         obstacle: An odometry of the object to avoid
         radius_o: The radius of obstacle
         vessel: An odometry of the UAV vessel 
@@ -41,7 +44,9 @@ class Velocity_Obstacle:
 
     def check_if_collision(self):
         """
-        Returns true if the current velocity results in a collision. Uses a truncated VO collision cone
+        Returns true if the current velocity results in a collision.
+        Uses a truncated VO collision cone
+
         """
 
         point = self.obstacle.pose.pose.position
@@ -63,17 +68,20 @@ class Velocity_Obstacle:
 
         """
         
-        Determines a reference velocity for the velocity controller
- 
+        Determines a reference velocity for the velocity controller.
+        The velocity is chosen such that the UAV's speed remains constant, but the 
+        desired heading is placed outside the truncated VO collison cone.
+        The desired heading will be placed behind the obstacle, by setting it to
+        a buffered version of the collision cone angle.
 
         """
 
+        #Current implementation need some work. Doesnt really follow COLREG, and doesnt really achieve constant speed
 
         buffer_angle = math.pi/6 #placeholder
         velocity_o = self.obstacle.twist.twist.linear
         velocity_r = self.vessel.twist.twist.linear
         abs_vel = math.sqrt((velocity_r.x-velocity_o.x)**2+(velocity_r.y-velocity_o.y)**2)
-        print(abs_vel)
 
         point = self.obstacle.pose.pose.position
         theta_ro = math.atan2(point.y,point.x)
@@ -93,6 +101,14 @@ class Velocity_Obstacle:
 
 
     def choose_left_cone(self):
+
+        """
+
+        Return true if choosing the left side of the VO collision cone
+        results in passing behind the obstacle.
+
+        """
+
         point = self.obstacle.pose.pose.position
         theta_ro = math.atan2(point.y,point.x)
         velocity_o = self.obstacle.twist.twist.linear

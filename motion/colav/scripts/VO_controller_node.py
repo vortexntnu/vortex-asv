@@ -34,7 +34,7 @@ class VO_controller_node:
         )  # 20hz
 
         # Service
-        self.colav_srv = rospy.Service("colav",Trigger,self.avoid_collision)
+        self.colav_srv = rospy.Service("/colav",Trigger,self.avoid_collision)
         
         self.velocity_pub = rospy.Publisher("/guidance/los_data",GuidanceData,queue_size=1)
     
@@ -42,6 +42,16 @@ class VO_controller_node:
 
 
     def avoid_collision(self,trigger):
+
+
+        """
+
+        Avoids collison by continuously updating the desired velociy,
+        and sending it to the AUV's velocity controller. This is implemented as a service that 
+        will run as long a collision is possible.
+
+        """
+
 
         VO = Velocity_Obstacle(None,self.obstacle,self.vessel)
         while VO.check_if_collision():
@@ -51,7 +61,6 @@ class VO_controller_node:
             ## Haven't figured out how to calculate heading based on desired velocity, and i dont plan on either >:^)
             ##Ok ill figure it out
             self.velocity_pub.publish(data)
-            ###### Give ref_velocity to velocity controller ######
         return TriggerResponse (
             success = True,
             message = "success!"
