@@ -170,18 +170,19 @@ class PDAF:
         self.state_post = self.state_pri + self.L @ self.residual_vector
 
     def correct_P(self):
-        temp1 = np.ndarray((2, 2), dtype=float)
+        quadratic_form_weighted_residual_vector = np.ndarray((2, 2), dtype=float)
         for i, o_i in enumerate(self.o_within_gate_arr):
-            ny_ak = o_i - self.C @ self.state_pri
-            temp1 += (
-                self.p_match_arr[i + 1] * ny_ak.reshape(2, 1) @ ny_ak.reshape(2, 1).T
+            conditional_innovations = o_i - self.C @ self.state_pri
+            quadratic_form_weighted_residual_vector += (
+                self.p_match_arr[i + 1] * conditional_innovations.reshape(2, 1) @ conditional_innovations.reshape(2, 1).T
             )
-        temp2 = (
-            temp1
-            - self.residual_vector.reshape(2, 1) @ self.residual_vector.reshape(2, 1).T
+        quadratic_form_residual_vector = self.residual_vector.reshape(2, 1) @ self.residual_vector.reshape(2, 1).T
+        diff = (
+            quadratic_form_weighted_residual_vector
+            - quadratic_form_residual_vector
         )
 
-        spread_of_innovations = self.L @ temp2 @ self.L.T  # given by (7.26) Brekke
+        spread_of_innovations = self.L @ diff @ self.L.T  # given by (7.26) Brekke
         L_S_LT = self.L @ self.S @ self.L.T
 
         # print("\n -------- P pri --------------- \n", self.P_pri)
