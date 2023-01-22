@@ -56,12 +56,6 @@ class TRACK_STATUS(Enum):
     confirmed = 2
     tentative_delete = 3
 
-class TRACK_STATUS_TRANSITION(Enum):
-    none = 0
-    tentative_conf_to_conf = 1
-    conf_to_tentative_del = 2
-    tentative_del_to_tentative_conf = 3
-    tentative_del_to_conf = 4
 
 @dataclass
 class PDAF_2MN:
@@ -69,7 +63,6 @@ class PDAF_2MN:
     m = 0
     n = 0
     track_status = TRACK_STATUS.tentative_confirm
-    track_status_trans = TRACK_STATUS_TRANSITION.none
 
 class TRACK_MANAGER:
     def __init__(self):
@@ -116,7 +109,6 @@ class TRACK_MANAGER:
 
             if len(self.main_track.pdaf.o_within_gate_arr) == 0:
                 self.main_track.track_status = TRACK_STATUS.tentative_delete
-                self.main_track.track_status_trans = TRACK_STATUS_TRANSITION.conf_to_tentative_del
                 self.main_track.m = 0
                 self.main_track.n = 0
 
@@ -136,17 +128,11 @@ class TRACK_MANAGER:
 
             if self.main_track.n == self.N:
                 self.main_track.track_status = TRACK_STATUS.confirmed
-                self.main_track.track_status_trans = TRACK_STATUS_TRANSITION.tentative_del_to_conf
+
             elif self.main_track.m == self.M:
                 self.main_track.track_status = TRACK_STATUS.tentative_confirm
-                self.main_track.track_status_trans = TRACK_STATUS_TRANSITION.tentative_del_to_tentative_conf
                 print("track deleted")
 
-
-        #actions when transitionning between states
-        if self.main_track.track_status_trans == TRACK_STATUS_TRANSITION.tentative_conf_to_conf:
-            self.tentative_tracks = [] #delete tentative trakcs
-            self.main_track.track_status_trans = TRACK_STATUS_TRANSITION.none
 
     def add_tentative_tracks(self, o_arr):
         # can this be written in a more efficient way?
@@ -197,10 +183,9 @@ class TRACK_MANAGER:
 
             if track.n == self.N:
                 print("track confirmed")
-                self.main_track.track_status = TRACK_STATUS.confirmed
-                self.main_track.track_status_trans = TRACK_STATUS_TRANSITION.tentative_conf_to_conf
                 self.main_track = track
-                #self.tentative_tracks = []
+                self.main_track.track_status = TRACK_STATUS.confirmed
+                self.tentative_tracks = []
             elif track.m == self.M:
                 print("track deleted")
                 self.tentative_tracks.remove(track)
