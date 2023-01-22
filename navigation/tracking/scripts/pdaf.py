@@ -25,15 +25,16 @@ Sub tasks:
 
 
 class PDAF:
-    def __init__(self):
+    def __init__(self, config):
         # x = [x, y, x', y']
 
-        self.time_step = 0.1 #obs obs might have to change. Must check how large deviation in time step are. 
-        self.state_pri = np.zeros((4,1))
-        self.P_pri = np.zeros((4,4))
+        self.time_step = config['pdaf']['time_step'] #obs obs might have to change. Must check how large deviation in time step are. 
+        self.state_post = np.array(config['pdaf']['state_post']).reshape((4,1))
+        self.P_post = np.array(config['pdaf']['P_post']).reshape((4,4))
 
-        self.state_post = np.zeros_like(self.state_pri)
-        self.P_post = np.zeros_like(self.P_pri)
+        self.state_pri = self.state_post
+        self.P_pri = self.P_post
+
 
         self.L = np.zeros((2,2))
 
@@ -52,29 +53,18 @@ class PDAF:
 
         self.o_pri = np.zeros((2,1))
 
-        self.Q = np.array([
-            [0.001, 0, 0, 0], 
-            [0, 0.001, 0, 0], 
-            [0, 0, 0.1, 0], 
-            [0, 0, 0, 0.1]
-        ])
+        self.Q = np.array(config['pdaf']['Q'])
 
-        self.R = np.array([
-            [0.1, 0], 
-            [0, 0.1]
-        ])
+        self.R = np.array(config['pdaf']['R'])
 
-        self.S = np.array([
-            [0.1, 0], 
-            [0, 0.1]
-        ])
+        self.S = np.zeros((2,2))
 
-        self.validation_gate_scaling_param = (2)  # number of standard deviations we are willing to consider.
+        self.validation_gate_scaling_param = config['pdaf']['validation_gate_scaling_param']  # number of standard deviations we are willing to consider.
         
-        self.minimal_mahalanobis_distance = 0.1
+        self.minimal_mahalanobis_distance = config['pdaf']['minimal_mahalanobis_distance'] 
 
         self.residual_vector = np.zeros((2,1))
-        self.p_no_match = 0.01  # probabiity that no observations matches the track
+        self.p_no_match = config['pdaf']['p_no_match']  # probabiity that no observations matches the track
         self.p_match_arr = np.ndarray(
             (2,), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
@@ -127,6 +117,8 @@ class PDAF:
 
         o_predicted = self.C @ self.state_pri
         diff = o- o_predicted
+        print("diff", diff)
+        print("S", self.S)
         assert(np.shape(diff) == (2,1))
         mah_dist = diff.T @ np.linalg.inv(self.S) @ diff
 

@@ -1,5 +1,6 @@
 from pdaf import PDAF
 import numpy as np
+import yaml
 
 import sys
 
@@ -14,12 +15,15 @@ from track_manager import TRACK_MANAGER
 
 def test_pdaf_zero_velocity():
 
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
     x = 5
     y = 1
     tollerance = 0.5
     n_timesteps = 200
 
-    pdaf = PDAF()
+    pdaf = PDAF(config_loaded)
 
     pdaf.state_pri[0] = 0
     pdaf.state_pri[1] = 0
@@ -56,6 +60,9 @@ def test_pdaf_constant_vel():
     We simulate a boat with constant velocity in both x and y.
     """
 
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
     x = 5
     x_der = 0.9
     y = 1.2
@@ -63,7 +70,9 @@ def test_pdaf_constant_vel():
     tollerance = 0.5
     n_timesteps = 200
 
-    pdaf = PDAF()
+    pdaf = PDAF(config_loaded)
+
+    pdaf.validation_gate_scaling_param = 5
 
     pdaf.state_pri[0] = 0
     pdaf.state_pri[1] = 0
@@ -130,7 +139,10 @@ def data_generation():
 
 def test_filter_observations_outside_gate():
 
-    pdaf = PDAF()
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
+    pdaf = PDAF(config_loaded)
 
     n_obs = 10
     x = 1
@@ -147,6 +159,8 @@ def test_filter_observations_outside_gate():
 
     print("observations: ", observations)
 
+    pdaf.compute_L()
+    pdaf.compute_S()
     pdaf.filter_observations_outside_gate(observations)
 
     print("observations within gate: ", pdaf.o_within_gate_arr)
@@ -154,7 +168,10 @@ def test_filter_observations_outside_gate():
 
 def test_compute_probability_of_matching_observations():
 
-    pdaf = PDAF()
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
+    pdaf = PDAF(config_loaded)
 
     n_obs = 10
     x = 1
@@ -166,6 +183,8 @@ def test_compute_probability_of_matching_observations():
         observations[i, 0] = x + i * 0.1
         observations[i, 1] = y
 
+    pdaf.compute_L()
+    pdaf.compute_S()
     pdaf.filter_observations_outside_gate(observations)
     pdaf.compute_probability_of_matching_observations()
 
@@ -178,11 +197,14 @@ def test_compute_probability_of_matching_observations():
 
 def test_compute_residual_vector():
 
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
     n_obs = 2
     x = 4
     y = 0.5
 
-    pdaf = PDAF()
+    pdaf = PDAF(config_loaded)
 
     pdaf.state_pri[0] = x
     pdaf.state_pri[1] = y
@@ -195,6 +217,8 @@ def test_compute_residual_vector():
     o_1 = [x+1, y-1]
     observations.append(o_1)
 
+    pdaf.compute_L()
+    pdaf.compute_S()
     pdaf.filter_observations_outside_gate(observations)
     pdaf.compute_probability_of_matching_observations()
     pdaf.compute_residual_vector()
@@ -220,7 +244,11 @@ def test_compute_residual_vector():
 
 
 def test_correct_P():
-    pdaf = PDAF()
+
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
+    pdaf = PDAF(config_loaded)
 
     n_obs = 3
     x = 4

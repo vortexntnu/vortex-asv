@@ -57,28 +57,31 @@ class TRACK_STATUS(Enum):
     tentative_delete = 3
 
 
-@dataclass
+
 class PDAF_2MN:
-    pdaf = PDAF()
-    m = 0
-    n = 0
-    track_status = TRACK_STATUS.tentative_confirm
+    def __init__(self, config):
+        self.pdaf = PDAF(config)
+        self.m = 0
+        self.n = 0
+        self.track_status = TRACK_STATUS.tentative_confirm
 
 class TRACK_MANAGER:
-    def __init__(self):
+    def __init__(self, config):
         # subscribe to topic with detections from point cloud
         # publish state of main track if status is confirmed
+
+        self.config = config
 
         self.prev_observations: List[np.ndarray] = []
         self.tentative_tracks: List[PDAF_2MN] = []
 
-        self.N = 4
-        self.M = 8
-        self.main_track = PDAF_2MN()
+        self.N = config['manager']['N']
+        self.M = config['manager']['M']
+        self.main_track = PDAF_2MN(config)
 
-        self.max_vel = 7  # [m/s]
-        self.initial_measurement_covariance = 20
-        self.initial_update_error_covariance = 1.0
+        self.max_vel = config['manager']['max_vel']  # [m/s]
+        self.initial_measurement_covariance = config['manager']['initial_measurement_covariance']
+        self.initial_update_error_covariance = config['manager']['initial_update_error_covariance']
 
     def cb(self, o_arr):
         if self.main_track.track_status == TRACK_STATUS.tentative_confirm:
@@ -140,7 +143,7 @@ class TRACK_MANAGER:
             n = self.n_observations_inside_max_size_gate(prev_o, o_arr)
             if n > 0:
                 print("track added")
-                tentative_track = PDAF_2MN()
+                tentative_track = PDAF_2MN(self.config)
 
                 tentative_track.pdaf.state_post[0] = prev_o[
                     0

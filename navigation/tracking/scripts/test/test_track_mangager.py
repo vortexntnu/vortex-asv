@@ -4,6 +4,7 @@ sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/data_generat
 sys.path.insert(0, "/home/hannahcl/Documents/vortex/monkey_tracking/config")
 from scenarios import BaseScenario
 from load_config import load_yaml_into_dotdict
+import yaml
 
 from track_manager import TRACK_MANAGER, TRACK_STATUS
 import plots
@@ -24,7 +25,10 @@ def data_generation():
 
 def test_cb():
 
-    manager = TRACK_MANAGER()
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
+    manager = TRACK_MANAGER(config_loaded)
 
     x = 0
     y = 0
@@ -47,7 +51,10 @@ def test_cb():
 
 def test_tentative_confirm_del():
 
-    manager = TRACK_MANAGER()
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
+
+    manager = TRACK_MANAGER(config_loaded)
 
     manager.N = 3
     manager.M = 8
@@ -107,10 +114,12 @@ def test_tentative_confirm_del():
 
 # @pytest.mark.plot
 def test_plot_interactive():
+    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+        config_loaded = yaml.safe_load(stream)
 
     wait_for_btn_press = False
 
-    manager = TRACK_MANAGER()
+    manager = TRACK_MANAGER(config_loaded)
 
     manager.N = 3
     manager.M = 8
