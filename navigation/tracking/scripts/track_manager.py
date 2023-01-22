@@ -185,7 +185,7 @@ class TRACK_MANAGER:
     def update_confirmation_count(self, pdaf: PDAF, o_arr):
         m = pdaf.m + 1
 
-        predicted_o = np.matmul(pdaf.C, pdaf.state_pri)
+        predicted_o = pdaf.C@pdaf.state_pri
         if self.n_observations_inside_max_size_gate(predicted_o, o_arr) > 0:
             n = pdaf.n + 1
         else:

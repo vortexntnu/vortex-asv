@@ -7,6 +7,7 @@ Sub tasks:
 
     Use a kalam gain so that the filter is numerically stable. 
     SINGULAR MATRICIES
+    Make sure every vector is treated as (2,1) not (2,)!!!!!!!!!!!!!!!
 
     TEST
         - Visualize position estimates with clutter.
@@ -65,7 +66,7 @@ class PDAF:
             dtype=float,
         )
 
-        self.o_pri =  np.ndarray((2,), dtype=float) #predicted observation
+        self.o_pri = np.ndarray((2,), dtype=float)  # predicted observation
 
         self.Q = np.ndarray(
             (4, 4),
@@ -80,7 +81,7 @@ class PDAF:
         self.S = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
 
         self.validation_gate_scaling_param = (
-            2  # number of standard deviations we are willing to consider.
+            5  # number of standard deviations we are willing to consider.
         )
 
         self.residual_vector = np.ndarray((2,), dtype=float)
@@ -97,11 +98,10 @@ class PDAF:
 
     def compute_mah_dist(self, o):
         "Compute mahaloanobis distance between observation and predicted observation."
-        o_predicted = np.matmul(self.C, self.state_pri)
+        o_predicted = self.C @ self.state_pri
         diff = o - o_predicted
-        mah_dist = np.matmul(
-            diff.reshape(2, 1).T, np.matmul(np.linalg.inv(self.S), diff.reshape(2, 1))
-        )
+        mah_dist = diff.reshape(2, 1).T @ np.linalg.inv(self.S) @ diff.reshape(2, 1)
+
         return mah_dist
 
     def filter_observations_outside_gate(self, o):
@@ -155,31 +155,34 @@ class PDAF:
             )
 
     def compute_S(self):
-        C_P = np.matmul(self.C, self.P_pri)
-        self.S = np.matmul(C_P, self.C.T) + self.R
+        C_P = self.C @ self.P_pri
+        self.S = C_P @ self.C.T + self.R
 
     def compute_L(self):
-        P_CT = np.matmul(self.P_pri, self.C.T)
-        C_P_CT = np.matmul(self.C, P_CT)
-        self.L = np.matmul(P_CT, np.linalg.inv(C_P_CT + self.R))
+        P_CT = self.P_pri @ self.C.T
+        C_P_CT = self.C @ P_CT
+        self.L = P_CT @ np.linalg.inv(C_P_CT + self.R)
 
         # print("\n --- L ---\n")
         # print(self.L)
 
     def correct_state_vector(self):
-        self.state_post = self.state_pri + np.matmul(self.L, self.residual_vector)
+        self.state_post = self.state_pri + self.L @ self.residual_vector
 
     def correct_P(self):
         temp1 = np.ndarray((2, 2), dtype=float)
         for i, o_i in enumerate(self.o_within_gate_arr):
-            ny_ak = o_i - np.matmul(self.C, self.state_pri)
-            temp1 += self.p_match_arr[i + 1] * np.matmul(ny_ak.reshape(2,1), ny_ak.reshape(2,1).T)
-        temp2 = temp1 - np.matmul(self.residual_vector.reshape(2,1), self.residual_vector.reshape(2,1).T)
+            ny_ak = o_i - self.C @ self.state_pri
+            temp1 += (
+                self.p_match_arr[i + 1] * ny_ak.reshape(2, 1) @ ny_ak.reshape(2, 1).T
+            )
+        temp2 = (
+            temp1
+            - self.residual_vector.reshape(2, 1) @ self.residual_vector.reshape(2, 1).T
+        )
 
-        spread_of_innovations = np.matmul(
-            self.L, np.matmul(temp2, self.L.T)
-        )  # given by (7.26) Brekke
-        L_S_LT = np.matmul(self.L, np.matmul(self.S, self.L.T))
+        spread_of_innovations = self.L @ temp2 @ self.L.T  # given by (7.26) Brekke
+        L_S_LT = self.L @ self.S @ self.L.T
 
         # print("\n -------- P pri --------------- \n", self.P_pri)
         # print("\n -------- L*S*L^T --------------- \n", L_S_LT)
@@ -190,12 +193,12 @@ class PDAF:
             self.P_pri - (1 - self.p_no_match) * L_S_LT + spread_of_innovations
         )  # given by (7.25) Brekke
 
-        #print("\n -------- P post --------------- \n", self.P_post)
+        # print("\n -------- P post --------------- \n", self.P_post)
 
     def prediction_step(self):
-        self.state_pri = np.matmul(self.A, self.state_post)
-        self.P_pri = np.matmul(self.A, np.matmul(self.P_post, self.A.T)) + self.Q
-        self.o_pri = np.matmul(self.C, self.state_pri)
+        self.state_pri = self.A @ self.state_post
+        self.P_pri = self.A @ self.P_post @ self.A.T + self.Q
+        self.o_pri = self.C @ self.state_pri
 
         # print("\n -------- P pri --------------- \n", self.P_pri)
 
