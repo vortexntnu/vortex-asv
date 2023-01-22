@@ -10,7 +10,7 @@ Sub tasks:
 
     Use a kalam gain so that the filter is numerically stable. 
     SINGULAR MATRICIES
-    Make sure every vector is treated as (2,1) not (2,)!!!!!!!!!!!!!!!
+
 
     TEST
         - Visualize position estimates with clutter.
@@ -28,66 +28,52 @@ class PDAF:
     def __init__(self):
         # x = [x, y, x', y']
 
-        self.time_step = 0.1
-        self.state_pri = np.ndarray(
-            (4,), buffer=np.array([0.0, 0.0, 0.0, 0.0]), dtype=float
-        )
-        self.P_pri = np.ndarray(
-            (4, 4),
-            buffer=np.array(
-                [
-                    [0.0, 0.0, 0.0, 0.0],
-                    [0.0, 0.0, 0.0, 0.0],
-                    [0.0, 0.0, 0.0, 0.0],
-                    [0.0, 0.0, 0.0, 0.0],
-                ]
-            ),
-            dtype=float,
-        )
+        self.time_step = 0.1 #obs obs might have to change. Must check how large deviation in time step are. 
+        self.state_pri = np.zeros((4,1))
+        self.P_pri = np.zeros((4,4))
 
-        self.state_post = np.ndarray((4,), dtype=float)
-        self.P_post = np.ndarray((4, 4), dtype=float)
+        self.state_post = np.zeros_like(self.state_pri)
+        self.P_post = np.zeros_like(self.P_pri)
 
-        self.L = np.ndarray((2, 2), dtype=float)
+        self.L = np.zeros((2,2))
 
-        self.C = np.ndarray(
-            (2, 4),
-            buffer=np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]]),
-            dtype=float,
-        )
+        self.C = np.array([
+            [1.0, 0.0, 0.0, 0.0], 
+            [0.0, 1.0, 0.0, 0.0]
+        ])
 
-        self.A = np.ndarray(
-            (4, 4),
-            buffer=np.array(
-                [
-                    [1.0, 0.0, self.time_step, 0],
-                    [0, 1.0, 0, self.time_step],
-                    [0, 0, 1.0, 0],  # assuming constnat velocity
-                    [0, 0, 0, 1.0],  # assuming constnat velocity
-                ]
-            ),
-            dtype=float,
-        )
+        self.A = np.array([
+            [1.0, 0.0, self.time_step, 0],
+            [0, 1.0, 0, self.time_step],
+            [0, 0, 1.0, 0],  # assuming constnat velocity
+            [0, 0, 0, 1.0]   # assuming constnat velocity
+        ])
 
-        self.o_pri = np.ndarray((2,), dtype=float)  # predicted observation
 
-        self.Q = np.ndarray(
-            (4, 4),
-            buffer=np.array(
-                [[0.001, 0, 0, 0], [0, 0.001, 0, 0], [0, 0, 0.1, 0], [0, 0, 0, 0.1]]
-            ),
-            dtype=float,
-        )
+        self.o_pri = np.zeros((2,1))
 
-        self.R = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
+        self.Q = np.array([
+            [0.001, 0, 0, 0], 
+            [0, 0.001, 0, 0], 
+            [0, 0, 0.1, 0], 
+            [0, 0, 0, 0.1]
+        ])
 
-        self.S = np.ndarray((2, 2), buffer=np.array([[0.1, 0], [0, 0.1]]), dtype=float)
+        self.R = np.array([
+            [0.1, 0], 
+            [0, 0.1]
+        ])
 
-        self.validation_gate_scaling_param = (
-            2  # number of standard deviations we are willing to consider.
-        )
+        self.S = np.array([
+            [0.1, 0], 
+            [0, 0.1]
+        ])
 
-        self.residual_vector = np.ndarray((2,), dtype=float)
+        self.validation_gate_scaling_param = (2)  # number of standard deviations we are willing to consider.
+        
+        self.minimal_mahalanobis_distance = 0.1
+
+        self.residual_vector = np.zeros((2,1))
         self.p_no_match = 0.01  # probabiity that no observations matches the track
         self.p_match_arr = np.ndarray(
             (2,), dtype=float
@@ -96,32 +82,61 @@ class PDAF:
             (2, 2), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
 
-    def compute_mah_dist(self, o):
-        "Compute mahaloanobis distance between observation and predicted observation."
-        o_predicted = self.C @ self.state_pri
-        diff = o - o_predicted
-        mah_dist = diff.reshape(2, 1).T @ np.linalg.inv(self.S) @ diff.reshape(2, 1)
 
-        return mah_dist
+    def prediction_step(self):
+        self.state_pri = self.A @ self.state_post
+        self.P_pri = self.A @ self.P_post @ self.A.T + self.Q
+        self.o_pri = self.C @ self.state_pri
+
+        # print("\n -------- P pri --------------- \n", self.P_pri)
+
+    def correction_step(self, o):
+
+        self.compute_L()
+        self.compute_S()
+
+        self.filter_observations_outside_gate(o)
+        print("obs within gate: ", self.o_within_gate_arr)
+
+        if len(self.o_within_gate_arr) == 0:
+            self.state_post = self.state_pri
+            self.P_post = self.P_pri
+
+        else:
+            self.compute_probability_of_matching_observations()
+            self.compute_residual_vector()
+
+            self.correct_state_vector()
+            self.correct_P()
+
 
     def filter_observations_outside_gate(self, o):
 
         within_gate = []
 
         for o_i in o:
-            mah_dist = self.compute_mah_dist(o_i)
+            o_i_arr = np.array(o_i).reshape(2,1)
+            mah_dist = self.compute_mah_dist(o_i_arr)
             if mah_dist < self.validation_gate_scaling_param**2:
-                within_gate.append(o_i)
+                within_gate.append(o_i_arr)
 
         self.o_within_gate_arr = np.array(within_gate)
 
+    def compute_mah_dist(self, o):
+        "Compute mahaloanobis distance between observation and predicted observation."
+
+        o_predicted = self.C @ self.state_pri
+        diff = o- o_predicted
+        assert(np.shape(diff) == (2,1))
+        mah_dist = diff.T @ np.linalg.inv(self.S) @ diff
+
+        return mah_dist
+
     def compute_probability_of_matching_observations(self):
 
-        score = np.ndarray(
-            (len(self.o_within_gate_arr),), dtype=float
-        )  # score for each observation based on distance from predicted position
+        score = np.zeros((len(self.o_within_gate_arr),))
 
-        self.p_match_arr = np.ndarray((len(self.o_within_gate_arr) + 1,), dtype=float)
+        self.p_match_arr = np.zeros((len(self.o_within_gate_arr) + 1,))
 
         if len(self.o_within_gate_arr) == 0:
             self.p_match_arr[0] = 1.0
@@ -132,9 +147,9 @@ class PDAF:
 
             mah_distance = self.compute_mah_dist(o_i)
             if (
-                mah_distance <= 0.1
+                mah_distance <= self.minimal_mahalanobis_distance
             ):  # In order to avoid infinte high weights. Choose an approriate threshold.
-                score[i] = 10
+                score[i] = 1 / self.minimal_mahalanobis_distance
             else:
                 score[i] = 1 / mah_distance
 
@@ -173,9 +188,11 @@ class PDAF:
         quadratic_form_weighted_residual_vector = np.ndarray((2, 2), dtype=float)
         for i, o_i in enumerate(self.o_within_gate_arr):
             conditional_innovations = o_i - self.C @ self.state_pri
+
             quadratic_form_weighted_residual_vector += (
                 self.p_match_arr[i + 1] * conditional_innovations.reshape(2, 1) @ conditional_innovations.reshape(2, 1).T
             )
+
         quadratic_form_residual_vector = self.residual_vector.reshape(2, 1) @ self.residual_vector.reshape(2, 1).T
         diff = (
             quadratic_form_weighted_residual_vector
@@ -183,7 +200,9 @@ class PDAF:
         )
 
         spread_of_innovations = self.L @ diff @ self.L.T  # given by (7.26) Brekke
+
         L_S_LT = self.L @ self.S @ self.L.T
+
 
         # print("\n -------- P pri --------------- \n", self.P_pri)
         # print("\n -------- L*S*L^T --------------- \n", L_S_LT)
@@ -196,31 +215,16 @@ class PDAF:
 
         # print("\n -------- P post --------------- \n", self.P_post)
 
-    def prediction_step(self):
-        self.state_pri = self.A @ self.state_post
-        self.P_pri = self.A @ self.P_post @ self.A.T + self.Q
-        self.o_pri = self.C @ self.state_pri
 
-        # print("\n -------- P pri --------------- \n", self.P_pri)
 
-    def correction_step(self, o):
 
-        self.compute_L()
-        self.compute_S()
 
-        self.filter_observations_outside_gate(o)
-        print("obs within gate: ", self.o_within_gate_arr)
 
-        if len(self.o_within_gate_arr) == 0:
-            self.state_post = self.state_pri
-            self.P_post = self.P_pri
 
-        else:
-            self.compute_probability_of_matching_observations()
-            self.compute_residual_vector()
 
-            self.correct_state_vector()
-            self.correct_P()
+
+
+
 
     def create_observations_for_one_timestep(self, x, y):
         "Only used for testing. Not part of the tracker algorithm."
