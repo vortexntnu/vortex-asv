@@ -14,7 +14,9 @@ import numpy as np
 
 def data_generation():
 
-    config = load_yaml_into_dotdict("/home/hannahcl/Documents/vortex/monkey_tracking/config/scenario.yaml")
+    config = load_yaml_into_dotdict(
+        "/home/hannahcl/Documents/vortex/monkey_tracking/config/scenario.yaml"
+    )
 
     scenario = BaseScenario(config)
 
@@ -25,7 +27,10 @@ def data_generation():
 
 def test_cb():
 
-    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+    with open(
+        "/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml",
+        "r",
+    ) as stream:
         config_loaded = yaml.safe_load(stream)
 
     manager = TRACK_MANAGER(config_loaded)
@@ -51,7 +56,10 @@ def test_cb():
 
 def test_tentative_confirm_del():
 
-    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+    with open(
+        "/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml",
+        "r",
+    ) as stream:
         config_loaded = yaml.safe_load(stream)
 
     manager = TRACK_MANAGER(config_loaded)
@@ -114,7 +122,10 @@ def test_tentative_confirm_del():
 
 # @pytest.mark.plot
 def test_plot_interactive():
-    with open("/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml", 'r') as stream:
+    with open(
+        "/home/hannahcl/Documents/vortex/asv_ws/src/vortex-asv/navigation/tracking/scripts/config_traking_sys.yaml",
+        "r",
+    ) as stream:
         config_loaded = yaml.safe_load(stream)
 
     wait_for_btn_press = False
@@ -129,7 +140,7 @@ def test_plot_interactive():
     manager.main_track.pdaf.p_no_match = 1 - scenario.config.probability.detection
     manager.main_track.pdaf.time_step = scenario.config.dt
 
-    manager.initial_measurement_covariance = 1 #scenario.config.noise.measurement
+    manager.initial_measurement_covariance = 1  # scenario.config.noise.measurement
 
     for i in range(len(manager.main_track.pdaf.state_post)):
         manager.main_track.pdaf.Q[i, i] = scenario.config.noise.process
@@ -155,7 +166,7 @@ def test_plot_interactive():
         manager.cb(o_arr)
 
         # add updates to lists that will be plottee
-        if manager.main_track.track_status== TRACK_STATUS.tentative_confirm:
+        if manager.main_track.track_status == TRACK_STATUS.tentative_confirm:
             last_addition_to_tentative_tracks = []
             for track in manager.tentative_tracks:
                 last_addition_to_tentative_tracks.append(track.pdaf.state_post[:2])
@@ -164,7 +175,7 @@ def test_plot_interactive():
         if manager.main_track.track_status == TRACK_STATUS.confirmed:
             conf_estimates.append(manager.main_track.pdaf.state_post[:2])
 
-        if manager.main_track.track_status== TRACK_STATUS.tentative_delete:
+        if manager.main_track.track_status == TRACK_STATUS.tentative_delete:
             tentative_del_estimates.append(manager.main_track.pdaf.state_post[:2])
 
         estimate_status.append(manager.main_track.track_status)

@@ -57,13 +57,13 @@ class TRACK_STATUS(Enum):
     tentative_delete = 3
 
 
-
 class PDAF_2MN:
     def __init__(self, config):
         self.pdaf = PDAF(config)
         self.m = 0
         self.n = 0
         self.track_status = TRACK_STATUS.tentative_confirm
+
 
 class TRACK_MANAGER:
     def __init__(self, config):
@@ -75,22 +75,30 @@ class TRACK_MANAGER:
         self.prev_observations: List[np.ndarray] = []
         self.tentative_tracks: List[PDAF_2MN] = []
 
-        self.N = config['manager']['N']
-        self.M = config['manager']['M']
+        self.N = config["manager"]["N"]
+        self.M = config["manager"]["M"]
         self.main_track = PDAF_2MN(config)
 
-        self.max_vel = config['manager']['max_vel']  # [m/s]
-        self.initial_measurement_covariance = config['manager']['initial_measurement_covariance']
-        self.initial_update_error_covariance = config['manager']['initial_update_error_covariance']
+        self.max_vel = config["manager"]["max_vel"]  # [m/s]
+        self.initial_measurement_covariance = config["manager"][
+            "initial_measurement_covariance"
+        ]
+        self.initial_update_error_covariance = config["manager"][
+            "initial_update_error_covariance"
+        ]
 
     def cb(self, o_arr):
         if self.main_track.track_status == TRACK_STATUS.tentative_confirm:
-            print("\n ------------ tentative confirm with ", len(self.tentative_tracks), " tracks.")
+            print(
+                "\n ------------ tentative confirm with ",
+                len(self.tentative_tracks),
+                " tracks.",
+            )
 
             for track in self.tentative_tracks:
                 print("state: ", track.pdaf.state_pri[:2])
                 print("n: ", track.n, "m: ", track.m)
-                #print("S: ", track.S)
+                # print("S: ", track.S)
 
             print("update status on tentative tracks")
             self.update_status_on_tentative_tracks(o_arr)
@@ -100,8 +108,6 @@ class TRACK_MANAGER:
             print("add tentative tracks")
             self.add_tentative_tracks(remaining_o_arr)
             self.prev_observations = remaining_o_arr
-
-
 
         elif self.main_track.track_status == TRACK_STATUS.confirmed:
             print("\n ------------track still confirmed")
@@ -115,12 +121,10 @@ class TRACK_MANAGER:
                 self.main_track.m = 0
                 self.main_track.n = 0
 
-
         elif self.main_track.track_status == TRACK_STATUS.tentative_delete:
             print("\n ------------tentative delete")
             print("state: ", self.main_track.pdaf.state_post)
             print("n: ", self.main_track.n, "m: ", self.main_track.m)
-
 
             self.main_track.pdaf.correction_step(o_arr)
             self.main_track.pdaf.prediction_step()
@@ -135,7 +139,6 @@ class TRACK_MANAGER:
             elif self.main_track.m == self.M:
                 self.main_track.track_status = TRACK_STATUS.tentative_confirm
                 print("track deleted")
-
 
     def add_tentative_tracks(self, o_arr):
         # can this be written in a more efficient way?
@@ -153,7 +156,9 @@ class TRACK_MANAGER:
                 tentative_track.pdaf.state_post[3] = 0  # y'
 
                 for i in range(len(tentative_track.pdaf.state_pri)):
-                    tentative_track.pdaf.P_pri[i][i] = self.initial_update_error_covariance
+                    tentative_track.pdaf.P_pri[i][
+                        i
+                    ] = self.initial_update_error_covariance
 
                 self.tentative_tracks.append(tentative_track)
 
@@ -168,9 +173,14 @@ class TRACK_MANAGER:
                 #     o[1] - track.state_pri[0],
                 # )
                 dist = np.sqrt(
-                    (o[0] - track.pdaf.state_pri[0]) ** 2 + (o[1] - track.pdaf.state_pri[1]) ** 2
+                    (o[0] - track.pdaf.state_pri[0]) ** 2
+                    + (o[1] - track.pdaf.state_pri[1]) ** 2
                 )
-                if dist < self.max_vel * self.main_track.pdaf.time_step + self.initial_measurement_covariance:
+                if (
+                    dist
+                    < self.max_vel * self.main_track.pdaf.time_step
+                    + self.initial_measurement_covariance
+                ):
                     remaining_o.pop(i)
                     # print(o, "deleted from o_arr")
 
@@ -196,7 +206,7 @@ class TRACK_MANAGER:
     def update_confirmation_count(self, track: PDAF_2MN, o_arr):
         m = track.m + 1
 
-        predicted_o = track.pdaf.C@track.pdaf.state_pri
+        predicted_o = track.pdaf.C @ track.pdaf.state_pri
         if self.n_observations_inside_max_size_gate(predicted_o, o_arr) > 0:
             n = track.n + 1
         else:
@@ -213,11 +223,18 @@ class TRACK_MANAGER:
                 (o[0] - predicted_position[0]) ** 2
                 + (o[1] - predicted_position[1]) ** 2
             )
-            print("dist:", dist, "range:", self.max_vel*self.main_track.pdaf.time_step + self.initial_measurement_covariance)
-            if dist < self.max_vel * self.main_track.pdaf.time_step + self.initial_measurement_covariance:
+            print(
+                "dist:",
+                dist,
+                "range:",
+                self.max_vel * self.main_track.pdaf.time_step
+                + self.initial_measurement_covariance,
+            )
+            if (
+                dist
+                < self.max_vel * self.main_track.pdaf.time_step
+                + self.initial_measurement_covariance
+            ):
                 n += 1
 
         return n
-
-
-
