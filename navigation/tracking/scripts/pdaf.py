@@ -3,6 +3,9 @@ import numpy as np
 """
 Single object tracking
 
+Implementation based on chapter 7 in "Fundemental in Sensor Fusion" by Brekke, 2021 edition. 
+Slides from PSU are nice for vizualization. https://www.cse.psu.edu/~rtc12/CSE598C/datassocPart2.pdf 
+
 Sub tasks: 
 
     Use a kalam gain so that the filter is numerically stable. 
@@ -92,9 +95,6 @@ class PDAF:
         self.o_within_gate_arr = np.ndarray(
             (2, 2), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
-
-        self.n = 0  # used for N/M track manager
-        self.m = 0  # used for N/M track manager
 
     def compute_mah_dist(self, o):
         "Compute mahaloanobis distance between observation and predicted observation."
