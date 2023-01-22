@@ -66,17 +66,17 @@ class PDAF:
             "minimal_mahalanobis_distance"
         ]
 
-        self.score_scalar = config["pdaf"][
-            "score_scalar"
-        ]
+        self.score_scalar = config["pdaf"]["score_scalar"]
 
         self.residual_vector = np.zeros((2, 1))
         self.p_no_match = config["pdaf"][
             "p_no_match"
         ]  # probabiity that no observations matches the track
+
         self.p_match_arr = np.ndarray(
             (2,), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
+
         self.o_within_gate_arr = np.ndarray(
             (2,), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
@@ -87,8 +87,6 @@ class PDAF:
         self.o_pri = self.C @ self.state_pri
 
         print("\n -------- P pri --------------- \n", self.P_pri)
-
-
 
     def correction_step(self, o):
 
@@ -106,6 +104,9 @@ class PDAF:
             self.compute_probability_of_matching_observations()
             self.compute_residual_vector()
 
+            print("\n ----------- p arr -------\n", self.p_match_arr)
+            print("\n ----------- residual vector -------\n", self.residual_vector)
+
             self.correct_state_vector()
             self.correct_P()
 
@@ -121,7 +122,7 @@ class PDAF:
 
         self.o_within_gate_arr = np.array(within_gate)
 
-        if len(self.o_within_gate_arr ) > 1:
+        if len(self.o_within_gate_arr) > 1:
             print("OBS: multiple obs within gate.")
             print("S", self.S)
 
@@ -151,24 +152,32 @@ class PDAF:
             if (
                 mah_distance <= self.minimal_mahalanobis_distance
             ):  # In order to avoid infinte high weights. Choose an approriate threshold.
-                score[i] = 1 / (self.minimal_mahalanobis_distance*self.score_scalar)
+                score[i] = (
+                    1 / mah_distance
+                )  # (self.minimal_mahalanobis_distance*self.score_scalar)
             else:
-                score[i] = 1 / (mah_distance*self.score_scalar)
+                score[i] = 1 / mah_distance  # (mah_distance*self.score_scalar)
 
         score_sum = np.sum(score)
         for i in range(len(self.o_within_gate_arr)):
             self.p_match_arr[i + 1] = (score[i] / score_sum) * (1 - self.p_no_match)
 
     def compute_residual_vector(self):
-        self.residual_vector[0] = 0  # x
-        self.residual_vector[1] = 0  # y
+        # self.residual_vector[0] = 0  # x
+        # self.residual_vector[1] = 0  # y
 
+        # for i in range(len(self.o_within_gate_arr)):
+        #     self.residual_vector[0] += self.p_match_arr[i + 1] * (
+        #         self.o_within_gate_arr[i][0] - self.state_pri[0]
+        #     )
+        #     self.residual_vector[1] += self.p_match_arr[i + 1] * (
+        #         self.o_within_gate_arr[i][1] - self.state_pri[1]
+        #     )
+
+        self.residual_vector = self.residual_vector * 0
         for i in range(len(self.o_within_gate_arr)):
-            self.residual_vector[0] += self.p_match_arr[i + 1] * (
-                self.o_within_gate_arr[i][0] - self.state_pri[0]
-            )
-            self.residual_vector[1] += self.p_match_arr[i + 1] * (
-                self.o_within_gate_arr[i][1] - self.state_pri[1]
+            self.residual_vector += self.p_match_arr[i + 1] * (
+                self.o_within_gate_arr[i] - self.C @ self.state_pri
             )
 
     def compute_S(self):
@@ -177,7 +186,6 @@ class PDAF:
 
         print("\n --- S ---\n")
         print(self.S)
-
 
     def compute_L(self):
         P_CT = self.P_pri @ self.C.T
@@ -220,7 +228,6 @@ class PDAF:
         )  # given by (7.25) Brekke
 
         print("\n -------- P post --------------- \n", self.P_post)
-
 
     def create_observations_for_one_timestep(self, x, y):
         "Only used for testing. Not part of the tracker algorithm."

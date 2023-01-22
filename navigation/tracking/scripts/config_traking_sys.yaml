@@ -5,7 +5,7 @@ pdaf:
   validation_gate_scaling_param: 2
   minimal_mahalanobis_distance: 0.1
   score_scalar: 5
-  p_no_match: 0.01
+  p_no_match: 0.5
 
   state_post: [0.0, 0.0, 0.0, 0.0]
   P_post: [[0.0, 0.0, 0.0, 0.0],[0.0, 0.0, 0.0, 0.0],[0.0, 0.0, 0.0, 0.0],[0.0, 0.0, 0.0, 0.0]]

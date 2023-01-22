@@ -231,7 +231,7 @@ def plot_interactive(
         if wait_for_btn_press:
             plt.waitforbuttonpress()
         else:
-            plt.pause(0.1)
+            plt.pause(0.01)
 
     plt.ioff()
     plt.show()

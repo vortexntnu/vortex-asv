@@ -137,17 +137,6 @@ def test_plot_interactive():
 
     scenario, measurements, ground_truths = data_generation()
 
-    manager.main_track.pdaf.p_no_match = 1 - scenario.config.probability.detection
-    manager.main_track.pdaf.time_step = scenario.config.dt
-
-    manager.initial_measurement_covariance = 1  # scenario.config.noise.measurement
-
-    for i in range(len(manager.main_track.pdaf.state_post)):
-        manager.main_track.pdaf.Q[i, i] = scenario.config.noise.process
-
-    for i in range(len(manager.main_track.pdaf.C)):
-        manager.main_track.pdaf.R[i, i] = scenario.config.noise.measurement
-
     manager.max_vel = 4
 
     tentative_estimates = []
