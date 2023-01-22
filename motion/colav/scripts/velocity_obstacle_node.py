@@ -43,6 +43,7 @@ class Velocity_Obstacle:
         """
         Returns true if the current velocity results in a collision. Uses a truncated VO collision cone
         """
+
         point = self.obstacle.pose.pose.position
         velocity_r = self.vessel.twist.twist.linear
         velocity_o = self.obstacle.twist.twist.linear
@@ -56,7 +57,7 @@ class Velocity_Obstacle:
 
 
 
-    #Elias sin tentative løsning, ja riktig tentativ    
+    #Needs correction, according to boating rules   
 
     def choose_velocity(self):
 

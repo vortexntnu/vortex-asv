@@ -4,6 +4,9 @@ from velocity_obstacle_node import Velocity_Obstacle
 import rospy
 from nav_msgs.msg import Odometry
 from std_srvs import Trigger,TriggerResponse
+from vortex_msgs.msg import GuidanceData
+
+
 
 class VO_controller_node:
 
@@ -15,7 +18,7 @@ class VO_controller_node:
     
 
     def __init__(self):
-        rospy.init_node("colav")
+        rospy.init_node("colav",anonymous=True)
 
         self.vessel = Odometry()
         self.obstacle = Odometry()
@@ -31,7 +34,10 @@ class VO_controller_node:
         )  # 20hz
 
         # Service
-        self.colav_srv = rospy.Service('colav',Trigger,self.avoid_collision)
+        self.colav_srv = rospy.Service("colav",Trigger,self.avoid_collision)
+        
+        self.velocity_pub = rospy.Publisher("/guidance/los_data",GuidanceData,queue_size=1)
+    
 
 
 
@@ -40,7 +46,17 @@ class VO_controller_node:
         VO = Velocity_Obstacle(None,self.obstacle,self.vessel)
         while VO.check_if_collision():
             ref_velocity = VO.choose_velocity()
+            self.velocity_pub.publish()
+            data = GuidanceData()
+            ## Haven't figured out how to calculate heading based on desired velocity, and i dont plan on either >:^)
+            ##Ok ill figure it out
+            self.velocity_pub.publish(data)
             ###### Give ref_velocity to velocity controller ######
+        return TriggerResponse (
+            success = True,
+            message = "success!"
+        )
+        
         
 
     def vessel_callback(self,data):
