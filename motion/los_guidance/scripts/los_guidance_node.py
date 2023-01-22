@@ -38,7 +38,7 @@ from vortex_msgs.msg import GuidanceData
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Wrench, PoseStamped, Pose
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
-from std_srvs import SetBool, SetBoolResponse
+from std_srvs import SetBool
 
 # dynamic reconfigure
 from dynamic_reconfigure.server import Server

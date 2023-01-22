@@ -5,6 +5,7 @@ import rospy
 from nav_msgs.msg import Odometry
 from std_srvs import Trigger,TriggerResponse
 from vortex_msgs.msg import GuidanceData
+from tf.transformations import euler_from_quaternion
 
 
 
@@ -53,13 +54,21 @@ class VO_controller_node:
         """
 
 
-        VO = Velocity_Obstacle(None,self.obstacle,self.vessel)
+        VO = Velocity_Obstacle(None,self.obstacle,self.vessel) #Placeholder None
         while VO.check_if_collision():
-            ref_velocity = VO.choose_velocity()
-            self.velocity_pub.publish()
+            ref_speed, ref_heading = VO.choose_velocity()
             data = GuidanceData()
-            ## Haven't figured out how to calculate heading based on desired velocity, and i dont plan on either >:^)
-            ##Ok ill figure it out
+            data.psi_d = ref_heading
+            data.u_d = ref_speed
+            data.u = ref_speed
+            data.t = rospy.Time.now()
+            orientation_list = [
+                self.vessel.pose.pose.orientation.x,
+                self.vessel.pose.pose.orientation.y,
+                self.vessel.pose.pose.orientation.z,
+                self.vessel.pose.pose.orientation.w,
+            ]
+            data.psi = euler_from_quaternion(orientation_list)[2]
             self.velocity_pub.publish(data)
         return TriggerResponse (
             success = True,

@@ -73,6 +73,10 @@ class Velocity_Obstacle:
         desired heading is placed outside the truncated VO collison cone.
         The desired heading will be placed behind the obstacle, by setting it to
         a buffered version of the collision cone angle.
+        Returns:
+            Tuple containing:
+                abs_vel: The current speed of the UAV
+                new_angle: The desired heading of the UAV
 
         """
 
@@ -93,11 +97,11 @@ class Velocity_Obstacle:
         
         else:
             new_angle = self.right_angle - buffer_angle
-        abs_vel = math.sqrt((velocity_r.x)**2+(velocity_r.y)**2)
-        new_velocity = Vector3(math.cos(new_angle)*abs_vel + velocity_o.x  ,math.sin(new_angle)*abs_vel + velocity_o.y,0)
-        new_velocity.x = new_velocity.x/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
-        new_velocity.y = new_velocity.y/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
-        return new_velocity
+        #abs_vel = math.sqrt((velocity_r.x)**2+(velocity_r.y)**2)
+        #new_velocity = Vector3(math.cos(new_angle)*abs_vel + velocity_o.x  ,math.sin(new_angle)*abs_vel + velocity_o.y,0)
+        #new_velocity.x = new_velocity.x/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
+        #new_velocity.y = new_velocity.y/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
+        return abs_vel,new_angle
 
 
     def choose_left_cone(self):
