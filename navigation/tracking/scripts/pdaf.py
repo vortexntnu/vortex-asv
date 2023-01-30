@@ -174,6 +174,7 @@ class PDAF:
 
     def correct_P(self):
         print(" o predicted", self.o_pri)
+        print("S \n", self.S)
         print("o within gate: ", self.o_within_gate_arr)
         print("p match arr", self.p_match_arr)
 

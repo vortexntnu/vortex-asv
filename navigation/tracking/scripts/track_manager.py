@@ -112,8 +112,8 @@ class TRACK_MANAGER:
             print("\n ------------track still confirmed")
             print("state: ", self.main_track.pdaf.state_post)
 
-            self.main_track.pdaf.correction_step(o_arr)
             self.main_track.pdaf.prediction_step()
+            self.main_track.pdaf.correction_step(o_arr)
 
             if len(self.main_track.pdaf.o_within_gate_arr) == 0:
                 self.main_track.track_status = TRACK_STATUS.tentative_delete
@@ -125,8 +125,8 @@ class TRACK_MANAGER:
             print("state: ", self.main_track.pdaf.state_post)
             print("n: ", self.main_track.n, "m: ", self.main_track.m)
 
-            self.main_track.pdaf.correction_step(o_arr)
             self.main_track.pdaf.prediction_step()
+            self.main_track.pdaf.correction_step(o_arr)
 
             self.main_track.m += 1
             if len(self.main_track.pdaf.o_within_gate_arr) > 0:
@@ -166,11 +166,7 @@ class TRACK_MANAGER:
 
         for track in self.tentative_tracks:
             for i, o in enumerate(remaining_o):
-                # print(
-                #     "\n --- dist ---- \n",
-                #     o[0] - track.state_pri[0],
-                #     o[1] - track.state_pri[0],
-                # )
+
                 dist = np.sqrt(
                     (o[0] - track.pdaf.state_pri[0]) ** 2
                     + (o[1] - track.pdaf.state_pri[1]) ** 2
@@ -181,7 +177,6 @@ class TRACK_MANAGER:
                     + self.initial_measurement_covariance
                 ):
                     remaining_o.pop(i)
-                    # print(o, "deleted from o_arr")
 
         return remaining_o
 
@@ -217,18 +212,12 @@ class TRACK_MANAGER:
         n = 0
 
         for o in o_arr:
-            # print("\n --- dist ---- \n", o[0]-predicted_position[0], o[1]-predicted_position[1])
+
             dist = np.sqrt(
                 (o[0] - predicted_position[0]) ** 2
                 + (o[1] - predicted_position[1]) ** 2
             )
-            print(
-                "dist:",
-                dist,
-                "range:",
-                self.max_vel * self.main_track.pdaf.time_step
-                + self.initial_measurement_covariance,
-            )
+
             if (
                 dist
                 < self.max_vel * self.main_track.pdaf.time_step

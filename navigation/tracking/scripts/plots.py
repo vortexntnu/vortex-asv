@@ -11,131 +11,6 @@ from matplotlib.patches import Ellipse
 import numpy as np
 
 
-def plot_with_estimates(scenario, measurements, ground_truths, estimates):
-
-    end_time = time_from_step(scenario.k, scenario.config.dt)
-    min_alpha = 0.5
-
-    # Ground truths
-    for target in ground_truths:
-        track = target.track
-        x = track[:, 1]
-        y = track[:, 2]
-        # alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
-        alpha = None
-        plt.scatter(x, y, alpha=alpha)
-
-    # Measurements
-    for measurements_at_t in measurements:
-
-        # opacity based on time
-        for measurement in measurements_at_t:
-            # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-            color = "r" if measurement.is_clutter else "k"
-            plt.scatter(
-                measurement.pos[0],
-                measurement.pos[1],
-                marker="x",
-                color=color,
-                # alpha=alpha,
-            )
-
-    for estimates_at_t in estimates:
-        # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-        color = "b"
-        plt.scatter(
-            estimates_at_t[0],
-            estimates_at_t[1],
-            marker="+",
-            color=color,
-            # alpha=alpha,
-        )
-
-    plt.xlabel("x [m]")
-    plt.ylabel("y [m]")
-
-    plt.gca().set_aspect("equal")
-    plt.grid()
-    plt.show()
-
-
-def plot_tentative_confirm_del(
-    scenario,
-    measurements,
-    ground_truths,
-    tentative_estimates,
-    conf_estimates,
-    tentative_del_estimates,
-):
-
-    end_time = time_from_step(scenario.k, scenario.config.dt)
-    min_alpha = 0.5
-
-    # Ground truths
-    for target in ground_truths:
-        track = target.track
-        x = track[:, 1]
-        y = track[:, 2]
-        # alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
-        alpha = None
-        plt.scatter(x, y, alpha=alpha)
-
-    # Measurements
-    for measurements_at_t in measurements:
-
-        # opacity based on time
-        for measurement in measurements_at_t:
-            alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-            color = "b" if measurement.is_clutter else "k"
-            plt.scatter(
-                measurement.pos[0],
-                measurement.pos[1],
-                marker="x",
-                color=color,
-                alpha=alpha,
-            )
-
-    for tentative_estimates_at_t in tentative_estimates:
-        for tentative_estimates in tentative_estimates_at_t:
-            # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-            color = "y"
-            plt.scatter(
-                tentative_estimates[0],
-                tentative_estimates[1],
-                marker="+",
-                color=color,
-                # alpha=alpha,
-            )
-
-    for estimates_at_t in conf_estimates:
-        # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-        color = "g"
-        plt.scatter(
-            estimates_at_t[0],
-            estimates_at_t[1],
-            marker="+",
-            color=color,
-            # alpha=alpha,
-        )
-
-    for del_estimates_at_t in tentative_del_estimates:
-        # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
-        color = "r"
-        plt.scatter(
-            del_estimates_at_t[0],
-            del_estimates_at_t[1],
-            marker="+",
-            color=color,
-            # alpha=alpha,
-        )
-
-    plt.xlabel("x [m]")
-    plt.ylabel("y [m]")
-
-    plt.gca().set_aspect("equal")
-    plt.grid()
-    plt.show()
-
 
 def plot_interactive(
     scenario,
@@ -236,7 +111,7 @@ def plot_interactive(
     plt.ioff()
     plt.show()
 
-def plot_velocity(
+def plot_interactive_velocity(
     scenario,
     measurements,
     ground_truths,
@@ -265,7 +140,6 @@ def plot_velocity(
     for target in ground_truths:
         track = target.track
 
-        print("target.track", target.track)
         x = track[:, 1]
         y = track[:, 2]
         # alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
@@ -287,11 +161,9 @@ def plot_velocity(
     for target in ground_truths:
         track = target.track
 
-        print("target.track", target.track)
         x = track[:, 3]
         y = track[:, 4]
         alpha = 1 - np.vectorize(max)(min_alpha, 1 - track[:, 5] / end_time)
-        alpha = None
         plt.scatter(x, y, alpha=alpha)
 
     # Measurements
@@ -334,8 +206,6 @@ def plot_velocity(
             estimates_at_t = conf_estimates[k_conf]
             color = "g"
 
-            print(estimates_at_t)
-
             plt.subplot(1,2,1)
             plt.scatter(
                 estimates_at_t[0],
@@ -349,7 +219,6 @@ def plot_velocity(
             plt.scatter(
                 estimates_at_t[2],
                 estimates_at_t[3],
-                marker="o",
                 color=color,
                 # alpha=alpha,
             )
@@ -381,35 +250,59 @@ def plot_velocity(
         if wait_for_btn_press:
             plt.waitforbuttonpress()
         else:
-            plt.pause(0.01)
-
-
+            plt.pause(0.001)
 
 
     plt.ioff()
     plt.show()
 
+# def plot_vel(    
+#     ground_truths,
+#     conf_estimates,
+#     estimate_status,
+# ):
 
-# def plot_pos_and_vel(estimates):
-#     x = []
-#     y = []
-#     u = []
-#     v = []
-#     for i in range(len(estimates)):
-#         x.append(estimates[i][0])
-#         y.append(estimates[i][1])
-#         u.append(estimates[i][2])
-#         v.append(estimates[i][3])
+#     #----------init pos plot
+#     plt.subplot(1,2,1)
+#     plt.xlabel("t")
+#     plt.ylabel("x' [m/s]")
 
-#     fig, ax = plt.subplots(figsize =(14, 8))
-#     ax.quiver(x, y, u, v)
+#     plt.subplot(1,2,2)
+#     plt.xlabel("t")
+#     plt.ylabel("y' [m/s]")
 
-#     # ax.xaxis.set_ticks([])
-#     # ax.yaxis.set_ticks([])
-#     # ax.axis([-0.3, 2.3, -0.3, 2.3])
-#     # ax.set_aspect('equal')
+#     # Ground truths
+#     x_dot_gt = []
+#     y_dot_gt = []
+#     for target in ground_truths:
+#         track = target.track
+#         x_dot_gt.append(track[:, 3])
+#         y_dot_gt.append(track[:, 4])
 
-#     ax.set_xlim(-100, 100)
-#     ax.set_ylim(-100, 100)
+#     #estimates
+#     x_dot_est = []
+#     y_dot_est = []
+#     i_conf = 0
+#     for i in range(len(ground_truths)):
+#         if estimate_status[i] == TRACK_STATUS.confirmed:
+#             print(conf_estimates[i_conf][2])
+#             x_dot_est.append(conf_estimates[i_conf][2])
+#             y_dot_est.append(conf_estimates[i_conf][3])
+#             i_conf +=1
+#         else:
+#             x_dot_est.append(0)
+#             y_dot_est.append(0)
+
+#     t = np.linspace(0, len(ground_truths))
+
+#     plt.subplot(1,2,1)
+#     plt.plot(t, x_dot_est)
+#     plt.plot(t, x_dot_gt)
+
+#     plt.subplot(1,2,2)
+#     plt.plot(t, y_dot_est)
+#     plt.plot(t, y_dot_gt)
 
 #     plt.show()
+
+
