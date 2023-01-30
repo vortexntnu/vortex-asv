@@ -9,13 +9,12 @@ Slides from PSU are nice for vizualization. https://www.cse.psu.edu/~rtc12/CSE59
 Sub tasks: 
 
     Use a kalam gain so that the filter is numerically stable. 
+    Varying time step. 
 
     TEST
         - Visualize position estimates with clutter.
         - Visualize velocity estimates with vectors. 
         - Visualize validation gate. 
-        - Does the frequency of "zero detections within gate" correspond with p of detection? 
-
         - Visualize obs within gate.
 
     Observations: 
@@ -94,7 +93,6 @@ class PDAF:
         self.compute_S()
 
         self.filter_observations_outside_gate(o)
-        print("obs within gate: ", self.o_within_gate_arr)
 
         if len(self.o_within_gate_arr) == 0:
             self.state_post = self.state_pri
@@ -103,9 +101,6 @@ class PDAF:
         else:
             self.compute_probability_of_matching_observations()
             self.compute_residual_vector()
-
-            print("\n ----------- p arr -------\n", self.p_match_arr)
-            print("\n ----------- residual vector -------\n", self.residual_vector)
 
             self.correct_state_vector()
             self.correct_P()
@@ -121,10 +116,6 @@ class PDAF:
                 within_gate.append(o_i_arr)
 
         self.o_within_gate_arr = np.array(within_gate)
-
-        if len(self.o_within_gate_arr) > 1:
-            print("OBS: multiple obs within gate.")
-            print("S", self.S)
 
     def compute_mah_dist(self, o):
         "Compute mahaloanobis distance between observation and predicted observation."
@@ -151,7 +142,7 @@ class PDAF:
             mah_distance = self.compute_mah_dist(o_i)
             if (
                 mah_distance <= self.minimal_mahalanobis_distance
-            ):  # In order to avoid infinte high weights. Choose an approriate threshold.
+            ):  # In order to avoid infinte high weights. 
                 score[i] = (
                     1 / mah_distance
                 )  # (self.minimal_mahalanobis_distance*self.score_scalar)
@@ -163,54 +154,41 @@ class PDAF:
             self.p_match_arr[i + 1] = (score[i] / score_sum) * (1 - self.p_no_match)
 
     def compute_residual_vector(self):
-        # self.residual_vector[0] = 0  # x
-        # self.residual_vector[1] = 0  # y
-
-        # for i in range(len(self.o_within_gate_arr)):
-        #     self.residual_vector[0] += self.p_match_arr[i + 1] * (
-        #         self.o_within_gate_arr[i][0] - self.state_pri[0]
-        #     )
-        #     self.residual_vector[1] += self.p_match_arr[i + 1] * (
-        #         self.o_within_gate_arr[i][1] - self.state_pri[1]
-        #     )
-
         self.residual_vector = self.residual_vector * 0
         for i in range(len(self.o_within_gate_arr)):
             self.residual_vector += self.p_match_arr[i + 1] * (
-                self.o_within_gate_arr[i] - self.C @ self.state_pri
+                self.o_within_gate_arr[i] - self.o_pri
             )
 
     def compute_S(self):
         C_P = self.C @ self.P_pri
         self.S = C_P @ self.C.T + self.R
 
-        print("\n --- S ---\n")
-        print(self.S)
-
     def compute_L(self):
         P_CT = self.P_pri @ self.C.T
         C_P_CT = self.C @ P_CT
         self.L = P_CT @ np.linalg.inv(C_P_CT + self.R)
 
-        print("\n --- L ---\n")
-        print(self.L)
-
     def correct_state_vector(self):
         self.state_post = self.state_pri + self.L @ self.residual_vector
 
     def correct_P(self):
-        quadratic_form_weighted_residual_vector = np.ndarray((2, 2), dtype=float)
+        print(" o predicted", self.o_pri)
+        print("o within gate: ", self.o_within_gate_arr)
+        print("p match arr", self.p_match_arr)
+
+        quadratic_form_weighted_residual_vector = np.zeros((2,2))
         for i, o_i in enumerate(self.o_within_gate_arr):
-            conditional_innovations = o_i - self.C @ self.state_pri
+            conditional_innovations = o_i - self.o_pri
 
             quadratic_form_weighted_residual_vector += (
                 self.p_match_arr[i + 1]
-                * conditional_innovations.reshape(2, 1)
-                @ conditional_innovations.reshape(2, 1).T
+                * conditional_innovations
+                @ conditional_innovations.T
             )
 
         quadratic_form_residual_vector = (
-            self.residual_vector.reshape(2, 1) @ self.residual_vector.reshape(2, 1).T
+            self.residual_vector@ self.residual_vector.T
         )
         diff = quadratic_form_weighted_residual_vector - quadratic_form_residual_vector
 
@@ -227,18 +205,19 @@ class PDAF:
             self.P_pri - (1 - self.p_no_match) * L_S_LT + spread_of_innovations
         )  # given by (7.25) Brekke
 
+        print("\n -------- spread of innovations --------------- \n", spread_of_innovations)
         print("\n -------- P post --------------- \n", self.P_post)
 
     def create_observations_for_one_timestep(self, x, y):
         "Only used for testing. Not part of the tracker algorithm."
 
-        n_obs = np.random.randint(0, 10)
+        n_obs = 10#np.random.randint(0, 10)
 
         obs = np.ndarray((n_obs, 2), dtype=float)
         # add obs that are scaterd far apart
         for i in range(n_obs):
-            obs[i, 0] = x + np.random.randn(1) * 100
-            obs[i, 1] = y + np.random.randn(1) * 100
+            obs[i, 0] = x + np.random.randn(1) * 1
+            obs[i, 1] = y + np.random.randn(1) * 1
 
         # add obs that corresponds to the acctual track (1-p_no_match)*100 prosent of the time.
         random_int = np.random.randint(0, 100)

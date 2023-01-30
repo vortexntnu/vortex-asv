@@ -132,12 +132,7 @@ def test_plot_interactive():
 
     manager = TRACK_MANAGER(config_loaded)
 
-    manager.N = 3
-    manager.M = 8
-
     scenario, measurements, ground_truths = data_generation()
-
-    manager.max_vel = 4
 
     tentative_estimates = []
     conf_estimates = []
@@ -158,20 +153,20 @@ def test_plot_interactive():
         if manager.main_track.track_status == TRACK_STATUS.tentative_confirm:
             last_addition_to_tentative_tracks = []
             for track in manager.tentative_tracks:
-                last_addition_to_tentative_tracks.append(track.pdaf.state_post[:2])
+                last_addition_to_tentative_tracks.append(track.pdaf.state_post)
             tentative_estimates.append(last_addition_to_tentative_tracks)
 
         if manager.main_track.track_status == TRACK_STATUS.confirmed:
-            conf_estimates.append(manager.main_track.pdaf.state_post[:2])
+            conf_estimates.append(manager.main_track.pdaf.state_post)
 
         if manager.main_track.track_status == TRACK_STATUS.tentative_delete:
-            tentative_del_estimates.append(manager.main_track.pdaf.state_post[:2])
+            tentative_del_estimates.append(manager.main_track.pdaf.state_post)
 
         estimate_status.append(manager.main_track.track_status)
 
     # print(estimate_status)
 
-    plots.plot_interactive(
+    plots.plot_velocity(
         scenario,
         measurements,
         ground_truths,
@@ -183,3 +178,7 @@ def test_plot_interactive():
     )
 
     assert True
+
+
+
+

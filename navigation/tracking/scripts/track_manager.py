@@ -7,14 +7,13 @@ from pdaf import PDAF
 
 """
 
-Track manager:
+Track manager - Manage single object tracking based on M/N method. 
 
 Implementation based on section 7.4.3 in chapter 7 in "Fundemental in Sensor Fusion" by Brekke, 2021 edition.
 
-Manage single object tracking based on M/N method. 
 Subtasks: 
 
-    Read NIS NEES 
+    Tuning - Read up on NIS and NEES 
     How should velocity and position be initialized? 
     How to take into account noise when defining validation gate max size? 
     Is there a way to model velocity constaints? 
@@ -31,8 +30,8 @@ Subtasks:
 
         - Are traks deleted when tracks disaperas from surveilance region? 
         - Visualize tentative trakcs, confirmed trakcs, and tentative deletion tracks.  
-        - How low can the detection probability be, and the track is still confirmed? 
-        - How high can false detection probability be before false tracks are confirmed? 
+
+        - Object moving staight towards us, and towards us from the side. 
 
         -Are estimates within a resonable tollerance from gt when there is resonable
             measurment noise

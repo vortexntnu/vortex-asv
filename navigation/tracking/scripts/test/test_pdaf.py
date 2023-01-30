@@ -268,25 +268,26 @@ def test_correct_P():
 
     pdaf = PDAF(config_loaded)
 
-    n_obs = 3
     x = 4
     y = 0.5
 
-    observations = np.ndarray((n_obs, 2), dtype=float)
+    pdaf.state_post[0] = x
+    pdaf.state_post[1] = y
 
-    for i in range(n_obs):
-        observations[i, 0] = x
-        observations[i, 1] = y
+    for i in range(20):
+        observations = pdaf.create_observations_for_one_timestep(x,y)
 
-    pdaf.compute_L()
-    pdaf.compute_S()
+        pdaf.prediction_step()
 
-    pdaf.filter_observations_outside_gate(observations)
-    pdaf.compute_probability_of_matching_observations()
-    pdaf.compute_residual_vector()
-    pdaf.correct_state_vector()
+        pdaf.compute_L()
+        pdaf.compute_S()
 
-    pdaf.correct_P()
+        pdaf.filter_observations_outside_gate(observations)
+        pdaf.compute_probability_of_matching_observations()
+        pdaf.compute_residual_vector()
+        pdaf.correct_state_vector()
+
+        pdaf.correct_P()
 
 
 # def test_pdaf_constant_vel_data():
