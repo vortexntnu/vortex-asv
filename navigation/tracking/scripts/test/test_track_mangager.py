@@ -74,15 +74,17 @@ def test_plot_interactive():
     tentative_del_estimates = []
     estimate_status = []
 
-    for o_time_k in measurements:
+    time_step = 0.1
+
+    for i in range(len(measurements)):
 
         o_list = []
-        for o in o_time_k:
+        for o in measurements[i]:
             o_list.append(o.pos)
         o_arr = np.array(o_list)
 
         # update
-        manager.cb(o_arr)
+        manager.cb(o_arr, time_step)
 
         # add updates to lists that will be plottee
         if manager.main_track.track_status == TRACK_STATUS.tentative_confirm:

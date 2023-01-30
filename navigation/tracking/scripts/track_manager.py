@@ -9,29 +9,16 @@ from pdaf import PDAF
 
 Track manager - Manage single object tracking based on M/N method. 
 
-Implementation based on section 7.4.3 in chapter 7 in "Fundemental in Sensor Fusion" by Brekke, 2021 edition.
+Implementation based on section 7.4.3 in chapter 7 in "Fundementals in Sensor Fusion" by Brekke, 2021 edition.
 
 Subtasks: 
 
     Tuning - Read up on NIS and NEES 
     How should velocity and position be initialized? 
-    How to take into account noise when defining validation gate max size? 
-    Is there a way to model velocity constaints? 
-
-    P: Seems like track jumps far away from previous estimates, even though it had status "confirmed".
-        Seems like this is due to estimates jumping a lot in one step. Look an evolution of P and L.
-    P: Sometimes L and P are Nan. 
-
-    observations: 
-        Estimate is largely affected when there is more then one obs inside validation gate (when status is confirmed).
-        Seems like standard validation gate is larger then max size validation gate :) 
 
     TEST
 
-        - Are traks deleted when tracks disaperas from surveilance region? 
-        - Visualize tentative trakcs, confirmed trakcs, and tentative deletion tracks.  
-
-        - Object moving staight towards us, and towards us from the side. 
+        - Object moving staight towards us, and towards us from the side with constant velocity, or standing still.
 
         -Are estimates within a resonable tollerance from gt when there is resonable
             measurment noise
@@ -86,7 +73,11 @@ class TRACK_MANAGER:
             "initial_update_error_covariance"
         ]
 
-    def cb(self, o_arr):
+        self.time_step = 0
+
+    def cb(self, o_arr, time_step):
+        self.time_step = time_step
+
         if self.main_track.track_status == TRACK_STATUS.tentative_confirm:
             print(
                 "\n ------------ tentative confirm with ",
@@ -112,8 +103,9 @@ class TRACK_MANAGER:
             print("\n ------------track still confirmed")
             print("state: ", self.main_track.pdaf.state_post)
 
-            self.main_track.pdaf.prediction_step()
-            self.main_track.pdaf.correction_step(o_arr)
+            # self.main_track.pdaf.prediction_step()
+            # self.main_track.pdaf.correction_step(o_arr)
+            self.main_track.pdaf.cb(o_arr, self.time_step)
 
             if len(self.main_track.pdaf.o_within_gate_arr) == 0:
                 self.main_track.track_status = TRACK_STATUS.tentative_delete
@@ -125,8 +117,7 @@ class TRACK_MANAGER:
             print("state: ", self.main_track.pdaf.state_post)
             print("n: ", self.main_track.n, "m: ", self.main_track.m)
 
-            self.main_track.pdaf.prediction_step()
-            self.main_track.pdaf.correction_step(o_arr)
+            self.main_track.pdaf.cb(o_arr, self.time_step)
 
             self.main_track.m += 1
             if len(self.main_track.pdaf.o_within_gate_arr) > 0:
@@ -185,8 +176,9 @@ class TRACK_MANAGER:
 
             track.n, track.m = self.update_confirmation_count(track, o_arr)
 
-            track.pdaf.prediction_step()
-            track.pdaf.correction_step(o_arr)
+            # track.pdaf.prediction_step()
+            # track.pdaf.correction_step(o_arr)
+            track.pdaf.cb(o_arr, self.time_step)
 
             if track.n == self.N:
                 print("track confirmed")

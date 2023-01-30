@@ -7,19 +7,13 @@ Implementation based on chapter 7 in "Fundemental in Sensor Fusion" by Brekke, 2
 Slides from PSU are nice for vizualization. https://www.cse.psu.edu/~rtc12/CSE598C/datassocPart2.pdf 
 
 Sub tasks: 
-
-    Use a kalam gain so that the filter is numerically stable. 
+ 
     Varying time step. 
 
     TEST
-        - Visualize position estimates with clutter.
-        - Visualize velocity estimates with vectors. 
         - Visualize validation gate. 
         - Visualize obs within gate.
 
-    Observations: 
-        P pri and post are not symmetrical.
-        P post grows to values over 1000.
 """
 
 
@@ -79,6 +73,11 @@ class PDAF:
         self.o_within_gate_arr = np.ndarray(
             (2,), dtype=float
         )  # Lengt of this array will vary based on how many observations there are.
+
+    def cb(self, o_arr, time_step):
+        self.update_model(time_step)
+        self.prediction_step()
+        self.correction_step(o_arr); 
 
     def prediction_step(self):
         self.state_pri = self.A @ self.state_post
@@ -152,6 +151,17 @@ class PDAF:
         score_sum = np.sum(score)
         for i in range(len(self.o_within_gate_arr)):
             self.p_match_arr[i + 1] = (score[i] / score_sum) * (1 - self.p_no_match)
+
+    def update_model(self, time_step):
+        self.time_step = time_step
+        self.A = np.array(
+            [
+                [1.0, 0.0, self.time_step, 0],
+                [0, 1.0, 0, self.time_step],
+                [0, 0, 1.0, 0],  # assuming constnat velocity
+                [0, 0, 0, 1.0],  # assuming constnat velocity
+            ]
+        )
 
     def compute_residual_vector(self):
         self.residual_vector = self.residual_vector * 0
