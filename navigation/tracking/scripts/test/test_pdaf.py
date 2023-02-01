@@ -275,7 +275,7 @@ def test_correct_P():
     pdaf.state_post[1] = y
 
     for i in range(20):
-        observations = pdaf.create_observations_for_one_timestep(x,y)
+        observations = pdaf.create_observations_for_one_timestep(x, y)
 
         pdaf.prediction_step()
 

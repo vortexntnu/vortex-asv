@@ -11,7 +11,6 @@ from matplotlib.patches import Ellipse
 import numpy as np
 
 
-
 def plot_interactive(
     scenario,
     measurements,
@@ -111,6 +110,7 @@ def plot_interactive(
     plt.ioff()
     plt.show()
 
+
 def plot_interactive_velocity(
     scenario,
     measurements,
@@ -122,8 +122,8 @@ def plot_interactive_velocity(
     wait_for_btn_press,
 ):
 
-    #----------init pos plot
-    plt.subplot(1,2,1)
+    # ----------init pos plot
+    plt.subplot(1, 2, 1)
     plt.ion()
 
     end_time = time_from_step(scenario.k, scenario.config.dt)
@@ -146,8 +146,8 @@ def plot_interactive_velocity(
         alpha = None
         plt.scatter(x, y, alpha=alpha)
 
-    #-----------init vel plot
-    plt.subplot(1,2,2)
+    # -----------init vel plot
+    plt.subplot(1, 2, 2)
     plt.ion()
 
     plt.xlabel("x'[m]")
@@ -172,13 +172,12 @@ def plot_interactive_velocity(
     k_del = 0
     for k in range(len(measurements)):
 
-        
         # opacity based on time
         for measurement in measurements[k]:
             alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
             color = "r" if measurement.is_clutter else "k"
-            
-            plt.subplot(1,2,1)
+
+            plt.subplot(1, 2, 1)
             plt.scatter(
                 measurement.pos[0],
                 measurement.pos[1],
@@ -192,7 +191,7 @@ def plot_interactive_velocity(
                 # alpha = 1 - max(min_alpha, 1 - measurement.t / end_time)
                 color = "y"
 
-                plt.subplot(1,2,1)
+                plt.subplot(1, 2, 1)
                 plt.scatter(
                     tentative_estimate[0],
                     tentative_estimate[1],
@@ -206,7 +205,7 @@ def plot_interactive_velocity(
             estimates_at_t = conf_estimates[k_conf]
             color = "g"
 
-            plt.subplot(1,2,1)
+            plt.subplot(1, 2, 1)
             plt.scatter(
                 estimates_at_t[0],
                 estimates_at_t[1],
@@ -215,7 +214,7 @@ def plot_interactive_velocity(
                 # alpha=alpha,
             )
 
-            plt.subplot(1,2,2)
+            plt.subplot(1, 2, 2)
             plt.scatter(
                 estimates_at_t[2],
                 estimates_at_t[3],
@@ -228,7 +227,7 @@ def plot_interactive_velocity(
             del_estimates_at_t = tentative_del_estimates[k_del]
             color = "r"
 
-            plt.subplot(1,2,1)
+            plt.subplot(1, 2, 1)
             plt.scatter(
                 del_estimates_at_t[0],
                 del_estimates_at_t[1],
@@ -238,25 +237,25 @@ def plot_interactive_velocity(
             )
             k_del += 1
 
-        plt.subplot(1,2,1)
+        plt.subplot(1, 2, 1)
         plt.draw()
         if wait_for_btn_press:
             plt.waitforbuttonpress()
         else:
             plt.pause(0.01)
 
-        plt.subplot(1,2,2)
+        plt.subplot(1, 2, 2)
         plt.draw()
         if wait_for_btn_press:
             plt.waitforbuttonpress()
         else:
             plt.pause(0.001)
 
-
     plt.ioff()
     plt.show()
 
-# def plot_vel(    
+
+# def plot_vel(
 #     ground_truths,
 #     conf_estimates,
 #     estimate_status,
@@ -304,5 +303,3 @@ def plot_interactive_velocity(
 #     plt.plot(t, y_dot_gt)
 
 #     plt.show()
-
-

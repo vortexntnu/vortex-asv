@@ -14,11 +14,8 @@ Implementation based on section 7.4.3 in chapter 7 in "Fundementals in Sensor Fu
 Subtasks: 
 
     Tuning - Read up on NIS and NEES 
-    How should velocity and position be initialized? 
 
     TEST
-
-        - Object moving staight towards us, and towards us from the side with constant velocity, or standing still.
 
         -Are estimates within a resonable tollerance from gt when there is resonable
             measurment noise
@@ -31,9 +28,9 @@ Subtasks:
             M
             time_step
 
-Integration:
-    Integrate with ros
-    Publish nav_msgs/Pose
+    Integration:
+        Integrate with ros
+        Publish nav_msgs/Pose
 """
 
 
@@ -59,6 +56,7 @@ class TRACK_MANAGER:
         self.config = config
 
         self.prev_observations: List[np.ndarray] = []
+        self.observations_not_incorporated_in_track: List[np.ndarray] = []
         self.tentative_tracks: List[PDAF_2MN] = []
 
         self.N = config["manager"]["N"]
@@ -69,9 +67,6 @@ class TRACK_MANAGER:
         self.initial_measurement_covariance = config["manager"][
             "initial_measurement_covariance"
         ]
-        self.initial_update_error_covariance = config["manager"][
-            "initial_update_error_covariance"
-        ]
 
         self.time_step = 0
 
@@ -79,32 +74,30 @@ class TRACK_MANAGER:
         self.time_step = time_step
 
         if self.main_track.track_status == TRACK_STATUS.tentative_confirm:
-            print(
-                "\n ------------ tentative confirm with ",
-                len(self.tentative_tracks),
-                " tracks.",
-            )
 
-            for track in self.tentative_tracks:
-                print("state: ", track.pdaf.state_pri[:2])
-                print("n: ", track.n, "m: ", track.m)
-                # print("S: ", track.S)
+            # print(
+            #     "\n ------------ tentative confirm with ",
+            #     len(self.tentative_tracks),
+            #     " tracks.",
+            # )
 
-            print("update status on tentative tracks")
+            # for track in self.tentative_tracks:
+            #     print("state: ", track.pdaf.state_pri[:2])
+            #     print("n: ", track.n, "m: ", track.m)
+            #     # print("S: ", track.S)
+
+            # print("update status on tentative tracks")
+
             self.update_status_on_tentative_tracks(o_arr)
-            remaining_o_arr = self.remove_o_incorporated_in_tracks(
-                o_arr
-            )  # make this prettier/better
-            print("add tentative tracks")
-            self.add_tentative_tracks(remaining_o_arr)
-            self.prev_observations = remaining_o_arr
+            self.remove_o_incorporated_in_tracks(o_arr)
+            self.add_tentative_tracks()
+            self.prev_observations = self.observations_not_incorporated_in_track
 
         elif self.main_track.track_status == TRACK_STATUS.confirmed:
-            print("\n ------------track still confirmed")
-            print("state: ", self.main_track.pdaf.state_post)
 
-            # self.main_track.pdaf.prediction_step()
-            # self.main_track.pdaf.correction_step(o_arr)
+            # print("\n ------------track still confirmed")
+            # print("state: ", self.main_track.pdaf.state_post)
+
             self.main_track.pdaf.cb(o_arr, self.time_step)
 
             if len(self.main_track.pdaf.o_within_gate_arr) == 0:
@@ -113,9 +106,10 @@ class TRACK_MANAGER:
                 self.main_track.n = 0
 
         elif self.main_track.track_status == TRACK_STATUS.tentative_delete:
-            print("\n ------------tentative delete")
-            print("state: ", self.main_track.pdaf.state_post)
-            print("n: ", self.main_track.n, "m: ", self.main_track.m)
+
+            # print("\n ------------tentative delete")
+            # print("state: ", self.main_track.pdaf.state_post)
+            # print("n: ", self.main_track.n, "m: ", self.main_track.m)
 
             self.main_track.pdaf.cb(o_arr, self.time_step)
 
@@ -128,29 +122,20 @@ class TRACK_MANAGER:
 
             elif self.main_track.m == self.M:
                 self.main_track.track_status = TRACK_STATUS.tentative_confirm
-                print("track deleted")
 
-    def add_tentative_tracks(self, o_arr):
-        # can this be written in a more efficient way?
-        for prev_o in self.prev_observations:
-            n = self.n_observations_inside_max_size_gate(prev_o, o_arr)
-            if n > 0:
-                print("track added")
-                tentative_track = PDAF_2MN(self.config)
+    def update_status_on_tentative_tracks(self, o_arr):
+        for track in self.tentative_tracks:
 
-                tentative_track.pdaf.state_post[0] = prev_o[
-                    0
-                ]  # x #can improve. this point is one timestep delayed.
-                tentative_track.pdaf.state_post[1] = prev_o[1]  # y
-                tentative_track.pdaf.state_post[2] = 0  # x'
-                tentative_track.pdaf.state_post[3] = 0  # y'
+            track.n, track.m = self.update_confirmation_count(track, o_arr)
 
-                for i in range(len(tentative_track.pdaf.state_pri)):
-                    tentative_track.pdaf.P_pri[i][
-                        i
-                    ] = self.initial_update_error_covariance
+            track.pdaf.cb(o_arr, self.time_step)
 
-                self.tentative_tracks.append(tentative_track)
+            if track.n == self.N:
+                self.main_track = track
+                self.main_track.track_status = TRACK_STATUS.confirmed
+                self.tentative_tracks = []
+            elif track.m == self.M:
+                self.tentative_tracks.remove(track)
 
     def remove_o_incorporated_in_tracks(self, o_arr):
         remaining_o = o_arr.tolist()
@@ -169,25 +154,23 @@ class TRACK_MANAGER:
                 ):
                     remaining_o.pop(i)
 
-        return remaining_o
+        self.observations_not_incorporated_in_track = remaining_o
 
-    def update_status_on_tentative_tracks(self, o_arr):
-        for track in self.tentative_tracks:
+    def add_tentative_tracks(self):
+        for prev_o in self.prev_observations:
+            n = self.n_observations_inside_max_size_gate(
+                prev_o, self.observations_not_incorporated_in_track
+            )
+            if n > 0:
 
-            track.n, track.m = self.update_confirmation_count(track, o_arr)
+                tentative_track = PDAF_2MN(self.config)
 
-            # track.pdaf.prediction_step()
-            # track.pdaf.correction_step(o_arr)
-            track.pdaf.cb(o_arr, self.time_step)
+                tentative_track.pdaf.state_post[0] = prev_o[0]
+                tentative_track.pdaf.state_post[1] = prev_o[1]
+                tentative_track.pdaf.state_post[2] = 0
+                tentative_track.pdaf.state_post[3] = 0
 
-            if track.n == self.N:
-                print("track confirmed")
-                self.main_track = track
-                self.main_track.track_status = TRACK_STATUS.confirmed
-                self.tentative_tracks = []
-            elif track.m == self.M:
-                print("track deleted")
-                self.tentative_tracks.remove(track)
+                self.tentative_tracks.append(tentative_track)
 
     def update_confirmation_count(self, track: PDAF_2MN, o_arr):
         m = track.m + 1

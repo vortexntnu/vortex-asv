@@ -6,14 +6,6 @@ Single object tracking
 Implementation based on chapter 7 in "Fundemental in Sensor Fusion" by Brekke, 2021 edition. 
 Slides from PSU are nice for vizualization. https://www.cse.psu.edu/~rtc12/CSE598C/datassocPart2.pdf 
 
-Sub tasks: 
- 
-    Varying time step. 
-
-    TEST
-        - Visualize validation gate. 
-        - Visualize obs within gate.
-
 """
 
 
@@ -21,20 +13,24 @@ class PDAF:
     def __init__(self, config):
         # x = [x, y, x', y']
 
-        self.time_step = config["pdaf"][
-            "time_step"
-        ]  # obs obs might have to change. Must check how large deviation in time step are.
-        self.state_post = np.array(config["pdaf"]["state_post"]).reshape((4, 1))
-        self.P_post = np.array(config["pdaf"]["P_post"]).reshape((4, 4))
+        self.time_step = config["pdaf"]["time_step"]  # can vary for each time step
+        self.state_post = np.array(config["pdaf"]["state_post"]).reshape(
+            (4, 1)
+        )  # posterior state estiamte
+        self.P_post = np.array(config["pdaf"]["P_post"]).reshape(
+            (4, 4)
+        )  # posterior error covariance estimate
 
-        self.state_pri = self.state_post
-        self.P_pri = self.P_post
+        self.state_pri = self.state_post  # prior state estiamte
+        self.P_pri = self.P_post  # prior error covariance estimate
 
-        self.L = np.zeros((4, 2))
+        self.L = np.zeros((4, 2))  # kalam gain
 
-        self.C = np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]])
+        self.C = np.array(
+            [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]]
+        )  # C as in, y = C @ x
 
-        self.A = np.array(
+        self.A = np.array(  # A as in, x' = A @ x
             [
                 [1.0, 0.0, self.time_step, 0],
                 [0, 1.0, 0, self.time_step],
@@ -43,48 +39,41 @@ class PDAF:
             ]
         )
 
-        self.o_pri = np.zeros((2, 1))
+        self.o_pri = np.zeros((2, 1))  # predicted observation
 
-        self.Q = np.array(config["pdaf"]["Q"])
+        self.Q = np.array(config["pdaf"]["Q"])  # covariance of disturbance
 
-        self.R = np.array(config["pdaf"]["R"])
+        self.R = np.array(config["pdaf"]["R"])  # covariance of noise
 
-        self.S = np.zeros((2, 2))
+        self.S = np.zeros((2, 2))  # covariance of predicted measurment
 
         self.validation_gate_scaling_param = config["pdaf"][
             "validation_gate_scaling_param"
-        ]  # number of standard deviations we are willing to consider.
+        ]
 
         self.minimal_mahalanobis_distance = config["pdaf"][
             "minimal_mahalanobis_distance"
-        ]
-
-        self.score_scalar = config["pdaf"]["score_scalar"]
+        ]  # observations that are closer then this, will be set to min distance
 
         self.residual_vector = np.zeros((2, 1))
+
         self.p_no_match = config["pdaf"][
             "p_no_match"
-        ]  # probabiity that no observations matches the track
+        ]  # probabiity that no observations originates from the track
 
-        self.p_match_arr = np.ndarray(
-            (2,), dtype=float
-        )  # Lengt of this array will vary based on how many observations there are.
+        self.p_match_arr = None  # probability the respective observations orriginate from the track. p_math_arr[0] always equal to probability that no observation originates from the track.
 
-        self.o_within_gate_arr = np.ndarray(
-            (2,), dtype=float
-        )  # Lengt of this array will vary based on how many observations there are.
+        self.o_within_gate_arr = None
 
     def cb(self, o_arr, time_step):
         self.update_model(time_step)
         self.prediction_step()
-        self.correction_step(o_arr); 
+        self.correction_step(o_arr)
 
     def prediction_step(self):
         self.state_pri = self.A @ self.state_post
         self.P_pri = self.A @ self.P_post @ self.A.T + self.Q
         self.o_pri = self.C @ self.state_pri
-
-        print("\n -------- P pri --------------- \n", self.P_pri)
 
     def correction_step(self, o):
 
@@ -119,8 +108,7 @@ class PDAF:
     def compute_mah_dist(self, o):
         "Compute mahaloanobis distance between observation and predicted observation."
 
-        o_predicted = self.C @ self.state_pri
-        diff = o - o_predicted
+        diff = o - self.o_pri
         mah_dist = diff.T @ np.linalg.inv(self.S) @ diff
 
         return mah_dist
@@ -139,14 +127,10 @@ class PDAF:
         for i, o_i in enumerate(self.o_within_gate_arr):
 
             mah_distance = self.compute_mah_dist(o_i)
-            if (
-                mah_distance <= self.minimal_mahalanobis_distance
-            ):  # In order to avoid infinte high weights. 
-                score[i] = (
-                    1 / mah_distance
-                )  # (self.minimal_mahalanobis_distance*self.score_scalar)
+            if mah_distance <= self.minimal_mahalanobis_distance:
+                score[i] = 1 / self.minimal_mahalanobis_distance
             else:
-                score[i] = 1 / mah_distance  # (mah_distance*self.score_scalar)
+                score[i] = 1 / mah_distance
 
         score_sum = np.sum(score)
         for i in range(len(self.o_within_gate_arr)):
@@ -171,58 +155,41 @@ class PDAF:
             )
 
     def compute_S(self):
-        C_P = self.C @ self.P_pri
-        self.S = C_P @ self.C.T + self.R
+        self.S = self.C @ self.P_pri @ self.C.T + self.R
 
     def compute_L(self):
-        P_CT = self.P_pri @ self.C.T
-        C_P_CT = self.C @ P_CT
-        self.L = P_CT @ np.linalg.inv(C_P_CT + self.R)
+        C_P_CT = self.C @ self.P_pri @ self.C.T
+        self.L = self.P_pri @ self.C.T @ np.linalg.inv(C_P_CT + self.R)
 
     def correct_state_vector(self):
         self.state_post = self.state_pri + self.L @ self.residual_vector
 
     def correct_P(self):
-        print(" o predicted", self.o_pri)
-        print("S \n", self.S)
-        print("o within gate: ", self.o_within_gate_arr)
-        print("p match arr", self.p_match_arr)
-
-        quadratic_form_weighted_residual_vector = np.zeros((2,2))
+        # qf - quadratic form
+        qf_weighted_residual_vector = np.zeros((2, 2))
         for i, o_i in enumerate(self.o_within_gate_arr):
             conditional_innovations = o_i - self.o_pri
 
-            quadratic_form_weighted_residual_vector += (
+            qf_weighted_residual_vector += (
                 self.p_match_arr[i + 1]
                 * conditional_innovations
                 @ conditional_innovations.T
             )
 
-        quadratic_form_residual_vector = (
-            self.residual_vector@ self.residual_vector.T
-        )
-        diff = quadratic_form_weighted_residual_vector - quadratic_form_residual_vector
-
+        qf_residual_vector = self.residual_vector @ self.residual_vector.T
+        diff = qf_weighted_residual_vector - qf_residual_vector
         spread_of_innovations = self.L @ diff @ self.L.T  # given by (7.26) Brekke
 
         L_S_LT = self.L @ self.S @ self.L.T
-
-        # print("\n -------- P pri --------------- \n", self.P_pri)
-        # print("\n -------- L*S*L^T --------------- \n", L_S_LT)
-        # print("\n -------- P ~ --------------- \n", spread_of_innovations)
-        # print("\n -------- temp 2 --------------- \n", temp2)
 
         self.P_post = (
             self.P_pri - (1 - self.p_no_match) * L_S_LT + spread_of_innovations
         )  # given by (7.25) Brekke
 
-        print("\n -------- spread of innovations --------------- \n", spread_of_innovations)
-        print("\n -------- P post --------------- \n", self.P_post)
-
     def create_observations_for_one_timestep(self, x, y):
         "Only used for testing. Not part of the tracker algorithm."
 
-        n_obs = 10#np.random.randint(0, 10)
+        n_obs = 10  # np.random.randint(0, 10)
 
         obs = np.ndarray((n_obs, 2), dtype=float)
         # add obs that are scaterd far apart

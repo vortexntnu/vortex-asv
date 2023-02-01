@@ -54,7 +54,6 @@ def test_cb():
     print("final estimates: ", manager.main_track.pdaf.state_post)
 
 
-
 # @pytest.mark.plot
 def test_plot_interactive():
     with open(
@@ -101,7 +100,6 @@ def test_plot_interactive():
 
         estimate_status.append(manager.main_track.track_status)
 
-
     plots.plot_interactive_velocity(
         scenario,
         measurements,
@@ -113,14 +111,10 @@ def test_plot_interactive():
         wait_for_btn_press,
     )
 
-    # plots.plot_vel(    
+    # plots.plot_vel(
     # ground_truths,
     # conf_estimates,
     # estimate_status,
     # )
 
     assert True
-
-
-
-
