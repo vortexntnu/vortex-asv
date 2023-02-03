@@ -51,6 +51,8 @@ class VO_controller_node:
         and sending it to the AUV's velocity controller. This is implemented as a service that 
         will run as long a collision is possible.
 
+        Current implementation always puts the vessel behind the obstacle
+
         """
 
 

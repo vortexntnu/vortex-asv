@@ -9,13 +9,13 @@ from std_srvs import SetBool, SetBoolRequest,Trigger,TriggerRequest
 
 
 
-class Colav_task:
+class ColavTask:
     """
     
     Collision avoidance node for the collison avoidance Njord tasks.
     The colav is implemented as a simple state machine, that continuously switches between 
     LOS guidance and collision avoidance. The node listens to the position of an obstacle,
-    and switches mode if the obstacle come too close. Los guidance will then be paused, and
+    and switches mode if the obstacle comes too clos. Los guidance will then be paused, and
     collision avoidance is called through a service. The colav system will check for possible 
     collisions, and take evasive action. When the collision avoidance no longer detects 
     a possible collision, it will stop controlling the UAV. LOS then is turned on again. 
@@ -25,11 +25,9 @@ class Colav_task:
     def __init__(self):
 
         """
-        
         To start the task, an start_task_sub subscriber is implemented.
         Posting an odometry of the goal to the "goaltopic" topic, will
         cause the task to start.
-        
         """
         rospy.init_node("colav_fsm",anonymous=True)
         self.vessel = Odometry()
@@ -71,8 +69,6 @@ class Colav_task:
         self.obstacle = data
 
 
-    #could use som failsafing
-    #Needs a couple of good ol try catches
     def run_task(self,data):
 
         """
@@ -108,7 +104,7 @@ class Colav_task:
 
         pause_los = SetBoolRequest()
         colav_trigger = TriggerRequest()
-
+    #should make check VO cone here?
         while response is True:
             if self.vessel_in_danger_zone():
                 try:
@@ -145,7 +141,7 @@ class Colav_task:
 
 if __name__ == "__main__":
     try:
-        node = Colav_task()
+        node = ColavTask()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
