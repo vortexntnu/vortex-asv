@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-#This whole file is malplaced, as its correct position is yet to be determined
 import rospy
 from nav_msgs.msg import Odometry
 from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
