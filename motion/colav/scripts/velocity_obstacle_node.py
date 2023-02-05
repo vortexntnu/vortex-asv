@@ -4,7 +4,7 @@ from geometry_msgs.msg import Point,Vector3
 from nav_msgs.msg import Odometry
 import math
 
-class Velocity_Obstacle:
+class VelocityObstacle:
     """
     The Velocity Obstacle class
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     vessel = Odometry()
     vessel.pose.pose.position = Point(0,0,0)
     
-    VO = Velocity_Obstacle(1,obstacle,vessel)
+    VO = VelocityObstacle(1,obstacle,vessel)
     VO.set_cone_angles()
     print(VO.left_angle*180/math.pi)
     print(VO.right_angle*180/math.pi)
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     vessel.twist.twist.linear = Vector3(-1000,0,0)
 
     
-    VO = Velocity_Obstacle(1,obstacle,vessel)
+    VO = VelocityObstacle(1,obstacle,vessel)
     VO.set_cone_angles()
     print(VO.check_if_collision())
 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     vessel.pose.pose.position = Point(0,0,0)
     vessel.twist.twist.linear = Vector3(1,0,0)
     
-    VO = Velocity_Obstacle(1,obstacle,vessel)
+    VO = VelocityObstacle(1,obstacle,vessel)
     VO.set_cone_angles()
     print(VO.choose_velocity())
     #VO.vessel.twist.twist.linear = VO.choose_velocity()

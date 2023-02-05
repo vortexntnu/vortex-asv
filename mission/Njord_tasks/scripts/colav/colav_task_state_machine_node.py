@@ -5,7 +5,7 @@ import rospy
 from nav_msgs.msg import Odometry
 from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 from math import sqrt
-from std_srvs import SetBool, SetBoolRequest,Trigger,TriggerRequest
+from std_srvs.srv import SetBool, SetBoolRequest,Trigger,TriggerRequest
 
 
 
@@ -104,7 +104,7 @@ class ColavTask:
 
         pause_los = SetBoolRequest()
         colav_trigger = TriggerRequest()
-    #should make check VO cone here?
+    #should make check VO cone here
         while response is True:
             if self.vessel_in_danger_zone():
                 try:

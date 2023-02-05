@@ -1,15 +1,15 @@
 #!/usr/bin/python3
 
-from velocity_obstacle_node import Velocity_Obstacle
+from velocity_obstacle_node import VelocityObstacle
 import rospy
 from nav_msgs.msg import Odometry
-from std_srvs import Trigger,TriggerResponse
+from std_srvs.srv import Trigger,TriggerResponse
 from vortex_msgs.msg import GuidanceData
 from tf.transformations import euler_from_quaternion
 
 
 
-class VO_controller_node:
+class VOControllerNode:
 
     """
     The velocity object controller node.
@@ -56,7 +56,7 @@ class VO_controller_node:
         """
 
 
-        VO = Velocity_Obstacle(None,self.obstacle,self.vessel) #Placeholder None
+        VO = VelocityObstacle(None,self.obstacle,self.vessel) #Placeholder None
         while VO.check_if_collision():
             ref_speed, ref_heading = VO.choose_velocity()
             data = GuidanceData()
@@ -89,7 +89,7 @@ class VO_controller_node:
 
 if __name__ == "__main__":
     try:
-        node = VO_controller_node()
+        node = VOControllerNode()
 
         rospy.spin()
     except rospy.ROSInterruptException:
