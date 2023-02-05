@@ -94,3 +94,7 @@ joystick:
     roll: 35
     pitch: -30
     yaw: 20
+
+tasks:
+  joystick: True
+  collision_avoidance: False
