@@ -1,0 +1,13 @@
+
+<?xml version="1.0"?>
+<launch>
+
+    <rosparam command="load" file="$(find asv_setup)/config/robots/temp_config.yaml"/>
+
+    <group ns="task_manager">
+        <node name="client"         pkg ="task_manager"    type="task_manager_client_node.py"   output="screen"/>
+        <node name="server"         pkg ="task_manager"    type="task_manager_server_node.py"   output="screen"/>
+        
+    </group>
+
+</launch>
