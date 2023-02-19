@@ -42,7 +42,7 @@ class ColavTask:
         self.vessel_sub = rospy.Subscriber(
             "/pose_gt", Odometry, self.vessel_callback, queue_size=1
         )  # 20hz
-
+  
         self.obstacle_sub = rospy.Subscriber(
             "/obstacle_gt", Odometry, self.vessel_callback, queue_size=1
         )  # 20hz

@@ -4,6 +4,8 @@ from geometry_msgs.msg import Point,Vector3
 from nav_msgs.msg import Odometry
 import math
 
+import numpy as np
+
 class VelocityObstacle:
     """
     The Velocity Obstacle class
@@ -59,7 +61,6 @@ class VelocityObstacle:
         max_truncated_veloctiy = math.sqrt(point.x**2+point.y**2)/self.truncated_time - acceptance_radius
 
         return angle > self.right_angle and angle < self.left_angle and math.sqrt(velocity_r.x**2+velocity_r.y**2) > max_truncated_veloctiy
-
 
 
     #Needs correction, according to boating rules   
@@ -120,48 +121,128 @@ class VelocityObstacle:
 
         
 
+MAX_SPEED = 4.0  # maximum speed of the vessel
+MAX_ACCELERATION = 1.0  # maximum acceleration of the vessel
+MAX_TURN_RATE = 0.5  # maximum turning rate of the vessel
+VO_MARGIN = 0.1  # margin for the velocity obstacle
+
+class Vessel:
+    def __init__(self, x, y, vx, vy, radius):
+        self.x = x        
+        self.y = y        
+        self.vx = vx        
+        self.vy = vy        
+        self.radius = radius    
+    
+    def update(self, x, y, vx, vy):
+        self.x = x        
+        self.y = y        
+        self.vx = vx        
+        self.vy = vy
+
+def vo_collision_avoidance(ownship, intruders):
+    # Compute velocity obstacles for each intruder    
+    v_obs = []
+    for intruder in intruders:
+        r = ownship.radius + intruder.radius + VO_MARGIN        
+        u = intruder.vx - ownship.vx        
+        v = intruder.vy - ownship.vy        
+        u1 = u + r * np.sign(u) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
+        u2 = u - r * np.sign(u) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
+        v1 = v + r * np.sign(v) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
+        v2 = v - r * np.sign(v) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
+        v_obs.append((u1, u2, v1, v2))
+
+    # Compute the reachable set of velocities for the ownship    
+    vx_reach = np.arange(-MAX_SPEED, MAX_SPEED + 0.1, 0.1)
+    vy_reach = np.arange(-MAX_SPEED, MAX_SPEED + 0.1, 0.1)
+    Vx, Vy = np.meshgrid(vx_reach, vy_reach)
+    Vx = Vx.flatten()
+    Vy = Vy.flatten()
+    V = np.array([Vx, Vy]).T    
+    V_reach = []
+    
+    for v in V:
+        if np.linalg.norm(v) < MAX_SPEED:
+            a = np.array([MAX_ACCELERATION, 0])
+            b = np.array([v[0], v[1]])
+            if np.arccos(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))) < MAX_TURN_RATE:
+                V_reach.append(v)
+    V_reach = np.array(V_reach)
+    # Find the velocity that maximizes the distance to the velocity obstacles    
+    best_v = np.array([0, 0])
+    best_dist = -np.inf    
+    for v in V_reach:
+        dists = []
+        for obs in v_obs:
+            if v[0] > obs[0] or v[0] < obs[1] or v[1] > obs[2] or v[1] < obs[3]:
+                dists.append(0)
+            else:
+                d = np.min([obs[0] - v[0], v[0] - obs[1], obs[2] - v[1], v[1] - obs[3]])
+                dists.append(d)
+        dist = np.min(dists)
+        if dist > best_dist:
+                    # Check if the chosen velocity is valid          
+            a = best_v - np.array([ownship.vx, ownship.vy])
+            b = v - np.array([ownship.vx, ownship.vy])
+            if np.arccos(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))) > MAX_TURN_RATE:
+                continue          
+            ownship.update(ownship.x + v[0], ownship.y + v[1], v[0], v[1])
+            return ownship      
+    return None
+
+
 
         
 
 if __name__ == "__main__":
 
-    #Test with no velocity translation
-    obstacle = Odometry()
-    obstacle.pose.pose.position = Point(5,0,0)
-    obstacle.twist.twist.linear = Vector3(0,0,0)
-    vessel = Odometry()
-    vessel.pose.pose.position = Point(0,0,0)
+    # #Test with no velocity translation
+    # obstacle = Odometry()
+    # obstacle.pose.pose.position = Point(5,0,0)
+    # obstacle.twist.twist.linear = Vector3(0,0,0)
+    # vessel = Odometry()
+    # vessel.pose.pose.position = Point(0,0,0)
     
-    VO = VelocityObstacle(1,obstacle,vessel)
-    VO.set_cone_angles()
-    print(VO.left_angle*180/math.pi)
-    print(VO.right_angle*180/math.pi)
+    # VO = VelocityObstacle(1,obstacle,vessel)
+    # VO.set_cone_angles()
+    # print(VO.left_angle*180/math.pi)
+    # print(VO.right_angle*180/math.pi)
 
-    #Test with velocity translation
-    obstacle = Odometry()
-    obstacle.pose.pose.position = Point(5,0,0)
-    obstacle.twist.twist.linear = Vector3(-100,0,0)
-    vessel = Odometry()
-    vessel.pose.pose.position = Point(0,0,0)
-    vessel.twist.twist.linear = Vector3(-1000,0,0)
+    # #Test with velocity translation
+    # obstacle = Odometry()
+    # obstacle.pose.pose.position = Point(5,0,0)
+    # obstacle.twist.twist.linear = Vector3(-100,0,0)
+    # vessel = Odometry()
+    # vessel.pose.pose.position = Point(0,0,0)
+    # vessel.twist.twist.linear = Vector3(-1000,0,0)
 
     
-    VO = VelocityObstacle(1,obstacle,vessel)
-    VO.set_cone_angles()
-    print(VO.check_if_collision())
+    # VO = VelocityObstacle(1,obstacle,vessel)
+    # VO.set_cone_angles()
+    # print(VO.check_if_collision())
 
-    #Choose velocity test
-    obstacle = Odometry()
-    obstacle.pose.pose.position = Point(5,0,0)
-    obstacle.twist.twist.linear = Vector3(0,1,0)
-    vessel = Odometry()
-    vessel.pose.pose.position = Point(0,0,0)
-    vessel.twist.twist.linear = Vector3(1,0,0)
+    # #Choose velocity test
+    # obstacle = Odometry()
+    # obstacle.pose.pose.position = Point(5,0,0)
+    # obstacle.twist.twist.linear = Vector3(0,1,0)
+    # vessel = Odometry()
+    # vessel.pose.pose.position = Point(0,0,0)
+    # vessel.twist.twist.linear = Vector3(1,0,0)
     
-    VO = VelocityObstacle(1,obstacle,vessel)
-    VO.set_cone_angles()
-    print(VO.choose_velocity())
-    #VO.vessel.twist.twist.linear = VO.choose_velocity()
-    print(VO.check_if_collision())
+    # VO = VelocityObstacle(1,obstacle,vessel)
+    # VO.set_cone_angles()
+    # print(VO.choose_velocity())
+    # #VO.vessel.twist.twist.linear = VO.choose_velocity()
+    # print(VO.check_if_collision())
     
+
+    boat = Vessel(0,0,5,4,2)
+    obs = Vessel(0,12,5,0,2)
+    obs_vector = [obs]
+    new_boat = vo_collision_avoidance(boat,obs_vector)
+    speedx = new_boat.vx
+    speedy = new_boat.vy
+    print(speedx)
+    print(speedy)
 

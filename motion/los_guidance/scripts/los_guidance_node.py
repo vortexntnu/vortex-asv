@@ -361,16 +361,7 @@ class LosPathFollowing(object):
 
         return x_d
 
-    def pause_los(self,setbool):
-        """
-        
-        Callback used for the pause_los service.
-        Used in the collision avoidance Njord tasks, to pause
-        LOS when collision avoidance is running.
-        
-        """ 
-        self.publish_guidance_data = not setbool
-
+ 
 
     
 
