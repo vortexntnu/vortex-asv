@@ -6,30 +6,23 @@ from task_manager.cfg import ASV_FSMConfig
 
 from task_manager_defines import defines
 
-import collision_avoidance
-#import ../mission/joystick_interface
-
 
 def callback(config, level):
     rospy.loginfo("""State change request: {Njord_states}""".format(**config))
+    active_task_id = config["Njord_states"]
+    rospy.loginfo(f"active task id: {active_task_id}")
 
-    if config["ASV_states"] == defines.Tasks.joystick.id:
-        # Stop all other nodes from last state.
-        rospy.set_param("/tasks/collision_avoidance", False)
-        # Start the node here
-        rospy.set_param("/tasks/joystick", True)
+    for task in defines.Tasks.tasks:
+        rospy.set_param(f"/tasks/{task.name}", False)
 
-        param = rospy.get_param("/tasks/joystick")
-        rospy.loginfo("joystick mode started, %s", param)
+        # param = rospy.get_param(f"/tasks/{task.name}")
+        # rospy.loginfo(f"Inactive task name: {task.name}, true/false: {param}")
 
-    if config["ASV_states"] == defines.Tasks.collision_avoidance.id:
-        # Stop all other nodes from last state.
-        rospy.set_param("/tasks/joystick", False)
-        # Start the node here
-        rospy.set_param("/tasks/collision_avoidance", True)
+        if task.id == active_task_id:
+            rospy.set_param(f"/tasks/{task.name}", True)
 
-        param = rospy.get_param("/tasks/joystick")
-        rospy.loginfo("joystick mode started, %s", param)
+            # param = rospy.get_param(f"/tasks/{task.name}")
+            # rospy.loginfo(f"Active task name: {task.name}, true/false: {param}")
 
     return config
 

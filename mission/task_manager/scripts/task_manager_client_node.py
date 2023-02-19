@@ -10,9 +10,11 @@ def callback(config):
 
 if __name__ == "__main__":
     rospy.init_node("task_manager_client")
+    rospy.loginfo("initializing client")
 
     task_manager_client = dynamic_reconfigure.client.Client(
         "/task_manager/server", timeout=3, config_callback=callback
     )
+    rospy.loginfo("client initialized")
 
     rospy.spin()

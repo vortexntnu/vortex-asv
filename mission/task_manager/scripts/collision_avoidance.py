@@ -7,7 +7,7 @@ class Colav:
         self.enabled = rospy.get_param("/tasks/collision_avoidance")
         #Your code here
 
-    def execute(self):
+    def spin(self):
         while not rospy.is_shutdown():
             self.enabled = rospy.get_param("/tasks/collision_avoidance")
 
