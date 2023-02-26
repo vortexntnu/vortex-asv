@@ -5,7 +5,7 @@ import rospy
 class Colav:
     def __init__(self):
         self.enabled = rospy.get_param("/tasks/collision_avoidance")
-        #Your code here
+        # Your code here
 
     def spin(self):
         while not rospy.is_shutdown():
@@ -13,7 +13,7 @@ class Colav:
 
             if self.enabled:
                 rospy.loginfo("collision_avoidance; Inside callback")
-                #Your code here
+                # Your code here
 
             rospy.sleep(0.1)
 
