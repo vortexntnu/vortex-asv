@@ -7,6 +7,7 @@
         <node name="client"                       pkg ="task_manager"          type="task_manager_client_node.py"   output="screen"/>
         <node name="server"                       pkg ="task_manager"          type="task_manager_server_node.py"   output="screen"/>
         <node name="collision_avoidance"          pkg ="task_manager"          type="collision_avoidance.py"        output="screen"/>
+        <node name="ManeuveringNavigationTasks"   pkg ="Njord_tasks"           type="fsm_njord.py"                  output="screen"/>
     </group>
 
 </launch>
