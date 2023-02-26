@@ -163,6 +163,15 @@ class LOSController:
 
         rospy.init_node("los_controller")
 
+        ##ADDITIONAL SCUFFED COLAV CODE
+        self.sub_colav = rospy.Subscriber(
+            "/guidance/colav_data",
+             GuidanceData,
+             self.colav_data_callback,
+             queue_size= 1
+        )
+        self.colav_heading = 0
+
         # Create controllers
         self.Backstepping = LOSControllerBackstepping()
         self.PID = LOSControllerPID()
@@ -184,6 +193,10 @@ class LOSController:
         self.config = {}
         self.srv_reconfigure = Server(LOSControllerConfig, self.config_callback)
 
+    def colav_data_callback(self,msg):
+        self.colav_heading = msg.psi_d
+
+
     def guidance_data_callback(self, msg):
         """
         Handle guidance data whenever it
@@ -194,7 +207,7 @@ class LOSController:
 
         # Thrust message forces and torque
         thrust_msg.force.x = self.PID.speedController(0.5, msg.u, msg.t)
-        thrust_msg.torque.z = self.PID.headingController(msg.psi_d, msg.psi, msg.t)
+        thrust_msg.torque.z = self.PID.headingController(msg.psi_d + self.colav_heading , msg.psi, msg.t)
 
         # Publish the thrust message to /auv/thruster_manager/input
         self.pub_thrust.publish(thrust_msg)

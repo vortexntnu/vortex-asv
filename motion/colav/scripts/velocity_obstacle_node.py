@@ -3,8 +3,10 @@
 from geometry_msgs.msg import Point,Vector3
 from nav_msgs.msg import Odometry
 import math
+import rospy
 
 import numpy as np
+
 
 class VelocityObstacle:
     """
@@ -121,7 +123,7 @@ class VelocityObstacle:
 
         
 
-MAX_SPEED = 4.0  # maximum speed of the vessel
+MAX_SPEED = 10.0  # maximum speed of the vessel
 MAX_ACCELERATION = 1.0  # maximum acceleration of the vessel
 MAX_TURN_RATE = 0.5  # maximum turning rate of the vessel
 VO_MARGIN = 0.1  # margin for the velocity obstacle
@@ -147,10 +149,10 @@ def vo_collision_avoidance(ownship, intruders):
         r = ownship.radius + intruder.radius + VO_MARGIN        
         u = intruder.vx - ownship.vx        
         v = intruder.vy - ownship.vy        
-        u1 = u + r * np.sign(u) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
-        u2 = u - r * np.sign(u) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
-        v1 = v + r * np.sign(v) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
-        v2 = v - r * np.sign(v) * np.sqrt(u**2 + v**2 - MAX_SPEED**2)
+        u1 = u + r * np.sign(u) * np.sqrt(u**2 + v**2 + MAX_SPEED**2)
+        u2 = u - r * np.sign(u) * np.sqrt(u**2 + v**2 + MAX_SPEED**2)
+        v1 = v + r * np.sign(v) * np.sqrt(u**2 + v**2 + MAX_SPEED**2)
+        v2 = v - r * np.sign(v) * np.sqrt(u**2 + v**2 + MAX_SPEED**2)
         v_obs.append((u1, u2, v1, v2))
 
     # Compute the reachable set of velocities for the ownship    
@@ -170,6 +172,7 @@ def vo_collision_avoidance(ownship, intruders):
                 V_reach.append(v)
     V_reach = np.array(V_reach)
     # Find the velocity that maximizes the distance to the velocity obstacles    
+    # Må endres
     best_v = np.array([0, 0])
     best_dist = -np.inf    
     for v in V_reach:
@@ -191,12 +194,51 @@ def vo_collision_avoidance(ownship, intruders):
             return ownship      
     return None
 
+def spin(self):
+    self.enable = rospy.get_param("/")
+
+    while True:
+        if self.enable:
+            # for all obstacles:
+            # check if could have collison, red, green yellow
+            # if green do nothing
+            # if yellow give new heading
+            # if red, stop!
+            pass 
+        # TODO: 
+        #implemen tmath
+        #implement landmar server
+
+
+
+# def find_new_velocity(current_velocity, current_speed, goal, obstacle_positions, obstacle_radii, theta_max):
+#     # Define variables
+#     velocity = cp.Variable(2)
+    
+#     # Define objective
+#     obj = cp.Minimize(cp.norm(velocity - goal))
+    
+#     # Define constraints
+#     constraints = []
+#     for i in range(len(obstacle_positions)):
+#         constraints.append(cp.norm(velocity - obstacle_positions[i]) >= obstacle_radii[i])
+#     constraints.append(cp.norm(velocity) == current_speed)
+#     constraints.append((velocity @ current_velocity) / current_speed >= np.cos(theta_max))
+    
+#     # Define and solve problem
+#     problem = cp.Problem(obj, constraints)
+#     problem.solve()
+    
+#     # Return new velocity vector
+#     return velocity.value
 
 
         
 
 if __name__ == "__main__":
 
+    node = VelocityObstacle()
+    node.spin()
     # #Test with no velocity translation
     # obstacle = Odometry()
     # obstacle.pose.pose.position = Point(5,0,0)
@@ -237,12 +279,26 @@ if __name__ == "__main__":
     # print(VO.check_if_collision())
     
 
-    boat = Vessel(0,0,5,4,2)
-    obs = Vessel(0,12,5,0,2)
-    obs_vector = [obs]
-    new_boat = vo_collision_avoidance(boat,obs_vector)
-    speedx = new_boat.vx
-    speedy = new_boat.vy
-    print(speedx)
-    print(speedy)
+    # boat = Vessel(0,0,5,4,2)
+    # obs = Vessel(0,12,5,0,2)
+    # obs_vector = [obs]
+    # new_boat = vo_collision_avoidance(boat,obs_vector)
+    # speedx = new_boat.vx
+    # speedy = new_boat.vy
+    # print(speedx)
+    # print(speedy)
+
+    # Sample parameter values
+    # current_velocity = np.array([1, 0])
+    # current_speed = 2
+    # goal = np.array([10, 10])
+    # obstacle_positions = [np.array([3, 3]), np.array([7, 7])]
+    # obstacle_radii = [1, 2]
+    # theta_max = np.pi/6  # 30 degrees in radians
+
+    # # Find new velocity
+    # new_velocity = find_new_velocity(current_velocity, current_speed, goal, obstacle_positions, obstacle_radii, theta_max)
+
+    # # Print new velocity
+    # print("New velocity: ", new_velocity)
 
