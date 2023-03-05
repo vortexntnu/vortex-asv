@@ -45,5 +45,5 @@ class ManeuveringNavigationTasks:
 
 if __name__ == "__main__":
     rospy.init_node("fsm_njord")
-    fsm_node = ManeuveringNavigationTasks
+    fsm_node = ManeuveringNavigationTasks()
     fsm_node.spin()
