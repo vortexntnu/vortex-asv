@@ -1,0 +1,13 @@
+failsafe:
+  publishers:
+    failSafeStatus: '/failSafeStatus'
+    hardwareOperationMode: '/hardWareOperationMode'
+  subscribers:
+    softWareKillSwtich: '/softWareKillSwitch'
+    softWareOperationMode: '/softWareOperationMode'
+
+  gpio:
+    gpioSoftWareKillSwitch: 1
+    gpioSoftWareOperationMode: 2
+    gpioFailSafeStatus: 3
+    gpioHardWareOperationMode: 4
