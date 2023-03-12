@@ -10,7 +10,6 @@ from geometry_msgs.msg import Wrench
 from vortex_msgs.msg import GuidanceData
 
 from pid.pid_controller import PIDRegulator
-from backstepping.backstepping_controller import BacksteppingDesign, BacksteppingControl
 
 from dynamic_reconfigure.server import Server
 from los_controller.cfg import LOSControllerConfig
@@ -91,61 +90,10 @@ class LOSControllerPID:
         return tau_u
 
 
-class LOSControllerBackstepping:
-    """
-    Wrapper for the backstepping controller.
-    """
-
-    def __init__(self):
-        """
-        Initialize the backstepping controller with fixed parameters.
-        """
-        # 0.75, 30, 12, 2.5
-        self.controller = BacksteppingControl(3.75, 45.0, 28.0, 10.5)
-
-    # k3 is probably not necessary. Could be removed, but need to find dependencies.
-    def updateGains(self, c, k1, k2, k3):
-        """
-                Update the backstepping controller gains.
-        Args:
-            c   a double containing heading gain
-            k1  a double containing surge speed gain
-            k2  a double containing sway speed gain
-            k3  a double containing heave speed gain
-        """
-
-        self.controller.c = c
-        self.controller.K = np.array(((k1, 0, 0), (0, k2, 0), (0, 0, k3)))
-
-    def regulate(self, u, u_dot, u_d, u_d_dot, v, psi, psi_d, r, r_d, r_d_dot):
-        """
-        A wrapper for the controlLaw() method in the BacksteppingContoller
-        class, to make the los_controller code cleaner.
-        Args:
-                u         current velocity in the body-fixed x-direction
-                u_dot     current acceleration in the body-fixed x-direction
-                u_d       desired velocity in the body-fixed x-direction
-                u_d_dot	  desired acceleration in the body-fixed x-direction
-                v         current velocity in the body-fixed y-direction
-                psi       current heading angle in the NED frame
-                psi_d     desired heading angle in the NED frame
-                r         current angular velocity around the body-fixed z-axis
-                r_d       desired angular velocity around the body-fixed z-axis
-                r_d_dot   desired angular acceleration around the body-fixed z-axis
-        Returns:
-                float[3]:	The control force vector tau
-        """
-
-        tau = self.controller.controlLaw(
-            u, u_dot, u_d, u_d_dot, v, psi, psi_d, r, r_d, r_d_dot
-        )
-        return tau
-
-
 class LOSController:
     """
     The ROS wrapper class for the LOSController. The los_controller is made up
-    of a PID and a backstepping controller, and is mainly used in
+    of a PID controller, and is mainly used in
     conjunction with the LOS guidance system.
     Nodes created:
             los_controller
@@ -158,13 +106,12 @@ class LOSController:
     def __init__(self):
         """
         Initialize the los_controller node, subscribers, publishers and the
-        objects for the PID and the backstepping controllers.
+        objects for the PID controller.
         """
 
         rospy.init_node("los_controller")
 
         # Create controllers
-        self.Backstepping = LOSControllerBackstepping()
         self.PID = LOSControllerPID()
 
         # Subscribers
@@ -228,8 +175,6 @@ class LOSController:
         psi_d_old = self.PID.controller_psi.d
         psi_sat_old = self.PID.controller_psi.sat
 
-        c_old = self.Backstepping.controller.c
-        K = self.Backstepping.controller.K
 
         # Old parameters for u (velocity)
         u_p_old = self.PID.controller_u.p
@@ -248,12 +193,6 @@ class LOSController:
         u_i = config["PID_u_i"]
         u_d = config["PID_u_d"]
         u_sat = config["PID_u_sat"]
-
-        # Reconfigured Backstepping parameters
-        c = config["Backstepping_c"]
-        k1 = config["Backstepping_k1"]
-        k2 = config["Backstepping_k2"]
-        k3 = config["Backstepping_k3"]
 
         rospy.loginfo("los_controller reconfigure: ")
 
@@ -274,7 +213,6 @@ class LOSController:
 
         # Update controller gains
         self.PID.updateGains(psi_p, psi_i, psi_d, psi_sat, u_p, u_i, u_d, u_sat)
-        self.Backstepping.updateGains(c, k1, k2, k3)
 
         # update config
         self.config = config
