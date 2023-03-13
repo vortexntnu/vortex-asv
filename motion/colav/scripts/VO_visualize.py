@@ -2,10 +2,12 @@ import numpy as np
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from geometry_msgs.msg import Point,Vector3
 import matplotlib.patches as mpatches
 import time as time
 import VOMATH as VO
 import math
+import cmath
 @dataclass
 class Vessel:
     x: float = 0.0    
@@ -64,10 +66,33 @@ class Ownship(Vessel):
         self.history.append((self.x, self.y))
         self.intruders = []
         self.stop_range = 0.5
-        self.min_range = 3.0        
+        self.min_range = 6.0        
         self.collision_sector = np.pi / 2        
         self.other_ownships = []
+        self.right_angle = 0
+        self.left_angle = 0
 
+
+    def set_cone_angles(self, intruder):
+        theta_ro = math.atan2(intruder.y-self.y,intruder.x-self.x)
+        theta_ray = math.asin((self.radius+intruder.radius)/(math.sqrt((intruder.x-self.x)**2+(intruder.y-self.y)**2)))
+        self.right_angle = theta_ro-theta_ray
+        self.left_angle = theta_ro + theta_ray
+
+    
+    def check_if_collision(self, intruder):
+        bouffer = math.pi/12
+        translated_vel = Vector3(self.vx-intruder.vx,self.vy-intruder.vy,0)
+        angle = math.atan2(translated_vel.y,translated_vel.x)
+
+        return angle > self.right_angle-bouffer and angle < self.left_angle+bouffer
+    
+    def choose_left_cone(self, intruder):
+
+        theta_ro = math.atan2(intruder.y-self.y,intruder.x-self.x)
+        return (theta_ro>= 0 and math.atan2(intruder.vy,intruder.vx) < math.pi/2 and math.atan2(intruder.vy,intruder.vx) >= -math.pi/2) or not (theta_ro>= 0 and math.atan2(intruder.vy,intruder.vx) <= math.pi/2 or math.atan2(intruder.vy,intruder.vx) >= -math.pi/2)
+
+    
     def colav_heading(self):
         targets = self.intruders + self.other_ownships 
         if not targets:
@@ -91,34 +116,64 @@ class Ownship(Vessel):
         if dist > self.min_range:
             return 0.0, False
         
-        v_robot = [self.vx,self.vy]
-      #  for target in targets:
 
-        v_obstacle =[closest_intruder.vx,closest_intruder.vy]
+        self.set_cone_angles(closest_intruder)
+        if not self.check_if_collision(closest_intruder):
+            return 0.0,False
+        print("OHN NO!")
+
+        buffer = math.pi/12
+
+        if self.choose_left_cone(closest_intruder) :
+            print("left!")
+            new_heading = self.left_angle+buffer
+        else:
+            new_heading = self.right_angle-buffer
+        
+        print(new_heading)
+            
+        
+        # heading = int(self.desired_velocity*180/math.pi)
+        # if self.choose_left_cone(closest_intruder):
+        #     for i in range(heading, 360):
+        #         if not self.check_if_collision(closest_intruder):
+        #             return (heading + 10)*math.pi/180, False
+        #         heading=+1
+        # else:
+        #     print("Right")
+        #     for i in range(heading, 0, -1):
+        #         if not self.check_if_collision(closest_intruder):
+        #             return (heading - 10)*math.pi/180, False
+        #         heading=-1
+
+    #     v_robot = [self.vx,self.vy]
+    #   #  for target in targets:
+
+    #     v_obstacle =[closest_intruder.vx,closest_intruder.vy]
 
         
-            # Compute the relative velocity between the robot and the obstacle
-        v_relative = [v_obstacle[0] - v_robot[0], v_obstacle[1] - v_robot[1]]
+    #         # Compute the relative velocity between the robot and the obstacle
+    #     v_relative = [v_obstacle[0] - v_robot[0], v_obstacle[1] - v_robot[1]]
 
-        # Compute the angle of the relative velocity vector
-        theta_relative = math.atan2(v_relative[1], v_relative[0])
+    #     # Compute the angle of the relative velocity vector
+    #     theta_relative = math.atan2(v_relative[1], v_relative[0])
 
-        # Define the maximum angular velocity of the robot
-        max_angular_velocity = math.pi/4  # 45 degrees per second
+    #     # Define the maximum angular velocity of the robot
+    #     max_angular_velocity = math.pi/4  # 45 degrees per second
 
-        # Define the time horizon for collision avoidance
-        time_horizon = 5  # seconds
+    #     # Define the time horizon for collision avoidance
+    #     time_horizon = 5  # seconds
 
-        # Compute the left and right VO cone angles
-        theta_l = theta_relative - max_angular_velocity * time_horizon
-        theta_r = theta_relative + max_angular_velocity * time_horizon
-        v_current = math.sqrt(self.vx**2+self.vy**2)
-        v_pref = self.desired_velocity
-        # Calculate the velocity obstacle
-        t = math.tan(theta_l) + math.tan(theta_r)
-        s = 2 * v_current / t
-        v_hat = math.atan2(-math.sin(theta_l) - math.sin(theta_r), -math.cos(theta_l) - math.cos(theta_r))
-        v_bar = v_hat + math.pi / 2
+    #     # Compute the left and right VO cone angles
+    #     theta_l = theta_relative - max_angular_velocity * time_horizon
+    #     theta_r = theta_relative + max_angular_velocity * time_horizon
+    #     v_current = math.sqrt(self.vx**2+self.vy**2)
+    #     v_pref = self.desired_velocity
+    #     # Calculate the velocity obstacle
+    #     t = math.tan(theta_l) + math.tan(theta_r)
+    #     s = 2 * v_current / t
+    #     v_hat = math.atan2(-math.sin(theta_l) - math.sin(theta_r), -math.cos(theta_l) - math.cos(theta_r))
+    #     v_bar = v_hat + math.pi / 2
 
         # Calculate the direction of the new heading
         # if v_current < v_pref:
@@ -126,9 +181,13 @@ class Ownship(Vessel):
         #     new_heading = v_bar
         # else:
             # Otherwise, move in the direction of the velocity obstacle
-        new_heading = math.atan2(s * math.sin(v_hat), v_current + s * math.cos(v_hat))
-        print(new_heading)
-        return -new_heading,False
+        #new_heading = math.atan2(s * math.sin(v_hat), v_current + s * math.cos(v_hat))
+
+        #print(new_heading)
+
+        current_heading = math.atan2(self.vy,self.vx)
+
+        return new_heading-current_heading,False
 
         # Convert the heading to degrees for display purposes
 
@@ -178,7 +237,8 @@ class Ownship(Vessel):
                 return
             current_waypoint = self.waypoints[0]
             dx = current_waypoint[0] - self.x            
-            dy = current_waypoint[1] - self.y        
+            dy = current_waypoint[1] - self.y  
+
         adjustment, do_stop = self.colav_heading()
         desired_velocity = 0
         if not do_stop:
@@ -186,8 +246,10 @@ class Ownship(Vessel):
         theta = np.arctan2(dy, dx) + adjustment        
         desired_vx = desired_velocity * np.cos(theta)
         desired_vy = desired_velocity * np.sin(theta)
-        self.vx += (desired_vx - self.vx) * dt        
-        self.vy += (desired_vy - self.vy) * dt        
+        # self.vx += (desired_vx - self.vx) * dt        
+        # self.vy += (desired_vy - self.vy) * dt
+        self.vx = desired_vx
+        self.vy = desired_vy        
         self.x += self.vx * dt        
         self.y += self.vy * dt        
         self.history.append((self.x, self.y))
@@ -206,9 +268,9 @@ class VesselVisualiser:
         self.ax.set_facecolor("lightgray")
         self.ownship_lines = [self.ax.plot([], [], color=ownship.color)[0] for ownship in self.ownships]
         self.intruder_lines = [self.ax.plot([], [], color=v.color)[0] for v in self.intruders]
-        self.intruder_patches = [self.ax.add_patch(mpatches.Circle(xy=(v.x, v.y), radius=self.ownships[0].min_range/10 , fill=False, linestyle='dashed', linewidth=0.5, color='black')) for v in self.intruders]
+        self.intruder_patches = [self.ax.add_patch(mpatches.Circle(xy=(v.x, v.y), radius=self.intruders[0].radius , fill=False, linestyle='dashed', linewidth=0.5, color='black')) for v in self.intruders]
         self.ownship_patches = [self.ax.add_patch(mpatches.Circle(xy=(ownship.x, ownship.y), radius=ownship.min_range , fill=False, linestyle='dashed', linewidth=0.5, color='darkorange')) for ownship in self.ownships]
-        self.ownship_stop_patches = [self.ax.add_patch(mpatches.Circle(xy=(ownship.x, ownship.y), radius=ownship.stop_range , fill=False, linestyle='dashed', linewidth=0.5, color='red')) for ownship in self.ownships]
+        self.ownship_stop_patches = [self.ax.add_patch(mpatches.Circle(xy=(ownship.x, ownship.y), radius=ownship.radius , fill=False, linestyle='dashed', linewidth=0.5, color='red')) for ownship in self.ownships]
         self.ax.set_xlim(-10, 10)
         self.ax.set_ylim(-10, 10)
         self.ax.grid(True)
@@ -253,7 +315,7 @@ if __name__ == "__main__":
         #Intruder(0, 0, -0.1, -0.05, 1.0, 'b', 0.2),    
    # ]
     # Right approach    
-    intruders = [    Intruder(0.1, 0, 0, 0, 1.0, 'g', process_noise=0.0),]    
+    intruders = [    Intruder(5, -3, -1, 0, 1.0, 'g', process_noise=0.0),]    
     ownship = Ownship(x=0.0, y=-9.0, waypoints=[(0, 9)], desired_velocity=1.0)    
     
     # create visualizer    

@@ -67,8 +67,6 @@ class VelocityObstacle:
 
     #Needs correction, according to boating rules   
 
-    def choose_velocity(self):
-
         """
         
         Determines a reference velocity for the velocity controller.
