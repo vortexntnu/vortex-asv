@@ -66,22 +66,28 @@ class Ownship(Vessel):
         self.history.append((self.x, self.y))
         self.intruders = []
         self.stop_range = 0.5
-        self.min_range = 6.0        
+        self.min_range = 10.0        
         self.collision_sector = np.pi / 2        
         self.other_ownships = []
         self.right_angle = 0
         self.left_angle = 0
+        self.colavtimer = 0
+        self.lastheading = 0
+        self.rvec = [0 ,0]
+        self.lvec = [0,0]
+        self.closestintruderv =[0 ,0 ]
 
 
     def set_cone_angles(self, intruder):
         theta_ro = math.atan2(intruder.y-self.y,intruder.x-self.x)
         theta_ray = math.asin((self.radius+intruder.radius)/(math.sqrt((intruder.x-self.x)**2+(intruder.y-self.y)**2)))
+        print(self.radius+intruder.radius)
         self.right_angle = theta_ro-theta_ray
         self.left_angle = theta_ro + theta_ray
 
     
     def check_if_collision(self, intruder):
-        bouffer = math.pi/12
+        bouffer = 0
         translated_vel = Vector3(self.vx-intruder.vx,self.vy-intruder.vy,0)
         angle = math.atan2(translated_vel.y,translated_vel.x)
 
@@ -116,13 +122,18 @@ class Ownship(Vessel):
         if dist > self.min_range:
             return 0.0, False
         
-
+        self.closestintruderv = [closest_intruder.vx,closest_intruder.vy]
         self.set_cone_angles(closest_intruder)
-        if not self.check_if_collision(closest_intruder):
+        cone_l = math.sqrt(-(self.radius+closest_intruder.radius)**2+ ((closest_intruder.x-self.x)**2+(closest_intruder.y-self.y)**2))
+        self.rvec = [math.cos(self.right_angle)*cone_l,math.sin(self.right_angle)*cone_l]
+        self.lvec =  [math.cos(self.left_angle)*cone_l, math.sin(self.left_angle)*cone_l]
+        if not self.check_if_collision(closest_intruder) and self.colavtimer == 0:
             return 0.0,False
+
+        
         print("OHN NO!")
 
-        buffer = math.pi/12
+        buffer = 0
 
         if self.choose_left_cone(closest_intruder) :
             print("left!")
@@ -185,6 +196,12 @@ class Ownship(Vessel):
 
         #print(new_heading)
 
+        # if self.colavtimer == 0:
+        #     self.colavtimer = 100
+        #     self.lastheading = new_heading
+        # else:
+        #     self.colavtimer = self.colavtimer-1
+        #     new_heading = self.lastheading
         current_heading = math.atan2(self.vy,self.vx)
 
         return new_heading-current_heading,False
@@ -268,9 +285,12 @@ class VesselVisualiser:
         self.ax.set_facecolor("lightgray")
         self.ownship_lines = [self.ax.plot([], [], color=ownship.color)[0] for ownship in self.ownships]
         self.intruder_lines = [self.ax.plot([], [], color=v.color)[0] for v in self.intruders]
-        self.intruder_patches = [self.ax.add_patch(mpatches.Circle(xy=(v.x, v.y), radius=self.intruders[0].radius , fill=False, linestyle='dashed', linewidth=0.5, color='black')) for v in self.intruders]
+        self.intruder_patches = [self.ax.add_patch(mpatches.Circle(xy=(v.x, v.y), radius=self.intruders[0].radius*2 , fill=False, linestyle='dashed', linewidth=0.5, color='black')) for v in self.intruders]
         self.ownship_patches = [self.ax.add_patch(mpatches.Circle(xy=(ownship.x, ownship.y), radius=ownship.min_range , fill=False, linestyle='dashed', linewidth=0.5, color='darkorange')) for ownship in self.ownships]
         self.ownship_stop_patches = [self.ax.add_patch(mpatches.Circle(xy=(ownship.x, ownship.y), radius=ownship.radius , fill=False, linestyle='dashed', linewidth=0.5, color='red')) for ownship in self.ownships]
+        self.arrowl = self.ax.arrow(0, 0, 0, 0, head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+        self.arrowr = self.ax.arrow(0, 0, 0,0, head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+        self.harrow =self.ax.arrow(0, 0, 0,0, head_width=0.05, head_length=0.1, fc='blue', ec='blue')
         self.ax.set_xlim(-10, 10)
         self.ax.set_ylim(-10, 10)
         self.ax.grid(True)
@@ -280,6 +300,17 @@ class VesselVisualiser:
         for ownship in self.ownships:
             ownship.update_intruders(self.intruders)
             ownship.update()
+            print(ownship.x)
+            ## translated
+            # self.arrowl =  self.ax.arrow(ownship.x+ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.lvec[0], ownship.lvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+            # self.arrowr = self.ax.arrow(ownship.x+ ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.rvec[0], ownship.rvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+            self.harrow =self.ax.arrow(ownship.x, ownship.y, ownship.vx-ownship.closestintruderv[0],ownship.vy-ownship.closestintruderv[1], head_width=0.20, head_length=0.1, fc='blue', ec='red')
+            #non translated
+            self.arrowl =  self.ax.arrow(ownship.x, ownship.y, ownship.lvec[0], ownship.lvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+            self.arrowr = self.ax.arrow(ownship.x, ownship.y, ownship.rvec[0], ownship.rvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+           # self.harrow =self.ax.arrow(ownship.x, ownship.y, ownship.vx,ownship.vy, head_width=0.20, head_length=0.1, fc='blue', ec='red')
+
+
         for intruder in self.intruders:
             intruder.update()
         for ownship, line, patch,stop_patch in zip(self.ownships, self.ownship_lines, self.ownship_patches,self.ownship_stop_patches):
@@ -289,9 +320,10 @@ class VesselVisualiser:
         for intruder, line, patch in zip(self.intruders, self.intruder_lines, self.intruder_patches):
             line.set_data(*zip(*intruder.history))
             patch.center = (intruder.x, intruder.y)
-        return self.ownship_lines + self.intruder_lines + self.ownship_patches +self.ownship_stop_patches + self.intruder_patches 
+        return self.ownship_lines + self.intruder_lines + self.ownship_patches +self.ownship_stop_patches + self.intruder_patches +[self.arrowl,self.arrowr,self.harrow]
     def start(self):
         anim = FuncAnimation(self.fig, self.animate,frames=100, blit=True, interval=50)
+
         plt.show()
 
 
@@ -315,7 +347,8 @@ if __name__ == "__main__":
         #Intruder(0, 0, -0.1, -0.05, 1.0, 'b', 0.2),    
    # ]
     # Right approach    
-    intruders = [    Intruder(5, -3, -1, 0, 1.0, 'g', process_noise=0.0),]    
+    intruders = [    Intruder(5, 0, -0.8, 0, 1.0, 'g', process_noise=0.0),]
+                    #Intruder(5, 0, -0.5, 0, 1.0, 'g', process_noise=0.0)]    
     ownship = Ownship(x=0.0, y=-9.0, waypoints=[(0, 9)], desired_velocity=1.0)    
     
     # create visualizer    
