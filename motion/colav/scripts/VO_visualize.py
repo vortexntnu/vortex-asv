@@ -65,8 +65,8 @@ class Ownship(Vessel):
         self.last_update = None        
         self.history.append((self.x, self.y))
         self.intruders = []
-        self.stop_range = 0.5
-        self.min_range = 10.0        
+        self.stop_range = 2
+        self.min_range = 8.0        
         self.collision_sector = np.pi / 2        
         self.other_ownships = []
         self.right_angle = 0
@@ -95,12 +95,17 @@ class Ownship(Vessel):
     
     def choose_left_cone(self, intruder):
 
+        leftConeBuffer =2
+
         theta_ro = math.atan2(intruder.y-self.y,intruder.x-self.x)
+        if (intruder.vy == 0 and intruder.vx == 0) and (intruder.x <= self.x+leftConeBuffer):
+            return False
+        
         return (theta_ro>= 0 and math.atan2(intruder.vy,intruder.vx) < math.pi/2 and math.atan2(intruder.vy,intruder.vx) >= -math.pi/2) or not (theta_ro>= 0 and math.atan2(intruder.vy,intruder.vx) <= math.pi/2 or math.atan2(intruder.vy,intruder.vx) >= -math.pi/2)
 
     
     def colav_heading(self):
-        targets = self.intruders + self.other_ownships 
+        targets = self.intruders 
         if not targets:
             return 0.0, False
             
@@ -110,6 +115,7 @@ class Ownship(Vessel):
             dx = target.x - self.x            
             dy = target.y - self.y            
             dist = np.sqrt(dx**2 + dy**2)
+
             if dist < self.stop_range and dy>0:
                 # Calculate distance and angle to closest intruder        
                 return 0.0, True
@@ -133,9 +139,9 @@ class Ownship(Vessel):
         
         print("OHN NO!")
 
-        buffer = 0
+        buffer = math.pi/12
 
-        if self.choose_left_cone(closest_intruder) :
+        if self.choose_left_cone(closest_intruder):
             print("left!")
             new_heading = self.left_angle+buffer
         else:
@@ -204,7 +210,7 @@ class Ownship(Vessel):
         #     new_heading = self.lastheading
         current_heading = math.atan2(self.vy,self.vx)
 
-        return new_heading-current_heading,False
+        return (new_heading-current_heading)*2,False
 
         # Convert the heading to degrees for display purposes
 
@@ -259,8 +265,8 @@ class Ownship(Vessel):
         adjustment, do_stop = self.colav_heading()
         desired_velocity = 0
         if not do_stop:
-            desired_velocity = self.desired_velocity        
-        theta = np.arctan2(dy, dx) + adjustment        
+            desired_velocity = self.desired_velocity  
+        theta =  np.arctan2(dy, dx) + adjustment      
         desired_vx = desired_velocity * np.cos(theta)
         desired_vy = desired_velocity * np.sin(theta)
         # self.vx += (desired_vx - self.vx) * dt        
@@ -302,8 +308,8 @@ class VesselVisualiser:
             ownship.update()
             print(ownship.x)
             ## translated
-            # self.arrowl =  self.ax.arrow(ownship.x+ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.lvec[0], ownship.lvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
-            # self.arrowr = self.ax.arrow(ownship.x+ ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.rvec[0], ownship.rvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+            #self.arrowl =  self.ax.arrow(ownship.x+ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.lvec[0], ownship.lvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+            #self.arrowr = self.ax.arrow(ownship.x+ ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.rvec[0], ownship.rvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
             self.harrow =self.ax.arrow(ownship.x, ownship.y, ownship.vx-ownship.closestintruderv[0],ownship.vy-ownship.closestintruderv[1], head_width=0.20, head_length=0.1, fc='blue', ec='red')
             #non translated
             self.arrowl =  self.ax.arrow(ownship.x, ownship.y, ownship.lvec[0], ownship.lvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
@@ -331,9 +337,27 @@ if __name__ == "__main__":
     # create vessels       # Square move    
     ownship = Ownship(waypoints=[(6, 0), (6, 6), (0, 6), (0, 0), (6, 0), (6, 6), (0, 6), (0, 0), (6, 0), (6, 6), (0, 6), (0, 0), (6, 0), (6, 6), (0, 6), (0, 0),], desired_velocity=1.0)    
     ownships = [
-    Ownship(x=0.0, y=-9.0, waypoints=[(0, 9)], desired_velocity=1.0),
-
-    #Ownship(x=0.0, y=9.0, waypoints=[(0, -9)], desired_velocity=1.0), # head on with compliant target    
+    Ownship(x=0.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=1.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-1.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=2.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-2.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=3.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-3.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=4.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0), # head on with compliant target    
+    Ownship(x=-4.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=5.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-5.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=6.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-6.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=7.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-7.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=8.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-8.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=9.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-9.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=10.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
+    Ownship(x=-10.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     ]
     # Left approach    
     #intruders = [
@@ -347,8 +371,14 @@ if __name__ == "__main__":
         #Intruder(0, 0, -0.1, -0.05, 1.0, 'b', 0.2),    
    # ]
     # Right approach    
-    intruders = [    Intruder(5, 0, -0.8, 0, 1.0, 'g', process_noise=0.0),]
-                    #Intruder(5, 0, -0.5, 0, 1.0, 'g', process_noise=0.0)]    
+    intruders = [   Intruder(5, 0, -0.5, 0, 1.0, 'g', process_noise=0.0),                      #To the left
+                    #Intruder(-5, 0, 0.5, 0, 1.0, 'g', process_noise=0.0),                      #To the right
+                    #Intruder(0, 0, 0, 0, 1.0, 'g', process_noise=0.0),                         #Still
+                    #Intruder(0, 0, 0, -0.2, 1.0, 'g', process_noise=0.0),                      #Towards you
+                    #Intruder(5, 3, -0.5, -0.5, 1.0, 'g', process_noise=0.0),                   #Upper corner
+                    #Intruder(0, -3, 0, 0.3, 1.0, 'g', process_noise=0.0),                      #Slow in front
+                    #Intruder(-10, -10, 1, 1, 1.0, 'g', process_noise=0.0),                     #coming from behind
+                    ]    
     ownship = Ownship(x=0.0, y=-9.0, waypoints=[(0, 9)], desired_velocity=1.0)    
     
     # create visualizer    
