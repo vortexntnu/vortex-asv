@@ -35,12 +35,13 @@ class Search(smach.State):
                                              'westMarkerNav',
                                              'idle'
                                              ])
-        self.CurrentRedBouyPos     = (0, 0)
-        self.CurrentGreenBouyPos   = (0, 0)
-        self.CurrentNorthMarkerPos = (0, 0)
-        self.CurrentSouthMarkerPos = (0, 0)
-        self.CurrentEastMarkerPos  = (0, 0)
-        self.CurrentWestMarkerPos  = (0, 0)
+        self.CurrentRedBouyPos     = (0,0)
+        self.CurrentGreenBouyPos   = (0,0)
+        self.CurrentNorthMarkerPos = (0,0)
+        self.CurrentSouthMarkerPos = (0,0)
+        self.CurrentEastMarkerPos  = (0,0)
+        self.CurrentWestMarkerPos  = (0,0)
+        self.ClosestObject = (0, '')
 
     def execute(self, userdata):
         rospy.loginfo('Executing Search')
@@ -53,30 +54,68 @@ class Search(smach.State):
             #Store Bouy in a list?
             NewObjectPos = (NewObject[0], NewObject[1])
             distanceToNewObject = Distance(self.ASVPos, NewObjectPos)
-            distanceToCurrentRedBouy = Distance(self.ASVPos, self.CurrentRedBouyPos)
-            if self.CurrentRedBouy == (0,0) or distanceToNewObject < distanceToCurrentRedBouy:
-                self.CurrentRedBouy = NewObjectPos
+            distanceToObject = Distance(self.ASVPos, self.CurrentRedBouyPos)
+            if self.CurrentRedBouyPos == (0,0) or distanceToNewObject < distanceToObject:
+                self.CurrentRedBouyPos = NewObjectPos
+            if distanceToObject < self.ClosestObject[0]:
+                self.ClosestObject = (distanceToObject, 'red')
         
         if NewObject[2] == 'green':
             #Store Bouy in a list?
             NewObjectPos = (NewObject[0], NewObject[1])
             distanceToNewObject = Distance(self.ASVPos, NewObjectPos)
-            distanceToCurrentGreenBouy = Distance(self.ASVPos, self.CurrentGreenBouyPos)
-            if self.CurrentGreenBouy[2] == 'noType' or distanceToNewObject < distanceToCurrentGreenBouy:
+            distanceToObject = Distance(self.ASVPos, self.CurrentGreenBouyPos)
+            if self.CurrentGreenBouyPos == (0,0) or distanceToNewObject < distanceToObject:
                 self.CurrentGreenBouy = NewObjectPos
+            if distanceToObject < self.ClosestObject[0]:
+                self.ClosestObject = (distanceToObject, 'green')
         
         if NewObject[2] == 'north':
             #Store Bouy in a list?
             NewObjectPos = (NewObject[0], NewObject[1])
             distanceToNewObject = Distance(self.ASVPos, NewObjectPos)
-            distanceToCurrentNorthMarker = Distance(self.ASVPos, self.CurrentNorthMarkerPos)
-            if self.CurrentNorthMarker[2] == 'noType' or distanceToNewObject < distanceToCurrentNorthMarker:
-                self.CurrentNorthMarker = NewObjectPos
+            distanceToObject = Distance(self.ASVPos, self.CurrentNorthMarkerPos)
+            if self.CurrentNorthMarkerPos == (0,0) or distanceToNewObject < distanceToObject:
+                self.CurrentNorthMarkerPos = NewObjectPos
+            if distanceToObject < self.ClosestObject[0]:
+                self.ClosestObject = (distanceToObject, 'north')
         
+        if NewObject[2] == 'south':
+            #Store Bouy in a list?
+            NewObjectPos = (NewObject[0], NewObject[1])
+            distanceToNewObject = Distance(self.ASVPos, NewObjectPos)
+            distanceToObject = Distance(self.ASVPos, self.CurrentSouthMarkerPos)
+            if self.CurrentSouthMarkerPos[2] == (0,0) or distanceToNewObject < distanceToObject:
+                self.CurrentSouthMarkerPos = NewObjectPos
+            if distanceToObject < self.ClosestObject[0]:
+                self.ClosestObject = (distanceToObject, 'south')
         
+        if NewObject[2] == 'east':
+            #Store Bouy in a list?
+            NewObjectPos = (NewObject[0], NewObject[1])
+            distanceToNewObject = Distance(self.ASVPos, NewObjectPos)
+            distanceToObject = Distance(self.ASVPos, self.CurrentEastMarkerPos)
+            if self.CurrentEastMarkerPos[2] == (0,0) or distanceToNewObject < distanceToObject:
+                self.CurrentEastMarkerPos = NewObjectPos
+            if distanceToObject < self.ClosestObject[0]:
+                self.ClosestObject = (distanceToObject, 'east')
+        
+        if NewObject[2] == 'west':
+            #Store Bouy in a list?
+            NewObjectPos = (NewObject[0], NewObject[1])
+            distanceToNewObject = Distance(self.ASVPos, NewObjectPos)
+            distanceToObject = Distance(self.ASVPos, self.CurrentWestMarkerPos)
+            if self.CurrentWestMarkerPos[2] == (0,0) or distanceToNewObject < distanceToObject:
+                self.CurrentWestMarkerPos = NewObjectPos
+            if distanceToObject < self.ClosestObject[0]:
+                self.ClosestObject = (distanceToObject, 'west')
 
-
-        pass
+        #Choosing closest point
+        return self.ClosestObject[1]
+        ## ToDo
+        # Delete self.Current"objects" that we do not want or need anymore. Ex; objects we have or are currently passing.
+        # These objects can potesially be stored in a list. 
+        # If we have a green and red bouy position, return 'greenAndRedBouyNav'
     
 class OneRedBouyNav(smach.State):
     def __init__(self):
@@ -137,7 +176,7 @@ class EastMarkerNav(smach.State):
 def Distance(ObjectOnePosition, ObjectTwoPosition):
     x1, y1 = ObjectOnePosition
     x2, y2 = ObjectTwoPosition
-    distanceX = (x1 + x2)/2
-    distanceY = (y1 + y2)/2
+    distanceX = x1 - x2
+    distanceY = y1 - y2
     hypDistance = math.sqrt(distanceX**2 + distanceY**2)
     return hypDistance

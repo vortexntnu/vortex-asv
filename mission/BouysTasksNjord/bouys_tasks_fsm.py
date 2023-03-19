@@ -21,14 +21,14 @@ class ManeuveringNavigationTasks:
             
             
             smach.StateMachine.add('Search', bouys_tasks.Search(),
-                                    transitions={'oneRedBouyNav'       : 'OneRedBouyNav',
-                                                 'oneGreenBouyNav'     : 'OneGreenBouyNav',
-                                                 'greenAndReadBouyNav' : 'GreenAndReadBouyNav',
-                                                 'northMarkerNav'      : 'CardinalMarkerNav',
-                                                 'southmarkerNav'      : 'SouthMarkerNav',
-                                                 'eastmarkerNav'       : 'EastMarkerNav',
-                                                 'WestMarkerNav'       : 'WestMarkerNav',
-                                                 'idle'                : 'Idle',
+                                    transitions={'greenAndReadBouyNav' : 'GreenAndReadBouyNav',
+                                                 'red'   : 'OneRedBouyNav',
+                                                 'green' : 'OneGreenBouyNav',
+                                                 'north' : 'CardinalMarkerNav',
+                                                 'south' : 'SouthMarkerNav',
+                                                 'east'  : 'EastMarkerNav',
+                                                 'west'  : 'WestMarkerNav',
+                                                 'idle'  : 'Idle',
                                                  })
             
             smach.StateMachine.add('OneRedBouyNav', bouys_tasks.OneRedBouyNav(),
