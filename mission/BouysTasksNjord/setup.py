@@ -3,9 +3,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="Njord_tasks_config",
+    name="Bouys_tasks_config",
     version="0.0.0",
-    description="Contains a njord task fsm for maneuvering and navigation tasks.",
+    description="Contains a fsm for maneuvering and navigation (bouys) tasks in Njord.",
     author="Sigurd von Brandis",
     author_email="Sigurdvb@stud.ntnu.no",
     packages=find_packages(),
