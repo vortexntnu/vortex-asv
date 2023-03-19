@@ -3,7 +3,7 @@
 import rospy
 
 from geometry_msgs.msg import Wrench
-from vortex_msgs.msg import GuidanceData
+from std_msgs.msg import Float64
 
 from pid_controller import PIDRegulator
 from speed_controller.cfg import speedControllerConfig
@@ -67,9 +67,10 @@ class SpeedControllerROS:
     Nodes created:
             speed_controller
     Subscribes to:
-            /guidance/speed_data TODO: fix this
+            "/guidance_desired_speed"
     Publishes to:
-            /asv/thruster_manager/input TODO: fix this
+            "/thrust/force_input"
+            
     """
 
     def __init__(self):
@@ -85,20 +86,32 @@ class SpeedControllerROS:
 
         # Subscriber
         self.guidance_sub = rospy.Subscriber(
-            "/guidance/speed_data",
-            GuidanceData,
-            self.guidance_data_callback,
+            rospy.get_param("/guidance_interface/desired_speed"),
+            Float64,
+            self.speed_data_callback,
             queue_size = 1,
         )
 
         # Publisher
-        self.thrust_pub = rospy.Publisher(
-            rospy.get_param("/asv/thruster_manager/input"), Wrench, queue_size=1
+        self.force_pub = rospy.Publisher(
+            rospy.get_param("/asv/thruster_manager/force"), Wrench, queue_size=1
         )
 
         # Dynamic reconfigure
         self.config = {}
         self.srv_reconfigure = Server(speedControllerConfig, self.config_callback)
+
+    def speed_data_callback(self, msg):
+        """
+        Handle guidance data
+        msg: the guidance data message
+        """
+
+        force_msg = Wrench()
+
+        # desired speed message
+        force_msg.force.x = self.PID.speed_controller(0.5, msg.u, rospy.Time.now())
+        self.force_pub.publish(force_msg)
 
 
     def config_callback(self, config, level):
@@ -131,7 +144,7 @@ class SpeedControllerROS:
         self.log_value_if_updated("u_sat", u_sat_old, u_sat)
 
         # Update controller gains
-        self.PID.updateGains(u_p, u_i, u_d, u_sat)
+        self.PID.update_gains(u_p, u_i, u_d, u_sat)
 
         # update config
         self.config = config
@@ -152,8 +165,5 @@ class SpeedControllerROS:
             
 
 if __name__ == "__main__":
-    try:
-        speed_controller = SpeedControllerROS()
-        rospy.spin
-    except rospy.ROSInterruptException:
-        pass
+    speed_controller = SpeedControllerROS()
+    rospy.spin()

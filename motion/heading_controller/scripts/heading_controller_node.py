@@ -3,7 +3,7 @@
 import rospy
 
 from geometry_msgs.msg import Wrench
-from vortex_msgs.msg import GuidanceData
+from std_msgs.msg import Float64
 
 from pid_controller import PIDRegulator
 from heading_controller.cfg import headingControllerConfig
@@ -25,7 +25,7 @@ class HeadingControllerPID:
 
         self.controller_psi = PIDRegulator(25, 0.024, 3.5, 5.0)  # Args: p, i, d, sat
 
-    def updateGains(self, psi_p, psi_i, psi_d, psi_sat):
+    def update_gains(self, psi_p, psi_i, psi_d, psi_sat):
         """
         Update the controller gains and saturation limit.
         Args:
@@ -41,7 +41,7 @@ class HeadingControllerPID:
         self.controller_psi.sat = psi_sat
 
 
-    def headingController(self, psi_d, psi, t):
+    def heading_controller(self, psi_d, psi, t):
         """
         Calculate force to maintain fixed heading.
         Args:
@@ -61,8 +61,6 @@ class HeadingControllerPID:
 
 
 
-
-
 class HeadingControllerROS:
     """
     The ROS wrapper class for the HeadingControllerPID. 
@@ -70,10 +68,10 @@ class HeadingControllerROS:
     of a PID controller.
     Nodes created:
             heading_controller
-    Subscribes to:
-            /guidance/heading_data TODO: fix this
-    Publishes to:
-            /asv/thruster_manager/input TODO: fix this
+    Subscribes to topic:
+            /guidance/desired_heading
+    Publishes to topic:
+            "/thrust/torque_input"
     """
 
     def __init__(self):
@@ -88,22 +86,34 @@ class HeadingControllerROS:
         self.PID = HeadingControllerPID()
 
         # Subscriber
-        self.guidance_sub = rospy.Subscriber(
-            "/guidance/heading_data",
-            GuidanceData,
-            self.guidance_data_callback,
+        self.heading_sub = rospy.Subscriber(
+            rospy.get_param("/guidance_interface/desired_heading"),
+            Float64,
+            self.heading_data_callback,
             queue_size = 1,
         )
 
         # Publisher
-        self.thrust_pub = rospy.Publisher(
-            rospy.get_param("/asv/thruster_manager/input"), Wrench, queue_size=1
+        self.torque_pub = rospy.Publisher(
+            rospy.get_param("/asv/thruster_manager/torque"), Wrench, queue_size=1
         )
 
         # Dynamic reconfigure
         self.config = {}
         self.srv_reconfigure = Server(headingControllerConfig, self.config_callback)
 
+    def heading_data_callback(self, msg):
+        """
+        Handle guidance data
+        msg: the guidance data message
+        """
+
+        torque_msg = Wrench()
+
+        # Desired heading message
+        torque_msg.torque.z = self.PID.heading_controller(msg.psi_d, msg.psi, rospy.Time.now())
+        self.torque_pub.publish(torque_msg)
+        
 
     def config_callback(self, config, level):
         """Handle updated configuration values.
@@ -135,7 +145,7 @@ class HeadingControllerROS:
         self.log_value_if_updated("psi_sat", psi_sat_old, psi_sat)
 
         # Update controller gains
-        self.PID.updateGains(psi_p, psi_i, psi_d, psi_sat)
+        self.PID.update_gains(psi_p, psi_i, psi_d, psi_sat)
 
         # update config
         self.config = config
