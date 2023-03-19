@@ -273,8 +273,8 @@ class LosPathFollowing(object):
         # Publishers
         self.pub_desired = rospy.Publisher("/auv/los_desired", Odometry, queue_size=1)
         self.pub_data_los_controller = rospy.Publisher(
-            "/guidance/los_data", GuidanceData, queue_size=1
-        )
+            rospy.get_param("/guidance_interface/los_data"), GuidanceData, queue_size=1
+        ) 
 
         # constructor object
         self.los = LOS()
