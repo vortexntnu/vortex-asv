@@ -1,0 +1,54 @@
+# This file defines parameters specific to Beluga
+#
+# When looking at the ASV from above, the thruster placement is:   
+#    /\          /\
+#   /  \  front /  \
+#  /    \      /    \
+#  |=3↗=|      |=0↖=|
+#  |    |      |    |
+#  |    |      |    |
+#  |    |======|    |
+#  |    |      |    |
+#  |    |      |    |
+#  |    |      |    |
+#  |=2↖=|==||==|=1↗=|
+#
+
+physical:
+  mass_kg: 0 
+  displacement_m3: 0
+  buoyancy: 0   # kg
+  center_of_mass: [0, 0, 0]        # mm (x,y,z)
+  center_of_buoyancy: [0, 0, 0]   # mm (x,y,z)
+
+
+propulsion:
+  dofs:
+    num: 3
+    which:
+      surge: true
+      sway:  true
+      yaw:   true
+  thrusters:
+    num: 4
+    configuration_matrix_NED:
+      [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
+       [ -0.70711,  0.70711,   -0.70711,  0.70711], # Sway
+       [ 0.27738,   0.27738,  -0.27738,  -0.27738]] # Yaw
+    
+#    configuration_matrix: # NWD
+#      [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
+#       [ 0.70711,  -0.70711,   0.70711,  -0.70711], # Sway
+#       [ 0.32557,   0.32557,  -0.32557,  -0.32557]] # Yaw
+
+    rate_of_change:
+      max: 0 # Maximum rate of change in newton per second for a thruster
+    map: [0, 1, 2, 3] # Disclose during thruster mapping
+    direction: [1,  1,  1, 1] # Disclose during thruster mapping
+    offset: [0, 0, 0, 0] # Disclose during thruster mapping
+  command:
+    wrench:
+      max:     [33.9, 33.9, 48.0, 7.6, 3.2, 9.9]
+      scaling: [ 0.4,  0.4,  0.6, 0.3, 0.7, 0.4]
+
+computer: "pc-debug"
