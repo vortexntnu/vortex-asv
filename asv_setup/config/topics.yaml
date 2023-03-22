@@ -11,3 +11,8 @@ guidance_interface:
   dp_data: "/guidance/dp_data"    # currently unused, publish to this topic when implementing DP
   desired_speed: "/guidance/desired_speed"      
   desired_heading: "/guidance/desired_heading"
+
+guidance:
+  LOS:
+    odom_topic: "/odometry/filtered"
+    action_server: "/guidance_interface/los_server"
