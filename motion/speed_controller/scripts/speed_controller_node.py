@@ -3,6 +3,7 @@
 import rospy
 
 from geometry_msgs.msg import Wrench
+from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
 
 from pid_controller import PIDRegulator
@@ -52,6 +53,7 @@ class SpeedControllerPID:
         """
 
         # error ENU
+
         e_rot = u_d - u
 
         # regulate(err, t)
@@ -81,14 +83,23 @@ class SpeedControllerROS:
 
         rospy.init_node("speed_controller")
 
+        self.u = 0
+
         # Create controller
         self.PID = SpeedControllerPID()
 
-        # Subscriber
+        # Subscribers
         self.guidance_sub = rospy.Subscriber(
             rospy.get_param("/guidance_interface/desired_speed"),
             Float64,
             self.speed_data_callback,
+            queue_size = 1,
+        )
+
+        self.odometry_sub = rospy.Subscriber(
+            "/pose_gt", # change to /odometry/filtered
+            Odometry,
+            self.odometry_callback,
             queue_size = 1,
         )
 
@@ -101,6 +112,11 @@ class SpeedControllerROS:
         self.config = {}
         self.srv_reconfigure = Server(speedControllerConfig, self.config_callback)
 
+
+    def odometry_callback(self, odom_msg):
+        self.u = odom_msg.twist.twist.linear.x
+    
+
     def speed_data_callback(self, msg):
         """
         Handle guidance data
@@ -110,7 +126,7 @@ class SpeedControllerROS:
         force_msg = Wrench()
 
         # desired speed message
-        force_msg.force.x = self.PID.speed_controller(0.5, msg.u, rospy.Time.now())
+        force_msg.force.x = self.PID.speed_controller(0.5, self.u, rospy.Time.now().to_sec())
         self.force_pub.publish(force_msg)
 
 

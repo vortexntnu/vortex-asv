@@ -3,7 +3,9 @@
 import rospy
 
 from geometry_msgs.msg import Wrench
+from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
+import tf
 
 from pid_controller import PIDRegulator
 from heading_controller.cfg import headingControllerConfig
@@ -82,14 +84,23 @@ class HeadingControllerROS:
 
         rospy.init_node("heading_controller")
 
+        self.psi = 0
+
         # Create controller
         self.PID = HeadingControllerPID()
 
-        # Subscriber
+        # Subscribers
         self.heading_sub = rospy.Subscriber(
             rospy.get_param("/guidance_interface/desired_heading"),
             Float64,
             self.heading_data_callback,
+            queue_size = 1,
+        )
+
+        self.odometry_sub = rospy.Subscriber(
+            "/pose_gt", # change to /odometry/filtered
+            Odometry,
+            self.odometry_callback,
             queue_size = 1,
         )
 
@@ -102,6 +113,13 @@ class HeadingControllerROS:
         self.config = {}
         self.srv_reconfigure = Server(headingControllerConfig, self.config_callback)
 
+
+    def odometry_callback(self, odom_msg):
+        q = odom_msg.pose.pose.orientation
+        q_l = [q.x, q.y, q.z, q.w]
+        _, _, yaw = tf.transformations.euler_from_quaternion(q_l)
+        self.psi = yaw
+
     def heading_data_callback(self, msg):
         """
         Handle guidance data
@@ -111,7 +129,7 @@ class HeadingControllerROS:
         torque_msg = Wrench()
 
         # Desired heading message
-        torque_msg.torque.z = self.PID.heading_controller(msg.psi_d, msg.psi, rospy.Time.now())
+        torque_msg.torque.z = self.PID.heading_controller(msg.data, self.psi, rospy.Time.now().to_sec())
         self.torque_pub.publish(torque_msg)
         
 
@@ -166,11 +184,8 @@ class HeadingControllerROS:
             
 
 if __name__ == "__main__":
-    try:
-        heading_controller = HeadingControllerROS()
-        rospy.spin
-    except rospy.ROSInterruptException:
-        pass
+    heading_controller = HeadingControllerROS()
+    rospy.spin()
         
 
 

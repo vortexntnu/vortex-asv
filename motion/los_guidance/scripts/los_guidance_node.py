@@ -241,7 +241,7 @@ class LosPathFollowing(object):
 
     Publishes to:
             /guidance/los_data
-            /auv/los_desired
+            /asv/los_desired
     """
 
     # create messages that are used to send feedback/result
@@ -271,7 +271,7 @@ class LosPathFollowing(object):
         )  # 20hz
 
         # Publishers
-        self.pub_desired = rospy.Publisher("/auv/los_desired", Odometry, queue_size=1)
+        self.pub_desired = rospy.Publisher("/asv/los_desired", Odometry, queue_size=1)
         self.pub_data_los_controller = rospy.Publisher(
             rospy.get_param("/guidance_interface/los_data"), GuidanceData, queue_size=1
         ) 
