@@ -20,6 +20,10 @@ class Idle(smach.State):
 
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('Executing Idle')
         if self.ObjectSearchAttempts == 5:
             return 'stop'
@@ -47,6 +51,10 @@ class Search(smach.State):
         #Update ASV Position 
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('Executing Search')
         #Copy search pattern from AUV
 
@@ -80,6 +88,10 @@ class OneRedBouyNav(smach.State):
         smach.State.__init__(self, outcomes=['search'])
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('OneRedBouyNav')
         pass
 
@@ -88,6 +100,10 @@ class OneGreenBouyNav(smach.State):
         smach.State.__init__(self, outcomes=['search'])
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('OneGreenBouyNav')
         pass
 
@@ -96,6 +112,10 @@ class GreenAndReadBouyNav(smach.State):
         smach.State.__init__(self, outcomes=['search'])
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('GreenAndReadBouyNav')
         pass
 
@@ -104,6 +124,10 @@ class NorthMarkerNav(smach.State):
         smach.State.__init__(self, outcomes=['search'])
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('NorthMarkerNav')
         pass
 
@@ -112,6 +136,10 @@ class SouthMarkerNav(smach.State):
         smach.State.__init__(self, outcomes=['search'])
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('NorthMarkerNav')
         pass
 
@@ -120,6 +148,10 @@ class WestMarkerNav(smach.State):
         smach.State.__init__(self, outcomes=['search'])
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('NorthMarkerNav')
         pass
 
@@ -128,6 +160,10 @@ class EastMarkerNav(smach.State):
         smach.State.__init__(self, outcomes=['search'])
 
     def execute(self, userdata):
+        # while not rospy.is_shutdown():
+        #     self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+
+        #     if self.enabled:
         rospy.loginfo('NorthMarkerNav')
         pass
 
