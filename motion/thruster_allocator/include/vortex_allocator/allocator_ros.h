@@ -50,9 +50,9 @@ private:
   double m_max_thrust;
   const double c_force_range_limit = 100;
 
-  float body_frame_force_x;
-  float body_frame_force_y;
-  float body_frame_torque;
+  float body_frame_force_x = 0.0;
+  float body_frame_force_y = 0.0;
+  float body_frame_torque = 0.0;
 
   std::unique_ptr<PseudoinverseAllocator> m_pseudoinverse_allocator;
 
