@@ -13,7 +13,6 @@ from heading_controller.cfg import headingControllerConfig
 from dynamic_reconfigure.server import Server
 
 
-
 class HeadingControllerPID:
     """
     Wrapper for the PID controller to make the heading_controller
@@ -42,7 +41,6 @@ class HeadingControllerPID:
         self.controller_psi.d = psi_d
         self.controller_psi.sat = psi_sat
 
-
     def heading_controller(self, psi_d, psi, t):
         """
         Calculate force to maintain fixed heading.
@@ -62,10 +60,9 @@ class HeadingControllerPID:
         return tau_psi
 
 
-
 class HeadingControllerROS:
     """
-    The ROS wrapper class for the HeadingControllerPID. 
+    The ROS wrapper class for the HeadingControllerPID.
     The heading_controller is made up
     of a PID controller.
     Nodes created:
@@ -94,14 +91,14 @@ class HeadingControllerROS:
             rospy.get_param("/guidance_interface/desired_heading"),
             Float64,
             self.heading_data_callback,
-            queue_size = 1,
+            queue_size=1,
         )
 
         self.odometry_sub = rospy.Subscriber(
-            "/pose_gt", # change to /odometry/filtered
+            "/pose_gt",  # change to /odometry/filtered
             Odometry,
             self.odometry_callback,
-            queue_size = 1,
+            queue_size=1,
         )
 
         # Publisher
@@ -112,7 +109,6 @@ class HeadingControllerROS:
         # Dynamic reconfigure
         self.config = {}
         self.srv_reconfigure = Server(headingControllerConfig, self.config_callback)
-
 
     def odometry_callback(self, odom_msg):
         q = odom_msg.pose.pose.orientation
@@ -129,9 +125,10 @@ class HeadingControllerROS:
         torque_msg = Wrench()
 
         # Desired heading message
-        torque_msg.torque.z = self.PID.heading_controller(msg.data, self.psi, rospy.Time.now().to_sec())
+        torque_msg.torque.z = self.PID.heading_controller(
+            msg.data, self.psi, rospy.Time.now().to_sec()
+        )
         self.torque_pub.publish(torque_msg)
-        
 
     def config_callback(self, config, level):
         """Handle updated configuration values.
@@ -169,7 +166,7 @@ class HeadingControllerROS:
         self.config = config
 
         return config
-    
+
     def log_value_if_updated(self, name, old_value, new_value):
         """
         A helper function for the config_callback() method
@@ -181,14 +178,8 @@ class HeadingControllerROS:
 
         if old_value != new_value:
             rospy.loginfo("\t {:}: {:.4f} -> {:.4f}".format(name, old_value, new_value))
-            
+
 
 if __name__ == "__main__":
     heading_controller = HeadingControllerROS()
     rospy.spin()
-        
-
-
-
-
-

@@ -40,7 +40,6 @@ class SpeedControllerPID:
         self.controller_u.d = u_d
         self.controller_u.sat = u_sat
 
-
     def speed_controller(self, u_d, u, t):
         """
         Calculate force to maintain fixed speed.
@@ -63,7 +62,7 @@ class SpeedControllerPID:
 
 class SpeedControllerROS:
     """
-    The ROS wrapper class for the SpeedControllerPID. 
+    The ROS wrapper class for the SpeedControllerPID.
     The speed_controller is made up
     of a PID controller.
     Nodes created:
@@ -72,7 +71,7 @@ class SpeedControllerROS:
             "/guidance_desired_speed"
     Publishes to:
             "/thrust/force_input"
-            
+
     """
 
     def __init__(self):
@@ -93,14 +92,14 @@ class SpeedControllerROS:
             rospy.get_param("/guidance_interface/desired_speed"),
             Float64,
             self.speed_data_callback,
-            queue_size = 1,
+            queue_size=1,
         )
 
         self.odometry_sub = rospy.Subscriber(
-            "/pose_gt", # change to /odometry/filtered
+            "/pose_gt",  # change to /odometry/filtered
             Odometry,
             self.odometry_callback,
-            queue_size = 1,
+            queue_size=1,
         )
 
         # Publisher
@@ -112,10 +111,8 @@ class SpeedControllerROS:
         self.config = {}
         self.srv_reconfigure = Server(speedControllerConfig, self.config_callback)
 
-
     def odometry_callback(self, odom_msg):
         self.u = odom_msg.twist.twist.linear.x
-    
 
     def speed_data_callback(self, msg):
         """
@@ -126,9 +123,10 @@ class SpeedControllerROS:
         force_msg = Wrench()
 
         # desired speed message
-        force_msg.force.x = self.PID.speed_controller(0.5, self.u, rospy.Time.now().to_sec())
+        force_msg.force.x = self.PID.speed_controller(
+            0.5, self.u, rospy.Time.now().to_sec()
+        )
         self.force_pub.publish(force_msg)
-
 
     def config_callback(self, config, level):
         """Handle updated configuration values.
@@ -166,7 +164,7 @@ class SpeedControllerROS:
         self.config = config
 
         return config
-    
+
     def log_value_if_updated(self, name, old_value, new_value):
         """
         A helper function for the config_callback() method
@@ -178,7 +176,7 @@ class SpeedControllerROS:
 
         if old_value != new_value:
             rospy.loginfo("\t {:}: {:.4f} -> {:.4f}".format(name, old_value, new_value))
-            
+
 
 if __name__ == "__main__":
     speed_controller = SpeedControllerROS()

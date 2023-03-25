@@ -25,7 +25,7 @@ class WaypointManager:
 
     def __init__(self):
         rospy.init_node("WaypointManager")
-        self.waypoint_list = [[5,5], [8,8]]
+        self.waypoint_list = [[5, 5], [8, 8]]
 
         # Action client
         self.action_client = actionlib.SimpleActionClient(
