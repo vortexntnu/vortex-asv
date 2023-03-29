@@ -14,7 +14,6 @@ from std_msgs.msg import Float32, Float32MultiArray
 from vortex_msgs.msg import Pwm
 
 
-
 class ThrusterInterface(object):
     def __init__(
         self,
@@ -30,7 +29,7 @@ class ThrusterInterface(object):
         self.thruster_directions = thruster_directions
         self.thruster_offsets = thruster_offsets
 
-        #bus = smbus.SMBus(0)
+        # bus = smbus.SMBus(0)
 
         self.thruster_operational_voltage_range = rospy.get_param(
             "/propulsion/thrusters/thrusters_operational_voltage_range"
@@ -72,11 +71,8 @@ class ThrusterInterface(object):
             "/thrust/delivered_forces", Float32MultiArray, queue_size=1
         )
 
-
         #######################################
-        self.phony_pub = rospy.Publisher(
-            "/phony", Float32, queue_size=1
-        )
+        self.phony_pub = rospy.Publisher("/phony", Float32, queue_size=1)
         #######################################
 
         self.output_to_zero()
@@ -86,7 +82,6 @@ class ThrusterInterface(object):
         print("Thruster interface initialized")
 
         self.phony_pub.publish(0.2)
-
 
     def map_percentage_to_pwm(self, percentage, rangeStart, rangeEnd):
         """maps percentage values from -1.9 to 1.0 into start and range pwm signal
@@ -148,7 +143,6 @@ class ThrusterInterface(object):
             p = np.polyfit(x, y, 1)  # Linear fit
             thrust_to_pwm[voltage] = np.poly1d(p)
 
-
         for voltage in new_voltage_steps:
             thrust_to_pwm[voltage] = interp1d(
                 thrusts_from_voltage[voltage], pwm_values, kind="slinear"
@@ -184,7 +178,7 @@ class ThrusterInterface(object):
         return zero_thrust_msg
 
     def get_voltage(self):
-        return 16.0 #We haven't implemented BMS yet, what should arctually be there is np.round(sum(self.voltage_queue) / len(self.voltage_queue), 1)
+        return 16.0  # We haven't implemented BMS yet, what should arctually be there is np.round(sum(self.voltage_queue) / len(self.voltage_queue), 1)
 
     def add_voltage(self, voltage):
         self.voltage_queue.popleft()
@@ -267,7 +261,6 @@ class ThrusterInterface(object):
             double: thrust value
         """
         return self.pwm_to_thrust[self.get_voltage()](pwm)
-    
 
     def thrust_cb(self, thrust_msg):
         """Takes inn desired thruster forces and publishes
@@ -305,11 +298,11 @@ class ThrusterInterface(object):
                 pwm_microsecs = middle_value - diff
             pwm_microsecs = self.limit_pwm(pwm_microsecs, i)
             microsecs[self.thruster_map[i]] = pwm_microsecs
-            #Make pwm list here for i2c
+            # Make pwm list here for i2c
             pwm_msg.pins.append(self.thruster_map[i])
 
         print(pwm_microsecs)
-        #Write to i2c
+        # Write to i2c
         address = 1
         self.send_i2c_data(address, microsecs)
 
@@ -320,7 +313,6 @@ class ThrusterInterface(object):
         # publish delivered thrust (for data collection purposes)
         self.delivered_thrust_pub.publish(validated_thrust_msg)
 
-
     def STOP_thrusters(self):
         # calculate pwm values to STOP thusters
         pwm_microsecs = [None] * self.num_thrusters
@@ -328,34 +320,30 @@ class ThrusterInterface(object):
         for i in range(self.num_thrusters):
             middle_value = 1500 + self.thruster_offsets[self.thruster_map[i]]
             pwm_microsecs[self.thruster_map[i]] = middle_value  # Thrust to 0%
-            #Make pwm list here for i2c
+            # Make pwm list here for i2c
             pwm_msg.pins.append(self.thruster_map[i])
 
         # publish pwm
         pwm_msg.positive_width_us = np.array(pwm_microsecs).astype("uint16")
-        #Write 1500 microseconds.
+        # Write 1500 microseconds.
         self.pwm_pub.publish(pwm_msg)
 
         # publish delivered thrust (for data collection purposes)
         self.delivered_thrust_pub.publish(self.zero_thrust_msg())
-    
-    def send_i2c_data(self,address, microsecs): 
+
+    def send_i2c_data(self, address, microsecs):
         print("In i2c function")
         print(microsecs)
-        for data in microsecs: 
-            # Split the 16-bit integer into two 8-bit bytes 
-            msb = data >> 8 
-            lsb = data & 0xFF 
-            # Write both bytes one after the other 
-            #bus.write_byte_data(address, msb, lsb) 
-    
-
-    
-
+        for data in microsecs:
+            # Split the 16-bit integer into two 8-bit bytes
+            msb = data >> 8
+            lsb = data & 0xFF
+            # Write both bytes one after the other
+            # bus.write_byte_data(address, msb, lsb)
 
 
 if __name__ == "__main__":
-    print('Hello, about to initiate node')
+    print("Hello, about to initiate node")
     rospy.init_node("thruster_interface", log_level=rospy.INFO)
     rospack = rospkg.RosPack()
     thruster_interface_path = rospack.get_path("thruster_interface")
@@ -387,5 +375,5 @@ if __name__ == "__main__":
         thruster_offsets=THRUST_OFFSET,
     )
 
-    print('Hello, about to enter spin')
+    print("Hello, about to enter spin")
     rospy.spin()
