@@ -6,13 +6,12 @@ import numpy as np
 from openpyxl import load_workbook
 from scipy.interpolate import interp1d
 
-import smbus
+import smbus2
 
 
 import rospy, rospkg
 from std_msgs.msg import Float32, Float32MultiArray
 from vortex_msgs.msg import Pwm
-
 
 class ThrusterInterface(object):
     def __init__(
@@ -29,7 +28,8 @@ class ThrusterInterface(object):
         self.thruster_directions = thruster_directions
         self.thruster_offsets = thruster_offsets
 
-        # bus = smbus.SMBus(0)
+        self.bus = smbus2.SMBus(7)
+        self.address = 0x21
 
         self.thruster_operational_voltage_range = rospy.get_param(
             "/propulsion/thrusters/thrusters_operational_voltage_range"
@@ -334,12 +334,19 @@ class ThrusterInterface(object):
     def send_i2c_data(self, address, microsecs):
         print("In i2c function")
         print(microsecs)
+        data_to_send = []
+        temp = 0
         for data in microsecs:
             # Split the 16-bit integer into two 8-bit bytes
             msb = data >> 8
             lsb = data & 0xFF
-            # Write both bytes one after the other
-            # bus.write_byte_data(address, msb, lsb)
+            data_to_send += [msb]
+            data_to_send += [lsb]
+            temp += 2
+        #Since the function actually requires a sort of "signing" acknowledgement package,
+        #We just put the first byte as the signing acknowledgement package, the rest of the 7 bytes are sent as usual
+        #Thanks to this we get 8 bytes in the end, which is necessary for our implementation
+        self.bus.write_i2c_block_data(self.address, data_to_send[0], data_to_send[1:temp])
 
 
 if __name__ == "__main__":
