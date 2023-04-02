@@ -100,10 +100,10 @@ class ThrusterInterface(object):
         return pwmSignal
 
     def parse_and_interpolate_thruster_data(self, thruster_datasheet_path):
-        """Parses the blue robotics T200 datasheet and creates a new dataset
-        for voltages at steps of 0.1 by interpolating existing data.
+        """Parses the ThrustMe P1000 datasheet and creates a new dataset
+        for voltages at steps of 0.1 by scaling existing data.
         Args:
-            thruster_datasheet_path (string): path to T200 thruster dataseheet
+            thruster_datasheet_path (string): path to P1000 thruster dataseheet
         Returns:
             list: all possible pwm values
             dict[float]: dictionary with thrust for each pwm for a given voltage
@@ -111,42 +111,19 @@ class ThrusterInterface(object):
                             for a given voltage
         """
 
-        # parse T200 datasheet
+        # parse P1000 datasheet
         workbook = load_workbook(filename=thruster_datasheet_path)
-        voltages = [10, 12, 14, 16, 18, 20]
-        pwm_values = [cell[0].value for cell in workbook["10 V"]["A2":"A202"]]
-        thrusts_dict = dict()
-        for voltage in voltages:
-            thrusts_dict[voltage] = [
-                cell[0].value * 9.8 for cell in workbook["%i V" % voltage]["F2":"F202"]
-            ]  # * 9.8 for converting from kg f to newton
+        pwm_values = [cell[0].value for cell in workbook["in"]["B3":"B191"]]
+        thrust_10V = [
+            cell[0].value * 9.8 / 1000 for cell in workbook["in"]["A3":"A191"]
+        ]  # * 9.8/1000 for converting from grams f to newton, and because 
+        
 
-        # create new dataset with voltage steps of 0.1 by interpolating
-        new_voltage_steps = np.round(np.arange(10, 20.01, 0.1), decimals=1)
-        thrusts_from_voltage = dict()
-        for voltage in new_voltage_steps:
-            thrusts_from_voltage[voltage] = []
-        for i in range(len(pwm_values)):
-            pwm = pwm_values[i]
-            thrusts = [thrusts_dict[voltage][i] for voltage in voltages]
-            interpolated_thrusts = np.interp(new_voltage_steps, voltages, thrusts)
-
-            # save interpolated thrusts to dict
-            for voltage, thrust in zip(new_voltage_steps, interpolated_thrusts):
-                thrusts_from_voltage[voltage].append(thrust)
-
-        # create pwm_lookup functions by 1d interpolation of thrusts at each voltage level
-        thrust_to_pwm = dict()
-        for voltage in new_voltage_steps:
-            x = np.array(thrusts_from_voltage[voltage])
-            y = np.array(pwm_values)
-            p = np.polyfit(x, y, 1)  # Linear fit
-            thrust_to_pwm[voltage] = np.poly1d(p)
-
-        for voltage in new_voltage_steps:
-            thrust_to_pwm[voltage] = interp1d(
-                thrusts_from_voltage[voltage], pwm_values, kind="slinear"
-            )
+        # create new dataset with voltage steps of 0.1 with linear relationship
+        new_voltage_steps = np.round(np.arange(20, 25.01, 0.1), decimals=1)
+        thrusts_from_voltage = [(voltage/18.5)*thrust_10V for voltage in new_voltage_steps]
+        # create pwm_lookup function by 1d interpolation of thrusts at the given voltage
+        thrust_to_pwm = interp1d(thrusts_from_voltage, pwm_values, kind="slinear")
 
         return (pwm_values, thrusts_from_voltage, thrust_to_pwm)
 
@@ -365,7 +342,7 @@ if __name__ == "__main__":
 
     T200_DATASHEET_PATH = rospy.get_param(
         "/thruster_interface/thruster_datasheet_path",
-        default="%s/config//T200-Public-Performance-Data-10-20V-September-2019.xlsx"
+        default="%s/config//ThrustMe-P1000-force-mapping-forward-reverse-datablad@V18dot5.xlsx"
         % thruster_interface_path,
     )
     NUM_THRUSTERS = rospy.get_param("/propulsion/thrusters/num")
