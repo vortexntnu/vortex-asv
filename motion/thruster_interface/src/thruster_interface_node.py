@@ -6,13 +6,12 @@ import numpy as np
 from openpyxl import load_workbook
 from scipy.interpolate import interp1d
 
-import smbus
+import smbus2
 
 
 import rospy, rospkg
 from std_msgs.msg import Float32, Float32MultiArray
 from vortex_msgs.msg import Pwm
-
 
 class ThrusterInterface(object):
     def __init__(
@@ -29,7 +28,8 @@ class ThrusterInterface(object):
         self.thruster_directions = thruster_directions
         self.thruster_offsets = thruster_offsets
 
-        # bus = smbus.SMBus(0)
+        #self.bus = smbus2.SMBus(7)
+        #self.address = 0x21
 
         self.thruster_operational_voltage_range = rospy.get_param(
             "/propulsion/thrusters/thrusters_operational_voltage_range"
@@ -71,9 +71,6 @@ class ThrusterInterface(object):
             "/thrust/delivered_forces", Float32MultiArray, queue_size=1
         )
 
-        #######################################
-        self.phony_pub = rospy.Publisher("/phony", Float32, queue_size=1)
-        #######################################
 
         self.output_to_zero()
         rospy.on_shutdown(self.output_to_zero)
@@ -81,7 +78,6 @@ class ThrusterInterface(object):
         rospy.loginfo("Thruster interface initialized")
         print("Thruster interface initialized")
 
-        self.phony_pub.publish(0.2)
 
     def map_percentage_to_pwm(self, percentage, rangeStart, rangeEnd):
         """maps percentage values from -1.9 to 1.0 into start and range pwm signal
@@ -100,10 +96,10 @@ class ThrusterInterface(object):
         return pwmSignal
 
     def parse_and_interpolate_thruster_data(self, thruster_datasheet_path):
-        """Parses the blue robotics T200 datasheet and creates a new dataset
-        for voltages at steps of 0.1 by interpolating existing data.
+        """Parses the ThrustMe P1000 datasheet and creates a new dataset
+        for voltages at steps of 0.1 by scaling existing data.
         Args:
-            thruster_datasheet_path (string): path to T200 thruster dataseheet
+            thruster_datasheet_path (string): path to P1000 thruster dataseheet
         Returns:
             list: all possible pwm values
             dict[float]: dictionary with thrust for each pwm for a given voltage
@@ -113,16 +109,16 @@ class ThrusterInterface(object):
 
         # parse T200 datasheet
         workbook = load_workbook(filename=thruster_datasheet_path)
-        voltages = [10, 12, 14, 16, 18, 20]
-        pwm_values = [cell[0].value for cell in workbook["10 V"]["A2":"A202"]]
+        voltages = [20.5, 22.5, 24.5]
+        pwm_values = [cell[0].value for cell in workbook["18.5V"]["B3":"B191"]]
         thrusts_dict = dict()
         for voltage in voltages:
             thrusts_dict[voltage] = [
-                cell[0].value * 9.8 for cell in workbook["%i V" % voltage]["F2":"F202"]
-            ]  # * 9.8 for converting from kg f to newton
+                cell[0].value * 9.8 / 1000 for cell in workbook["%.1fV" % voltage]["A3":"A191"]
+            ]  # * 9.8 / 1000 for converting from grams f to newton
 
         # create new dataset with voltage steps of 0.1 by interpolating
-        new_voltage_steps = np.round(np.arange(10, 20.01, 0.1), decimals=1)
+        new_voltage_steps = np.round(np.arange(20, 25.01, 0.1), decimals=1)
         thrusts_from_voltage = dict()
         for voltage in new_voltage_steps:
             thrusts_from_voltage[voltage] = []
@@ -138,18 +134,12 @@ class ThrusterInterface(object):
         # create pwm_lookup functions by 1d interpolation of thrusts at each voltage level
         thrust_to_pwm = dict()
         for voltage in new_voltage_steps:
-            x = np.array(thrusts_from_voltage[voltage])
-            y = np.array(pwm_values)
-            p = np.polyfit(x, y, 1)  # Linear fit
-            thrust_to_pwm[voltage] = np.poly1d(p)
-
-        for voltage in new_voltage_steps:
             thrust_to_pwm[voltage] = interp1d(
                 thrusts_from_voltage[voltage], pwm_values, kind="slinear"
             )
 
         return (pwm_values, thrusts_from_voltage, thrust_to_pwm)
-
+    
     def pwm_lookup(self, thrust, voltage):
         """finds a good pwm value for a desired thrust and a battery voltage
         Args:
@@ -176,13 +166,11 @@ class ThrusterInterface(object):
         for i in range(self.num_thrusters):
             zero_thrust_msg.data.append(0)
         return zero_thrust_msg
+    
 
     def get_voltage(self):
-        return 16.0  # We haven't implemented BMS yet, what should arctually be there is np.round(sum(self.voltage_queue) / len(self.voltage_queue), 1)
+        return 21.0  # We haven't implemented BMS yet, what should arctually be there is np.round(sum(self.voltage_queue) / len(self.voltage_queue), 1)
 
-    def add_voltage(self, voltage):
-        self.voltage_queue.popleft()
-        self.voltage_queue.append(voltage)
 
     def validate_and_limit_thrust(self, thrust_msg):
         """limits a thrust value to achieveable maximum and minumum values and
@@ -304,7 +292,7 @@ class ThrusterInterface(object):
         print(pwm_microsecs)
         # Write to i2c
         address = 1
-        self.send_i2c_data(address, microsecs)
+        #self.send_i2c_data(address, microsecs)
 
         # publish pwm
         pwm_msg.positive_width_us = np.array(microsecs).astype("uint16")
@@ -334,12 +322,19 @@ class ThrusterInterface(object):
     def send_i2c_data(self, address, microsecs):
         print("In i2c function")
         print(microsecs)
+        data_to_send = []
+        temp = 0
         for data in microsecs:
             # Split the 16-bit integer into two 8-bit bytes
             msb = data >> 8
             lsb = data & 0xFF
-            # Write both bytes one after the other
-            # bus.write_byte_data(address, msb, lsb)
+            data_to_send += [msb]
+            data_to_send += [lsb]
+            temp += 2
+        #Since the function actually requires a sort of "signing" acknowledgement package,
+        #We just put the first byte as the signing acknowledgement package, the rest of the 7 bytes are sent as usual
+        #Thanks to this we get 8 bytes in the end, which is necessary for our implementation
+        self.bus.write_i2c_block_data(self.address, data_to_send[0], data_to_send[1:temp])
 
 
 if __name__ == "__main__":
@@ -356,9 +351,9 @@ if __name__ == "__main__":
         "/thruster_interface/desired_thrust_topic", default="/thrust/thruster_forces"
     )
 
-    T200_DATASHEET_PATH = rospy.get_param(
+    P1000_DATASHEET_PATH = rospy.get_param(
         "/thruster_interface/thruster_datasheet_path",
-        default="%s/config//T200-Public-Performance-Data-10-20V-September-2019.xlsx"
+        default="%s/config//ThrustMe-P1000-force-mapping-forward-reverse-datablad.xlsx"
         % thruster_interface_path,
     )
     NUM_THRUSTERS = rospy.get_param("/propulsion/thrusters/num")
@@ -366,7 +361,7 @@ if __name__ == "__main__":
     THRUSTER_DIRECTION = rospy.get_param("/propulsion/thrusters/direction")
 
     thruster_interface = ThrusterInterface(
-        thruster_datasheet_path=T200_DATASHEET_PATH,
+        thruster_datasheet_path=P1000_DATASHEET_PATH,
         voltage_topic=VOLTAGE_TOPIC,
         thruster_forces_topic=DESIRED_THRUST_TOPIC,
         pwm_topic=PWM_TOPIC,
