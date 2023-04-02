@@ -32,7 +32,11 @@ propulsion:
   thrusters:
 
     thrusters_operational_voltage_range:
+<<<<<<< HEAD
       [20, 25]
+=======
+      [14, 16]
+>>>>>>> 74fa1a6371b577beace3f1686f558d550c4bb1b7
 
     num: 4
     configuration_matrix_NED:
