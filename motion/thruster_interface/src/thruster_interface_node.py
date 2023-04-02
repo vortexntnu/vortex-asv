@@ -28,13 +28,9 @@ class ThrusterInterface(object):
         self.thruster_directions = thruster_directions
         self.thruster_offsets = thruster_offsets
 
-<<<<<<< HEAD
         self.bus = smbus2.SMBus(7)
         self.address = 0x21
-=======
-        self.bus = smbus2.SMBus(7)
-        self.address = 0x21
->>>>>>> 74fa1a6371b577beace3f1686f558d550c4bb1b7
+
 
         self.thruster_operational_voltage_range = rospy.get_param(
             "/propulsion/thrusters/thrusters_operational_voltage_range"
@@ -114,7 +110,6 @@ class ThrusterInterface(object):
 
         # parse P1000 datasheet
         workbook = load_workbook(filename=thruster_datasheet_path)
-<<<<<<< HEAD
         voltages = [20.5, 22.5, 24.5]
         pwm_values = [cell[0].value for cell in workbook["18.5V"]["B3":"B191"]]
         thrusts_dict = dict()
@@ -143,19 +138,7 @@ class ThrusterInterface(object):
             thrust_to_pwm[voltage] = interp1d(
                 thrusts_from_voltage[voltage], pwm_values, kind="slinear"
             )
-=======
-        pwm_values = [cell[0].value for cell in workbook["in"]["B3":"B191"]]
-        thrust_10V = [
-            cell[0].value * 9.8 / 1000 for cell in workbook["in"]["A3":"A191"]
-        ]  # * 9.8/1000 for converting from grams f to newton, and because 
-        
 
-        # create new dataset with voltage steps of 0.1 with linear relationship
-        new_voltage_steps = np.round(np.arange(20, 25.01, 0.1), decimals=1)
-        thrusts_from_voltage = [(voltage/18.5)*thrust_10V for voltage in new_voltage_steps]
-        # create pwm_lookup function by 1d interpolation of thrusts at the given voltage
-        thrust_to_pwm = interp1d(thrusts_from_voltage, pwm_values, kind="slinear")
->>>>>>> 74fa1a6371b577beace3f1686f558d550c4bb1b7
 
         return (pwm_values, thrusts_from_voltage, thrust_to_pwm)
     
@@ -372,11 +355,7 @@ if __name__ == "__main__":
 
     P1000_DATASHEET_PATH = rospy.get_param(
         "/thruster_interface/thruster_datasheet_path",
-<<<<<<< HEAD
         default="%s/config//ThrustMe-P1000-force-mapping-forward-reverse-datablad.xlsx"
-=======
-        default="%s/config//ThrustMe-P1000-force-mapping-forward-reverse-datablad@V18dot5.xlsx"
->>>>>>> 74fa1a6371b577beace3f1686f558d550c4bb1b7
         % thruster_interface_path,
     )
     NUM_THRUSTERS = rospy.get_param("/propulsion/thrusters/num")
