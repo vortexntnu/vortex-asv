@@ -1,0 +1,26 @@
+digraph G {
+"world" -> "world_ned"[label="Broadcaster: /world_ned_frame_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 72.294 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "left_panel_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 72.294 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "right_panel_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 72.294 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "dummy_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 72.294 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "imu_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 72.294 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "navsat_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 72.294 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "rear_plate"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 72.294 sec old)\nBuffer length: 0.000 sec\n"];
+"heron/base_link" -> "heron/base_link_ned"[label="Broadcaster: /gazebo\nAverage rate: 500.000 Hz\nMost recent transform: 72.294 ( 0.000 sec old)\nBuffer length: 4.910 sec\n"];
+"base_link" -> "thruster_0"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10.212 Hz\nMost recent transform: 72.282 ( 0.012 sec old)\nBuffer length: 4.896 sec\n"];
+"base_link" -> "thruster_1"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10.212 Hz\nMost recent transform: 72.282 ( 0.012 sec old)\nBuffer length: 4.896 sec\n"];
+"base_link" -> "thruster_2"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10.212 Hz\nMost recent transform: 72.282 ( 0.012 sec old)\nBuffer length: 4.896 sec\n"];
+"base_link" -> "thruster_3"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10.212 Hz\nMost recent transform: 72.282 ( 0.012 sec old)\nBuffer length: 4.896 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 72.294"[ shape=plaintext ] ;
+ }->"world";
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 72.294"[ shape=plaintext ] ;
+ }->"base_link";
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 72.294"[ shape=plaintext ] ;
+ }->"heron/base_link";
+}
