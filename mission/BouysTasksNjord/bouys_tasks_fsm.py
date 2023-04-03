@@ -3,11 +3,11 @@ import rospy
 import smach
 import smach_ros
 import mission.BouysTasksNjord.bouys_tasks as bouys_tasks
-from smach_ros import IntrospectionServer, UserData
+from smach_ros import UserData
 
 def userdata_callback(userdata):
     # update the value of the 'objectInfo' key in userdata
-    objectInfo = [('Tuple %d' % i, i) for i in range(1, 7)]
+    objectInfo = [('Tuple %d' % i, i) for i in range(1, 7)] #Change out
     userdata.objectInfo = objectInfo
 
 class ManeuveringNavigationTasks:
@@ -92,9 +92,6 @@ class ManeuveringNavigationTasks:
 
              # create a ROS node to update the userdata values
             rospy.init_node('userdata_updater')
-    
-            # set up a timer to periodically update the count key in the userdata
-            rospy.Timer(rospy.Duration(1), lambda event: setattr(userdata, 'count', userdata.count + 1))
 
             # Updating the objectInfo key in the userdata
             userdata_callback(userdata)
