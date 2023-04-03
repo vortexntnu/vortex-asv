@@ -1,4 +1,11 @@
 #!/usr/bin/python3
+
+
+#------------------------------------------------------------
+# will prob use something similar to this node,
+# i.e just a node that enables colav and maybe posts wp to los
+#-------------------------------------------------------------
+
 import rospy
 from nav_msgs.msg import Odometry
 import actionlib
