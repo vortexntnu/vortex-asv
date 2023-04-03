@@ -14,6 +14,7 @@ class GuidanceInterface():
     Functionality: decides which input should be given as output 
     Subscribes to guidance data from topics:
         "/guidance/los_data"
+        "/guiadance/colav_data"
     Publishes torque and force input to topics:
         "/guidance/desired_speed"  
         "/guidance/desired_heading"
@@ -49,7 +50,8 @@ class GuidanceInterface():
 
 
     def los_data_callback(self, guidance_data) -> None:
-        if self.pub_colav:return
+        if self.pub_colav:
+            return
         # Received desired speed and heading
         speed_msg = guidance_data.u_d
         heading_msg = guidance_data.psi_d
