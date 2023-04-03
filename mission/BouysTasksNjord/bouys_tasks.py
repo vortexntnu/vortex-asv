@@ -104,7 +104,7 @@ class OneRedBouyNav(smach.State):
 
             return 'search'
         else:
-            return 'search'  #Change out with something else
+            return 'search'  #Change out with emergency state or something
 
 
 #Can be done in a simmilar way as OneRedBouyNav.
