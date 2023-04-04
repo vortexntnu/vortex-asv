@@ -60,7 +60,7 @@ class DesideNextState(smach.State):
 
 class OneRedBouyNav(smach.State):
     def __init__(self, data):
-        smach.State.__init__(self, outcomes=['desideNextState'], input_keys=['userdata'])
+        smach.State.__init__(self, outcomes=['desideNextState'])
         self.data = data
 
     def execute(self):
