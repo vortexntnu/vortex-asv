@@ -72,12 +72,10 @@ class ThrusterInterface(object):
             "/thrust/delivered_forces", Float32MultiArray, queue_size=1
         )
 
-
         self.output_to_zero()
         rospy.on_shutdown(self.output_to_zero)
 
         rospy.loginfo("Thruster interface initialized")
-        print("Thruster interface initialized")
 
 
     def map_percentage_to_pwm(self, percentage, rangeStart, rangeEnd):
@@ -171,7 +169,7 @@ class ThrusterInterface(object):
     
 
     def get_voltage(self):
-        return 21.0  # We haven't implemented BMS yet, what should arctually be there is np.round(sum(self.voltage_queue) / len(self.voltage_queue), 1)
+        return 22.0  # We haven't implemented BMS yet, what should arctually be there is np.round(sum(self.voltage_queue) / len(self.voltage_queue), 1)
 
 
     def validate_and_limit_thrust(self, thrust_msg):
@@ -291,10 +289,9 @@ class ThrusterInterface(object):
             # Make pwm list here for i2c
             pwm_msg.pins.append(self.thruster_map[i])
 
-        print(pwm_microsecs)
         # Write to i2c
         address = 1
-        #self.send_i2c_data(address, microsecs)
+        self.send_i2c_data(address, microsecs)
 
         # publish pwm
         pwm_msg.positive_width_us = np.array(microsecs).astype("uint16")
@@ -322,8 +319,6 @@ class ThrusterInterface(object):
         self.delivered_thrust_pub.publish(self.zero_thrust_msg())
 
     def send_i2c_data(self, address, microsecs):
-        print("In i2c function")
-        print(microsecs)
         data_to_send = []
         temp = 0
         for data in microsecs:
@@ -340,7 +335,6 @@ class ThrusterInterface(object):
 
 
 if __name__ == "__main__":
-    print("Hello, about to initiate node")
     rospy.init_node("thruster_interface", log_level=rospy.INFO)
     rospack = rospkg.RosPack()
     thruster_interface_path = rospack.get_path("thruster_interface")
@@ -372,5 +366,4 @@ if __name__ == "__main__":
         thruster_offsets=THRUST_OFFSET,
     )
 
-    print("Hello, about to enter spin")
     rospy.spin()
