@@ -12,5 +12,3 @@ class Task:
 class Tasks:
     joystick = Task(id=0, name="joystick")
     collision_avoidance = Task(id=1, name="collision_avoidance")
-
-    tasks = [joystick, collision_avoidance]

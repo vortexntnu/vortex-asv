@@ -1,24 +1,32 @@
 #!/usr/bin/python3
-import rospy
 
+import rospy
+import dynamic_reconfigure.client
+from task_manager_defines import defines
 
 class Colav:
     def __init__(self):
-        self.enabled = rospy.get_param("/tasks/collision_avoidance")
-        # Your code here
+        rospy.init_node("collision_avoidance")
 
-    def spin(self):
-        while not rospy.is_shutdown():
-            self.enabled = rospy.get_param("/tasks/collision_avoidance")
+        self.isEnabled = False
 
-            if self.enabled:
-                rospy.loginfo("collision_avoidance; Inside callback")
-                # Your code here
 
-            rospy.sleep(0.1)
+    def callback(self, config):
+        rospy.loginfo("""Client: task change request: {Njord_tasks}""".format(**config))
+        activated_task_id = config["Njord_tasks"]
+
+        if defines.Tasks.collision_avoidance.id == activated_task_id:
+            self.isEnabled = True
+        else:
+            self.isEnabled = False
+        print(f"isEnabled: {self.isEnabled} ")
+
+        return config
+
 
 
 if __name__ == "__main__":
-    rospy.init_node("collision_avoidance")
-    colav_node = Colav()
-    colav_node.spin()
+    colav = Colav()
+    task_manager_client = dynamic_reconfigure.client.Client(
+    "task_manager/task_manager_server", timeout=5, config_callback=Colav.callback)
+    rospy.spin()
