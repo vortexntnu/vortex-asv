@@ -4,12 +4,12 @@ import rospy
 import dynamic_reconfigure.client
 from task_manager_defines import defines
 
+
 class Colav:
     def __init__(self):
         rospy.init_node("collision_avoidance")
 
         self.isEnabled = False
-
 
     def callback(self, config):
         rospy.loginfo("""Client: task change request: {Njord_tasks}""".format(**config))
@@ -24,9 +24,9 @@ class Colav:
         return config
 
 
-
 if __name__ == "__main__":
     colav = Colav()
     task_manager_client = dynamic_reconfigure.client.Client(
-    "task_manager/task_manager_server", timeout=5, config_callback=Colav.callback)
+        "task_manager/task_manager_server", timeout=5, config_callback=Colav.callback
+    )
     rospy.spin()
