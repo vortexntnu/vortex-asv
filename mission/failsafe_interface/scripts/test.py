@@ -1,22 +1,72 @@
-import RPi.GPIO as GPIO
+#!/usr/bin/env python
+#Check this link to understand what's going on https://wiki.radxa.com/Rockpi4/hardware/gpio
 
-if __name__ == "__main__":
-    outPIN = 11
-    inPIN = 13
-    sigPIN = 15
+import os
+import time
 
-    GPIO.setmode(GPIO.BCM)  # Use BCM numbering
+import subprocess
 
-    GPIO.setup(inPIN, GPIO.IN)  # Set pin 4 as input
-    GPIO.setup(outPIN, GPIO.OUT)  # Set pin 4 as input
-    GPIO.setup(sigPIN, GPIO.OUT)
+hardware_trigger = 133 # pin 35
+software_trigger = 76 # pin 33
+software_mode = 73 # pin 31
+hardware_mode = 74 # pin 29
 
-    GPIO.output(outPIN, 1)
 
-    while(True):
-        inSig = GPIO.input(inPIN)
 
-        GPIO.output(sigPIN, inSig)
+sudoPassword = "rock"
 
-        print("Input: ", inSig)
 
+def init_pin(pin):
+    try:
+        command = f'sudo sh -c "echo {pin} > /sys/class/gpio/export"' 
+        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+    except:
+        pass
+
+def set_pin_as_output(pin):
+    try:
+        command = f'sudo sh -c "echo out > /sys/class/gpio/gpio{pin}/direction"' 
+        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+    except:
+        pass
+
+def pin_write(pin, value):
+    try:
+        sudoPassword = 'rock' 
+        command = f'sudo sh -c "echo {value} > /sys/class/gpio/gpio{pin}/value"' 
+        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+    except:
+        pass
+
+def set_pin_as_input(pin):
+    try:
+        command = f'sudo sh -c "echo in > /sys/class/gpio/gpio{pin}/direction"' 
+        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+    except:
+        pass
+
+def pin_read(pin):
+    try:
+        #command = f"cat /sys/class/gpio/gpio{pin}/value"
+        #p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+        command = f'sudo sh -c "cat /sys/class/gpio/gpio{pin}/value"' 
+
+        output_str = os.popen('echo %s|sudo -S %s' % (sudoPassword, command)).read()
+        output_int = int(output_str)
+        return output_int
+
+    except:
+        return -1
+    
+init_pin(hardware_trigger)
+set_pin_as_output(hardware_trigger)
+
+print("Setting to high")
+pin_write(hardware_trigger, 1)
+
+init_pin(software_trigger)
+set_pin_as_input(software_trigger)
+
+while(True):
+    print(pin_read(software_trigger))
+    time.sleep(1)
