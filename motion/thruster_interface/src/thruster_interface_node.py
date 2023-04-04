@@ -13,6 +13,7 @@ import rospy, rospkg
 from std_msgs.msg import Float32, Float32MultiArray
 from vortex_msgs.msg import Pwm
 
+
 class ThrusterInterface(object):
     def __init__(
         self,
@@ -30,7 +31,6 @@ class ThrusterInterface(object):
 
         self.bus = smbus2.SMBus(7)
         self.address = 0x21
-
 
         self.thruster_operational_voltage_range = rospy.get_param(
             "/propulsion/thrusters/thrusters_operational_voltage_range"
@@ -77,7 +77,6 @@ class ThrusterInterface(object):
 
         rospy.loginfo("Thruster interface initialized")
 
-
     def map_percentage_to_pwm(self, percentage, rangeStart, rangeEnd):
         """maps percentage values from -1.9 to 1.0 into start and range pwm signal
         Args:
@@ -113,7 +112,8 @@ class ThrusterInterface(object):
         thrusts_dict = dict()
         for voltage in voltages:
             thrusts_dict[voltage] = [
-                cell[0].value * 9.8 / 1000 for cell in workbook["%.1fV" % voltage]["A3":"A191"]
+                cell[0].value * 9.8 / 1000
+                for cell in workbook["%.1fV" % voltage]["A3":"A191"]
             ]  # * 9.8 / 1000 for converting from grams f to newton
 
         # create new dataset with voltage steps of 0.1 by interpolating
@@ -137,9 +137,8 @@ class ThrusterInterface(object):
                 thrusts_from_voltage[voltage], pwm_values, kind="slinear"
             )
 
-
         return (pwm_values, thrusts_from_voltage, thrust_to_pwm)
-    
+
     def pwm_lookup(self, thrust, voltage):
         """finds a good pwm value for a desired thrust and a battery voltage
         Args:
@@ -166,11 +165,9 @@ class ThrusterInterface(object):
         for i in range(self.num_thrusters):
             zero_thrust_msg.data.append(0)
         return zero_thrust_msg
-    
 
     def get_voltage(self):
         return 22.0  # We haven't implemented BMS yet, what should arctually be there is np.round(sum(self.voltage_queue) / len(self.voltage_queue), 1)
-
 
     def validate_and_limit_thrust(self, thrust_msg):
         """limits a thrust value to achieveable maximum and minumum values and
@@ -328,10 +325,12 @@ class ThrusterInterface(object):
             data_to_send += [msb]
             data_to_send += [lsb]
             temp += 2
-        #Since the function actually requires a sort of "signing" acknowledgement package,
-        #We just put the first byte as the signing acknowledgement package, the rest of the 7 bytes are sent as usual
-        #Thanks to this we get 8 bytes in the end, which is necessary for our implementation
-        self.bus.write_i2c_block_data(self.address, data_to_send[0], data_to_send[1:temp])
+        # Since the function actually requires a sort of "signing" acknowledgement package,
+        # We just put the first byte as the signing acknowledgement package, the rest of the 7 bytes are sent as usual
+        # Thanks to this we get 8 bytes in the end, which is necessary for our implementation
+        self.bus.write_i2c_block_data(
+            self.address, data_to_send[0], data_to_send[1:temp]
+        )
 
 
 if __name__ == "__main__":
