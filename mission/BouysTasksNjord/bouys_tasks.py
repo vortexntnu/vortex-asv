@@ -2,9 +2,8 @@
 
 import rospy
 import smach
-import smach_ros
 import math
-from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
+from vortex_msgs.srv import Waypoint, WaypointRequest
 
 class Idle(smach.State):
     def __init__(self, data):
