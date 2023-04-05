@@ -41,6 +41,11 @@ class WaypointManager:
         self.remove_waypoint_service = rospy.Service(
             "remove_waypoint", Waypoint, self.remove_waypoint_from_list
         )
+        # Suggested function for simplicity in the mission/BouysTasksNjord.
+        self.overwrite_waypoint_list_with_new_waypoint_service = rospy.Service(
+            "overwrite_waypoint_list_with_new_waypoint", Waypoint, self.overwrite_waypoint_list_with_new_waypoint
+)
+
 
         # nav_msgs Path to visualize LOS in Rviz
         self.path_pub = rospy.Publisher("los_path", Path, queue_size=10)
@@ -64,6 +69,17 @@ class WaypointManager:
         self.path.poses.pop()
         self.path.poses.reverse()
         self.path_pub.publish(self.path)
+
+    # Suggested function for simplicity in the mission/BouysTasksNjord.
+    def overwrite_waypoint_list_with_new_waypoint(self, req):
+        self.waypoint_list = [req.waypoint]  # Replace existing waypoints with new waypoint
+        rospy.loginfo("overwrite waypoint_list with new waypoint")
+        newpose = PoseStamped()
+        newpose.pose.position = Point(req.waypoint[0], req.waypoint[1], 0)
+        self.path.poses = [newpose]  # Replace existing poses with new pose
+        self.path_pub.publish(self.path)
+        return WaypointResponse(True)
+    
 
     def spin(self):
         index_waypoint_k = 0

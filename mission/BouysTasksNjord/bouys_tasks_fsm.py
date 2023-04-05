@@ -6,7 +6,7 @@ import math
 import mission.BouysTasksNjord.bouys_tasks as bouys_tasks
 from nav_msgs.msg import Odometry
 #from my_msgs.msg import MyData # custom message type for the combined data. Talk with hannah
-from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
+
 
 rospy.init_node('Bouys_tasks_fsm')
 

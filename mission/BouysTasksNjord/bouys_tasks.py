@@ -4,6 +4,7 @@ import rospy
 import smach
 import smach_ros
 import math
+from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 
 class Idle(smach.State):
     def __init__(self, data):
@@ -65,9 +66,23 @@ class OneRedBouyNav(smach.State):
 
     def execute(self):
         rospy.loginfo('OneRedBouyNav')
+
         next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_red_bouy)
-        #Feed next waypoint to LOS ...
-        return 'desideNextState'
+    
+        rospy.wait_for_service("overwrite_waypoint_list_with_new_waypoint")
+        # Create a service proxy for overwriting waypoint list with new waypoint
+        overwrite_waypoint_service = rospy.ServiceProxy("overwrite_waypoint_list_with_new_waypoint", Waypoint)
+        # Define the new waypoint to be added and overwrite existing waypoints with it
+        new_waypoint = WaypointRequest()
+        new_waypoint.waypoint = next_waypoint  
+        response = overwrite_waypoint_service(new_waypoint)
+        
+        if response.success:
+            rospy.loginfo("Waypoint list overwritten with new waypoint from OneRedBouyNav")
+            return 'desideNextState'
+        else:
+            rospy.logwarn("Failed to overwrite waypoint list with new waypoint in OneRedBouyNav")
+            return 'idle'
 
 
 #Can be done in a simmilar way as OneRedBouyNav.
