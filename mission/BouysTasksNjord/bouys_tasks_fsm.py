@@ -32,8 +32,8 @@ class ManeuveringNavigationTasks:
         # self.treshhold = 1 #meter
         # self.Distance = 100 #meter. Just some lagre init value.
         # self.NoGoSircleRadius = 2 #Meters. Used to define area around bouy that ASV must absolutely NOT enter. 
-        # self.CircleRadius = 4 #Meters. Used to define curve ASV can follow when it only knows one bouy.
-        # self.DirectionWithLeia = True #Used to descide which side the ASV should be regarding Green and Read "Staker".
+        self.DistanceRadius = 3 #Meters. Used to define curve ASV can follow when it only knows one bouy.
+        self.DirectionWithLeia = True #Used to descide which side the ASV should be regarding Green and Read "Staker".
         # self.DistanceToClosest = bouys_tasks.Distance(... , ...)
         self.ObjectSearchAttempts = 0
         ##

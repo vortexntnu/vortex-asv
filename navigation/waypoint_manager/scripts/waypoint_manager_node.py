@@ -44,7 +44,7 @@ class WaypointManager:
         # Suggested function for simplicity in the mission/BouysTasksNjord.
         self.overwrite_waypoint_list_with_new_waypoint_service = rospy.Service(
             "overwrite_waypoint_list_with_new_waypoint", Waypoint, self.overwrite_waypoint_list_with_new_waypoint
-)
+        )
 
 
         # nav_msgs Path to visualize LOS in Rviz
