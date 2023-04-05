@@ -187,14 +187,14 @@ class EastMarkerNav(smach.State):
 
 def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
     """
-          object
-           /|
-          / |
-         /  | radius
-        /   |
-       /    |
-      /     |
-    ASV-----WP
+        object (B)
+               /|
+              / |
+             /  | radius
+            /   |
+           /    |
+          /     |
+    ASV (A)----(C) WP
 
     """
     objectType = object[2]
@@ -233,27 +233,3 @@ def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
         yWP = object[1] + radius * yAC_normalized
 
     return (xWP, yWP)
-
-
-
-# def NavAroundOneObject(ASVPos, object, directionWithLeia): #Does not currently deside if it sould pass at right or left side of a bouy based on what type of bouy we navigate around.
-#     objectPos = (object[1], object[2])
-#     objectType = object[2]
-#     #Calculate the angle between the ASV and the object.
-#     if directionWithLeia == True:
-#         if objectType == 'green' or objectType == 'east' or objectType == 'north':
-#             angle = math.atan2(objectPos[1] - ASVPos[1], objectPos[0] - ASVPos[0])  # atan2(y - y_self ,x - x_self)
-#         if objectType == 'red' or objectType == 'west' or objectType == 'south':
-#             angle = math.atan2(ASVPos[1] - objectPos[1], ASVPos[0] - objectPos[0])
-#     else:
-#         if objectType == 'green' or objectType == 'east' or objectType == 'north':
-#             angle = math.atan2(ASVPos[1] - objectPos[1], ASVPos[0] - objectPos[0])
-#         if objectType == 'red' or objectType == 'west' or objectType == 'south':
-#             angle = math.atan2(objectPos[1] - ASVPos[1], objectPos[0] - ASVPos[0])
-
-
-#     #Calculate the new point on the circle 
-#     new_x = objectPos[0] + 2 * math.cos(angle)
-#     new_y = objectPos[1] + 2 * math.sin(angle)
-
-#     return (new_x, new_y)
