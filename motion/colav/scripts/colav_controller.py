@@ -1,12 +1,8 @@
-
 #!/usr/bin/python3
-
-
 
 import rospy
 from nav_msgs.msg import Odometry
-from vortex_msgs.msg import GuidanceData
-from enum import Enum
+from vortex_msgs.msg import GuidanceData, OdometryArray
 import math
 from VOMATH import VelocityObstacle,Obstacle,Zones,Approaches
 from tf.transformations import euler_from_quaternion
@@ -48,8 +44,8 @@ class ColavController:
     def __init__(self) -> None:
         rospy.init_node('colav_controller')
         self.obstacle_sub = rospy.Subscriber(
-            "colav_obst",
-            Odometry,
+            "/colav_obst",
+            OdometryArray,
             self.obst_callback,
         )
 
@@ -60,13 +56,14 @@ class ColavController:
         )
         
         self.colav_pub = rospy.Publisher(
-            rospy.get_param("/guidance_interface/colav_data"),
+           # rospy.get_param("/guidance_interface/colav_data"),
+           "/guidance_interface/colav_data",
             GuidanceData,
             queue_size=1
         )
 
 
-        self.obstacles = {}
+        self.obstacles = []
 
         self.vessel = Obstacle()
 
@@ -77,7 +74,14 @@ class ColavController:
         self.vessel = self.odometry_to_obstacle(msg)
         
     def obst_callback(self,msg):
-        self.obstacles[msg.header.seq]  = self.odometry_to_obstacle(msg)
+        self.obstacles = msg.odometry_array
+       # print("rec msg:",msg)
+        colav_data = self.gen_colav_data()
+        if colav_data is None:
+            return
+        self.colav_pub.publish(colav_data)
+        print("publishing data")
+
 
 
 
@@ -87,7 +91,8 @@ class ColavController:
     def get_closest_obst(self,obstacles:dict) -> Odometry:
         shortest_dist = math.inf
         closest_obst = None
-        for obstacle in obstacles.items:
+        for obstacle in obstacles:
+            obstacle = self.odometry_to_obstacle(obstacle)
             new_distance = self.get_distance(obstacle,self.vessel)
             if new_distance < shortest_dist:
                 closest_obst = obstacle
@@ -97,7 +102,7 @@ class ColavController:
 
 
 
-    def get_distance(obstacle:Obstacle,vessel:Obstacle) -> float:
+    def get_distance(self,obstacle:Obstacle,vessel:Obstacle) -> float:
         dx = obstacle.x - vessel.x
         dy = obstacle.y -vessel.y
 
@@ -106,7 +111,7 @@ class ColavController:
 
 
 
-    def odometry_to_obstacle(obstacle:Odometry) -> Obstacle:
+    def odometry_to_obstacle(self,obstacle:Odometry) -> Obstacle:
         converted = Obstacle()
         converted.x = obstacle.pose.pose.position.x
         converted.y = obstacle.pose.pose.position.y
@@ -171,7 +176,7 @@ class ColavController:
 
 
 
-    def gen_approach(obstacle:Obstacle,vessel : Obstacle) -> Approaches:
+    def gen_approach(self,obstacle:Obstacle,vessel : Obstacle) -> Approaches:
         dx = obstacle.x-vessel.x
         dy = obstacle.y-vessel.y
         buffer = 10 * math.pi/180
@@ -196,19 +201,22 @@ class ColavController:
         elif distance < self.colimm_max_r and distance > self.stop_zone_r:
             return Zones.COLIMM
         return Zones.STOPNOW
-    def run(self):
-        while True:
-            if rospy.get_param("/tasks/task_1"):
-                colav_data = self.gen_colav_data()
-                if colav_data is None:
-                    continue
-                self.colav_pub.publish(colav_data)
+    
+    
+    
+    # def run(self):
+    #     while True:
+    #         if rospy.get_param("/tasks/task_1"):
+    #             colav_data = self.gen_colav_data()
+    #             if colav_data is None:
+    #                 continue
+    #             self.colav_pub.publish(colav_data)
 
 
 
 if __name__ == "__main__":
     controller = ColavController()
-    controller.run()
+    rospy.spin()
 
 
 

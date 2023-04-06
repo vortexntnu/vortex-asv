@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   geometry_msgs
   std_msgs
+  nav_msgs
   actionlib
   actionlib_msgs
 )
@@ -20,6 +21,7 @@ add_message_files(
   DpSetpoint.msg
   Debug.msg
   RovState.msg
+  OdometryArray.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -40,6 +42,7 @@ generate_messages(
   geometry_msgs
   std_msgs
   actionlib_msgs
+  nav_msgs
 )
 
 catkin_package(
