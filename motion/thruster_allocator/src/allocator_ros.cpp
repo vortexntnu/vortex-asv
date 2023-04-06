@@ -19,10 +19,10 @@ Allocator::Allocator(ros::NodeHandle nh)
   m_nh.getParam("/asv/thruster_manager/force", force_topic);
   m_nh.getParam("/asv/thruster_manager/output", pub_topic);
 
-  m_sub_torque = m_nh.subscribe(torque_topic, 1, &Allocator::torqueWrenchCallback,
-                         this);
-  m_sub_force = m_nh.subscribe(force_topic, 1, &Allocator::forceWrenchCallback,
-                         this);
+  m_sub_torque =
+      m_nh.subscribe(torque_topic, 1, &Allocator::torqueWrenchCallback, this);
+  m_sub_force =
+      m_nh.subscribe(force_topic, 1, &Allocator::forceWrenchCallback, this);
 
   m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>(pub_topic, 1);
 
@@ -63,7 +63,8 @@ Allocator::Allocator(ros::NodeHandle nh)
 }
 
 void Allocator::spinOnce() {
-  const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(body_frame_force_x, body_frame_force_y, body_frame_torque);
+  const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(
+      body_frame_force_x, body_frame_force_y, body_frame_torque);
 
   Eigen::VectorXd thruster_forces =
       m_pseudoinverse_allocator->compute(body_frame_forces);
@@ -109,7 +110,6 @@ void Allocator::torqueWrenchCallback(const geometry_msgs::Wrench &msg_in) {
   body_frame_torque = msg_in.torque.z;
 }
 
-
 Eigen::VectorXd
 Allocator::wrenchMsgToEigen(const geometry_msgs::Wrench &msg) const {
   Eigen::VectorXd body_frame_forces(m_num_degrees_of_freedom);
@@ -119,12 +119,13 @@ Allocator::wrenchMsgToEigen(const geometry_msgs::Wrench &msg) const {
   return body_frame_forces;
 }
 
-Eigen::VectorXd
-Allocator::wrenchMsgToEigen(const float force_x, const float force_y, const float torque) const {
+Eigen::VectorXd Allocator::wrenchMsgToEigen(const float force_x,
+                                            const float force_y,
+                                            const float torque) const {
   Eigen::VectorXd body_frame_forces(m_num_degrees_of_freedom);
-  body_frame_forces(0) = force_x;  // surge
-  body_frame_forces(1) = force_y;  // sway
-  body_frame_forces(2) = torque; // yaw
+  body_frame_forces(0) = force_x; // surge
+  body_frame_forces(1) = force_y; // sway
+  body_frame_forces(2) = torque;  // yaw
   return body_frame_forces;
 }
 

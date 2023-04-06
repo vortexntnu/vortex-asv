@@ -30,8 +30,8 @@ public:
   void torqueWrenchCallback(const geometry_msgs::Wrench &msg);
 
   /**
-   * @brief Function for periodically converting force & torque wrench in body frame to
-   * ThrusterForces msg
+   * @brief Function for periodically converting force & torque wrench in body
+   * frame to ThrusterForces msg
    *
    */
   void spinOnce();
@@ -57,7 +57,8 @@ private:
   std::unique_ptr<PseudoinverseAllocator> m_pseudoinverse_allocator;
 
   Eigen::VectorXd wrenchMsgToEigen(const geometry_msgs::Wrench &msg) const;
-  Eigen::VectorXd wrenchMsgToEigen(const float force_x, const float force_y, const float torque) const;
+  Eigen::VectorXd wrenchMsgToEigen(const float force_x, const float force_y,
+                                   const float torque) const;
   bool healthyWrench(const Eigen::VectorXd &v) const;
 };
 
