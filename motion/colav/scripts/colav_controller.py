@@ -44,7 +44,7 @@ class ColavController:
     def __init__(self) -> None:
         rospy.init_node('colav_controller')
         self.obstacle_sub = rospy.Subscriber(
-            "/colav_obst",
+            "/tracking/mul_tracked_cv_objects",
             OdometryArray,
             self.obst_callback,
         )
