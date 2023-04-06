@@ -57,7 +57,8 @@ class ColavController:
         
         self.colav_pub = rospy.Publisher(
            # rospy.get_param("/guidance_interface/colav_data"),
-           "/guidance_interface/colav_data",
+           #"/guidance_interface/colav_data",
+            rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
             queue_size=1
         )

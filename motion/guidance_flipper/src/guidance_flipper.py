@@ -22,7 +22,7 @@ class GuidanceInterface():
     """ 
 
     def __init__(self) -> None:
-        rospy.init_node("guidance_interface")
+        rospy.init_node("gflipper")
 
         # Subscribers
         self.los_data_sub = rospy.Subscriber(
