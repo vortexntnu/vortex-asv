@@ -6,13 +6,6 @@ import time
 
 import subprocess
 
-hardware_trigger = 133 # pin 35
-software_trigger = 76 # pin 33
-software_mode = 73 # pin 31
-hardware_mode = 74 # pin 29
-
-
-
 sudoPassword = "rock"
 
 

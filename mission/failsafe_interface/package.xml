@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
 
-  <name>thruster_interface</name>
+  <name>failsafe_interface</name>
   <version>0.0.0</version>
-  <description>This package provides an interface between the commanded forces for each thruster and the thruster controllers.</description>
-  <maintainer email="morten.fyhn.amundsen@gmail.com">Morten Fyhn Amundsen</maintainer>
+  <description>Provides an interface between the various failsafe and operation modes both software and hardware side.</description>
+  <maintainer email="theoam@stud.ntnu.no">Theo Martin</maintainer>
   <license>MIT</license>
   <url type="website">http://vortexntnu.no/</url>
 
@@ -15,7 +15,6 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>roslint</build_depend>
-  <build_depend>scipy</build_depend>
 
   <run_depend>rospy</run_depend>
   <run_depend>vortex_msgs</run_depend>
