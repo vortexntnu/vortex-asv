@@ -16,7 +16,6 @@
     <group ns="$(arg ns_controller)">
         <node pkg="heading_controller" type="heading_controller_node.py" name="heading_controller" output="screen"/>
         <node pkg="speed_controller" type="speed_controller_node.py" name="speed_controller" output="screen"/>
-        <node pkg="guidance_interface" type="guidance_interface_node.py" name="guidance_interface" output="screen"/>
         <!--<node pkg="dp_controller" type="dp_controller_node" name="dp_controller" output="screen"/> -->
     </group>
 
