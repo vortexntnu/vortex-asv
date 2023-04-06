@@ -67,10 +67,11 @@ class ColavController:
         self.obstacles = []
 
         self.vessel = Obstacle()
+        self.vessel.r = 2
 
         #placeholder values, use getparam?
-        self.stop_zone_r = 4
-        self.colimm_max_r = 20
+        self.stop_zone_r = 0
+        self.colimm_max_r = math.inf
     def vessel_callback(self,msg):
         self.vessel = self.odometry_to_obstacle(msg)
         
