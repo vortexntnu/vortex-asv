@@ -34,7 +34,7 @@ class GuidanceInterface():
         self.colav_data_sub = rospy.Subscriber(
             rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
-            self.colav_data_colav,
+            self.colav_data_callback,
             queue_size = 1,
         )
 
