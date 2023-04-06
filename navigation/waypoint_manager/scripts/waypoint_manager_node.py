@@ -42,8 +42,8 @@ class WaypointManager:
             "remove_waypoint", Waypoint, self.remove_waypoint_from_list
         )
         # Suggested function for simplicity in the mission/BouysTasksNjord.
-        self.overwrite_waypoint_list_with_new_waypoint_service = rospy.Service(
-            "overwrite_waypoint_list_with_new_waypoint", Waypoint, self.overwrite_waypoint_list_with_new_waypoint
+        self.overwrite_waypoint_list_with_new_waypoint_list_service = rospy.Service(
+            "overwrite_waypoint_list_with_new_waypoint_list", Waypoint, self.overwrite_waypoint_list_with_new_waypoint_list
         )
 
 
@@ -71,12 +71,14 @@ class WaypointManager:
         self.path_pub.publish(self.path)
 
     # Suggested function for simplicity in the mission/BouysTasksNjord.
-    def overwrite_waypoint_list_with_new_waypoint(self, req):
-        self.waypoint_list = [req.waypoint]  # Replace existing waypoints with new waypoint
-        rospy.loginfo("overwrite waypoint_list with new waypoint")
-        newpose = PoseStamped()
-        newpose.pose.position = Point(req.waypoint[0], req.waypoint[1], 0)
-        self.path.poses = [newpose]  # Replace existing poses with new pose
+    def overwrite_waypoint_list_with_new_waypoint_list(self, req):
+        rospy.loginfo("overwrite waypoint_list with new waypoint list")
+        self.waypoint_list = req.waypoint_list  # Replace existing waypoint list with new waypoint list
+        self.path.poses = []
+        for waypoint in req.waypoint_list:
+            newpose = PoseStamped()
+            newpose.pose.position = Point(waypoint[0], waypoint[1], 0)
+            self.path.poses.append(newpose)
         self.path_pub.publish(self.path)
         return WaypointResponse(True)
     
