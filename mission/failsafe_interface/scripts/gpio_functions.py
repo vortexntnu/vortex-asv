@@ -20,6 +20,7 @@ def init_pin(pin):
     try:
         command = f'sudo sh -c "echo {pin} > /sys/class/gpio/export"' 
         p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+        print("successfully set up pin")
     except:
         pass
 
@@ -47,8 +48,6 @@ def set_pin_as_input(pin):
 
 def pin_read(pin):
     try:
-        #command = f"cat /sys/class/gpio/gpio{pin}/value"
-        #p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
         command = f'sudo sh -c "cat /sys/class/gpio/gpio{pin}/value"' 
 
         output_str = os.popen('echo %s|sudo -S %s' % (sudoPassword, command)).read()
@@ -57,16 +56,3 @@ def pin_read(pin):
 
     except:
         return -1
-    
-init_pin(hardware_trigger)
-set_pin_as_output(hardware_trigger)
-
-print("Setting to high")
-pin_write(hardware_trigger, 1)
-
-init_pin(software_trigger)
-set_pin_as_input(software_trigger)
-
-while(True):
-    print(pin_read(software_trigger))
-    time.sleep(1)

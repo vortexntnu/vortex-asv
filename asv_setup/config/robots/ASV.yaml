@@ -3,11 +3,11 @@ failsafe:
     failSafeStatus: '/failSafeStatus'
     hardwareOperationMode: '/hardWareOperationMode'
   subscribers:
-    softWareKillSwtich: '/softWareKillSwitch'
+    softWareKillSwitch: '/softWareKillSwitch'
     softWareOperationMode: '/softWareOperationMode'
 
   gpio:
-    gpioSoftWareKillSwitch: 1
-    gpioSoftWareOperationMode: 2
-    gpioFailSafeStatus: 3
-    gpioHardWareOperationMode: 4
+    gpioSoftWareKillSwitch: 76      #pin 33
+    gpioSoftWareOperationMode: 73    #pin 31
+    gpioFailSafeStatus: 133         #pin 35
+    gpioHardWareOperationMode: 74   #pin 29
