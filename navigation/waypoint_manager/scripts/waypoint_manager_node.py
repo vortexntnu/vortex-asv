@@ -29,17 +29,14 @@ class WaypointManager:
 
         # Action client
         self.action_client = actionlib.SimpleActionClient(
-            "/guidance/los_action_server", LosPathFollowingAction
-        )
+            "/guidance/los_action_server", LosPathFollowingAction)
         self.action_client.wait_for_server()
 
         # Services
-        self.add_waypoint_service = rospy.Service(
-            "add_waypoint", Waypoint, self.add_waypoint_to_list
-        )
+        self.add_waypoint_service = rospy.Service("add_waypoint", Waypoint,
+                                                  self.add_waypoint_to_list)
         self.remove_waypoint_service = rospy.Service(
-            "remove_waypoint", Waypoint, self.remove_waypoint_from_list
-        )
+            "remove_waypoint", Waypoint, self.remove_waypoint_from_list)
 
         # nav_msgs Path to visualize LOS in Rviz
         self.path_pub = rospy.Publisher("los_path", Path, queue_size=10)
@@ -72,23 +69,20 @@ class WaypointManager:
                     goal = LosPathFollowingGoal()
                     rospy.loginfo("define goal to send to los_guidance_node")
 
-                    goal.waypoints[0].x = self.waypoint_list[index_waypoint_k][0]
-                    goal.waypoints[0].y = self.waypoint_list[index_waypoint_k][1]
-                    goal.waypoints[1].x = self.waypoint_list[index_waypoint_k + 1][0]
-                    goal.waypoints[1].y = self.waypoint_list[index_waypoint_k + 1][1]
+                    goal.waypoints[0].x = self.waypoint_list[index_waypoint_k][
+                        0]
+                    goal.waypoints[0].y = self.waypoint_list[index_waypoint_k][
+                        1]
+                    goal.waypoints[1].x = self.waypoint_list[index_waypoint_k +
+                                                             1][0]
+                    goal.waypoints[1].y = self.waypoint_list[index_waypoint_k +
+                                                             1][1]
                     rospy.loginfo("add waypoints to goal")
-                    rospy.loginfo(
-                        "current points are: \n("
-                        + str(goal.waypoints[0].x)
-                        + ","
-                        + str(goal.waypoints[0].y)
-                        + ")\n"
-                        + "("
-                        + str(goal.waypoints[1].x)
-                        + ","
-                        + str(goal.waypoints[1].y)
-                        + ")"
-                    )
+                    rospy.loginfo("current points are: \n(" +
+                                  str(goal.waypoints[0].x) + "," +
+                                  str(goal.waypoints[0].y) + ")\n" + "(" +
+                                  str(goal.waypoints[1].x) + "," +
+                                  str(goal.waypoints[1].y) + ")")
 
                     self.action_client.send_goal(goal)
                     rospy.loginfo("send goal to los_guidance_node")

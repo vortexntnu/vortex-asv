@@ -5,8 +5,7 @@ import catkin_pkg.package
 
 catkin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 catkin_package = catkin_pkg.package.parse_package(
-    os.path.join(catkin_dir, catkin_pkg.package.PACKAGE_MANIFEST_FILENAME)
-)
+    os.path.join(catkin_dir, catkin_pkg.package.PACKAGE_MANIFEST_FILENAME))
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -161,18 +160,15 @@ latex_documents = [
 # If false, no module index is generated.
 # latex_domain_indices = True
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "robot_localization", "robot_localization Documentation", [author], 1)
-]
+man_pages = [(master_doc, "robot_localization",
+              "robot_localization Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
-
 
 # -- Options for Texinfo output -------------------------------------------
 

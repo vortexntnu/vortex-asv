@@ -8,13 +8,13 @@ from scipy.interpolate import interp1d
 
 import smbus2
 
-
 import rospy, rospkg
 from std_msgs.msg import Float32, Float32MultiArray
 from vortex_msgs.msg import Pwm
 
 
 class ThrusterInterface(object):
+
     def __init__(
         self,
         thruster_datasheet_path,
@@ -33,23 +33,19 @@ class ThrusterInterface(object):
         self.address = 0x21
 
         self.thruster_operational_voltage_range = rospy.get_param(
-            "/propulsion/thrusters/thrusters_operational_voltage_range"
-        )
+            "/propulsion/thrusters/thrusters_operational_voltage_range")
         self.thruster_operational_voltage_min = self.thruster_operational_voltage_range[
-            0
-        ]
+            0]
         self.thruster_operational_voltage_max = self.thruster_operational_voltage_range[
-            1
-        ]
+            1]
 
         self.thruster_map = rospy.get_param("/propulsion/thrusters/map")
-        self.thrust_range = rospy.get_param("/propulsion/thrusters/thrust_range")
+        self.thrust_range = rospy.get_param(
+            "/propulsion/thrusters/thrust_range")
         self.pwm_limit_min = self.map_percentage_to_pwm(
-            self.thrust_range[0], 1100, 1900
-        )
+            self.thrust_range[0], 1100, 1900)
         self.pwm_limit_max = self.map_percentage_to_pwm(
-            self.thrust_range[1], 1100, 1900
-        )
+            self.thrust_range[1], 1100, 1900)
 
         # create thruster to pwm lookup function
         rospy.loginfo("Parsing and interpolating thruster datasheet..")
@@ -61,16 +57,16 @@ class ThrusterInterface(object):
 
         # set up subscribers and publishers
         self.voltage_queue = deque([10] * 10)
-        self.voltage_sub = rospy.Subscriber(voltage_topic, Float32, self.voltage_cb)
+        self.voltage_sub = rospy.Subscriber(voltage_topic, Float32,
+                                            self.voltage_cb)
         # rospy.loginfo("waiting for voltage on %s.." % voltage_topic)
         # rospy.wait_for_message(voltage_topic, Float32)  # voltage must be set
         self.pwm_pub = rospy.Publisher(pwm_topic, Pwm, queue_size=1)
-        self.thrust_sub = rospy.Subscriber(
-            thruster_forces_topic, Float32MultiArray, self.thrust_cb
-        )
-        self.delivered_thrust_pub = rospy.Publisher(
-            "/thrust/delivered_forces", Float32MultiArray, queue_size=1
-        )
+        self.thrust_sub = rospy.Subscriber(thruster_forces_topic,
+                                           Float32MultiArray, self.thrust_cb)
+        self.delivered_thrust_pub = rospy.Publisher("/thrust/delivered_forces",
+                                                    Float32MultiArray,
+                                                    queue_size=1)
 
         self.output_to_zero()
         rospy.on_shutdown(self.output_to_zero)
@@ -90,7 +86,8 @@ class ThrusterInterface(object):
                             for a given voltage
         """
 
-        pwmSignal = int(((percentage + 1) / 2) * (rangeEnd - rangeStart) + rangeStart)
+        pwmSignal = int(((percentage + 1) / 2) * (rangeEnd - rangeStart) +
+                        rangeStart)
         return pwmSignal
 
     def parse_and_interpolate_thruster_data(self, thruster_datasheet_path):
@@ -124,18 +121,20 @@ class ThrusterInterface(object):
         for i in range(len(pwm_values)):
             pwm = pwm_values[i]
             thrusts = [thrusts_dict[voltage][i] for voltage in voltages]
-            interpolated_thrusts = np.interp(new_voltage_steps, voltages, thrusts)
+            interpolated_thrusts = np.interp(new_voltage_steps, voltages,
+                                             thrusts)
 
             # save interpolated thrusts to dict
-            for voltage, thrust in zip(new_voltage_steps, interpolated_thrusts):
+            for voltage, thrust in zip(new_voltage_steps,
+                                       interpolated_thrusts):
                 thrusts_from_voltage[voltage].append(thrust)
 
         # create pwm_lookup functions by 1d interpolation of thrusts at each voltage level
         thrust_to_pwm = dict()
         for voltage in new_voltage_steps:
-            thrust_to_pwm[voltage] = interp1d(
-                thrusts_from_voltage[voltage], pwm_values, kind="slinear"
-            )
+            thrust_to_pwm[voltage] = interp1d(thrusts_from_voltage[voltage],
+                                              pwm_values,
+                                              kind="slinear")
 
         return (pwm_values, thrusts_from_voltage, thrust_to_pwm)
 
@@ -148,7 +147,7 @@ class ThrusterInterface(object):
             Int: pwm signal
         """
         if (
-            thrust == 0
+                thrust == 0
         ):  # neccessary since multiple pwms map to zero thrust, which confuses the interpolation
             return 1500
         else:
@@ -187,11 +186,10 @@ class ThrusterInterface(object):
 
         for thruster_number in range(len(thrust_msg.data)):
             forward_limit = self.thrusts_from_voltage[voltage][
-                -self.thruster_offsets[thruster_number] // 4 - 5
-            ]  # 4 because of steps provided in T200 datasheet, 5 because of a quick hack
+                -self.thruster_offsets[thruster_number] // 4 -
+                5]  # 4 because of steps provided in T200 datasheet, 5 because of a quick hack
             reverse_limit = self.thrusts_from_voltage[voltage][
-                self.thruster_offsets[thruster_number] // 4 + 5
-            ]
+                self.thruster_offsets[thruster_number] // 4 + 5]
             thrust = thrust_msg.data[thruster_number]
 
             if isnan(thrust) or isinf(thrust):
@@ -213,10 +211,14 @@ class ThrusterInterface(object):
         """
 
         # Softcoded limit that can be changed
-        if pwm > (self.pwm_limit_max + self.thruster_offsets[self.thruster_map[i]]):
-            pwm = self.pwm_limit_max + self.thruster_offsets[self.thruster_map[i]]
-        elif pwm < (self.pwm_limit_min + self.thruster_offsets[self.thruster_map[i]]):
-            pwm = self.pwm_limit_min + self.thruster_offsets[self.thruster_map[i]]
+        if pwm > (self.pwm_limit_max +
+                  self.thruster_offsets[self.thruster_map[i]]):
+            pwm = self.pwm_limit_max + self.thruster_offsets[
+                self.thruster_map[i]]
+        elif pwm < (self.pwm_limit_min +
+                    self.thruster_offsets[self.thruster_map[i]]):
+            pwm = self.pwm_limit_min + self.thruster_offsets[
+                self.thruster_map[i]]
 
         # A hardcoded limit if someone sets thrust ofset to high, we limit it to 1900 or 1100 PWM
         if pwm > 1900:
@@ -256,11 +258,8 @@ class ThrusterInterface(object):
 
         # check that voltage is within range
         voltage = self.get_voltage()
-        if not (
-            self.thruster_operational_voltage_min
-            <= voltage
-            <= self.thruster_operational_voltage_max
-        ):
+        if not (self.thruster_operational_voltage_min <= voltage <=
+                self.thruster_operational_voltage_max):
             self.STOP_thrusters()
             return
 
@@ -273,12 +272,12 @@ class ThrusterInterface(object):
         pwm_msg = Pwm()
         for i in range(self.num_thrusters):
             pwm_microsecs = (
-                self.pwm_lookup(thrust[self.thruster_map[i]], voltage)
-                + self.thruster_offsets[i]
-            )
+                self.pwm_lookup(thrust[self.thruster_map[i]], voltage) +
+                self.thruster_offsets[i])
 
             if self.thruster_directions[self.thruster_map[i]] == -1:
-                middle_value = 1500 + self.thruster_offsets[self.thruster_map[i]]
+                middle_value = 1500 + self.thruster_offsets[
+                    self.thruster_map[i]]
                 diff = pwm_microsecs - middle_value
                 pwm_microsecs = middle_value - diff
             pwm_microsecs = self.limit_pwm(pwm_microsecs, i)
@@ -328,9 +327,8 @@ class ThrusterInterface(object):
         # Since the function actually requires a sort of "signing" acknowledgement package,
         # We just put the first byte as the signing acknowledgement package, the rest of the 7 bytes are sent as usual
         # Thanks to this we get 8 bytes in the end, which is necessary for our implementation
-        self.bus.write_i2c_block_data(
-            self.address, data_to_send[0], data_to_send[1:temp]
-        )
+        self.bus.write_i2c_block_data(self.address, data_to_send[0],
+                                      data_to_send[1:temp])
 
 
 if __name__ == "__main__":
@@ -338,17 +336,18 @@ if __name__ == "__main__":
     rospack = rospkg.RosPack()
     thruster_interface_path = rospack.get_path("thruster_interface")
 
-    PWM_TOPIC = rospy.get_param("/thruster_interface/pwm_topic", default="/pwm")
-    VOLTAGE_TOPIC = rospy.get_param(
-        "/thruster_interface/voltage_topic", default="/auv/battery_level/system"
-    )
+    PWM_TOPIC = rospy.get_param("/thruster_interface/pwm_topic",
+                                default="/pwm")
+    VOLTAGE_TOPIC = rospy.get_param("/thruster_interface/voltage_topic",
+                                    default="/auv/battery_level/system")
     DESIRED_THRUST_TOPIC = rospy.get_param(
-        "/thruster_interface/desired_thrust_topic", default="/thrust/thruster_forces"
-    )
+        "/thruster_interface/desired_thrust_topic",
+        default="/thrust/thruster_forces")
 
     P1000_DATASHEET_PATH = rospy.get_param(
         "/thruster_interface/thruster_datasheet_path",
-        default="%s/config//ThrustMe-P1000-force-mapping-forward-reverse-datablad.xlsx"
+        default=
+        "%s/config//ThrustMe-P1000-force-mapping-forward-reverse-datablad.xlsx"
         % thruster_interface_path,
     )
     NUM_THRUSTERS = rospy.get_param("/propulsion/thrusters/num")

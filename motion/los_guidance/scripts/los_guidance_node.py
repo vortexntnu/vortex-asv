@@ -4,7 +4,6 @@
 # Copyright (c) 2020 Manta AUV, Vortex NTNU.
 # All rights reserved.
 
-
 import rospy
 import numpy as np
 import math
@@ -126,7 +125,7 @@ class LOS:
         current position and the setpoint position.
         """
 
-        return np.sqrt((self.x_kp1 - self.x) ** 2 + (self.y_kp1 - self.y) ** 2)
+        return np.sqrt((self.x_kp1 - self.x)**2 + (self.y_kp1 - self.y)**2)
 
     def sphereOfAcceptance(self):
         """
@@ -153,7 +152,8 @@ class LOS:
         alpha = self.alpha
 
         # rotation matrix
-        R = np.array(((np.cos(alpha), -np.sin(alpha)), (np.sin(alpha), np.cos(alpha))))
+        R = np.array(
+            ((np.cos(alpha), -np.sin(alpha)), (np.sin(alpha), np.cos(alpha))))
 
         # transpose
         R_T = np.transpose(R)
@@ -254,7 +254,6 @@ class LosPathFollowing(object):
         and publishers are set up, as well as dynamic
         reconfigure and action servers.
         """
-
         """
 		A flag to indicate whether or not a goal has not been reached.
 		True means that a goal is in progress of being completed.
@@ -266,15 +265,19 @@ class LosPathFollowing(object):
         rospy.init_node("los")
 
         # Subscribers
-        self.sub = rospy.Subscriber(
-            "/pose_gt", Odometry, self.callback, queue_size=1
-        )  # 20hz
+        self.sub = rospy.Subscriber("/pose_gt",
+                                    Odometry,
+                                    self.callback,
+                                    queue_size=1)  # 20hz
 
         # Publishers
-        self.pub_desired = rospy.Publisher("/asv/los_desired", Odometry, queue_size=1)
+        self.pub_desired = rospy.Publisher("/asv/los_desired",
+                                           Odometry,
+                                           queue_size=1)
         self.pub_data_los_controller = rospy.Publisher(
-            rospy.get_param("/guidance_interface/los_data"), GuidanceData, queue_size=1
-        )
+            rospy.get_param("/guidance_interface/los_data"),
+            GuidanceData,
+            queue_size=1)
 
         # constructor object
         self.los = LOS()
@@ -311,27 +314,22 @@ class LosPathFollowing(object):
 
         # reference model
         x_d = self.reference_model.discreteTustinMSD(
-            np.array((self.los.speed, self.psi_ref))
-        )
+            np.array((self.los.speed, self.psi_ref)))
         psi_d = x_d[2]
 
         e = self.psi - psi_d
         if e > math.pi:
             psi_d = psi_d - 2 * math.pi
             self.reference_model = ReferenceModel(
-                np.array((self.los.u, self.los.psi)), self.los.h
-            )
+                np.array((self.los.u, self.los.psi)), self.los.h)
             x_d = self.reference_model.discreteTustinMSD(
-                np.array((self.los.speed, psi_d))
-            )
+                np.array((self.los.speed, psi_d)))
         if e < -math.pi:
             psi_d = psi_d + 2 * math.pi
             self.reference_model = ReferenceModel(
-                np.array((self.los.u, self.los.psi)), self.los.h
-            )
+                np.array((self.los.u, self.los.psi)), self.los.h)
             x_d = self.reference_model.discreteTustinMSD(
-                np.array((self.los.speed, psi_d))
-            )
+                np.array((self.los.speed, psi_d)))
 
         return x_d
 
@@ -365,7 +363,6 @@ class LosPathFollowing(object):
         self.psi_ref = self.los.lookaheadBasedSteering()
 
         if self.publish_guidance_data is True:
-
             """
             Wrapping would have been avoided by using quaternions instead of Euler angles
             if you don't care about wrapping, use this instead:
@@ -436,7 +433,8 @@ class LosPathFollowing(object):
         # succeeded
         if self.los.sphereOfAcceptance():
             self._result.terminalSector = True
-            self.action_server.set_succeeded(self._result, text="goal completed")
+            self.action_server.set_succeeded(self._result,
+                                             text="goal completed")
             self.publish_guidance_data = False
             rospy.loginfo("Waypoint reached!")
 
@@ -471,8 +469,7 @@ class LosPathFollowing(object):
         self.los.speed = goal.forward_speed
 
         self.reference_model = ReferenceModel(
-            np.array((self.los.u, self.los.psi)), self.los.h
-        )
+            np.array((self.los.u, self.los.psi)), self.los.h)
 
     def config_callback(self, config, level):
         """
@@ -489,7 +486,8 @@ class LosPathFollowing(object):
 
         # Print reconfigure data with precision of 4 decimal points.
         rospy.loginfo("los_guidance reconfigure:")
-        rospy.loginfo("\t delta: {:.4f} -> {:.4f}".format(self.los.delta, delta))
+        rospy.loginfo("\t delta: {:.4f} -> {:.4f}".format(
+            self.los.delta, delta))
 
         # update look-ahead distance and config
         self.los.delta = config["delta"]

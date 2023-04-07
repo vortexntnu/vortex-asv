@@ -23,7 +23,8 @@ class SpeedControllerPID:
         Initialize the PID controller with fixed gains and saturation limit.
         """
 
-        self.controller_u = PIDRegulator(25, 0.024, 3.5, 5.0)  # Args: p, i, d, sat
+        self.controller_u = PIDRegulator(25, 0.024, 3.5,
+                                         5.0)  # Args: p, i, d, sat
 
     def update_gains(self, u_p, u_i, u_d, u_sat):
         """
@@ -104,12 +105,14 @@ class SpeedControllerROS:
 
         # Publisher
         self.force_pub = rospy.Publisher(
-            rospy.get_param("/asv/thruster_manager/force"), Wrench, queue_size=1
-        )
+            rospy.get_param("/asv/thruster_manager/force"),
+            Wrench,
+            queue_size=1)
 
         # Dynamic reconfigure
         self.config = {}
-        self.srv_reconfigure = Server(speedControllerConfig, self.config_callback)
+        self.srv_reconfigure = Server(speedControllerConfig,
+                                      self.config_callback)
 
     def odometry_callback(self, odom_msg):
         self.u = odom_msg.twist.twist.linear.x
@@ -124,8 +127,8 @@ class SpeedControllerROS:
 
         # desired speed message
         force_msg.force.x = self.PID.speed_controller(
-            0.5, self.u, rospy.Time.now().to_sec()
-        )
+            0.5, self.u,
+            rospy.Time.now().to_sec())
         self.force_pub.publish(force_msg)
 
     def config_callback(self, config, level):
@@ -175,7 +178,8 @@ class SpeedControllerROS:
         """
 
         if old_value != new_value:
-            rospy.loginfo("\t {:}: {:.4f} -> {:.4f}".format(name, old_value, new_value))
+            rospy.loginfo("\t {:}: {:.4f} -> {:.4f}".format(
+                name, old_value, new_value))
 
 
 if __name__ == "__main__":

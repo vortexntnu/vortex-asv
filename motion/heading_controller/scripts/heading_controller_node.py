@@ -24,7 +24,8 @@ class HeadingControllerPID:
         Initialize the PID controller with fixed gains and saturation limit.
         """
 
-        self.controller_psi = PIDRegulator(25, 0.024, 3.5, 5.0)  # Args: p, i, d, sat
+        self.controller_psi = PIDRegulator(25, 0.024, 3.5,
+                                           5.0)  # Args: p, i, d, sat
 
     def update_gains(self, psi_p, psi_i, psi_d, psi_sat):
         """
@@ -103,12 +104,14 @@ class HeadingControllerROS:
 
         # Publisher
         self.torque_pub = rospy.Publisher(
-            rospy.get_param("/asv/thruster_manager/torque"), Wrench, queue_size=1
-        )
+            rospy.get_param("/asv/thruster_manager/torque"),
+            Wrench,
+            queue_size=1)
 
         # Dynamic reconfigure
         self.config = {}
-        self.srv_reconfigure = Server(headingControllerConfig, self.config_callback)
+        self.srv_reconfigure = Server(headingControllerConfig,
+                                      self.config_callback)
 
     def odometry_callback(self, odom_msg):
         q = odom_msg.pose.pose.orientation
@@ -126,8 +129,8 @@ class HeadingControllerROS:
 
         # Desired heading message
         torque_msg.torque.z = self.PID.heading_controller(
-            msg.data, self.psi, rospy.Time.now().to_sec()
-        )
+            msg.data, self.psi,
+            rospy.Time.now().to_sec())
         self.torque_pub.publish(torque_msg)
 
     def config_callback(self, config, level):
@@ -177,7 +180,8 @@ class HeadingControllerROS:
         """
 
         if old_value != new_value:
-            rospy.loginfo("\t {:}: {:.4f} -> {:.4f}".format(name, old_value, new_value))
+            rospy.loginfo("\t {:}: {:.4f} -> {:.4f}".format(
+                name, old_value, new_value))
 
 
 if __name__ == "__main__":
