@@ -3,8 +3,6 @@
 
     <group ns="task_manager">
         <node name="server"                       pkg ="task_manager"          type="task_manager_server_node.py"   output="screen"/>
-        <!-- Test node - should be deleted before PR -->
-        <node name="collision_avoidance"          pkg ="task_manager"          type="collision_avoidance.py"        output="screen"/>
     </group>
 
 </launch>
