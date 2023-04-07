@@ -58,6 +58,7 @@ class GuidanceInterface():
 
         self.speed_pub.publish(speed_msg)
         self.heading_pub.publish(heading_msg)
+        print("now publishing los",speed_msg,heading_msg)
     def colav_data_callback(self,guidance_data) -> None:
         self.pub_colav = True
         speed_msg = guidance_data.u_d
@@ -66,10 +67,12 @@ class GuidanceInterface():
         toc = time.perf_counter()
         tic = time.perf_counter()
         while tic-toc < self.colav_pub_time :
+            print("now publishing colav",speed_msg,heading_msg)
             tic = time.perf_counter()
             self.speed_pub.publish(speed_msg)
             self.heading_pub.publish(heading_msg)
         self.pub_colav = False
+
 
         
 

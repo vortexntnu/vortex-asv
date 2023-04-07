@@ -57,27 +57,36 @@ class ColavController:
         
         self.colav_pub = rospy.Publisher(
            # rospy.get_param("/guidance_interface/colav_data"),
-           #"/guidance_interface/colav_data",
-            rospy.get_param("/guidance_interface/colav_data"),
+           "/guidance/colav_data",
+           # rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
             queue_size=1
         )
 
 
         self.obstacles = []
-
+        self.vessel_odom = Odometry()
         self.vessel = Obstacle()
         self.vessel.r = 2
 
         #placeholder values, use getparam?
         self.stop_zone_r = 0
         self.colimm_max_r = math.inf
+
+        self.t = 0
+
     def vessel_callback(self,msg):
+        self.vessel_odom = msg
         self.vessel = self.odometry_to_obstacle(msg)
+        self.vessel.r = 2
+        self.t = msg.header.stamp.to_sec()
         
     def obst_callback(self,msg):
         self.obstacles = msg.odometry_array
        # print("rec msg:",msg)
+        if len(self.obstacles) == 0 :
+            print("empty!")
+            return
         colav_data = self.gen_colav_data()
         if colav_data is None:
             return
@@ -95,6 +104,7 @@ class ColavController:
         closest_obst = None
         for obstacle in obstacles:
             obstacle = self.odometry_to_obstacle(obstacle)
+            obstacle.r = 2
             new_distance = self.get_distance(obstacle,self.vessel)
             if new_distance < shortest_dist:
                 closest_obst = obstacle
@@ -127,8 +137,12 @@ class ColavController:
         closest_obst = self.get_closest_obst(self.obstacles)
         VO = VelocityObstacle(self.vessel,closest_obst)
         VO.set_cone_angles()
+        print(closest_obst.x)
+        print(VO.left_angle,VO.right_angle)
+        print(self.vessel.x)
         
         zone = self.get_zone(closest_obst,self.vessel)
+        print(zone)
         if zone == Zones.NOCOL:
             return None
         elif zone == Zones.STOPNOW:
@@ -136,12 +150,12 @@ class ColavController:
             data.psi_d = self.vessel.heading
             data.u_d = 0
             data.u = 0
-            data.t = rospy.Time.now()
+            data.t = self.t
             orientation_list = [
-                self.vessel.pose.pose.orientation.x,
-                self.vessel.pose.pose.orientation.y,
-                self.vessel.pose.pose.orientation.z,
-                self.vessel.pose.pose.orientation.w,
+                self.vessel_odom.pose.pose.orientation.x,
+                self.vessel_odom.pose.pose.orientation.y,
+                self.vessel_odom.pose.pose.orientation.z,
+                self.vessel_odom.pose.pose.orientation.w,
             ]
             data.psi = euler_from_quaternion(orientation_list)[2]
             ##Set velocity to zero and heading to same as before:))
@@ -154,20 +168,20 @@ class ColavController:
         approach = self.gen_approach(closest_obst,self.vessel)
 
         if approach == Approaches.FRONT or approach == Approaches.RIGHT:
-
+            print("doodo")
             buffer = math.pi/6
-            new_heading = VO.right_angle+ buffer
+            new_heading = VO.right_angle- buffer
 
             data = GuidanceData()
             data.psi_d = new_heading
             data.u_d = self.vessel.speed
             data.u = self.vessel.speed
-            data.t = rospy.Time.now()
+            data.t = self.t
             orientation_list = [
-                self.vessel.pose.pose.orientation.x,
-                self.vessel.pose.pose.orientation.y,
-                self.vessel.pose.pose.orientation.z,
-                self.vessel.pose.pose.orientation.w,
+                self.vessel_odom.pose.pose.orientation.x,
+                self.vessel_odom.pose.pose.orientation.y,
+                self.vessel_odom.pose.pose.orientation.z,
+                self.vessel_odom.pose.pose.orientation.w,
             ]
             data.psi = euler_from_quaternion(orientation_list)[2]
             # choose right cone

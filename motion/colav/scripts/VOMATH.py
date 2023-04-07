@@ -48,7 +48,7 @@ class VelocityObstacle:
         vessel: An odometry of the UAV vessel 
     """
 
-    def __init__(self,obstacle :Obstacle  ,vessel:Obstacle)->None:
+    def __init__(self,vessel :Obstacle  ,obstacle:Obstacle)->None:
     
         self.vessel = vessel
         self.obstacle = obstacle
@@ -64,6 +64,7 @@ class VelocityObstacle:
         Calculates the largest and smallest heading-angle where a collision can occur 
         """
         theta_ro = math.atan2(self.obstacle.y-self.vessel.y,self.obstacle.x-self.vessel.x)
+        print("ob",self.vessel.r,self.obstacle.r)
         theta_ray = math.asin((self.vessel.r+self.obstacle.r)/(math.sqrt((self.obstacle.x-self.vessel.x)**2+(self.obstacle.y-self.vessel.y)**2)))
         self.right_angle = theta_ro-theta_ray
         self.left_angle = theta_ro + theta_ray 
@@ -89,7 +90,8 @@ class VelocityObstacle:
         bouffer = 0
         dvx  = self.obstacle.vx - self.vessel.vx 
         dvy = self.obstacle.vy - self.vessel.vy
-        angle = math.atan2(dvy,dvx)
+        angle = math.atan2(-dvy,-dvx)
+        print("vels",dvx,dvy)
 
         return angle > self.right_angle-bouffer and angle < self.left_angle+bouffer
 

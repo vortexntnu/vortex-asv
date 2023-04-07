@@ -47,7 +47,7 @@ if __name__ == "__main__":
     try:
         los_client = LosClient()
         los_client.send_wp([0, 0])
-        los_client.send_wp([5, 0])
+        los_client.send_wp([50, 0])
         # los_client.send_wp([5, 5])
         # los_client.send_wp([0, 5])
         # los_client.send_wp([0, 0])
