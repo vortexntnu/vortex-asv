@@ -71,25 +71,19 @@ class WaypointManager:
         self.path.poses.reverse()
         self.path_pub.publish(self.path)
 
-    #Delete all waypoints, but not the last one (where we came from), and add the new waypoint.
+    #Delete all waypoints, but not the last one, and add the new waypoint.
     def overwrite_waypoint_list_with_new_waypoint(self, req):
         rospy.loginfo("overwrite waypoint waypoint list with new waypoint")
         rospy.loginfo(f"Waypoint list: {self.waypoint_list}")
         list_length = len(self.waypoint_list)
         oldest_waypoint = self.waypoint_list[0]
         if list_length > 0:
-            for i in range(list_length-1, -1, -1):
+            for i in range(list_length-2, -1, -1):
                 rospy.loginfo(f"Last element in waypoint list: {self.waypoint_list[i]}")
                 self.waypoint_list.remove(self.waypoint_list[i])
                 self.path.poses.reverse()
                 self.path.poses.pop()
                 self.path.poses.reverse()
-        rospy.loginfo(f"Waypoint list: {self.waypoint_list}") 
-
-        self.waypoint_list.append(oldest_waypoint)
-        newpose = PoseStamped()
-        newpose.pose.position = Point(oldest_waypoint[0], oldest_waypoint[1], 0)
-        self.path.poses.append(newpose)
         rospy.loginfo(f"Waypoint list: {self.waypoint_list}") 
 
         self.waypoint_list.append(req.waypoint)
