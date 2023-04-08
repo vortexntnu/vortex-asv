@@ -76,7 +76,6 @@ class WaypointManager:
         rospy.loginfo("overwrite waypoint waypoint list with new waypoint")
         rospy.loginfo(f"Waypoint list: {self.waypoint_list}")
         list_length = len(self.waypoint_list)
-        oldest_waypoint = self.waypoint_list[0]
         if list_length > 0:
             for i in range(list_length-2, -1, -1):
                 rospy.loginfo(f"Last element in waypoint list: {self.waypoint_list[i]}")
