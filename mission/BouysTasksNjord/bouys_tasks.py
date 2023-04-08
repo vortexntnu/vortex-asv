@@ -3,7 +3,7 @@
 import rospy
 import smach
 import math
-from vortex_msgs.srv import Waypoint, WaypointRequest
+from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 
 class Idle(smach.State):
     def __init__(self, data):
@@ -67,21 +67,10 @@ class OneRedBouyNav(smach.State):
         rospy.loginfo('OneRedBouyNav')
 
         next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_red_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
-        next_waypoint_list = [self.data.vessel_position, next_waypoint]
-        rospy.wait_for_service("overwrite_waypoint_list_with_new_waypoint_list")
-        # Create a service proxy for overwriting waypoint list with new waypoint list
-        overwrite_waypoint_list_service = rospy.ServiceProxy("overwrite_waypoint_list_with_new_waypoint_list", Waypoint)
-        # Define the new waypoint list to be added and overwrite existing waypoint list with it
-        new_waypoint_list = WaypointRequest()
-        new_waypoint_list.waypoint_list = next_waypoint_list 
-        response = overwrite_waypoint_list_service(new_waypoint_list)
+        send_wp(self.data.vessel_position)
+        overwrite_with_new_waypoint(next_waypoint)
         
-        if response.success:
-            rospy.loginfo("Waypoint list overwritten with new waypoint from OneRedBouyNav")
-            return 'desideNextState'
-        else:
-            rospy.logwarn("Failed to overwrite waypoint list with new waypoint list in OneRedBouyNav")
-            return 'idle'
+        return 'desideNextState'
 
 class OneGreenBouyNav(smach.State):
     def __init__(self, data):
@@ -92,21 +81,10 @@ class OneGreenBouyNav(smach.State):
         rospy.loginfo('OneGreenBouyNav')
 
         next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_green_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
-        next_waypoint_list = [self.data.vessel_position, next_waypoint]
-        rospy.wait_for_service("overwrite_waypoint_list_with_new_waypoint_list")
-        # Create a service proxy for overwriting waypoint list with new waypoint list
-        overwrite_waypoint_list_service = rospy.ServiceProxy("overwrite_waypoint_list_with_new_waypoint_list", Waypoint)
-        # Define the new waypoint list to be added and overwrite existing waypoint list with it
-        new_waypoint_list = WaypointRequest()
-        new_waypoint_list.waypoint_list = next_waypoint_list 
-        response = overwrite_waypoint_list_service(new_waypoint_list)
-        
-        if response.success:
-            rospy.loginfo("Waypoint list overwritten with new waypoint list from OneGreenBouyNav")
-            return 'desideNextState'
-        else:
-            rospy.logwarn("Failed to overwrite waypoint list with new waypoint list in OneGreenBouyNav")
-            return 'idle'
+        send_wp(self.data.vessel_position)
+        overwrite_with_new_waypoint(next_waypoint)
+
+        return 'desideNextState'
 
 class GreenAndReadBouyNav(smach.State):
     def __init__(self, data):
@@ -136,21 +114,10 @@ class GreenAndReadBouyNav(smach.State):
             yWP = 0.9 * GreenBouy[1] + 0.1 * RedBouy[1]
 
         next_waypoint = (xWP, yWP)
-        next_waypoint_list = [self.data.vessel_position, next_waypoint]
-        rospy.wait_for_service("overwrite_waypoint_list_with_new_waypoint_list")
-        # Create a service proxy for overwriting waypoint list with new waypoint list
-        overwrite_waypoint_list_service = rospy.ServiceProxy("overwrite_waypoint_list_with_new_waypoint_list", Waypoint)
-        # Define the new waypoint list to be added and overwrite existing waypoint list with it
-        new_waypoint_list = WaypointRequest()
-        new_waypoint_list.waypoint_list = next_waypoint_list 
-        response = overwrite_waypoint_list_service(new_waypoint_list)
-        
-        if response.success:
-            rospy.loginfo("Waypoint list overwritten with new waypoint list from GreenAndRedBouyNav")
-            return 'desideNextState'
-        else:
-            rospy.logwarn("Failed to overwrite waypoint list with new waypoint list in GreenAndRedBouyNav")
-            return 'idle'
+        send_wp(self.data.vessel_position)
+        overwrite_with_new_waypoint(next_waypoint)
+
+        return 'desideNextState'
 
 class NorthMarkerNav(smach.State):
     def __init__(self):
@@ -233,3 +200,36 @@ def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
         yWP = object[1] + radius * yAC_normalized
 
     return (xWP, yWP)
+
+def send_wp(waypoint_in):
+    wp = WaypointRequest()
+    wp.waypoint = waypoint_in
+    response = WaypointResponse()
+    response.success = False
+    try:
+        rospy.wait_for_service("/navigation/add_waypoint")
+        waypoint_client = rospy.ServiceProxy("/navigation/add_waypoint", Waypoint)
+        response = waypoint_client(wp)
+    except rospy.ServiceException as e:
+        print("Service call failed: {}".format(e))
+    if response.success:
+        rospy.loginfo(f"Waypoint {wp.waypoint} sent successfully!")
+    else:
+        rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
+
+def overwrite_with_new_waypoint(waypoint_in):
+        wp= WaypointRequest()
+        wp.waypoint = waypoint_in
+        response = WaypointResponse()
+        response.success = False
+        try:
+            rospy.wait_for_service("/navigation/overwrite_waypoint_list_with_new_waypoint")
+            overwrite_waypoint_client = rospy.ServiceProxy("/navigation/overwrite_waypoint_list_with_new_waypoint", Waypoint)
+            response = overwrite_waypoint_client(wp)
+        except rospy.ServiceException as e:
+            print("Service call failed: {}".format(e))
+
+        if response.success:
+            rospy.loginfo(f"Waypoint {wp.waypoint} sent successfully!")
+        else:
+            rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
