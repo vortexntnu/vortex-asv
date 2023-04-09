@@ -12,8 +12,8 @@ class Colav:
         self.isEnabled = False
 
         task_manager_client = dynamic_reconfigure.client.Client(
-        "/task_manager/server", timeout=5, config_callback=self.callback
-    )
+            "/task_manager/server", timeout=5, config_callback=self.callback
+        )
 
     def callback(self, config):
         rospy.loginfo("""Client: task change request: {Njord_tasks}""".format(**config))
