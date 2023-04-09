@@ -11,12 +11,19 @@
 Allocator::Allocator(ros::NodeHandle nh)
     : m_nh(nh), m_min_thrust(-std::numeric_limits<double>::infinity()),
       m_max_thrust(std::numeric_limits<double>::infinity()) {
-  std::string sub_topic;
+  std::string torque_topic;
+  std::string force_topic;
   std::string pub_topic;
-  m_nh.getParam("/asv/thruster_manager/input", sub_topic);
+
+  m_nh.getParam("/asv/thruster_manager/torque", torque_topic);
+  m_nh.getParam("/asv/thruster_manager/force", force_topic);
   m_nh.getParam("/asv/thruster_manager/output", pub_topic);
-  m_sub = m_nh.subscribe(sub_topic, 1, &Allocator::forceWrenchCallback,
-                         this); // MUST BE CHANGED when we have the other nodes
+
+  m_sub_torque =
+      m_nh.subscribe(torque_topic, 1, &Allocator::torqueWrenchCallback, this);
+  m_sub_force =
+      m_nh.subscribe(force_topic, 1, &Allocator::forceWrenchCallback, this);
+
   m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>(pub_topic, 1);
 
   if (!m_nh.getParam("/propulsion/dofs/num", m_num_degrees_of_freedom))
@@ -55,13 +62,9 @@ Allocator::Allocator(ros::NodeHandle nh)
   ROS_INFO("Initialized.");
 }
 
-void Allocator::forceWrenchCallback(const geometry_msgs::Wrench &msg_in) const {
-  const Eigen::VectorXd body_frame_forces = WrenchMsgToEigen(msg_in);
-
-  if (!healthyWrench(body_frame_forces)) {
-    ROS_ERROR("ROV forces vector invalid, ignoring.");
-    return;
-  }
+void Allocator::spinOnce() {
+  const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(
+      body_frame_force_x, body_frame_force_y, body_frame_torque);
 
   Eigen::VectorXd thruster_forces =
       m_pseudoinverse_allocator->compute(body_frame_forces);
@@ -84,12 +87,45 @@ void Allocator::forceWrenchCallback(const geometry_msgs::Wrench &msg_in) const {
   m_pub.publish(msg_out);
 }
 
+void Allocator::forceWrenchCallback(const geometry_msgs::Wrench &msg_in) {
+  const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(msg_in);
+
+  if (!healthyWrench(body_frame_forces)) {
+    ROS_ERROR("ASV forces vector invalid, ignoring.");
+    return;
+  }
+
+  body_frame_force_x = msg_in.force.x;
+  body_frame_force_y = msg_in.force.y;
+}
+
+void Allocator::torqueWrenchCallback(const geometry_msgs::Wrench &msg_in) {
+  const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(msg_in);
+
+  if (!healthyWrench(body_frame_forces)) {
+    ROS_ERROR("ASV torque vector invalid, ignoring.");
+    return;
+  }
+
+  body_frame_torque = msg_in.torque.z;
+}
+
 Eigen::VectorXd
-Allocator::WrenchMsgToEigen(const geometry_msgs::Wrench &msg) const {
+Allocator::wrenchMsgToEigen(const geometry_msgs::Wrench &msg) const {
   Eigen::VectorXd body_frame_forces(m_num_degrees_of_freedom);
   body_frame_forces(0) = msg.force.x;  // surge
   body_frame_forces(1) = msg.force.y;  // sway
   body_frame_forces(2) = msg.torque.z; // yaw
+  return body_frame_forces;
+}
+
+Eigen::VectorXd Allocator::wrenchMsgToEigen(const float force_x,
+                                            const float force_y,
+                                            const float torque) const {
+  Eigen::VectorXd body_frame_forces(m_num_degrees_of_freedom);
+  body_frame_forces(0) = force_x; // surge
+  body_frame_forces(1) = force_y; // sway
+  body_frame_forces(2) = torque;  // yaw
   return body_frame_forces;
 }
 

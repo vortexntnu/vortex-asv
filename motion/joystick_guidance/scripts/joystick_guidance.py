@@ -12,15 +12,16 @@ from sensor_msgs.msg import Joy
 
 
 class JoystickGuidanceNode:
+
     def __init__(self):
 
-        thrust_topic = rospy.get_param(
-            "/guidance/joy/thrust_topic", default="/thrust/desired_forces"
-        )
+        thrust_topic = rospy.get_param("/guidance/joy/thrust_topic",
+                                       default="/thrust/desired_forces")
 
-        self.sub = rospy.Subscriber(
-            "/mission/joystick_data", Joy, self.joystick_data_cb, queue_size=1
-        )
+        self.sub = rospy.Subscriber("/mission/joystick_data",
+                                    Joy,
+                                    self.joystick_data_cb,
+                                    queue_size=1)
         self.pub = rospy.Publisher(thrust_topic, Wrench, queue_size=1)
 
         # self.joystick_activation_service_server = rospy.Service(

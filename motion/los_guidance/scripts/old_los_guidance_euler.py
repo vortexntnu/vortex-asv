@@ -127,7 +127,7 @@ class LOS:
         current position and the setpoint position.
         """
 
-        return np.sqrt((self.x_kp1 - self.x) ** 2 + (self.y_kp1 - self.y) ** 2)
+        return np.sqrt((self.x_kp1 - self.x)**2 + (self.y_kp1 - self.y)**2)
 
     def sphereOfAcceptance(self):
         """
@@ -157,7 +157,8 @@ class LOS:
         alpha = self.alpha
 
         # rotation matrix
-        R = np.array(((np.cos(alpha), -np.sin(alpha)), (np.sin(alpha), np.cos(alpha))))
+        R = np.array(
+            ((np.cos(alpha), -np.sin(alpha)), (np.sin(alpha), np.cos(alpha))))
 
         # transpose
         R_T = np.transpose(R)
@@ -267,7 +268,6 @@ class LosPathFollowing(object):
         controller objects are also intialized. Lastly, dynamic
         reconfigure and action servers are set up.
         """
-
         """
 		A flag to indicate whether or not a goal has not been reached.
 		True means that a goal is in progress of being completed.
@@ -277,12 +277,13 @@ class LosPathFollowing(object):
         self.flag = False
 
         rospy.init_node("los_path_following")
-        self.sub = rospy.Subscriber(
-            "/odometry/filtered", Odometry, self.callback, queue_size=1
-        )  # 20hz
-        self.pub_thrust = rospy.Publisher(
-            "/manta/thruster_manager/input", Wrench, queue_size=1
-        )
+        self.sub = rospy.Subscriber("/odometry/filtered",
+                                    Odometry,
+                                    self.callback,
+                                    queue_size=1)  # 20hz
+        self.pub_thrust = rospy.Publisher("/manta/thruster_manager/input",
+                                          Wrench,
+                                          queue_size=1)
 
         # constructor object
         self.los = LOS()
@@ -291,15 +292,16 @@ class LosPathFollowing(object):
 
         # dynamic reconfigure
         self.config = {}
-        self.srv_reconfigure = Server(LOSControllerConfig, self.config_callback)
-
+        self.srv_reconfigure = Server(LOSControllerConfig,
+                                      self.config_callback)
         """
 			action server guide
 			https://github.com/strawlab/ros_common/blob/master/actionlib/src/actionlib/simple_action_server.py
 		"""
         self.action_server = actionlib.SimpleActionServer(
-            name="los_path", ActionSpec=LosPathFollowingAction, auto_start=False
-        )
+            name="los_path",
+            ActionSpec=LosPathFollowingAction,
+            auto_start=False)
         self.action_server.register_goal_callback(self.goalCB)
         self.action_server.register_preempt_callback(self.preemptCB)
         self.action_server.start()
@@ -334,13 +336,13 @@ class LosPathFollowing(object):
         self.psi_d = self.los.lookaheadBasedSteering()
 
         # reference model
-        x_smooth = self.reference_model.discreteTustinMSD(np.array((2.0, self.psi_d)))
+        x_smooth = self.reference_model.discreteTustinMSD(
+            np.array((2.0, self.psi_d)))
         print(x_smooth)
 
         # control force
         tau_d_heading = self.los_controller.headingController(
-            self.psi_d, self.psi, self.los.t
-        )
+            self.psi_d, self.psi, self.los.t)
 
         # add speed controllers here
         thrust_msg = Wrench()
@@ -414,18 +416,15 @@ class LosPathFollowing(object):
 
         # Config has changed, reset PID controllers
         rospy.loginfo(
-            """Reconfigure Request: {delta}, {p_rot}, {i_rot}, {d_rot}, {sat_rot} """.format(
-                **config
-            )
-        )
+            """Reconfigure Request: {delta}, {p_rot}, {i_rot}, {d_rot}, {sat_rot} """
+            .format(**config))
 
         # update look-ahead distance
         self.los.delta = config["delta"]
 
         # self.pid_lin = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
-        self.los_controller.updateGains(
-            config["p_rot"], config["i_rot"], config["d_rot"], config["sat_rot"]
-        )
+        self.los_controller.updateGains(config["p_rot"], config["i_rot"],
+                                        config["d_rot"], config["sat_rot"])
 
         # update config
         self.config = config

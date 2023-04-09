@@ -23,9 +23,8 @@ def change_control_mode_client(requested_mode):
     rospy.wait_for_service("/controllers/control_mode_service")
     rospy.loginfo("server available")
     try:
-        control_mode = rospy.ServiceProxy(
-            "/controllers/control_mode_service", ControlMode
-        )
+        control_mode = rospy.ServiceProxy("/controllers/control_mode_service",
+                                          ControlMode)
         response = control_mode(requested_mode)
         return True
     except rospy.ServiceException as e:
@@ -35,9 +34,8 @@ def change_control_mode_client(requested_mode):
 def dp_move_base(x, y, yaw):
 
     # action client
-    action_client = actionlib.SimpleActionClient(
-        "/controllers/move_base", MoveBaseAction
-    )
+    action_client = actionlib.SimpleActionClient("/controllers/move_base",
+                                                 MoveBaseAction)
     action_client.wait_for_server()
     rospy.loginfo("MoveBaseAction client made.\n")
     goal = MoveBaseGoal()
@@ -46,7 +44,8 @@ def dp_move_base(x, y, yaw):
     # create goal
     goal.target_pose.pose.position = Point(x, y, 0)
     rospy.loginfo("Set x,y coordinate")
-    goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw))
+    goal.target_pose.pose.orientation = Quaternion(
+        *quaternion_from_euler(0, 0, yaw))
     rospy.loginfo("Set yaw")
     action_client.send_goal(goal)
     # wait for server to finish action
