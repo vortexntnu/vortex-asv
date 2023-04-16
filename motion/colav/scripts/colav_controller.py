@@ -14,7 +14,6 @@ from tf.transformations import euler_from_quaternion
 
 
 class ColavController:
-
     """
     Input: ASV position, Obstacles
     Output: Desired speed and desired heading to guidanceflipper node
@@ -25,8 +24,8 @@ class ColavController:
     Publishes torque and force input to topics:
         "/guidance/colav_data"
         
-    """ 
-    
+    """
+
     def __init__(self) -> None:
         rospy.init_node('colav_controller')
         self.obstacle_sub = rospy.Subscriber(
@@ -42,8 +41,8 @@ class ColavController:
         )
 
         self.colav_pub = rospy.Publisher(
-           # rospy.get_param("/guidance_interface/colav_data"),
-           #"/guidance/colav_data",
+            # rospy.get_param("/guidance_interface/colav_data"),
+            #"/guidance/colav_data",
             rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
             queue_size=1)
