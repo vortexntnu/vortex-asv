@@ -5,6 +5,7 @@ from sensor_msgs.msg import Joy
 
 
 class JoystickInterface:
+
     def __init__(self):
         """
         Define constants used in the joystick mapping, and any ros
@@ -13,11 +14,14 @@ class JoystickInterface:
 
         rospy.init_node("joystick_interface")
 
-        self.joystick_surge_scaling = rospy.get_param("/joystick/scaling/surge")
+        self.joystick_surge_scaling = rospy.get_param(
+            "/joystick/scaling/surge")
         self.joystick_sway_scaling = rospy.get_param("/joystick/scaling/sway")
-        self.joystick_heave_scaling = rospy.get_param("/joystick/scaling/heave")
+        self.joystick_heave_scaling = rospy.get_param(
+            "/joystick/scaling/heave")
         self.joystick_roll_scaling = rospy.get_param("/joystick/scaling/roll")
-        self.joystick_pitch_scaling = rospy.get_param("/joystick/scaling/pitch")
+        self.joystick_pitch_scaling = rospy.get_param(
+            "/joystick/scaling/pitch")
         self.joystick_yaw_scaling = rospy.get_param("/joystick/scaling/yaw")
 
         self.joystick_buttons_map = [
@@ -45,10 +49,13 @@ class JoystickInterface:
             "dpad_vertical",
         ]
 
-        self.joystick_sub = rospy.Subscriber(
-            "/joystick/joy", Joy, self.joystick_cb, queue_size=1
-        )
-        self.joystick_pub = rospy.Publisher("/mission/joystick_data", Joy, queue_size=1)
+        self.joystick_sub = rospy.Subscriber("/joystick/joy",
+                                             Joy,
+                                             self.joystick_cb,
+                                             queue_size=1)
+        self.joystick_pub = rospy.Publisher("/mission/joystick_data",
+                                            Joy,
+                                            queue_size=1)
 
         rospy.loginfo("Joystick interface is up and running")
 
@@ -66,7 +73,8 @@ class JoystickInterface:
         sway = axes["horizontal_axis_left_stick"] * self.joystick_sway_scaling
         heave = (axes["RT"] - axes["LT"]) / 2 * self.joystick_heave_scaling
         roll = (buttons["RB"] - buttons["LB"]) * self.joystick_roll_scaling
-        pitch = axes["vertical_axis_right_stick"] * self.joystick_pitch_scaling * (-1)
+        pitch = axes[
+            "vertical_axis_right_stick"] * self.joystick_pitch_scaling * (-1)
         yaw = axes["horizontal_axis_right_stick"] * self.joystick_yaw_scaling
 
         dpad_lights = axes["dpad_horizontal"]

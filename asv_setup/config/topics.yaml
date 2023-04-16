@@ -1,21 +1,16 @@
 # This file defines the ROS topics used by the packeges in Vortex-ASV
 
 asv:
-  thruster_manager:
-    input: "/thrust/desired_forces" # 3DOF thrust vector
-    output: "/thrust/thruster_forces" # Actuator forces
+  thruster_manager: 
     torque: "/thrust/torque_input"
     force: "/thrust/force_input"
     output: "/thrust/thruster_forces" # Actuator forces
 
-
 guidance_interface:
   los_data: "/guidance/los_data"                
-  dp_data: "/guidance/dp_data"  # currently unused, publish to this topic when implementing DP
-  colav_data: "/guidance/colav_data"   
+  dp_data: "/guidance/dp_data"    # currently unused, publish to this topic when implementing DP
   desired_speed: "/guidance/desired_speed"      
   desired_heading: "/guidance/desired_heading"
-
 
 guidance:
   LOS:
