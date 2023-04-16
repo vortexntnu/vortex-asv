@@ -19,7 +19,7 @@ class GuidanceInterface():
         "/guidance/desired_speed"  
         "/guidance/desired_heading"
         
-    """ 
+    """
 
     def __init__(self) -> None:
         rospy.init_node("gflipper")
@@ -29,25 +29,26 @@ class GuidanceInterface():
             rospy.get_param("/guidance_interface/los_data"),
             GuidanceData,
             self.los_data_callback,
-            queue_size = 1,
+            queue_size=1,
         )
         self.colav_data_sub = rospy.Subscriber(
             rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
             self.colav_data_callback,
-            queue_size = 1,
+            queue_size=1,
         )
 
         # Publishers
         self.speed_pub = rospy.Publisher(
-            rospy.get_param("/guidance_interface/desired_speed"), Float64, queue_size = 1
-        )
+            rospy.get_param("/guidance_interface/desired_speed"),
+            Float64,
+            queue_size=1)
         self.heading_pub = rospy.Publisher(
-            rospy.get_param("/guidance_interface/desired_heading"), Float64, queue_size = 1
-        )
+            rospy.get_param("/guidance_interface/desired_heading"),
+            Float64,
+            queue_size=1)
         self.pub_colav = False
-        self.colav_pub_time = 5 # placeholder
-
+        self.colav_pub_time = 5  # placeholder
 
     def los_data_callback(self, guidance_data) -> None:
         if self.pub_colav:
@@ -58,23 +59,22 @@ class GuidanceInterface():
 
         self.speed_pub.publish(speed_msg)
         self.heading_pub.publish(heading_msg)
-        print("now publishing los",speed_msg,heading_msg)
-    def colav_data_callback(self,guidance_data) -> None:
+        print("now publishing los", speed_msg, heading_msg)
+
+    def colav_data_callback(self, guidance_data) -> None:
         self.pub_colav = True
         speed_msg = guidance_data.u_d
         heading_msg = guidance_data.psi_d
 
         toc = time.perf_counter()
         tic = time.perf_counter()
-        while tic-toc < self.colav_pub_time :
-            print("now publishing colav",speed_msg,heading_msg)
+        while tic - toc < self.colav_pub_time:
+            print("now publishing colav", speed_msg, heading_msg)
             tic = time.perf_counter()
             self.speed_pub.publish(speed_msg)
             self.heading_pub.publish(heading_msg)
         self.pub_colav = False
 
-
-        
 
 if __name__ == "__main__":
     guidance_interface = GuidanceInterface()

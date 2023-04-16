@@ -29,6 +29,7 @@ from vortex_msgs.msg import (
 # modules included in this package
 from reference_model.discrete_tustin import ReferenceModel
 
+
 class LOS:
     """
     The Line-Of-Sight guidance class, with an imported controller.
@@ -327,10 +328,6 @@ class LosPathFollowing(object):
                 np.array((self.los.speed, psi_d)))
 
         return x_d
-
- 
-
-    
 
     def callback(self, msg):
         """

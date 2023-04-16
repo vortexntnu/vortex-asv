@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 #------------------------------------------------------------
 # will prob use something similar to this node,
 # i.e just a node that enables colav and maybe posts wp to los
@@ -12,17 +11,19 @@ import actionlib
 from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 
 
-
 class ColavTask:
+
     def __init__(self):
-
         """
 
         """
-        rospy.init_node("colav_fsm",anonymous=True)
+        rospy.init_node("colav_fsm", anonymous=True)
         self.vessel = Odometry()
         self.goal = WaypointRequest()
-        self.server = actionlib.SimpleActionServer('StartColavTask',Odometry,self.goal_cb, auto_start=True)
+        self.server = actionlib.SimpleActionServer('StartColavTask',
+                                                   Odometry,
+                                                   self.goal_cb,
+                                                   auto_start=True)
 
         #Subscribers
         #placeholder topic
@@ -31,14 +32,14 @@ class ColavTask:
         #     "goaltopic",Odometry,self.goal_callback,queue_size=1
         # )
 
-        self.vessel_sub = rospy.Subscriber(
-            "/pose_gt", Odometry, self.vessel_callback, queue_size=1
-        )  # 20hz
+        self.vessel_sub = rospy.Subscriber("/pose_gt",
+                                           Odometry,
+                                           self.vessel_callback,
+                                           queue_size=1)  # 20hz
 
         self.enabled = rospy.get_param("/tasks/task_1")
 
-
-    def vessel_callback(self,data):
+    def vessel_callback(self, data):
         """
         Update the postion of the UAV
         Args:
@@ -46,19 +47,25 @@ class ColavTask:
         """
         self.vessel = data
 
-    def goal_cb(self,data):
-        if self.enabled :
+    def goal_cb(self, data):
+        if self.enabled:
             goal_wp = WaypointRequest()
-            goal_wp.waypoint = [data.pose.pose.position.s,data.pose.pose.position.y]
+            goal_wp.waypoint = [
+                data.pose.pose.position.s, data.pose.pose.position.y
+            ]
 
             vessel_wp = WaypointRequest()
-            vessel_wp.waypoint = [self.vessel.pose.pose.position.x,self.vessel.pose.pose.position.y]
+            vessel_wp.waypoint = [
+                self.vessel.pose.pose.position.x,
+                self.vessel.pose.pose.position.y
+            ]
             response = WaypointResponse()
             response.success = False
             try:
                 rospy.loginfo("Sending waypoints")
                 rospy.wait_for_service("/navigation/add_waypoint")
-                waypoint_client = rospy.ServiceProxy("/navigation/add_waypoint", Waypoint)
+                waypoint_client = rospy.ServiceProxy(
+                    "/navigation/add_waypoint", Waypoint)
                 first_response = waypoint_client(vessel_wp)
                 second_response = waypoint_client(goal_wp)
                 response.success = first_response.success and second_response.success
@@ -68,21 +75,16 @@ class ColavTask:
             rospy.loginfo("FAILURE!: Task is not enabled yet!")
 
     def spin(self):
-            self.enabled = rospy.get_param("/tasks/task_1")
+        self.enabled = rospy.get_param("/tasks/task_1")
 
-            while not self.enabled:
-                rospy.sleep(0.1)
-
-
+        while not self.enabled:
+            rospy.sleep(0.1)
 
 
 if __name__ == "__main__":
     my_node_1 = ColavTask()
     my_node_1.spin()
     rospy.spin()
-
-
-
 
 # import numpy as np
 # MAX_SPEED = 5.0  # maximum speed of the vessel
