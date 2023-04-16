@@ -9,6 +9,7 @@ asv:
 guidance_interface:
   los_data: "/guidance/los_data"                
   dp_data: "/guidance/dp_data"    # currently unused, publish to this topic when implementing DP
+  colav_data: "/guidance/colav_data"
   desired_speed: "/guidance/desired_speed"      
   desired_heading: "/guidance/desired_heading"
 

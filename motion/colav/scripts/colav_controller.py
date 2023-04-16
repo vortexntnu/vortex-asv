@@ -15,31 +15,20 @@ from tf.transformations import euler_from_quaternion
 # so just assuming odometry or now
 #----------------------------------------------------
 
-# class Zones(Enum):
-#     NOCOL = 1
-#     COLIMM = 2
-#     STOPNOW = 3
-
-
-# class Approaches(Enum):
-#     FRONT = 1
-#     RIGHT = 2
-#     LEFT = 3
-#     BEHIND = 4
-
-
-# class Obstacle:
-#     def __init__(self) -> None:
-#         self.vx = 0
-#         self.vy = 0
-#         self.r = 0
-#         self.x = 0
-#         self.y = 0
-#         self.heading = 0
-#         self.speed = 0
-
 
 class ColavController:
+
+    """
+    Input: ASV position, Obstacles
+    Output: Desired speed and desired heading to guidanceflipper node
+    Functionality: Calculates desired heading and speed to avoid collision with nearest obstacle  
+    Subscribes to guidance data from topics:
+        "/pose_gt"
+        "/tracking/mul_tracked_cv_objects"
+    Publishes torque and force input to topics:
+        "/guidance/colav_data"
+        
+    """ 
     
     def __init__(self) -> None:
         rospy.init_node('colav_controller')
@@ -57,8 +46,8 @@ class ColavController:
         
         self.colav_pub = rospy.Publisher(
            # rospy.get_param("/guidance_interface/colav_data"),
-           "/guidance/colav_data",
-           # rospy.get_param("/guidance_interface/colav_data"),
+           #"/guidance/colav_data",
+            rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
             queue_size=1
         )
