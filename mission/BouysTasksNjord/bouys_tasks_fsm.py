@@ -5,7 +5,7 @@ import smach_ros
 import math
 import mission.BouysTasksNjord.bouys_tasks as bouys_tasks
 from nav_msgs.msg import Odometry
-#from my_msgs.msg import MyData # custom message type for the combined data. Talk with hannah
+from update_userdata import DetectedObjectsData # custom message type for the combined data.
 
 
 rospy.init_node('Bouys_tasks_fsm')
@@ -13,7 +13,7 @@ rospy.init_node('Bouys_tasks_fsm')
 class ManeuveringNavigationTasks:
     def __init__(self):
         self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
-        self.sub_bouy_info = rospy.Subscriber('updated_bouy_data_Njord', MyData, self.bouy_data_callback)
+        self.sub_bouy_info = rospy.Subscriber('updated_bouy_data_Njord', DetectedObjectsData, self.bouy_data_callback)
 
         # Initialize class attributes
         #                          Position, type
@@ -43,45 +43,6 @@ class ManeuveringNavigationTasks:
         self.current_south_marker = data.objects.CurrentSouthMarker
         self.current_east_marker = data.objects.CurrentEastMarker
         self.current_west_marker = data.objects.CurrentWestMarker
-
-
-    def distance(ObjectOnePosition, ObjectTwoPosition):
-        x1, y1 = ObjectOnePosition
-        x2, y2 = ObjectTwoPosition
-        distanceX = x1 - x2
-        distanceY = y1 - y2
-        hypDistance = math.sqrt(distanceX**2 + distanceY**2)
-        return hypDistance
-
-    def find_closest_objects(self):
-
-        for name, new_object in vars(self).items():
-            if name.startswith('current_') or (name.endswith('bouy') or name.endswith('marker')):
-
-                new_obj_type = new_object[2]
-                new_obj_pos = (new_object[0], new_object[1])
-                dist_to_new_obj = ManeuveringNavigationTasks.distance(self.vessel_position, new_obj_pos)
-
-                old_closest_obj_type = self.closest_object[2]
-                old_closest_obj_pos = (self.closest_object[0], self.closest_object[1])
-                dist_to_old_closest_obj = ManeuveringNavigationTasks.distance(self.vessel_position, old_closest_obj_pos)
-                
-                old_second_closest_obj_type = self.second_closest_object[2]
-                old_second_closest_obj_pos = (self.second_closest_object[0], self.second_closest_object[1])
-                dist_to_old_second_closest_obj = ManeuveringNavigationTasks.distance(self.vessel_position, old_second_closest_obj_pos)
-            
-            if dist_to_new_obj < dist_to_old_closest_obj:
-                self.second_closest_object = (dist_to_old_closest_obj, old_closest_obj_type)
-                self.closest_object = (dist_to_new_obj, new_obj_type)
-            elif dist_to_new_obj < dist_to_old_second_closest_obj:
-                self.second_closest_object = (dist_to_new_obj, new_obj_type)
-                self.closest_object = (dist_to_old_closest_obj, old_closest_obj_type)
-            else: #No new closest objects, but calculating distance to closest objects again
-                self.second_closest_object = (dist_to_old_second_closest_obj, old_second_closest_obj_type)
-                self.closest_object = (dist_to_old_closest_obj, old_closest_obj_type)
-
-            # return self.closest_object, self.second_closest_object unnessesary?
-
 
     def spin(self):
         # Create the state machine
@@ -139,8 +100,6 @@ class ManeuveringNavigationTasks:
             if self.enabled == False:
                 print("Exiting because this fsm should be inactive.")
                 break
-
-            ManeuveringNavigationTasks.find_closest_objects()
 
             ud = smach.UserData()
             outcome = sm.execute(ud)

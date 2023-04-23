@@ -67,6 +67,7 @@ class OneRedBouyNav(smach.State):
         rospy.loginfo('OneRedBouyNav')
 
         next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_red_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
+        
         send_wp(self.data.vessel_position)
         overwrite_with_new_waypoint(next_waypoint)
         
@@ -81,6 +82,7 @@ class OneGreenBouyNav(smach.State):
         rospy.loginfo('OneGreenBouyNav')
 
         next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_green_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
+        
         send_wp(self.data.vessel_position)
         overwrite_with_new_waypoint(next_waypoint)
 
@@ -100,6 +102,7 @@ class GreenAndReadBouyNav(smach.State):
 
         distance_between_bouys = math.sqrt((GreenBouy[0] - RedBouy[0]) ** 2 + (GreenBouy[1] - RedBouy[1]) ** 2)
 
+        #Calculate a new waypoint between bouys that is 10% of center based on direction.
         if self.data.DirectionWithLeia == True:
             #Distance from Green to WP
             distance_between_Green_and_WP = 0.1 * distance_between_bouys
