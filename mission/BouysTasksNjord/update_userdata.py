@@ -22,15 +22,15 @@ class UpdateDataNode:
     def __init__(self):
         rospy.init_node('update_data_node')     
         
-        # Initialize subscribers to topic1 and topic2
+        # Initialize subscribers to get all the necessary information
         self.sub1 = rospy.Subscriber('detected_objects', DataFromPerception, self.callback1) #This line is bullshit
-        self.sub2 = rospy.Subscriber('vessel_position', String, self.callback2) 
+        self.sub2 = rospy.Subscriber('vessel_position', String, self.callback2) #switch out with a real way of getting asv position
         
         # Initialize publisher to data topic
         self.pub = rospy.Publisher('updated_data_Nav_tasks_Njord', DetectedObjectsData, queue_size=1)
 
     def callback1(self, msg):
-        # Extract data from topic1 and combine with topic2 data
+        # Extract data from sub1 and sub2 and combine them into a DetectedObjectsData type and store in self.sub1
         combined_data = DetectedObjectsData()
         combined_data.objects.CurrentRedBouy = msg.objects.CurrentRedBouy
         combined_data.objects.CurrentGreenBouy = msg.objects.CurrentGreenBouy
