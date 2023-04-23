@@ -5,7 +5,7 @@ import smach_ros
 import math
 import mission.BouysTasksNjord.bouys_tasks as bouys_tasks
 from nav_msgs.msg import Odometry
-from update_userdata import DetectedObjectsData # custom message type for the combined data.
+from update_objects_data import DetectedObjectsData # custom message type for the combined data.
 
 
 rospy.init_node('Bouys_tasks_fsm')
@@ -13,7 +13,7 @@ rospy.init_node('Bouys_tasks_fsm')
 class ManeuveringNavigationTasks:
     def __init__(self):
         self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
-        self.sub_bouy_info = rospy.Subscriber('updated_bouy_data_Njord', DetectedObjectsData, self.bouy_data_callback)
+        self.sub_bouy_info = rospy.Subscriber('object_data_Njord', DetectedObjectsData, self.bouy_data_callback)
 
         # Initialize class attributes
         #                          Position, type
@@ -24,8 +24,8 @@ class ManeuveringNavigationTasks:
         self.current_east_marker   = (0, 0, 'east')
         self.current_west_marker   = (0, 0, 'west')
         #                          Distance, type
-        self.closest_object        = (0, '')
-        self.second_closest_object = (0, '')
+        self.closest_object        = (math.inf, '')
+        self.second_closest_object = (math.inf, '')
         #                          Position
         self.vessel_position       = (0, 0) #Odometry()
         #
