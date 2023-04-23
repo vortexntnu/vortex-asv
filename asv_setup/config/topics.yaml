@@ -4,3 +4,6 @@ asv:
   thruster_manager:
     input: "/thrust/desired_forces" # 3DOF thrust vector
     output: "/thrust/thruster_forces" # Actuator forces
+
+task_manager:
+  server: "/task_manager/task_manager_server"
