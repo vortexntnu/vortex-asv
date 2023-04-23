@@ -12,7 +12,7 @@ class Colav:
         self.isEnabled = False
 
         task_manager_client = dynamic_reconfigure.client.Client(
-            "/task_manager/server", timeout=5, config_callback=self.callback
+            "/task_manager/task_manager_server", timeout=5, config_callback=self.callback
         )
 
     def callback(self, config):

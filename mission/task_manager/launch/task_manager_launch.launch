@@ -2,7 +2,7 @@
 <launch>
 
     <group ns="task_manager">
-        <node name="server"                       pkg ="task_manager"          type="task_manager_server_node.py"   output="screen"/>
+        <node name="task_manager_server"                       pkg ="task_manager"          type="task_manager_server_node.py"   output="screen"/>
     </group>
 
 </launch>
