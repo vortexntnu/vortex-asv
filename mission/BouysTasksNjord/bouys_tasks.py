@@ -4,6 +4,7 @@ import rospy
 import smach
 import math
 from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
+from geometry_msgs.msg import Pose, Twist
 
 class Idle(smach.State):
     def __init__(self, data):
@@ -24,10 +25,62 @@ class Idle(smach.State):
 class Search(smach.State):
     def __init__(self, data):
         smach.State.__init__(self, outcomes=['idle'])
+        self.odom = Odometry()
+        self.rate = rospy.Rate(10)
         self.data = data
+
+    def odom_cb(self, msg):
+        self.odom = msg
+
+    def yaw_to_angle(self, angle):
+        goal = Pose()
+        goal.position = self.odom.pose.pose.position
+        goal.orientation = self.odom.pose.pose.orientation
+        goal = rotate_certain_angle(goal, angle)
+
+        vel_goal = Twist()
+        vel_goal.angular.z = np.sign(angle) * rospy.get_param(
+            "/fsm/turn_speed")
+        vel_goal.linear.z = -0.01
+        vel_goal.linear.x = 0.01
+
+        self.velocity_ctrl_client(vel_goal, True)
+        print(f"Searching for {self.task}, angle: ({angle}) ...")
+        while not within_acceptance_margins(goal, self.odom, True):
+            self.object = self.landmarks_client(self.task).object
+            if self.object.isDetected:
+                return True
+            self.rate.sleep()
+
+        self.velocity_ctrl_client(vel_goal, False)
+
+        return False
 
     def execute(self):
         rospy.loginfo('Executing Search')
+        path_segment_counter = 1
+
+
+        while not self.object.isDetected:
+            while (self.vtf_client.simple_state != actionlib.simple_action_client.SimpleGoalState.DONE):      
+                if self.object.isDetected:
+                        break
+                self.rate.sleep()
+
+            detection = self.yaw_to_angle(45)
+            if detection:
+                break
+
+            detection = self.yaw_to_angle(-90)
+            if detection:
+                break
+
+            detection = self.yaw_to_angle(45)
+            if detection:
+                break
+
+            path_segment_counter += 1
+
         #Copy search pattern from AUV?
         return 'idle'
     
@@ -67,7 +120,6 @@ class OneRedBouyNav(smach.State):
         rospy.loginfo('OneRedBouyNav')
 
         next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_red_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
-        
         send_wp(self.data.vessel_position)
         overwrite_with_new_waypoint(next_waypoint)
         
@@ -82,7 +134,6 @@ class OneGreenBouyNav(smach.State):
         rospy.loginfo('OneGreenBouyNav')
 
         next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_green_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
-        
         send_wp(self.data.vessel_position)
         overwrite_with_new_waypoint(next_waypoint)
 
@@ -102,7 +153,6 @@ class GreenAndReadBouyNav(smach.State):
 
         distance_between_bouys = math.sqrt((GreenBouy[0] - RedBouy[0]) ** 2 + (GreenBouy[1] - RedBouy[1]) ** 2)
 
-        #Calculate a new waypoint between bouys that is 10% of center based on direction.
         if self.data.DirectionWithLeia == True:
             #Distance from Green to WP
             distance_between_Green_and_WP = 0.1 * distance_between_bouys
