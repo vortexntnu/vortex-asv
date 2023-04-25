@@ -8,7 +8,8 @@ import numpy as np
 import math
 
 class DetectedObjectsData:
-    def __init__(self):
+    #Latitude; x, Longitude; y
+    def __init__(self):            #  x, y, type          
         self.current_red_bouy      = (0, 0, 'red')
         self.current_green_bouy    = (0, 0, 'green')
         self.current_north_marker  = (0, 0, 'north')
@@ -33,7 +34,7 @@ class UpdateDataNode:
         self.westMarkerArray = []
         
         # Initialize subscriber and Service to get all the necessary information
-        self.landmark_client = rospy.ServiceProxy("send_positions", request_position)
+        #self.landmark_client = rospy.ServiceProxy("send_positions", request_position)
         self.Position_sub = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_cb)
         
         # Initialize publisher to data topic
@@ -41,19 +42,19 @@ class UpdateDataNode:
 
     def spin(self):
 
-        redBouyPoint = self.landmark_client("red_bouy")
-        greenBouyPoint = self.landmark_client("green_bouy")
-        northMarkerPoint = self.landmark_client("north_marker")
-        southMarkerPoint = self.landmark_client("south_marker")
-        eastMarkerPoint = self.landmark_client("east_marker")
-        westMarkerPoint = self.landmark_client("west_marker")
+        # redBouyPoint = self.landmark_client("red_bouy")
+        # greenBouyPoint = self.landmark_client("green_bouy")
+        # northMarkerPoint = self.landmark_client("north_marker")
+        # southMarkerPoint = self.landmark_client("south_marker")
+        # eastMarkerPoint = self.landmark_client("east_marker")
+        # westMarkerPoint = self.landmark_client("west_marker")
         
-        self.redBouyArray = UpdateDataNode.update_array(redBouyPoint)
-        self.greenBouyArray = UpdateDataNode.update_array(greenBouyPoint)
-        self.northBouyArray = UpdateDataNode.update_array(northMarkerPoint)
-        self.southBouyArray = UpdateDataNode.update_array(southMarkerPoint)
-        self.eastBouyArray = UpdateDataNode.update_array(eastMarkerPoint)
-        self.westBouyArray = UpdateDataNode.update_array(westMarkerPoint)
+        # self.redBouyArray = UpdateDataNode.update_array(redBouyPoint)
+        # self.greenBouyArray = UpdateDataNode.update_array(greenBouyPoint)
+        # self.northBouyArray = UpdateDataNode.update_array(northMarkerPoint)
+        # self.southBouyArray = UpdateDataNode.update_array(southMarkerPoint)
+        # self.eastBouyArray = UpdateDataNode.update_array(eastMarkerPoint)
+        # self.westBouyArray = UpdateDataNode.update_array(westMarkerPoint)
 
         self.object_data.current_red_bouy = UpdateDataNode.find_closest_position_from_array()
         self.object_data.current_green_bouy = UpdateDataNode.find_closest_position_from_array()
