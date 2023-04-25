@@ -42,20 +42,6 @@ class UpdateDataNode:
 
     def spin(self):
 
-        # redBouyPoint = self.landmark_client("red_bouy")
-        # greenBouyPoint = self.landmark_client("green_bouy")
-        # northMarkerPoint = self.landmark_client("north_marker")
-        # southMarkerPoint = self.landmark_client("south_marker")
-        # eastMarkerPoint = self.landmark_client("east_marker")
-        # westMarkerPoint = self.landmark_client("west_marker")
-        
-        # self.redBouyArray = UpdateDataNode.update_array(redBouyPoint)
-        # self.greenBouyArray = UpdateDataNode.update_array(greenBouyPoint)
-        # self.northBouyArray = UpdateDataNode.update_array(northMarkerPoint)
-        # self.southBouyArray = UpdateDataNode.update_array(southMarkerPoint)
-        # self.eastBouyArray = UpdateDataNode.update_array(eastMarkerPoint)
-        # self.westBouyArray = UpdateDataNode.update_array(westMarkerPoint)
-
         self.object_data.current_red_bouy = UpdateDataNode.find_closest_position_from_array()
         self.object_data.current_green_bouy = UpdateDataNode.find_closest_position_from_array()
         self.object_data.current_north_marker = UpdateDataNode.find_closest_position_from_array()
@@ -71,10 +57,12 @@ class UpdateDataNode:
         self.object_data.vessel_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)
 
     def obj_pos_cb(self, msg):
-
         self.red_bouy_array = msg.red_bouy_array
         self.green_bouy_array = msg.green_bouy_array
-        #...
+        self.north_marker_array = msg.north_marker_array
+        self.south_marker_array = msg.south_marker_array
+        self.east_marker_array = msg.east_marker_array
+        self.west_marker_array = msg.west_marker_array
 
 
     def update_array(array, new_point):
@@ -95,7 +83,7 @@ class UpdateDataNode:
         closest_distance = math.inf
     
         for pos in positions_array:
-            distance = UpdateDataNode.distance(position, pos) #math.sqrt((position[0] - pos[0])**2 + (position[1] - pos[1])**2)
+            distance = UpdateDataNode.distance(position, pos)
             if distance < closest_distance:
                 closest_distance = distance
                 closest_position = pos
