@@ -26,15 +26,15 @@ class UpdateDataNode:
         # Initialize object data to be published
         self.object_data = DetectedObjectsData()
 
-        self.redBouyArray = []
-        self.greenBouyArray = []
-        self.northMarkerArray = []
-        self.southMarkerArray = []
-        self.eastMarkerArray = []
-        self.westMarkerArray = []
+        self.red_bouy_array = []
+        self.green_bouy_array = []
+        self.north_marker_array = []
+        self.south_marker_array = []
+        self.east_marker_array = []
+        self.west_marker_array = []
         
         # Initialize subscriber and Service to get all the necessary information
-        #self.landmark_client = rospy.ServiceProxy("send_positions", request_position)
+        self.Obj_pos_sub = rospy.Subscriber('bouys_and_markers', self.object_pos_cb)
         self.Position_sub = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_cb)
         
         # Initialize publisher to data topic
@@ -69,6 +69,13 @@ class UpdateDataNode:
     
     def odom_cb(self, msg): 
         self.object_data.vessel_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)
+
+    def obj_pos_cb(self, msg):
+
+        self.red_bouy_array = msg.red_bouy_array
+        self.green_bouy_array = msg.green_bouy_array
+        #...
+
 
     def update_array(array, new_point):
         updated = False
