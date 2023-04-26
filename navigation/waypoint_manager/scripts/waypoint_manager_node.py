@@ -68,23 +68,23 @@ class WaypointManager:
         rospy.loginfo(f"Waypoint list: {self.waypoint_list}")
         list_length = len(self.waypoint_list)
         if list_length > 0:
-            for i in range(list_length-2, -1, -1):
-                rospy.loginfo(f"Last element in waypoint list: {self.waypoint_list[i]}")
+            for i in range(list_length - 2, -1, -1):
+                rospy.loginfo(
+                    f"Last element in waypoint list: {self.waypoint_list[i]}")
                 self.waypoint_list.remove(self.waypoint_list[i])
                 self.path.poses.reverse()
                 self.path.poses.pop()
                 self.path.poses.reverse()
-        rospy.loginfo(f"Waypoint list: {self.waypoint_list}") 
+        rospy.loginfo(f"Waypoint list: {self.waypoint_list}")
 
         self.waypoint_list.append(req.waypoint)
         newpose = PoseStamped()
         newpose.pose.position = Point(req.waypoint[0], req.waypoint[1], 0)
         self.path.poses.append(newpose)
-        rospy.loginfo(f"Waypoint list: {self.waypoint_list}") 
+        rospy.loginfo(f"Waypoint list: {self.waypoint_list}")
 
         self.path_pub.publish(self.path)
         return WaypointResponse(True)
-            
 
     # # Suggested function for simplicity in the mission/BouysTasksNjord.
     # def overwrite_waypoint_list_with_new_waypoint_list(self, req):
@@ -97,7 +97,6 @@ class WaypointManager:
     #         self.path.poses.append(newpose)
     #     self.path_pub.publish(self.path)
     #     return WaypointResponse(True)
-    
 
     def spin(self):
         index_waypoint_k = 0
