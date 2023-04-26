@@ -4,16 +4,10 @@
 import rospy
 import smach
 import math
-import numpy as np
 from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
-from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
-from scipy.spatial.transform import Rotation as R
 from std_msgs.msg import Float64
-from tf.transformations import (
-    euler_from_quaternion,
-    quaternion_multiply,
-)
+from tf.transformations import euler_from_quaternion
 
 class Idle(smach.State):
     def __init__(self, data):
@@ -72,7 +66,7 @@ class Search(smach.State):
 
     def execute(self):
         rospy.loginfo('Executing Search')
-        
+
         self.yaw_to_angle(45)
         self.yaw_to_angle(-90)
         self.yaw_to_angle(45)
