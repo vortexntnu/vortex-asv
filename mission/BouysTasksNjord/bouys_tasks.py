@@ -38,6 +38,7 @@ class Idle(smach.State):
 
 
 class Search(smach.State):
+
     def __init__(self, data):
         smach.State.__init__(self, outcomes=['idle'])
         self.task = "Buoy"
@@ -101,9 +102,11 @@ class DesideNextState(smach.State):
 
         DesideNextState.find_closest_objects()
 
-        if self.closest_object[1] == 'red' and self.second_closest_object[1] == 'green':
+        if self.closest_object[1] == 'red' and self.second_closest_object[
+                1] == 'green':
             return 'greenAndRedBouyNav'
-        if self.closest_object[1] == 'green' and self.second_closest_object[1] == 'red':
+        if self.closest_object[1] == 'green' and self.second_closest_object[
+                1] == 'red':
             return 'greenAndRedBouyNav'
         if self.closest_object[1] == 'red':
             return 'red'
@@ -119,10 +122,11 @@ class DesideNextState(smach.State):
             return 'west'
         if self.closest_object[1] == '':
             return 'search'
-        
+
     def find_closest_objects(self):
         for name, new_object in vars(self.data).items():
-            if name.startswith('current_') or (name.endswith('bouy') or name.endswith('marker')):
+            if name.startswith('current_') or (name.endswith('bouy')
+                                               or name.endswith('marker')):
                 new_obj_type = new_object[2]
                 new_obj_pos = (new_object[0], new_object[1])
                 dist_to_new_obj = UpdateDataNode.distance(
@@ -132,29 +136,24 @@ class DesideNextState(smach.State):
                                        self.closest_object[1])
                 dist_to_old_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_closest_obj_pos)
-                old_second_closest_obj_type = self.second_closest_object[
-                    2]
-                old_second_closest_obj_pos = (
-                    self.second_closest_object[0],
-                    self.second_closest_object[1])
+                old_second_closest_obj_type = self.second_closest_object[2]
+                old_second_closest_obj_pos = (self.second_closest_object[0],
+                                              self.second_closest_object[1])
                 dist_to_old_second_closest_obj = UpdateDataNode.distance(
-                    self.data.vessel_position,
-                    old_second_closest_obj_pos)
+                    self.data.vessel_position, old_second_closest_obj_pos)
             if dist_to_new_obj < dist_to_old_closest_obj:
-                self.second_closest_object = (
-                    dist_to_old_closest_obj, old_closest_obj_type)
-                self.closest_object = (dist_to_new_obj,
-                                                   new_obj_type)
+                self.second_closest_object = (dist_to_old_closest_obj,
+                                              old_closest_obj_type)
+                self.closest_object = (dist_to_new_obj, new_obj_type)
             elif dist_to_new_obj < dist_to_old_second_closest_obj:
-                self.second_closest_object = (dist_to_new_obj,
-                                                          new_obj_type)
+                self.second_closest_object = (dist_to_new_obj, new_obj_type)
                 self.closest_object = (dist_to_old_closest_obj,
-                                                   old_closest_obj_type)
+                                       old_closest_obj_type)
             else:  #No new closest objects, but updating distance to the old closest objects again because our position may have changed
                 self.second_closest_object = (dist_to_old_second_closest_obj,
-                                                old_second_closest_obj_type)
+                                              old_second_closest_obj_type)
                 self.closest_object = (dist_to_old_closest_obj,
-                                        old_closest_obj_type)
+                                       old_closest_obj_type)
 
 
 class OneRedBouyNav(smach.State):

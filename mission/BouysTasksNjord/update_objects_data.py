@@ -9,6 +9,7 @@ import math
 from vortex_msgs import DetectedObjectArray, DetectedObject
 from std_msgs.msg import Header
 
+
 class DetectedObjectsData:
     #Latitude; x, Longitude; y
     def __init__(self):  #  x, y, type
@@ -35,8 +36,9 @@ class UpdateDataNode:
         self.west_marker_array = []
 
         # Initialize subscriber and Service to get all the necessary information
-        self.Obj_pos_sub = rospy.Subscriber('bouys_and_markers', #Message from perception not defined
-                                            self.obj_pos_cb)
+        self.Obj_pos_sub = rospy.Subscriber(
+            'bouys_and_markers',  #Message from perception not defined
+            self.obj_pos_cb)
         self.Position_sub = rospy.Subscriber('/odometry/filtered', Odometry,
                                              self.odom_cb)
 
@@ -48,9 +50,11 @@ class UpdateDataNode:
     def spin(self):
 
         VesselPos = self.object_data.vessel_position
-        
-        self.object_data.current_red_bouy = UpdateDataNode.find_closest_object_in_array(VesselPos, self.red_bouy_array)
-        self.object_data.current_green_bouy = UpdateDataNode.find_closest_object_in_array(VesselPos, self.green_bouy_array)
+
+        self.object_data.current_red_bouy = UpdateDataNode.find_closest_object_in_array(
+            VesselPos, self.red_bouy_array)
+        self.object_data.current_green_bouy = UpdateDataNode.find_closest_object_in_array(
+            VesselPos, self.green_bouy_array)
         # north, south, east, west...
 
         UpdateDataNode.find_closest_objects()
@@ -58,7 +62,7 @@ class UpdateDataNode:
         msg = DetectedObjectArray()
         msg.header = Header()
         msg.header.stamp = rospy.Time.now()
-        
+
         red_bouy = DetectedObject()
         red_bouy.x = self.object_data.current_red_bouy[0]
         red_bouy.y = self.object_data.current_red_bouy[1]
@@ -75,8 +79,7 @@ class UpdateDataNode:
 
     def odom_cb(self, msg):
         self.object_data.vessel_position = (msg.pose.pose.position.x,
-                                            msg.pose.pose.position.y,
-                                            'vessel')
+                                            msg.pose.pose.position.y, 'vessel')
 
     #Must probably be switched out when message is defined
     def obj_pos_cb(self, msg):

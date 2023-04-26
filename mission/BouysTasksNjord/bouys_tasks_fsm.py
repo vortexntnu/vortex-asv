@@ -10,23 +10,38 @@ from nav_msgs.msg import Odometry
 from update_objects_data import DetectedObjectsData  # custom message type for the combined data.
 from vortex_msgs import DetectedObjectArray, DetectedObject
 
+
 class ManeuveringNavigationTasks:
 
     def __init__(self):
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
         self.info = DetectedObjectsData
-        self.info_sub = rospy.Subscriber('detected_objects', DetectedObjectArray, self.info_cb)
-        self.vessel_pos_sub = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_cb)
+        self.info_sub = rospy.Subscriber('detected_objects',
+                                         DetectedObjectArray, self.info_cb)
+        self.vessel_pos_sub = rospy.Subscriber('/odometry/filtered', Odometry,
+                                               self.odom_cb)
 
     def info_cb(self, msg):
         detected_objects = msg.detected_objects
-        self.info.current_red_bouy = (detected_objects[0].x, detected_objects[0].y, detected_objects[0].type)
-        self.info.current_green_bouy = (detected_objects[1].x, detected_objects[1].y, detected_objects[1].type)
-        self.info.current_north_marker = (detected_objects[2].x, detected_objects[2].y, detected_objects[2].type)
-        self.info.current_south_marker = (detected_objects[3].x, detected_objects[3].y, detected_objects[3].type)
-        self.info.current_east_marker = (detected_objects[4].x, detected_objects[4].y, detected_objects[4].type)
-        self.info.current_west_marker = (detected_objects[5].x, detected_objects[5].y, detected_objects[5].type)
-    
+        self.info.current_red_bouy = (detected_objects[0].x,
+                                      detected_objects[0].y,
+                                      detected_objects[0].type)
+        self.info.current_green_bouy = (detected_objects[1].x,
+                                        detected_objects[1].y,
+                                        detected_objects[1].type)
+        self.info.current_north_marker = (detected_objects[2].x,
+                                          detected_objects[2].y,
+                                          detected_objects[2].type)
+        self.info.current_south_marker = (detected_objects[3].x,
+                                          detected_objects[3].y,
+                                          detected_objects[3].type)
+        self.info.current_east_marker = (detected_objects[4].x,
+                                         detected_objects[4].y,
+                                         detected_objects[4].type)
+        self.info.current_west_marker = (detected_objects[5].x,
+                                         detected_objects[5].y,
+                                         detected_objects[5].type)
+
     def odom_cb(self, msg):
         self.info.vessel_position = (msg.pose.pose.position.x,
                                      msg.pose.pose.position.y)
