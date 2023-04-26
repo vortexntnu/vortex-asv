@@ -37,16 +37,17 @@ class Search(smach.State):
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
         self.data = data
-        
-        self.heading_pub = rospy.Publisher("/guidance_interface/desired_heading",Float64 , queue_size=1)
+
+        self.heading_pub = rospy.Publisher(
+            "/guidance_interface/desired_heading", Float64, queue_size=1)
 
         rospy.Subscriber("/odometry/filtered", Odometry, self.odom_cb)
 
-        # TODO: some of these functions should be generalized, adn 
+        # TODO: some of these functions should be generalized, adn
 
     def odom_cb(self, msg):
         self.odom = msg
-    
+
     def within_acceptance_margins(setpoint, current):
         error = abs(setpoint - current)
         if error < 0.1:
@@ -55,7 +56,9 @@ class Search(smach.State):
 
     def yaw_to_angle(self, angle):
         orientation = self.odom.pose.pose.orientation
-        orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
+        orientation_list = [
+            orientation.x, orientation.y, orientation.z, orientation.w
+        ]
         yaw = euler_from_quaternion(orientation_list)[2]
         heading_goal = yaw + angle
 
@@ -64,9 +67,10 @@ class Search(smach.State):
         while not self.within_acceptance_margins(heading_goal, yaw):
             self.rate.sleep()
             orientation = self.odom.pose.pose.orientation
-            orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
+            orientation_list = [
+                orientation.x, orientation.y, orientation.z, orientation.w
+            ]
             yaw = euler_from_quaternion(orientation_list)[2]
-
 
     def execute(self):
         rospy.loginfo('Executing Search')
