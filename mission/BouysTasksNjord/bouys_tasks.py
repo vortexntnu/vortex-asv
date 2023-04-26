@@ -8,6 +8,7 @@ from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
 from tf.transformations import euler_from_quaternion
+from update_objects_data import UpdateDataNode
 
 
 class Idle(smach.State):
