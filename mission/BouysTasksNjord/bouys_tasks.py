@@ -9,6 +9,7 @@ from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 from scipy.spatial.transform import Rotation as R
+from std_msgs.msg import Float64
 from tf.transformations import (
     euler_from_quaternion,
     quaternion_multiply,
@@ -34,136 +35,48 @@ class Idle(smach.State):
 class Search(smach.State):
     def __init__(self, data):
         smach.State.__init__(self, outcomes=['idle'])
+        self.task = "Buoy"
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
         self.data = data
+        
+        self.heading_pub = rospy.Publisher("/guidance_interface/desired_heading",Float64 , queue_size=1)
 
         rospy.Subscriber("/odometry/filtered", Odometry, self.odom_cb)
 
-    # TODO: This is an absolute mess, with code directly copied from AUV repo. Fix ASAP
+        # TODO: some of these functions should be generalized, adn 
 
     def odom_cb(self, msg):
         self.odom = msg
-
-    def rotate_certain_angle(pose, angle):
-        """Angle in degrees"""
-
-        orientation = R.from_quat([
-            pose.orientation.x, pose.orientation.y, pose.orientation.z,
-            pose.orientation.w
-        ])
-        rotation = R.from_rotvec(angle * math.pi / 180 * np.array([0, 0, 1]))
-        new_orientation = R.as_quat(orientation * rotation)
-        new_pose = Pose()
-        new_pose.position = pose.position
-        new_pose.orientation.x = new_orientation[0]
-        new_pose.orientation.y = new_orientation[1]
-        new_pose.orientation.z = new_orientation[2]
-        new_pose.orientation.w = new_orientation[3]
-
-        return new_pose
     
-    def within_acceptance_margins(setpoint, odom_msg):
-        acceptance_margins = [100, 100, 100, 100, 100, 0.1]
-        acceptance_velocities = [100, 100, 100, 100, 100, 100]
-
-        current_pose = odom_msg.pose.pose
-
-        current_velocity_list = [
-            odom_msg.twist.twist.linear.x,
-            odom_msg.twist.twist.linear.y,
-            odom_msg.twist.twist.linear.z,
-            odom_msg.twist.twist.angular.x,
-            odom_msg.twist.twist.angular.y,
-            odom_msg.twist.twist.angular.z,
-        ]
-
-        # create quats from msg
-        goal_quat_list = [
-            setpoint.orientation.x,
-            setpoint.orientation.y,
-            setpoint.orientation.z,
-            -setpoint.orientation.w,  # invert goal quat
-        ]
-        current_quat_list = [
-            current_pose.orientation.x,
-            current_pose.orientation.y,
-            current_pose.orientation.z,
-            current_pose.orientation.w,
-        ]
-        q_r = quaternion_multiply(current_quat_list, goal_quat_list)
-
-        # convert relative quat to euler
-        (roll_diff, pitch_diff, yaw_diff) = euler_from_quaternion(q_r)
-
-        # check if close to goal
-        diff_list = [
-            abs(setpoint.position.x - current_pose.position.x),
-            abs(setpoint.position.y - current_pose.position.y),
-            abs(setpoint.position.z - current_pose.position.z),
-            abs(roll_diff),
-            abs(pitch_diff),
-            abs(yaw_diff),
-        ]
-        is_close = True
-        for i in range(len(diff_list)):
-            if diff_list[i] > acceptance_margins[i]:
-                is_close = False
-            elif current_velocity_list[i] > acceptance_velocities[i]:
-                is_close = False
-
-        return is_close
+    def within_acceptance_margins(setpoint, current):
+        error = abs(setpoint - current)
+        if error < 0.1:
+            return True
+        return False
 
     def yaw_to_angle(self, angle):
-        goal = Pose()
-        goal.position = self.odom.pose.pose.position
-        goal.orientation = self.odom.pose.pose.orientation
-        goal = self.rotate_certain_angle(goal, angle)
+        orientation = self.odom.pose.pose.orientation
+        orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
+        yaw = euler_from_quaternion(orientation_list)[2]
+        heading_goal = yaw + angle
 
-        vel_goal = Twist()
-        vel_goal.angular.z = np.sign(angle) * rospy.get_param(
-            "/fsm/turn_speed")
-        vel_goal.linear.z = -0.01
-        vel_goal.linear.x = 0.01
-
-        self.velocity_ctrl_client(vel_goal, True)
+        self.heading_pub.Publish(heading_goal)
         print(f"Searching for {self.task}, angle: ({angle}) ...")
-        while not self.within_acceptance_margins(goal, self.odom):
-            self.object = self.landmarks_client(self.task).object
-            if self.object.isDetected:
-                return True
+        while not self.within_acceptance_margins(heading_goal, yaw):
             self.rate.sleep()
+            orientation = self.odom.pose.pose.orientation
+            orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
+            yaw = euler_from_quaternion(orientation_list)[2]
 
-        self.velocity_ctrl_client(vel_goal, False)
-
-        return False
 
     def execute(self):
         rospy.loginfo('Executing Search')
-        path_segment_counter = 1 
+        
+        self.yaw_to_angle(45)
+        self.yaw_to_angle(-90)
+        self.yaw_to_angle(45)
 
-
-        while not self.object.isDetected:
-            while (self.vtf_client.simple_state != actionlib.simple_action_client.SimpleGoalState.DONE):      
-                if self.object.isDetected:
-                        break
-                self.rate.sleep()
-
-            detection = self.yaw_to_angle(45)
-            if detection:
-                break
-
-            detection = self.yaw_to_angle(-90)
-            if detection:
-                break
-
-            detection = self.yaw_to_angle(45)
-            if detection:
-                break
-
-            path_segment_counter += 1
-
-        #Copy search pattern from AUV?
         return 'idle'
     
 
