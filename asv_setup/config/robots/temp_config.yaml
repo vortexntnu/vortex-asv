@@ -1,4 +1,4 @@
-# This file defines parameters specific to Beluga
+# This file defines parameters specific to the ASV
 #
 # When looking at the ASV from above, the thruster placement is:   
 #    /\          /\
@@ -30,6 +30,10 @@ propulsion:
       sway:  true
       yaw:   true
   thrusters:
+
+    thrusters_operational_voltage_range:
+      [20, 25]
+
     num: 4
     configuration_matrix_NED:
       [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
@@ -44,7 +48,8 @@ propulsion:
       max: 1 # Maximum rate of change in newton per second for a thruster
     map: [0, 1, 2, 3]  
     direction: [1,  1,  1, 1]
-    offset: [80, 80, 80, 80] # Offset IN PWM!
+    offset: [0, 0, 0, 0] # Offset IN PWM!
+    thrust_range: [-0.7, 0.7] # range in percentage -1.0 to 1.0 # NOTE!: Thrust_range moves with offset
   command:
     wrench:
       max:     [33.9, 33.9, 48.0, 7.6, 3.2, 9.9]
@@ -94,7 +99,3 @@ joystick:
     roll: 35
     pitch: -30
     yaw: 20
-
-tasks:
-  joystick: True
-  collision_avoidance: False

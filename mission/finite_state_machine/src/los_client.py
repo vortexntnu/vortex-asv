@@ -2,7 +2,6 @@
 # written by Ronja Kræmer, student
 # edited by Sigurd von Brandis, student
 
-
 import rospy
 from geometry_msgs.msg import Pose, PoseStamped
 from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
@@ -31,7 +30,8 @@ class LosClient:
             rospy.loginfo("Starting wait for service")
             rospy.wait_for_service("/navigation/add_waypoint")
             rospy.loginfo("Service server found")
-            waypoint_client = rospy.ServiceProxy("/navigation/add_waypoint", Waypoint)
+            waypoint_client = rospy.ServiceProxy("/navigation/add_waypoint",
+                                                 Waypoint)
             response = waypoint_client(wp)
         except rospy.ServiceException as e:
             print("Service call failed: {}".format(e))

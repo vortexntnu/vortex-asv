@@ -1,0 +1,9 @@
+<launch>
+  <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}" />
+
+  <rosparam command="load" file="$(find asv_setup)/config/robots/temp_config.yaml"/>
+  <rosparam command="load" file="$(find asv_setup)/config/topics.yaml"/>
+
+  <node pkg="thruster_interface"  type="thruster_interface_node.py" name="thruster_interface"  output="screen"/>
+</launch>
+

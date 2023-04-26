@@ -1,0 +1,25 @@
+guidance:
+  LOS:
+    rate: 20
+    delta: 0.7
+
+controllers:  
+  heading:
+    PID:
+      p: 25.0 # Not tuned
+      i: 0.0024 # Not tuned
+      d: 3.5 # Not tuned
+      sat: 40.0
+
+  surge:
+    PID:
+      p: 25.0 # Not tuned
+      i: 0.0024 # Not tuned
+      d: 3.5 # Not tuned
+      sat: 40.0
+
+joystick:
+  scaling:
+    surge: 0
+    sway: 0
+    yaw: 0

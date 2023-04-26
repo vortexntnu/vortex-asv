@@ -5,7 +5,13 @@
 int main(int argc, char **argv) {
   ros::init(argc, argv, "allocator");
   ros::NodeHandle nh;
+
+  ros::Rate r(10); // 10 hz // TODO: Sync with controller
   Allocator allocator(nh);
-  ros::spin();
+  while (ros::ok) {
+    allocator.spinOnce();
+    ros::spinOnce();
+    r.sleep();
+  }
   return 0;
 }
