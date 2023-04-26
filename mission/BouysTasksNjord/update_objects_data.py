@@ -6,7 +6,8 @@ from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 import numpy as np
 import math
-
+from vortex_msgs import DetectedObjectArray, DetectedObject
+from std_msgs.msg import Header
 
 class DetectedObjectsData:
     #Latitude; x, Longitude; y
@@ -40,33 +41,42 @@ class UpdateDataNode:
                                              self.odom_cb)
 
         # Initialize publisher to data topic
-        self.pub = rospy.Publisher('object_data_Njord',
-                                   DetectedObjectsData,
+        self.pub = rospy.Publisher('detected_objects',
+                                   DetectedObjectArray,
                                    queue_size=1)
 
     def spin(self):
 
         VesselPos = self.object_data.vessel_position
-        self.object_data.current_red_bouy = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.red_bouy_array)
-        self.object_data.current_green_bouy = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.green_bouy_array)
-        self.object_data.current_north_marker = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.north_marker_array)
-        self.object_data.current_south_marker = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.south_marker_array)
-        self.object_data.current_east_marker = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.east_marker_array)
-        self.object_data.current_west_marker = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.west_marker_array)
+        
+        self.object_data.current_red_bouy = UpdateDataNode.find_closest_object_in_array(VesselPos, self.red_bouy_array)
+        self.object_data.current_green_bouy = UpdateDataNode.find_closest_object_in_array(VesselPos, self.green_bouy_array)
+        # north, south, east, west...
 
         UpdateDataNode.find_closest_objects()
 
-        self.pub.publish(self.object_data)
+        msg = DetectedObjectArray()
+        msg.header = Header()
+        msg.header.stamp = rospy.Time.now()
+        
+        red_bouy = DetectedObject()
+        red_bouy.x = self.object_data.current_red_bouy[0]
+        red_bouy.y = self.object_data.current_red_bouy[1]
+        red_bouy.type = self.object_data.current_red_bouy[2]
+        msg.detected_objects.append(red_bouy)
+
+        green_bouy = DetectedObject()
+        green_bouy.x = self.object_data.current_green_bouy[0]
+        green_bouy.y = self.object_data.current_green_bouy[1]
+        green_bouy.type = self.object_data.current_green_bouy[2]
+        msg.detected_objects.append(green_bouy)
+
+        self.pub.publish(msg)
 
     def odom_cb(self, msg):
         self.object_data.vessel_position = (msg.pose.pose.position.x,
-                                            msg.pose.pose.position.y)
+                                            msg.pose.pose.position.y,
+                                            'vessel')
 
     #Must probably be switched out when message is defined
     def obj_pos_cb(self, msg):
@@ -113,7 +123,7 @@ class UpdateDataNode:
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('objects_data_Njord_node')
+        rospy.init_node("update_Njord_data")
         UpdateDataNode()
         rospy.spin()
     except rospy.ROSInterruptException:

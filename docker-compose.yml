@@ -19,6 +19,7 @@ services:
     privileged: true
     volumes:
       - ".:/home/vortex/asv_ws/src/Vortex-ASV" # Shared volume to avoid rebuilding when starting a new container
+      - "../vortex-msgs:/home/vortex/asv_ws/src/vortex-msgs"
       - "/dev:/dev"
     environment:
       DISPLAY: :0
