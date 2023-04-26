@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+#Written by Sigurd von Brandis, Student
 
 import rospy
 import smach
@@ -58,7 +59,7 @@ class Search(smach.State):
 
     def execute(self):
         rospy.loginfo('Executing Search')
-        path_segment_counter = 1
+        path_segment_counter = 1 
 
 
         while not self.object.isDetected:

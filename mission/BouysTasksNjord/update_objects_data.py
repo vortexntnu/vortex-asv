@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
+#Written by Sigurd von Brandis, Student
 
 import rospy
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry
-from landmark.srv import request_position
 import numpy as np
 import math
 
@@ -42,12 +42,13 @@ class UpdateDataNode:
 
     def spin(self):
 
-        self.object_data.current_red_bouy = UpdateDataNode.find_closest_position_from_array()
-        self.object_data.current_green_bouy = UpdateDataNode.find_closest_position_from_array()
-        self.object_data.current_north_marker = UpdateDataNode.find_closest_position_from_array()
-        self.object_data.current_south_marker = UpdateDataNode.find_closest_position_from_array()
-        self.object_data.current_east_marker = UpdateDataNode.find_closest_position_from_array()
-        self.object_data.current_west_marker = UpdateDataNode.find_closest_position_from_array()
+        VesselPos = self.object_data.vessel_position
+        self.object_data.current_red_bouy = UpdateDataNode.find_closest_object_in_array(VesselPos, self.red_bouy_array)
+        self.object_data.current_green_bouy = UpdateDataNode.find_closest_object_in_array(VesselPos, self.green_bouy_array)
+        self.object_data.current_north_marker = UpdateDataNode.find_closest_object_in_array(VesselPos, self.north_marker_array)
+        self.object_data.current_south_marker = UpdateDataNode.find_closest_object_in_array(VesselPos, self.south_marker_array)
+        self.object_data.current_east_marker = UpdateDataNode.find_closest_object_in_array(VesselPos, self.east_marker_array)
+        self.object_data.current_west_marker = UpdateDataNode.find_closest_object_in_array(VesselPos, self.west_marker_array)
 
         UpdateDataNode.find_closest_objects()
 
@@ -65,20 +66,20 @@ class UpdateDataNode:
         self.west_marker_array = msg.west_marker_array
 
 
-    def update_array(array, new_point):
-        updated = False
-        for i, existing_point in enumerate(array):
-            distance = UpdateDataNode.distance(new_point, existing_point)
-            if distance <= 1:
-                array[i] = new_point
-                updated = True
-                break
-        if not updated:
-            array = np.vstack([array, new_point])
+    # def update_array(array, new_point):
+    #     updated = False
+    #     for i, existing_point in enumerate(array):
+    #         distance = UpdateDataNode.distance(new_point, existing_point)
+    #         if distance <= 1:
+    #             array[i] = new_point
+    #             updated = True
+    #             break
+    #     if not updated:
+    #         array = np.vstack([array, new_point])
 
-        return array
+    #     return array
 
-    def find_closest_position_from_array(position, positions_array):
+    def find_closest_object_in_array(position, positions_array):
         closest_position = None
         closest_distance = math.inf
     
@@ -122,7 +123,7 @@ class UpdateDataNode:
             elif dist_to_new_obj < dist_to_old_second_closest_obj:
                 self.object_data.second_closest_object = (dist_to_new_obj, new_obj_type)
                 self.object_data.closest_object = (dist_to_old_closest_obj, old_closest_obj_type)
-            else: #No new closest objects, but calculating distance to the old closest objects again
+            else: #No new closest objects, but updating distance to the old closest objects again because our position may have changed
                 self.object_data.second_closest_object = (dist_to_old_second_closest_obj, old_second_closest_obj_type)
                 self.object_data.closest_object = (dist_to_old_closest_obj, old_closest_obj_type)
 

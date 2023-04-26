@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+#Written by Sigurd von Brandis, Student
+
 import rospy
 import smach
 import smach_ros
@@ -15,20 +17,7 @@ class ManeuveringNavigationTasks:
         self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
         self.sub_bouy_info = rospy.Subscriber('object_data_Njord', DetectedObjectsData, self.bouy_data_callback)
 
-        # Initialize class attributes
-        #                          Position, type
-        self.current_red_bouy      = (0, 0, 'red')
-        self.current_green_bouy    = (0, 0, 'green')
-        self.current_north_marker  = (0, 0, 'north')
-        self.current_south_marker  = (0, 0, 'south')
-        self.current_east_marker   = (0, 0, 'east')
-        self.current_west_marker   = (0, 0, 'west')
-        #                          Distance, type
-        self.closest_object        = (math.inf, '')
-        self.second_closest_object = (math.inf, '')
-        #                          Position
-        self.vessel_position       = (0, 0) #Odometry()
-        #
+        self = DetectedObjectsData()
         # self.NoGoSircleRadius = 2 #Meters. Used to define area around bouy that ASV must absolutely NOT enter. 
         self.DistanceRadius = 3 #Meters. Used to define curve ASV can follow when it only knows one bouy.
         self.DirectionWithLeia = True #Used to descide which side the ASV should be regarding Green and Read "Staker".
