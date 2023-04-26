@@ -41,17 +41,19 @@ class LosClient:
         else:
             rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
 
-
     def overwrite_with_new_waypoint(self, waypoint_in):
-        wp= WaypointRequest()
+        wp = WaypointRequest()
         wp.waypoint = waypoint_in
         response = WaypointResponse()
         response.success = False
         try:
             rospy.loginfo("Starting wait for service")
-            rospy.wait_for_service("/navigation/overwrite_waypoint_list_with_new_waypoint")
+            rospy.wait_for_service(
+                "/navigation/overwrite_waypoint_list_with_new_waypoint")
             rospy.loginfo("Service server found")
-            overwrite_waypoint_client = rospy.ServiceProxy("/navigation/overwrite_waypoint_list_with_new_waypoint", Waypoint)
+            overwrite_waypoint_client = rospy.ServiceProxy(
+                "/navigation/overwrite_waypoint_list_with_new_waypoint",
+                Waypoint)
             response = overwrite_waypoint_client(wp)
         except rospy.ServiceException as e:
             print("Service call failed: {}".format(e))
@@ -60,6 +62,7 @@ class LosClient:
             rospy.loginfo(f"Waypoint {wp.waypoint} sent successfully!")
         else:
             rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
+
 
 if __name__ == "__main__":
     try:

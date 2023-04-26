@@ -3,12 +3,16 @@
 
 import rospy
 from std_msgs.msg import String
-from Bouys_task_test import BouysAndMarkers 
+from Bouys_task_test import BouysAndMarkers
+
 
 class BouysAndMarkersPublisher:
+
     def __init__(self):
         rospy.init_node('bouys_and_markers_publisher', anonymous=True)
-        self.pub = rospy.Publisher('bouys_and_markers', BouysAndMarkers, queue_size=10)
+        self.pub = rospy.Publisher('bouys_and_markers',
+                                   BouysAndMarkers,
+                                   queue_size=10)
         self.rate = rospy.Rate(1)  # Publishing rate in Hz
 
     def publish_bouys_and_markers(self):
@@ -22,6 +26,7 @@ class BouysAndMarkersPublisher:
             bouys_and_markers_msg.west_marker_array = []
             self.pub.publish(bouys_and_markers_msg)
             self.rate.sleep()
+
 
 if __name__ == '__main__':
     try:

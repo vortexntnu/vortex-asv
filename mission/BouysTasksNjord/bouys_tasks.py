@@ -14,9 +14,12 @@ from tf.transformations import (
     quaternion_multiply,
 )
 
+
 class Idle(smach.State):
+
     def __init__(self, data):
-        smach.State.__init__(self, outcomes=['desideNextState', 'search', 'stop'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState', 'search', 'stop'])
         self.data = data
 
     def execute(self):
@@ -30,8 +33,9 @@ class Idle(smach.State):
             self.data.ObjectSearchAttempts = 0
             return 'desideNextState'
 
- 
+
 class Search(smach.State):
+
     def __init__(self, data):
         smach.State.__init__(self, outcomes=['idle'])
         self.odom = Odometry()
@@ -62,7 +66,7 @@ class Search(smach.State):
         new_pose.orientation.w = new_orientation[3]
 
         return new_pose
-    
+
     def within_acceptance_margins(setpoint, odom_msg):
         acceptance_margins = [100, 100, 100, 100, 100, 0.1]
         acceptance_velocities = [100, 100, 100, 100, 100, 100]
@@ -140,13 +144,13 @@ class Search(smach.State):
 
     def execute(self):
         rospy.loginfo('Executing Search')
-        path_segment_counter = 1 
-
+        path_segment_counter = 1
 
         while not self.object.isDetected:
-            while (self.vtf_client.simple_state != actionlib.simple_action_client.SimpleGoalState.DONE):      
+            while (self.vtf_client.simple_state
+                   != actionlib.simple_action_client.SimpleGoalState.DONE):
                 if self.object.isDetected:
-                        break
+                    break
                 self.rate.sleep()
 
             detection = self.yaw_to_angle(45)
@@ -165,18 +169,21 @@ class Search(smach.State):
 
         #Copy search pattern from AUV?
         return 'idle'
-    
+
 
 class DesideNextState(smach.State):
+
     def __init__(self, data):
         self.data = data
 
     def execute(self):
         rospy.loginfo('Finding next state')
 
-        if self.data.closest_object[1] == 'red' and self.data.second_closest_object[1] == 'green':
+        if self.data.closest_object[
+                1] == 'red' and self.data.second_closest_object[1] == 'green':
             return 'greenAndRedBouyNav'
-        if self.data.closest_object[1] == 'green' and self.data.second_closest_object[1] == 'red':
+        if self.data.closest_object[
+                1] == 'green' and self.data.second_closest_object[1] == 'red':
             return 'greenAndRedBouyNav'
         if self.data.closest_object[1] == 'red':
             return 'red'
@@ -193,7 +200,9 @@ class DesideNextState(smach.State):
         if self.data.closest_object[1] == '':
             return 'search'
 
+
 class OneRedBouyNav(smach.State):
+
     def __init__(self, data):
         smach.State.__init__(self, outcomes=['desideNextState'])
         self.data = data
@@ -201,13 +210,18 @@ class OneRedBouyNav(smach.State):
     def execute(self):
         rospy.loginfo('OneRedBouyNav')
 
-        next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_red_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
+        next_waypoint = NavAroundOneObject(self.data.vessel_position,
+                                           self.data.current_red_bouy,
+                                           self.data.DistanceRadius,
+                                           self.data.DirectionWithLeia)
         send_wp(self.data.vessel_position)
         overwrite_with_new_waypoint(next_waypoint)
-        
+
         return 'desideNextState'
 
+
 class OneGreenBouyNav(smach.State):
+
     def __init__(self, data):
         smach.State.__init__(self, outcomes=['desideNextState'])
         self.data = data
@@ -215,15 +229,22 @@ class OneGreenBouyNav(smach.State):
     def execute(self):
         rospy.loginfo('OneGreenBouyNav')
 
-        next_waypoint = NavAroundOneObject(self.data.vessel_position, self.data.current_green_bouy, self.data.DistanceRadius, self.data.DirectionWithLeia)
+        next_waypoint = NavAroundOneObject(self.data.vessel_position,
+                                           self.data.current_green_bouy,
+                                           self.data.DistanceRadius,
+                                           self.data.DirectionWithLeia)
         send_wp(self.data.vessel_position)
         overwrite_with_new_waypoint(next_waypoint)
 
         return 'desideNextState'
 
+
 class GreenAndReadBouyNav(smach.State):
+
     def __init__(self, data):
-        smach.State.__init__(self, outcomes=['desideNextState'], input_keys=['userdata'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState'],
+                             input_keys=['userdata'])
         self.data = data
 
     def execute(self):
@@ -233,7 +254,8 @@ class GreenAndReadBouyNav(smach.State):
         xWP = 0
         yWP = 0
 
-        distance_between_bouys = math.sqrt((GreenBouy[0] - RedBouy[0]) ** 2 + (GreenBouy[1] - RedBouy[1]) ** 2)
+        distance_between_bouys = math.sqrt((GreenBouy[0] - RedBouy[0])**2 +
+                                           (GreenBouy[1] - RedBouy[1])**2)
 
         if self.data.DirectionWithLeia == True:
             #Distance from Green to WP
@@ -254,33 +276,49 @@ class GreenAndReadBouyNav(smach.State):
 
         return 'desideNextState'
 
+
 class NorthMarkerNav(smach.State):
+
     def __init__(self):
-        smach.State.__init__(self, outcomes=['desideNextState'], input_keys=['userdata'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState'],
+                             input_keys=['userdata'])
 
     def execute(self, userdata):
         rospy.loginfo('NorthMarkerNav')
         pass
+
 
 class SouthMarkerNav(smach.State):
+
     def __init__(self):
-        smach.State.__init__(self, outcomes=['desideNextState'], input_keys=['userdata'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState'],
+                             input_keys=['userdata'])
 
     def execute(self, userdata):
         rospy.loginfo('NorthMarkerNav')
         pass
+
 
 class WestMarkerNav(smach.State):
+
     def __init__(self):
-        smach.State.__init__(self, outcomes=['desideNextState'], input_keys=['userdata'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState'],
+                             input_keys=['userdata'])
 
     def execute(self, userdata):
         rospy.loginfo('NorthMarkerNav')
         pass
 
+
 class EastMarkerNav(smach.State):
+
     def __init__(self):
-        smach.State.__init__(self, outcomes=['desideNextState'], input_keys=['userdata'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState'],
+                             input_keys=['userdata'])
 
     def execute(self, userdata):
         rospy.loginfo('NorthMarkerNav')
@@ -305,8 +343,8 @@ def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
 
     if directionWithLeia == True:
         # Calculate the coordinates of next waypoint.
-        xAC = ASVPos[0] - object[0] #xB - xA
-        yAC = ASVPos[1] - object[1] #yB - yA
+        xAC = ASVPos[0] - object[0]  #xB - xA
+        yAC = ASVPos[1] - object[1]  #yB - yA
         AC_length = math.sqrt(xAC**2 + yAC**2)
         xAC_normalized = xAC / AC_length
         yAC_normalized = yAC / AC_length
@@ -320,8 +358,8 @@ def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
         yWP = object[1] + radius * yAC_normalized
     else:
         # Calculate the coordinates of next waypoint.
-        xAC = ASVPos[0] - object[0] #xB - xA
-        yAC = ASVPos[1] - object[1] #yB - yA
+        xAC = ASVPos[0] - object[0]  #xB - xA
+        yAC = ASVPos[1] - object[1]  #yB - yA
         AC_length = math.sqrt(xAC**2 + yAC**2)
         xAC_normalized = xAC / AC_length
         yAC_normalized = yAC / AC_length
@@ -336,6 +374,7 @@ def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
 
     return (xWP, yWP)
 
+
 def send_wp(waypoint_in):
     wp = WaypointRequest()
     wp.waypoint = waypoint_in
@@ -343,7 +382,8 @@ def send_wp(waypoint_in):
     response.success = False
     try:
         rospy.wait_for_service("/navigation/add_waypoint")
-        waypoint_client = rospy.ServiceProxy("/navigation/add_waypoint", Waypoint)
+        waypoint_client = rospy.ServiceProxy("/navigation/add_waypoint",
+                                             Waypoint)
         response = waypoint_client(wp)
     except rospy.ServiceException as e:
         print("Service call failed: {}".format(e))
@@ -352,19 +392,22 @@ def send_wp(waypoint_in):
     else:
         rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
 
-def overwrite_with_new_waypoint(waypoint_in):
-        wp= WaypointRequest()
-        wp.waypoint = waypoint_in
-        response = WaypointResponse()
-        response.success = False
-        try:
-            rospy.wait_for_service("/navigation/overwrite_waypoint_list_with_new_waypoint")
-            overwrite_waypoint_client = rospy.ServiceProxy("/navigation/overwrite_waypoint_list_with_new_waypoint", Waypoint)
-            response = overwrite_waypoint_client(wp)
-        except rospy.ServiceException as e:
-            print("Service call failed: {}".format(e))
 
-        if response.success:
-            rospy.loginfo(f"Waypoint {wp.waypoint} sent successfully!")
-        else:
-            rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
+def overwrite_with_new_waypoint(waypoint_in):
+    wp = WaypointRequest()
+    wp.waypoint = waypoint_in
+    response = WaypointResponse()
+    response.success = False
+    try:
+        rospy.wait_for_service(
+            "/navigation/overwrite_waypoint_list_with_new_waypoint")
+        overwrite_waypoint_client = rospy.ServiceProxy(
+            "/navigation/overwrite_waypoint_list_with_new_waypoint", Waypoint)
+        response = overwrite_waypoint_client(wp)
+    except rospy.ServiceException as e:
+        print("Service call failed: {}".format(e))
+
+    if response.success:
+        rospy.loginfo(f"Waypoint {wp.waypoint} sent successfully!")
+    else:
+        rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
