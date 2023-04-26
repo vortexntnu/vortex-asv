@@ -8,11 +8,12 @@ import numpy as np
 from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
-from scipy.spatial.transform import Rotation as R
-from tf.transformations import (
-    euler_from_quaternion,
-    quaternion_multiply,
-)
+from update_objects_data import UpdateDataNode 
+#from scipy.spatial.transform import Rotation as R
+# from tf.transformations import (
+#     euler_from_quaternion,
+#     quaternion_multiply,
+# )
 
 
 class Idle(smach.State):
@@ -21,9 +22,17 @@ class Idle(smach.State):
         smach.State.__init__(self,
                              outcomes=['desideNextState', 'search', 'stop'])
         self.data = data
+        self.closest_object = (math.inf, '')
+        self.second_closest_object = (math.inf, '')
+        self.info.DistanceRadius = 3  #Meters. Used to define curve ASV can follow when it only knows one bouy.
+        self.info.DirectionWithLeia = True  #Used to descide which side the ASV should be regarding Green and Read "Staker".
+        self.info.ObjectSearchAttempts = 0
 
     def execute(self):
         rospy.loginfo('Executing Idle')
+
+        DesideNextState.find_closest_objects()
+
         if self.data.ObjectSearchAttempts == 5:
             return 'stop'
         elif self.data.closest_object[1] == '':
@@ -35,170 +44,217 @@ class Idle(smach.State):
 
 
 class Search(smach.State):
-
     def __init__(self, data):
-        smach.State.__init__(self, outcomes=['idle'])
-        self.odom = Odometry()
-        self.rate = rospy.Rate(10)
-        self.data = data
-
-        rospy.Subscriber("/odometry/filtered", Odometry, self.odom_cb)
-
-    # TODO: This is an absolute mess, with code directly copied from AUV repo. Fix ASAP
-
-    def odom_cb(self, msg):
-        self.odom = msg
-
-    def rotate_certain_angle(pose, angle):
-        """Angle in degrees"""
-
-        orientation = R.from_quat([
-            pose.orientation.x, pose.orientation.y, pose.orientation.z,
-            pose.orientation.w
-        ])
-        rotation = R.from_rotvec(angle * math.pi / 180 * np.array([0, 0, 1]))
-        new_orientation = R.as_quat(orientation * rotation)
-        new_pose = Pose()
-        new_pose.position = pose.position
-        new_pose.orientation.x = new_orientation[0]
-        new_pose.orientation.y = new_orientation[1]
-        new_pose.orientation.z = new_orientation[2]
-        new_pose.orientation.w = new_orientation[3]
-
-        return new_pose
-
-    def within_acceptance_margins(setpoint, odom_msg):
-        acceptance_margins = [100, 100, 100, 100, 100, 0.1]
-        acceptance_velocities = [100, 100, 100, 100, 100, 100]
-
-        current_pose = odom_msg.pose.pose
-
-        current_velocity_list = [
-            odom_msg.twist.twist.linear.x,
-            odom_msg.twist.twist.linear.y,
-            odom_msg.twist.twist.linear.z,
-            odom_msg.twist.twist.angular.x,
-            odom_msg.twist.twist.angular.y,
-            odom_msg.twist.twist.angular.z,
-        ]
-
-        # create quats from msg
-        goal_quat_list = [
-            setpoint.orientation.x,
-            setpoint.orientation.y,
-            setpoint.orientation.z,
-            -setpoint.orientation.w,  # invert goal quat
-        ]
-        current_quat_list = [
-            current_pose.orientation.x,
-            current_pose.orientation.y,
-            current_pose.orientation.z,
-            current_pose.orientation.w,
-        ]
-        q_r = quaternion_multiply(current_quat_list, goal_quat_list)
-
-        # convert relative quat to euler
-        (roll_diff, pitch_diff, yaw_diff) = euler_from_quaternion(q_r)
-
-        # check if close to goal
-        diff_list = [
-            abs(setpoint.position.x - current_pose.position.x),
-            abs(setpoint.position.y - current_pose.position.y),
-            abs(setpoint.position.z - current_pose.position.z),
-            abs(roll_diff),
-            abs(pitch_diff),
-            abs(yaw_diff),
-        ]
-        is_close = True
-        for i in range(len(diff_list)):
-            if diff_list[i] > acceptance_margins[i]:
-                is_close = False
-            elif current_velocity_list[i] > acceptance_velocities[i]:
-                is_close = False
-
-        return is_close
-
-    def yaw_to_angle(self, angle):
-        goal = Pose()
-        goal.position = self.odom.pose.pose.position
-        goal.orientation = self.odom.pose.pose.orientation
-        goal = self.rotate_certain_angle(goal, angle)
-
-        vel_goal = Twist()
-        vel_goal.angular.z = np.sign(angle) * rospy.get_param(
-            "/fsm/turn_speed")
-        vel_goal.linear.z = -0.01
-        vel_goal.linear.x = 0.01
-
-        self.velocity_ctrl_client(vel_goal, True)
-        print(f"Searching for {self.task}, angle: ({angle}) ...")
-        while not self.within_acceptance_margins(goal, self.odom):
-            self.object = self.landmarks_client(self.task).object
-            if self.object.isDetected:
-                return True
-            self.rate.sleep()
-
-        self.velocity_ctrl_client(vel_goal, False)
-
-        return False
-
+        self = data
+    
     def execute(self):
-        rospy.loginfo('Executing Search')
-        path_segment_counter = 1
-
-        while not self.object.isDetected:
-            while (self.vtf_client.simple_state
-                   != actionlib.simple_action_client.SimpleGoalState.DONE):
-                if self.object.isDetected:
-                    break
-                self.rate.sleep()
-
-            detection = self.yaw_to_angle(45)
-            if detection:
-                break
-
-            detection = self.yaw_to_angle(-90)
-            if detection:
-                break
-
-            detection = self.yaw_to_angle(45)
-            if detection:
-                break
-
-            path_segment_counter += 1
-
-        #Copy search pattern from AUV?
         return 'idle'
+
+
+
+#class Search(smach.State):
+
+#     def __init__(self, data):
+#         smach.State.__init__(self, outcomes=['idle'])
+#         self.odom = Odometry()
+#         self.rate = rospy.Rate(10)
+#         self.data = data
+
+#         rospy.Subscriber("/odometry/filtered", Odometry, self.odom_cb)
+
+#     # TODO: This is an absolute mess, with code directly copied from AUV repo. Fix ASAP
+
+#     def odom_cb(self, msg):
+#         self.odom = msg
+
+#     def rotate_certain_angle(pose, angle):
+#         """Angle in degrees"""
+
+#         orientation = R.from_quat([
+#             pose.orientation.x, pose.orientation.y, pose.orientation.z,
+#             pose.orientation.w
+#         ])
+#         rotation = R.from_rotvec(angle * math.pi / 180 * np.array([0, 0, 1]))
+#         new_orientation = R.as_quat(orientation * rotation)
+#         new_pose = Pose()
+#         new_pose.position = pose.position
+#         new_pose.orientation.x = new_orientation[0]
+#         new_pose.orientation.y = new_orientation[1]
+#         new_pose.orientation.z = new_orientation[2]
+#         new_pose.orientation.w = new_orientation[3]
+
+#         return new_pose
+
+#     def within_acceptance_margins(setpoint, odom_msg):
+#         acceptance_margins = [100, 100, 100, 100, 100, 0.1]
+#         acceptance_velocities = [100, 100, 100, 100, 100, 100]
+
+#         current_pose = odom_msg.pose.pose
+
+#         current_velocity_list = [
+#             odom_msg.twist.twist.linear.x,
+#             odom_msg.twist.twist.linear.y,
+#             odom_msg.twist.twist.linear.z,
+#             odom_msg.twist.twist.angular.x,
+#             odom_msg.twist.twist.angular.y,
+#             odom_msg.twist.twist.angular.z,
+#         ]
+
+#         # create quats from msg
+#         goal_quat_list = [
+#             setpoint.orientation.x,
+#             setpoint.orientation.y,
+#             setpoint.orientation.z,
+#             -setpoint.orientation.w,  # invert goal quat
+#         ]
+#         current_quat_list = [
+#             current_pose.orientation.x,
+#             current_pose.orientation.y,
+#             current_pose.orientation.z,
+#             current_pose.orientation.w,
+#         ]
+#         q_r = quaternion_multiply(current_quat_list, goal_quat_list)
+
+#         # convert relative quat to euler
+#         (roll_diff, pitch_diff, yaw_diff) = euler_from_quaternion(q_r)
+
+#         # check if close to goal
+#         diff_list = [
+#             abs(setpoint.position.x - current_pose.position.x),
+#             abs(setpoint.position.y - current_pose.position.y),
+#             abs(setpoint.position.z - current_pose.position.z),
+#             abs(roll_diff),
+#             abs(pitch_diff),
+#             abs(yaw_diff),
+#         ]
+#         is_close = True
+#         for i in range(len(diff_list)):
+#             if diff_list[i] > acceptance_margins[i]:
+#                 is_close = False
+#             elif current_velocity_list[i] > acceptance_velocities[i]:
+#                 is_close = False
+
+#         return is_close
+
+#     def yaw_to_angle(self, angle):
+#         goal = Pose()
+#         goal.position = self.odom.pose.pose.position
+#         goal.orientation = self.odom.pose.pose.orientation
+#         goal = self.rotate_certain_angle(goal, angle)
+
+#         vel_goal = Twist()
+#         vel_goal.angular.z = np.sign(angle) * rospy.get_param(
+#             "/fsm/turn_speed")
+#         vel_goal.linear.z = -0.01
+#         vel_goal.linear.x = 0.01
+
+#         self.velocity_ctrl_client(vel_goal, True)
+#         print(f"Searching for {self.task}, angle: ({angle}) ...")
+#         while not self.within_acceptance_margins(goal, self.odom):
+#             self.object = self.landmarks_client(self.task).object
+#             if self.object.isDetected:
+#                 return True
+#             self.rate.sleep()
+
+#         self.velocity_ctrl_client(vel_goal, False)
+
+#         return False
+
+#     def execute(self):
+#         rospy.loginfo('Executing Search')
+#         path_segment_counter = 1
+
+#         while not self.object.isDetected:
+#             while (self.vtf_client.simple_state
+#                    != actionlib.simple_action_client.SimpleGoalState.DONE):
+#                 if self.object.isDetected:
+#                     break
+#                 self.rate.sleep()
+
+#             detection = self.yaw_to_angle(45)
+#             if detection:
+#                 break
+
+#             detection = self.yaw_to_angle(-90)
+#             if detection:
+#                 break
+
+#             detection = self.yaw_to_angle(45)
+#             if detection:
+#                 break
+
+#             path_segment_counter += 1
+
+#         #Copy search pattern from AUV?
+#         return 'idle'
 
 
 class DesideNextState(smach.State):
 
     def __init__(self, data):
         self.data = data
+        self.closest_object = (math.inf, '')
+        self.second_closest_object = (math.inf, '')
 
     def execute(self):
         rospy.loginfo('Finding next state')
 
-        if self.data.closest_object[
-                1] == 'red' and self.data.second_closest_object[1] == 'green':
+        DesideNextState.find_closest_objects()
+
+        if self.closest_object[1] == 'red' and self.second_closest_object[1] == 'green':
             return 'greenAndRedBouyNav'
-        if self.data.closest_object[
-                1] == 'green' and self.data.second_closest_object[1] == 'red':
+        if self.closest_object[1] == 'green' and self.second_closest_object[1] == 'red':
             return 'greenAndRedBouyNav'
-        if self.data.closest_object[1] == 'red':
+        if self.closest_object[1] == 'red':
             return 'red'
-        if self.data.closest_object[1] == 'green':
+        if self.closest_object[1] == 'green':
             return 'green'
-        if self.data.closest_object[1] == 'north':
+        if self.closest_object[1] == 'north':
             return 'north'
-        if self.data.closest_object[1] == 'south':
+        if self.closest_object[1] == 'south':
             return 'south'
-        if self.data.closest_object[1] == 'east':
+        if self.closest_object[1] == 'east':
             return 'east'
-        if self.data.closest_object[1] == 'west':
+        if self.closest_object[1] == 'west':
             return 'west'
-        if self.data.closest_object[1] == '':
+        if self.closest_object[1] == '':
             return 'search'
+        
+    def find_closest_objects(self):
+        for name, new_object in vars(self.data).items():
+            if name.startswith('current_') or (name.endswith('bouy') or name.endswith('marker')):
+                new_obj_type = new_object[2]
+                new_obj_pos = (new_object[0], new_object[1])
+                dist_to_new_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, new_obj_pos)
+                old_closest_obj_type = self.closest_object[2]
+                old_closest_obj_pos = (self.closest_object[0],
+                                       self.closest_object[1])
+                dist_to_old_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, old_closest_obj_pos)
+                old_second_closest_obj_type = self.second_closest_object[
+                    2]
+                old_second_closest_obj_pos = (
+                    self.second_closest_object[0],
+                    self.second_closest_object[1])
+                dist_to_old_second_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position,
+                    old_second_closest_obj_pos)
+            if dist_to_new_obj < dist_to_old_closest_obj:
+                self.second_closest_object = (
+                    dist_to_old_closest_obj, old_closest_obj_type)
+                self.closest_object = (dist_to_new_obj,
+                                                   new_obj_type)
+            elif dist_to_new_obj < dist_to_old_second_closest_obj:
+                self.second_closest_object = (dist_to_new_obj,
+                                                          new_obj_type)
+                self.closest_object = (dist_to_old_closest_obj,
+                                                   old_closest_obj_type)
+            else:  #No new closest objects, but updating distance to the old closest objects again because our position may have changed
+                self.second_closest_object = (dist_to_old_second_closest_obj,
+                                                old_second_closest_obj_type)
+                self.closest_object = (dist_to_old_closest_obj,
+                                        old_closest_obj_type)
 
 
 class OneRedBouyNav(smach.State):

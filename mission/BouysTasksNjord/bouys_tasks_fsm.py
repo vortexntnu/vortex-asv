@@ -5,35 +5,29 @@ import rospy
 import smach
 import smach_ros
 import math
-import mission.BouysTasksNjord.bouys_tasks as bouys_tasks
+from bouys_tasks import Idle, Search, DesideNextState, OneRedBouyNav, OneGreenBouyNav, GreenAndReadBouyNav, NorthMarkerNav, SouthMarkerNav, EastMarkerNav, WestMarkerNav
 from nav_msgs.msg import Odometry
 from update_objects_data import DetectedObjectsData  # custom message type for the combined data.
-
-rospy.init_node('Bouys_tasks_fsm')
-
+from vortex_msgs import ObjectMarkerNavigation
 
 class ManeuveringNavigationTasks:
 
     def __init__(self):
-        self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
+        #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
         self.sub_bouy_info = rospy.Subscriber('object_data_Njord',
-                                              DetectedObjectsData,
+                                              DetectedObjectsData, #ToDo; Switch out with new message
                                               self.bouy_data_callback)
 
-        self = DetectedObjectsData()
-        # self.NoGoSircleRadius = 2 #Meters. ToDo; Used to define area around bouy that ASV must absolutely NOT enter.
-        self.DistanceRadius = 3  #Meters. Used to define curve ASV can follow when it only knows one bouy.
-        self.DirectionWithLeia = True  #Used to descide which side the ASV should be regarding Green and Read "Staker".
-        self.ObjectSearchAttempts = 0
+        self.info = DetectedObjectsData()
 
     def bouy_data_callback(self, data):
         # Parse the received message and set class attributes
-        self.current_red_bouy = data.objects.CurrentRedBouy
-        self.current_green_bouy = data.objects.CurrentGreenBouy
-        self.current_north_marker = data.objects.CurrentNorthMarker
-        self.current_south_marker = data.objects.CurrentSouthMarker
-        self.current_east_marker = data.objects.CurrentEastMarker
-        self.current_west_marker = data.objects.CurrentWestMarker
+        self.info.current_red_bouy = data.objects.CurrentRedBouy
+        self.info.current_green_bouy = data.objects.CurrentGreenBouy
+        self.info.current_north_marker = data.objects.CurrentNorthMarker
+        self.info.current_south_marker = data.objects.CurrentSouthMarker
+        self.info.current_east_marker = data.objects.CurrentEastMarker
+        self.info.current_west_marker = data.objects.CurrentWestMarker
 
     def spin(self):
         # Create the state machine
@@ -42,7 +36,7 @@ class ManeuveringNavigationTasks:
         # Add states to the state machine
         with sm:
             smach.StateMachine.add('Idle',
-                                   bouys_tasks.Idle(self),
+                                   Idle(self.info),
                                    transitions={
                                        'search': 'Search',
                                        'desideNextState': 'DesideNextState',
@@ -50,14 +44,14 @@ class ManeuveringNavigationTasks:
                                    })
 
             smach.StateMachine.add('Search',
-                                   bouys_tasks.Search(self),
+                                   Search(self.info),
                                    transitions={
                                        'idle': 'Idle',
                                        'stop': 'STOP'
                                    })
 
             smach.StateMachine.add('DisideNextState',
-                                   bouys_tasks.Search(self),
+                                   Search(self.info),
                                    transitions={
                                        'greenAndReadBouyNav':
                                        'GreenAndReadBouyNav',
@@ -72,37 +66,37 @@ class ManeuveringNavigationTasks:
 
             smach.StateMachine.add(
                 'OneRedBouyNav',
-                bouys_tasks.OneRedBouyNav(self),
+                OneRedBouyNav(self.info),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'OneGreenBouyNav',
-                bouys_tasks.OneGreenBouyNav(self),
+                OneGreenBouyNav(self.info),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'GreenAndReadBouyNav',
-                bouys_tasks.GreenAndReadBouyNav(self),
+                GreenAndReadBouyNav(self.info),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'NorthMarkerNav',
-                bouys_tasks.NorthMarkerNav(self),
+                NorthMarkerNav(self.info),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'SouthMarkerNav',
-                bouys_tasks.SouthMarkerNav(self),
+                SouthMarkerNav(self.info),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'EastMarkerNav',
-                bouys_tasks.EastMarkerNav(self),
+                EastMarkerNav(self.info),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'WestMarkerNav',
-                bouys_tasks.WestMarkerNav(self),
+                WestMarkerNav(self.info),
                 transitions={'desideNextState': 'DesideNextState'})
 
         # Start the state machine introspection server
@@ -127,6 +121,6 @@ class ManeuveringNavigationTasks:
 
 
 if __name__ == "__main__":
-    rospy.init_node("fsm_njord")
+    rospy.init_node('Bouys_tasks_fsm')
     fsm_node = ManeuveringNavigationTasks()
     fsm_node.spin()
