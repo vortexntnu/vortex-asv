@@ -18,7 +18,7 @@ class ManeuveringNavigationTasks:
         self.sub_bouy_info = rospy.Subscriber('object_data_Njord', DetectedObjectsData, self.bouy_data_callback)
 
         self = DetectedObjectsData()
-        # self.NoGoSircleRadius = 2 #Meters. Used to define area around bouy that ASV must absolutely NOT enter. 
+        # self.NoGoSircleRadius = 2 #Meters. ToDo; Used to define area around bouy that ASV must absolutely NOT enter. 
         self.DistanceRadius = 3 #Meters. Used to define curve ASV can follow when it only knows one bouy.
         self.DirectionWithLeia = True #Used to descide which side the ASV should be regarding Green and Read "Staker".
         self.ObjectSearchAttempts = 0
@@ -96,7 +96,6 @@ class ManeuveringNavigationTasks:
                 print("State machine stopped")
                 break
 
-        # Stop the state machine introspection server (because while loop is finished)
         sis.stop()
 
 

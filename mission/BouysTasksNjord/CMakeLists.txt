@@ -4,7 +4,9 @@ project(Njord_fsm)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  vortex_msgs
 )
+
 
 catkin_python_setup()
 
