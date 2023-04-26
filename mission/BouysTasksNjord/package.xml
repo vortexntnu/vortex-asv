@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>Njord_fsm</name>
+  <name>njord_fsm</name>
   <version>0.0.0</version>
   <description>The Bouys_tasks_fsm package</description>
 
