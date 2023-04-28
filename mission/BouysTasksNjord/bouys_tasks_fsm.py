@@ -25,7 +25,7 @@ class ManeuveringNavigationTasks:
 
         self.data_sub = rospy.Subscriber('detected_objects',
                                          DetectedObjectArray, self.data_cb)
-        
+
         self.vessel_pos_sub = rospy.Subscriber('/odometry/filtered', Odometry,
                                                self.odom_cb)
 
@@ -53,7 +53,7 @@ class ManeuveringNavigationTasks:
     def odom_cb(self, msg):
         self.data.vessel_position = (msg.pose.pose.position.x,
                                      msg.pose.pose.position.y)
-        
+
     def find_closest_objects(self):
         for name, new_object in vars(self.data).items():
             if name.startswith('current_') or (name.endswith('bouy')
@@ -67,24 +67,28 @@ class ManeuveringNavigationTasks:
                                        self.data.closest_object[1])
                 dist_to_old_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_closest_obj_pos)
-                old_second_closest_obj_type = self.data.second_closest_object[2]
-                old_second_closest_obj_pos = (self.data.second_closest_object[0],
-                                              self.data.second_closest_object[1])
+                old_second_closest_obj_type = self.data.second_closest_object[
+                    2]
+                old_second_closest_obj_pos = (
+                    self.data.second_closest_object[0],
+                    self.data.second_closest_object[1])
                 dist_to_old_second_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_second_closest_obj_pos)
             if dist_to_new_obj < dist_to_old_closest_obj:
                 self.data.second_closest_object = (dist_to_old_closest_obj,
-                                              old_closest_obj_type)
+                                                   old_closest_obj_type)
                 self.data.closest_object = (dist_to_new_obj, new_obj_type)
             elif dist_to_new_obj < dist_to_old_second_closest_obj:
-                self.data.second_closest_object = (dist_to_new_obj, new_obj_type)
+                self.data.second_closest_object = (dist_to_new_obj,
+                                                   new_obj_type)
                 self.data.closest_object = (dist_to_old_closest_obj,
-                                       old_closest_obj_type)
+                                            old_closest_obj_type)
             else:  #No new closest objects, but updating distance to the old closest objects again because our position may have changed
-                self.data.second_closest_object = (dist_to_old_second_closest_obj,
-                                              old_second_closest_obj_type)
+                self.data.second_closest_object = (
+                    dist_to_old_second_closest_obj,
+                    old_second_closest_obj_type)
                 self.data.closest_object = (dist_to_old_closest_obj,
-                                       old_closest_obj_type)
+                                            old_closest_obj_type)
 
     def spin(self):
         # Create the state machine
