@@ -4,7 +4,7 @@ project(njord_fsm)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  # vortex_msgs
+  vortex_msgs
   # smach
   # smach_ros
 )

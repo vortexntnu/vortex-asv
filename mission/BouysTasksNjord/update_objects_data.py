@@ -6,7 +6,7 @@ from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 import numpy as np
 import math
-from vortex_msgs import DetectedObjectArray, DetectedObject
+from vortex_msgs.msg import DetectedObjectArray, DetectedObject
 from std_msgs.msg import Header
 
 
@@ -37,7 +37,8 @@ class UpdateDataNode:
 
         # Initialize subscriber and Service to get all the necessary information
         self.Obj_pos_sub = rospy.Subscriber(
-            'bouys_and_markers',  #Message from perception not defined
+            'bouys_and_markers',  
+            DetectedObjectArray,
             self.obj_pos_cb)
         self.Position_sub = rospy.Subscriber('/odometry/filtered', Odometry,
                                              self.odom_cb)
@@ -55,7 +56,7 @@ class UpdateDataNode:
             VesselPos, self.red_bouy_array)
         self.object_data.current_green_bouy = UpdateDataNode.find_closest_object_in_array(
             VesselPos, self.green_bouy_array)
-        # north, south, east, west...
+        # find closest north, south, east and west marker.
 
         UpdateDataNode.find_closest_objects()
 
@@ -74,6 +75,8 @@ class UpdateDataNode:
         green_bouy.y = self.object_data.current_green_bouy[1]
         green_bouy.type = self.object_data.current_green_bouy[2]
         msg.detected_objects.append(green_bouy)
+
+        # Update msg with current north, south, east and  west marker.
 
         self.pub.publish(msg)
 
