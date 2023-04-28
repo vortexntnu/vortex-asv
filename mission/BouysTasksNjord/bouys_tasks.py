@@ -13,8 +13,8 @@ from tf.transformations import euler_from_quaternion
 class Idle(smach.State):
 
     def __init__(self, data):
-        smach.State.__init__(self,
-                             outcomes=['desideNextState', 'search']) #, 'stop'
+        smach.State.__init__(self, outcomes=['desideNextState',
+                                             'search'])  #, 'stop'
         self.data = data
 
     def execute(self):
@@ -86,14 +86,11 @@ class Search(smach.State):
 class DesideNextState(smach.State):
 
     def __init__(self, data):
-        smach.State.__init__(self, outcomes=['greenAndReadBouyNav',
-                                              'red',
-                                              'green',
-                                              'north',
-                                              'south',
-                                              'east',
-                                              'west',
-                                              'idle'])
+        smach.State.__init__(self,
+                             outcomes=[
+                                 'greenAndReadBouyNav', 'red', 'green',
+                                 'north', 'south', 'east', 'west', 'idle'
+                             ])
         self.data = data
 
     def execute(self):
@@ -102,8 +99,8 @@ class DesideNextState(smach.State):
         if self.data.closest_object[
                 1] == 'red' and self.data.second_closest_object[1] == 'green':
             return 'greenAndRedBouyNav'
-        elif self.data.closest_object[1] == 'green' and self.data.second_closest_object[
-                1] == 'red':
+        elif self.data.closest_object[
+                1] == 'green' and self.data.second_closest_object[1] == 'red':
             return 'greenAndRedBouyNav'
         elif self.data.closest_object[1] == 'red':
             return 'red'
@@ -117,7 +114,7 @@ class DesideNextState(smach.State):
             return 'east'
         elif self.data.closest_object[1] == 'west':
             return 'west'
-        else: #self.data.closest_object[1] == ''
+        else:  #self.data.closest_object[1] == ''
             return 'idle'
 
 
@@ -200,9 +197,10 @@ class GreenAndReadBouyNav(smach.State):
 class NorthMarkerNav(smach.State):
 
     def __init__(self, data):
-        smach.State.__init__(self,
-                             outcomes=['desideNextState'],
-                             )
+        smach.State.__init__(
+            self,
+            outcomes=['desideNextState'],
+        )
         self.data = data
 
     def execute(self):
@@ -213,9 +211,10 @@ class NorthMarkerNav(smach.State):
 class SouthMarkerNav(smach.State):
 
     def __init__(self, data):
-        smach.State.__init__(self,
-                             outcomes=['desideNextState'],
-                             )
+        smach.State.__init__(
+            self,
+            outcomes=['desideNextState'],
+        )
         self.data = data
 
     def execute(self):
@@ -226,9 +225,10 @@ class SouthMarkerNav(smach.State):
 class WestMarkerNav(smach.State):
 
     def __init__(self, data):
-        smach.State.__init__(self,
-                             outcomes=['desideNextState'],
-                             )
+        smach.State.__init__(
+            self,
+            outcomes=['desideNextState'],
+        )
         self.data = data
 
     def execute(self):
@@ -239,9 +239,10 @@ class WestMarkerNav(smach.State):
 class EastMarkerNav(smach.State):
 
     def __init__(self, data):
-        smach.State.__init__(self,
-                             outcomes=['desideNextState'],
-                             )
+        smach.State.__init__(
+            self,
+            outcomes=['desideNextState'],
+        )
         self.data = data
 
     def execute(self):
