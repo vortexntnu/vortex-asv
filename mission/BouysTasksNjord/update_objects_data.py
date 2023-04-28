@@ -36,10 +36,9 @@ class UpdateDataNode:
         self.west_marker_array = []
 
         # Initialize subscriber and Service to get all the necessary information
-        self.Obj_pos_sub = rospy.Subscriber(
-            'bouys_and_markers',  
-            DetectedObjectArray,
-            self.obj_pos_cb)
+        self.Obj_pos_sub = rospy.Subscriber('bouys_and_markers',
+                                            DetectedObjectArray,
+                                            self.obj_pos_cb)
         self.Position_sub = rospy.Subscriber('/odometry/filtered', Odometry,
                                              self.odom_cb)
 
