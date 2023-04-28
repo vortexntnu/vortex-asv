@@ -98,8 +98,8 @@ class DesideNextState(smach.State):
     def execute(self):
         rospy.loginfo('DesideNextState')
 
-        if self.data.closest_object[1] == 'red' and self.data.second_closest_object[
-                1] == 'green':
+        if self.data.closest_object[
+                1] == 'red' and self.data.second_closest_object[1] == 'green':
             return 'greenAndRedBouyNav'
         elif self.data.closest_object[1] == 'green' and self.data.second_closest_object[
                 1] == 'red':
