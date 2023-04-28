@@ -8,6 +8,6 @@ setup(
     description=
     "Contains a fsm for maneuvering and navigation (bouys) tasks in Njord.",
     author="Sigurd von Brandis",
-    author_email="Sigurdvb@stud.ntnu.no",
+    author_email="sigurdvbrandis@gmail.com",
     packages=find_packages(),
 )

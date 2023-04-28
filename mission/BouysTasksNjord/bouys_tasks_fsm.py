@@ -124,7 +124,8 @@ class ManeuveringNavigationTasks:
 
             self.enabled = rospy.get_param(
                 "/tasks/maneuvering_navigation_tasks")
-            if self.enabled == False:
+            self.enabled = True #Remove this line when not testing 
+            if not self.enabled:  
                 print("Exiting because this fsm should be inactive.")
                 break
 
@@ -138,6 +139,9 @@ class ManeuveringNavigationTasks:
 
 
 if __name__ == "__main__":
-    rospy.init_node('Bouys_tasks_fsm')
-    fsm_node = ManeuveringNavigationTasks()
-    fsm_node.spin()
+    try:
+        rospy.init_node('Bouys_tasks_fsm')
+        fsm_node = ManeuveringNavigationTasks()
+        fsm_node.spin()
+    except rospy.ROSInterruptException:
+        pass

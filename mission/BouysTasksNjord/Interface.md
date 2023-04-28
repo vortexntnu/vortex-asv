@@ -14,3 +14,5 @@ a object we already have in our array.
 If there is a new object from point cloud array that is not close (more than x distace away) to the objects we have in our array, apped it to our array. 
 
 (Obs, do not want timestamps in the message published on topic)
+
+Message type is now defined in vortex_msgs as DetectedObject.msg and DetectedObjectArray!
