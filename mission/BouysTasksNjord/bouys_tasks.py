@@ -23,7 +23,7 @@ class Idle(smach.State):
         # if self.data.ObjectSearchAttempts == 5:
         #     return 'stop'
         if self.data.closest_object[1] == '':
-            self.data.ObjectSearchAttempts += 1
+            self.data.ObjectSearchAttempts += 1 #Must be changed to use userdata
             return 'search'
         else:
             self.data.ObjectSearchAttempts = 0

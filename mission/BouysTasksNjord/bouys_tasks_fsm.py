@@ -37,18 +37,18 @@ class ManeuveringNavigationTasks:
         self.data.current_green_bouy = (detected_objects[1].x,
                                         detected_objects[1].y,
                                         detected_objects[1].type)
-        self.data.current_north_marker = (detected_objects[2].x,
-                                          detected_objects[2].y,
-                                          detected_objects[2].type)
-        self.data.current_south_marker = (detected_objects[3].x,
-                                          detected_objects[3].y,
-                                          detected_objects[3].type)
-        self.data.current_east_marker = (detected_objects[4].x,
-                                         detected_objects[4].y,
-                                         detected_objects[4].type)
-        self.data.current_west_marker = (detected_objects[5].x,
-                                         detected_objects[5].y,
-                                         detected_objects[5].type)
+        # self.data.current_north_marker = (detected_objects[2].x,
+        #                                   detected_objects[2].y,
+        #                                   detected_objects[2].type)
+        # self.data.current_south_marker = (detected_objects[3].x,
+        #                                   detected_objects[3].y,
+        #                                   detected_objects[3].type)
+        # self.data.current_east_marker = (detected_objects[4].x,
+        #                                  detected_objects[4].y,
+        #                                  detected_objects[4].type)
+        # self.data.current_west_marker = (detected_objects[5].x,
+        #                                  detected_objects[5].y,
+        #                                  detected_objects[5].type)
 
     def odom_cb(self, msg):
         self.data.vessel_position = (msg.pose.pose.position.x,
@@ -172,9 +172,9 @@ class ManeuveringNavigationTasks:
         sis.start()
 
         while not rospy.is_shutdown():
-
-            self.enabled = rospy.get_param(
-                "/tasks/maneuvering_navigation_tasks")
+            # To be updated
+            # self.enabled = rospy.get_param(
+            #     "/tasks/maneuvering_navigation_tasks")
             self.enabled = True  #Remove this line when not testing
             if not self.enabled:
                 print("Exiting because this fsm should be inactive.")
