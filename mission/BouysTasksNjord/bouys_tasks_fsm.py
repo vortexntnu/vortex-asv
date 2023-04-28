@@ -164,8 +164,8 @@ class ManeuveringNavigationTasks:
 
             self.enabled = rospy.get_param(
                 "/tasks/maneuvering_navigation_tasks")
-            self.enabled = True #Remove this line when not testing 
-            if not self.enabled:  
+            self.enabled = True  #Remove this line when not testing
+            if not self.enabled:
                 print("Exiting because this fsm should be inactive.")
                 break
 
