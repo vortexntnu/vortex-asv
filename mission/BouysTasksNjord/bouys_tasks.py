@@ -14,15 +14,15 @@ class Idle(smach.State):
 
     def __init__(self, data):
         smach.State.__init__(self,
-                             outcomes=['desideNextState', 'search', 'stop'])
+                             outcomes=['desideNextState', 'search']) #, 'stop'
         self.data = data
 
     def execute(self):
         rospy.loginfo('Executing Idle')
 
-        if self.data.ObjectSearchAttempts == 5:
-            return 'stop'
-        elif self.data.closest_object[1] == '':
+        # if self.data.ObjectSearchAttempts == 5:
+        #     return 'stop'
+        if self.data.closest_object[1] == '':
             self.data.ObjectSearchAttempts += 1
             return 'search'
         else:
@@ -86,13 +86,14 @@ class Search(smach.State):
 class DesideNextState(smach.State):
 
     def __init__(self, data):
-        smach.State.__init__(self, outcomes=['greenAndRedBouyNav',
+        smach.State.__init__(self, outcomes=['greenAndReadBouyNav',
                                               'red',
                                               'green',
                                               'north',
                                               'south',
                                               'east',
-                                              'west'])
+                                              'west',
+                                              'idle'])
         self.data = data
 
     def execute(self):
@@ -198,49 +199,53 @@ class GreenAndReadBouyNav(smach.State):
 
 class NorthMarkerNav(smach.State):
 
-    def __init__(self):
+    def __init__(self, data):
         smach.State.__init__(self,
                              outcomes=['desideNextState'],
-                             input_keys=['userdata'])
+                             )
+        self.data = data
 
-    def execute(self, userdata):
+    def execute(self):
         rospy.loginfo('NorthMarkerNav')
         pass
 
 
 class SouthMarkerNav(smach.State):
 
-    def __init__(self):
+    def __init__(self, data):
         smach.State.__init__(self,
                              outcomes=['desideNextState'],
-                             input_keys=['userdata'])
+                             )
+        self.data = data
 
-    def execute(self, userdata):
-        rospy.loginfo('NorthMarkerNav')
+    def execute(self):
+        rospy.loginfo('SouthMarkerNav')
         pass
 
 
 class WestMarkerNav(smach.State):
 
-    def __init__(self):
+    def __init__(self, data):
         smach.State.__init__(self,
                              outcomes=['desideNextState'],
-                             input_keys=['userdata'])
+                             )
+        self.data = data
 
-    def execute(self, userdata):
-        rospy.loginfo('NorthMarkerNav')
+    def execute(self):
+        rospy.loginfo('EastMarkerNav')
         pass
 
 
 class EastMarkerNav(smach.State):
 
-    def __init__(self):
+    def __init__(self, data):
         smach.State.__init__(self,
                              outcomes=['desideNextState'],
-                             input_keys=['userdata'])
+                             )
+        self.data = data
 
-    def execute(self, userdata):
-        rospy.loginfo('NorthMarkerNav')
+    def execute(self):
+        rospy.loginfo('WestMarkerNav')
         pass
 
 

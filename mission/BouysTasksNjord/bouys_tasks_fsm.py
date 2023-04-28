@@ -120,12 +120,12 @@ class ManeuveringNavigationTasks:
                                    })
 
             smach.StateMachine.add('DesideNextState',
-                                   Search(self.data),
+                                   DesideNextState(self.data),
                                    transitions={
                                        'greenAndReadBouyNav': 'GreenAndReadBouyNav',
                                        'red': 'OneRedBouyNav',
                                        'green': 'OneGreenBouyNav',
-                                       'north': 'CardinalMarkerNav',
+                                       'north': 'NorthMarkerNav',
                                        'south': 'SouthMarkerNav',
                                        'east': 'EastMarkerNav',
                                        'west': 'WestMarkerNav',
