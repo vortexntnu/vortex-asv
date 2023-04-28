@@ -92,37 +92,36 @@ class ManeuveringNavigationTasks:
 
     def spin(self):
         # Create the state machine
-        sm = smach.StateMachine(outcomes=['idle',
-                                          'greenAndRedBouyNav',
-                                          'red',
-                                          'green',
-                                          'north',
-                                          'south',
-                                          'east',
-                                          'west']) 
-                                         #'STOP',
+        sm = smach.StateMachine(outcomes=[
+            'idle', 'greenAndRedBouyNav', 'red', 'green', 'north', 'south',
+            'east', 'west'
+        ])
+        #'STOP',
 
         # Add states to the state machine
         with sm:
-            smach.StateMachine.add('Idle',
-                                   Idle(self.data),
-                                   transitions={
-                                       'search': 'Search',
-                                       'desideNextState': 'DesideNextState',
-                                    #   'stop': 'STOP'
-                                   })
+            smach.StateMachine.add(
+                'Idle',
+                Idle(self.data),
+                transitions={
+                    'search': 'Search',
+                    'desideNextState': 'DesideNextState',
+                    #   'stop': 'STOP'
+                })
 
-            smach.StateMachine.add('Search',
-                                   Search(self.data),
-                                   transitions={
-                                       'idle': 'Idle',
-                                    #   'stop': 'STOP'
-                                   })
+            smach.StateMachine.add(
+                'Search',
+                Search(self.data),
+                transitions={
+                    'idle': 'Idle',
+                    #   'stop': 'STOP'
+                })
 
             smach.StateMachine.add('DesideNextState',
                                    DesideNextState(self.data),
                                    transitions={
-                                       'greenAndReadBouyNav': 'GreenAndReadBouyNav',
+                                       'greenAndReadBouyNav':
+                                       'GreenAndReadBouyNav',
                                        'red': 'OneRedBouyNav',
                                        'green': 'OneGreenBouyNav',
                                        'north': 'NorthMarkerNav',
