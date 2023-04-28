@@ -86,31 +86,38 @@ class Search(smach.State):
 class DesideNextState(smach.State):
 
     def __init__(self, data):
+        smach.State.__init__(self, outcomes=['greenAndRedBouyNav',
+                                              'red',
+                                              'green',
+                                              'north',
+                                              'south',
+                                              'east',
+                                              'west'])
         self.data = data
 
     def execute(self):
-        rospy.loginfo('Finding next state')
+        rospy.loginfo('DesideNextState')
 
         if self.data.closest_object[1] == 'red' and self.data.second_closest_object[
                 1] == 'green':
             return 'greenAndRedBouyNav'
-        if self.data.closest_object[1] == 'green' and self.data.second_closest_object[
+        elif self.data.closest_object[1] == 'green' and self.data.second_closest_object[
                 1] == 'red':
             return 'greenAndRedBouyNav'
-        if self.data.closest_object[1] == 'red':
+        elif self.data.closest_object[1] == 'red':
             return 'red'
-        if self.data.closest_object[1] == 'green':
+        elif self.data.closest_object[1] == 'green':
             return 'green'
-        if self.data.closest_object[1] == 'north':
+        elif self.data.closest_object[1] == 'north':
             return 'north'
-        if self.data.closest_object[1] == 'south':
+        elif self.data.closest_object[1] == 'south':
             return 'south'
-        if self.data.closest_object[1] == 'east':
+        elif self.data.closest_object[1] == 'east':
             return 'east'
-        if self.data.closest_object[1] == 'west':
+        elif self.data.closest_object[1] == 'west':
             return 'west'
-        if self.data.closest_object[1] == '':
-            return 'search'
+        else: #self.data.closest_object[1] == ''
+            return 'idle'
 
 
 class OneRedBouyNav(smach.State):
