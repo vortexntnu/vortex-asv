@@ -10,41 +10,41 @@ from std_msgs.msg import Float64
 from tf.transformations import euler_from_quaternion
 
 
+        
 class Idle(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['decideNextState', 'search'], #, 'stop'
+            input_keys=['closest_object', 'object_search_attempts'],
+            output_keys=['object_search_attempts'])
 
-    def __init__(self, data):
-        smach.State.__init__(self, outcomes=['desideNextState',
-                                             'search'])  #, 'stop'
-        self.data = data
-
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('Executing Idle')
 
-        # if self.data.ObjectSearchAttempts == 5:
-        #     return 'stop'
-        if self.data.closest_object[1] == '':
-            self.data.ObjectSearchAttempts += 1 #Must be changed to use userdata
+        if userdata['closest_object'][1] == '':
+            userdata['object_search_attempts'] += 1
+            # if userdata['object_search_attempts'] >= 5:
+            #     return 'stop'
+            #else:
             return 'search'
         else:
-            self.data.ObjectSearchAttempts = 0
-            return 'desideNextState'
+            userdata['object_search_attempts'] = 0
+            return 'decideNextState'
 
 
 class Search(smach.State):
 
-    def __init__(self, data):
+    def __init__(self):
         smach.State.__init__(self, outcomes=['idle'])
         self.task = "Buoy"
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
-        self.data = data
 
         self.heading_pub = rospy.Publisher(
             "/guidance_interface/desired_heading", Float64, queue_size=1)
 
         rospy.Subscriber("/odometry/filtered", Odometry, self.odom_cb)
 
-        # TODO: some of these functions should be generalized, adn
 
     def odom_cb(self, msg):
         self.odom = msg
@@ -85,53 +85,53 @@ class Search(smach.State):
 
 class DesideNextState(smach.State):
 
-    def __init__(self, data):
+    def __init__(self):
         smach.State.__init__(self,
                              outcomes=[
                                  'greenAndReadBouyNav', 'red', 'green',
                                  'north', 'south', 'east', 'west', 'idle'
-                             ])
-        self.data = data
+                             ],
+                             input_keys=['closest_data', "second_closest_data"])
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('DesideNextState')
 
-        if self.data.closest_object[
-                1] == 'red' and self.data.second_closest_object[1] == 'green':
+        if userdata['closest_object'][
+                1] == 'red' and userdata['second_closest_object'][1] == 'green':
             return 'greenAndRedBouyNav'
-        elif self.data.closest_object[
-                1] == 'green' and self.data.second_closest_object[1] == 'red':
+        elif userdata['closest_object'][
+                1] == 'green' and userdata['second_closest_object'][1] == 'red':
             return 'greenAndRedBouyNav'
-        elif self.data.closest_object[1] == 'red':
+        elif userdata['closest_object'][1] == 'red':
             return 'red'
-        elif self.data.closest_object[1] == 'green':
+        elif userdata['closest_object'][1] == 'green':
             return 'green'
-        elif self.data.closest_object[1] == 'north':
+        elif userdata['closest_object'][1] == 'north':
             return 'north'
-        elif self.data.closest_object[1] == 'south':
+        elif userdata['closest_object'][1] == 'south':
             return 'south'
-        elif self.data.closest_object[1] == 'east':
+        elif userdata['closest_object'][1] == 'east':
             return 'east'
-        elif self.data.closest_object[1] == 'west':
+        elif userdata['closest_object'][1] == 'west':
             return 'west'
-        else:  #self.data.closest_object[1] == ''
+        else:  #userdata['closest_object[1] == ''
             return 'idle'
 
 
 class OneRedBouyNav(smach.State):
 
-    def __init__(self, data):
-        smach.State.__init__(self, outcomes=['desideNextState'])
-        self.data = data
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['desideNextState'],
+                             input_keys=['vessel_position', 'current_red_bouy', 'DistanceRadius', 'DirectionWithLeia'])
 
-    def execute(self):
+    def execute(self,userdata):
         rospy.loginfo('OneRedBouyNav')
 
-        next_waypoint = NavAroundOneObject(self.data.vessel_position,
-                                           self.data.current_red_bouy,
-                                           self.data.DistanceRadius,
-                                           self.data.DirectionWithLeia)
-        send_wp(self.data.vessel_position)
+        next_waypoint = NavAroundOneObject(userdata['vessel_position'],
+                                           userdata['current_red_bouy'],
+                                           userdata['DistanceRadius'],
+                                           userdata['DirectionWithLeia'])
+        send_wp(userdata['vessel_position'])
         overwrite_with_new_waypoint(next_waypoint)
 
         return 'desideNextState'
@@ -139,18 +139,18 @@ class OneRedBouyNav(smach.State):
 
 class OneGreenBouyNav(smach.State):
 
-    def __init__(self, data):
-        smach.State.__init__(self, outcomes=['desideNextState'])
-        self.data = data
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['desideNextState'],
+                             input_keys=['vessel_position', 'current_green_bouy', 'DistanceRadius', 'DirectionWithLeia'])
 
-    def execute(self):
+    def execute(self,userdata):
         rospy.loginfo('OneGreenBouyNav')
 
-        next_waypoint = NavAroundOneObject(self.data.vessel_position,
-                                           self.data.current_green_bouy,
-                                           self.data.DistanceRadius,
-                                           self.data.DirectionWithLeia)
-        send_wp(self.data.vessel_position)
+        next_waypoint = NavAroundOneObject(userdata['vessel_position'],
+                                           userdata['current_green_bouy'],
+                                           userdata['DistanceRadius'],
+                                           userdata['DirectionWithLeia'])
+        send_wp(userdata['vessel_position'])
         overwrite_with_new_waypoint(next_waypoint)
 
         return 'desideNextState'
@@ -158,23 +158,22 @@ class OneGreenBouyNav(smach.State):
 
 class GreenAndReadBouyNav(smach.State):
 
-    def __init__(self, data):
+    def __init__(self):
         smach.State.__init__(self,
                              outcomes=['desideNextState'],
-                             input_keys=['userdata'])
-        self.data = data
+                             input_keys=['current_green_bouy', 'current_red_bouy', 'DirectionWithLeia'])
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('GreenAndReadBouyNav')
-        GreenBouy = self.data.current_green_bouy
-        RedBouy = self.data.current_red_bouy
+        GreenBouy = userdata['current_green_bouy']
+        RedBouy = userdata['current_red_bouy']
         xWP = 0
         yWP = 0
 
         distance_between_bouys = math.sqrt((GreenBouy[0] - RedBouy[0])**2 +
                                            (GreenBouy[1] - RedBouy[1])**2)
 
-        if self.data.DirectionWithLeia == True:
+        if userdata['DirectionWithLeia'] == True:
             #Distance from Green to WP
             distance_between_Green_and_WP = 0.1 * distance_between_bouys
             # Calculate the coordinates of point WP
@@ -188,7 +187,7 @@ class GreenAndReadBouyNav(smach.State):
             yWP = 0.9 * GreenBouy[1] + 0.1 * RedBouy[1]
 
         next_waypoint = (xWP, yWP)
-        send_wp(self.data.vessel_position)
+        send_wp(userdata['vessel_position'])
         overwrite_with_new_waypoint(next_waypoint)
 
         return 'desideNextState'
@@ -196,12 +195,11 @@ class GreenAndReadBouyNav(smach.State):
 
 class NorthMarkerNav(smach.State):
 
-    def __init__(self, data):
+    def __init__(self):
         smach.State.__init__(
             self,
             outcomes=['desideNextState'],
         )
-        self.data = data
 
     def execute(self):
         rospy.loginfo('NorthMarkerNav')
@@ -210,12 +208,11 @@ class NorthMarkerNav(smach.State):
 
 class SouthMarkerNav(smach.State):
 
-    def __init__(self, data):
+    def __init__(self):
         smach.State.__init__(
             self,
             outcomes=['desideNextState'],
         )
-        self.data = data
 
     def execute(self):
         rospy.loginfo('SouthMarkerNav')
@@ -224,12 +221,11 @@ class SouthMarkerNav(smach.State):
 
 class WestMarkerNav(smach.State):
 
-    def __init__(self, data):
+    def __init__(self):
         smach.State.__init__(
             self,
             outcomes=['desideNextState'],
         )
-        self.data = data
 
     def execute(self):
         rospy.loginfo('EastMarkerNav')
@@ -238,12 +234,11 @@ class WestMarkerNav(smach.State):
 
 class EastMarkerNav(smach.State):
 
-    def __init__(self, data):
+    def __init__(self):
         smach.State.__init__(
             self,
             outcomes=['desideNextState'],
         )
-        self.data = data
 
     def execute(self):
         rospy.loginfo('WestMarkerNav')

@@ -7,21 +7,20 @@ import smach_ros
 import math
 from bouys_tasks import Idle, Search, DesideNextState, OneRedBouyNav, OneGreenBouyNav, GreenAndReadBouyNav, NorthMarkerNav, SouthMarkerNav, EastMarkerNav, WestMarkerNav
 from nav_msgs.msg import Odometry
-from update_objects_data import DetectedObjectsData  # custom message type for the combined data.
+from update_objects_data import DetectedObjectsData, UpdateDataNode  # custom message type for the combined data.
 from vortex_msgs.msg import DetectedObjectArray, DetectedObject
-from update_objects_data import UpdateDataNode
 
 
 class ManeuveringNavigationTasks:
 
     def __init__(self):
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
-        self.data = DetectedObjectsData
-        self.data.closest_object = (math.inf, '')
-        self.data.second_closest_object = (math.inf, '')
-        self.data.DistanceRadius = 3  #Meters. Used to define curve ASV can follow when it only knows one bouy.
-        self.data.DirectionWithLeia = True  #Used to descide which side the ASV should be regarding Green and Read "Staker".
-        self.data.ObjectSearchAttempts = 0
+        self.data = DetectedObjectsData()
+        self.closest_object = (math.inf, '')
+        self.second_closest_object = (math.inf, '')
+        self.DistanceRadius = 3  #Meters. Used to define curve ASV can follow when it only knows one bouy.
+        self.DirectionWithLeia = True  #Used to descide which side the ASV should be regarding Green and Read "Staker".
+        self.ObjectSearchAttempts = 0
 
         self.data_sub = rospy.Subscriber('detected_objects',
                                          DetectedObjectArray, self.data_cb)
@@ -62,63 +61,60 @@ class ManeuveringNavigationTasks:
                 new_obj_pos = (new_object[0], new_object[1])
                 dist_to_new_obj = UpdateDataNode.distance(
                     self.data.vessel_position, new_obj_pos)
-                old_closest_obj_type = self.data.closest_object[2]
-                old_closest_obj_pos = (self.data.closest_object[0],
-                                       self.data.closest_object[1])
+                old_closest_obj_type = self.closest_object[2]
+                old_closest_obj_pos = (self.closest_object[0],
+                                       self.closest_object[1])
                 dist_to_old_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_closest_obj_pos)
-                old_second_closest_obj_type = self.data.second_closest_object[
+                old_second_closest_obj_type = self.second_closest_object[
                     2]
                 old_second_closest_obj_pos = (
-                    self.data.second_closest_object[0],
-                    self.data.second_closest_object[1])
+                    self.second_closest_object[0],
+                    self.second_closest_object[1])
                 dist_to_old_second_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_second_closest_obj_pos)
             if dist_to_new_obj < dist_to_old_closest_obj:
-                self.data.second_closest_object = (dist_to_old_closest_obj,
+                self.second_closest_object = (dist_to_old_closest_obj,
                                                    old_closest_obj_type)
-                self.data.closest_object = (dist_to_new_obj, new_obj_type)
+                self.closest_object = (dist_to_new_obj, new_obj_type)
             elif dist_to_new_obj < dist_to_old_second_closest_obj:
-                self.data.second_closest_object = (dist_to_new_obj,
+                self.second_closest_object = (dist_to_new_obj,
                                                    new_obj_type)
-                self.data.closest_object = (dist_to_old_closest_obj,
+                self.closest_object = (dist_to_old_closest_obj,
                                             old_closest_obj_type)
             else:  #No new closest objects, but updating distance to the old closest objects again because our position may have changed
-                self.data.second_closest_object = (
+                self.second_closest_object = (
                     dist_to_old_second_closest_obj,
                     old_second_closest_obj_type)
-                self.data.closest_object = (dist_to_old_closest_obj,
+                self.closest_object = (dist_to_old_closest_obj,
                                             old_closest_obj_type)
 
     def spin(self):
         # Create the state machine
-        sm = smach.StateMachine(outcomes=[
-            'idle', 'greenAndRedBouyNav', 'red', 'green', 'north', 'south',
-            'east', 'west'
-        ])
+        sm = smach.StateMachine(outcomes=['STOP'])
         #'STOP',
+        sm.userdata = self.data
 
         # Add states to the state machine
         with sm:
-            smach.StateMachine.add(
-                'Idle',
-                Idle(self.data),
-                transitions={
-                    'search': 'Search',
-                    'desideNextState': 'DesideNextState',
-                    #   'stop': 'STOP'
-                })
+            smach.StateMachine.add('Idle', Idle(),
+                transitions={'decideNextState': 'DesideNextState',
+                             'search': 'Search',
+                            #'stop': 'Stop'
+                            },
+                            remapping={
+                                'closest_object': 'self.closest_object',
+                                'object_search_attempts': 'self.ObjectSearchAttempts',
+                            })
 
+            #This must also be updated to use remapping insted of taking inn self.data
             smach.StateMachine.add(
                 'Search',
-                Search(self.data),
-                transitions={
-                    'idle': 'Idle',
-                    #   'stop': 'STOP'
-                })
+                Search(),
+                transitions={'idle': 'Idle'})
 
             smach.StateMachine.add('DesideNextState',
-                                   DesideNextState(self.data),
+                                   DesideNextState(),
                                    transitions={
                                        'greenAndReadBouyNav':
                                        'GreenAndReadBouyNav',
@@ -129,41 +125,56 @@ class ManeuveringNavigationTasks:
                                        'east': 'EastMarkerNav',
                                        'west': 'WestMarkerNav',
                                        'idle': 'Idle'
-                                   })
+                                   }, 
+                                   remapping={'closest_object': 'self.closest_object',
+                                              'second_closest_object': 'self.second_closest_object'})
 
             smach.StateMachine.add(
                 'OneRedBouyNav',
-                OneRedBouyNav(self.data),
-                transitions={'desideNextState': 'DesideNextState'})
+                OneRedBouyNav(),
+                transitions={'desideNextState': 'DesideNextState'},
+                remapping={'vessel_position': 'self.data.vessel_position',
+                           'current_red_bouy': 'self.data.current_red_bouy',
+                           'DistanceRadius': 'self.DistanceRadius',
+                           'DirectionWithLeia': 'self.DirectionWithLeia'})
 
             smach.StateMachine.add(
                 'OneGreenBouyNav',
-                OneGreenBouyNav(self.data),
-                transitions={'desideNextState': 'DesideNextState'})
+                OneGreenBouyNav(),
+                transitions={'desideNextState': 'DesideNextState'},
+                remapping={'vessel_position': 'self.data.vessel_position',
+                           'current_green_bouy': 'self.data.current_green_bouy',
+                           'DistanceRadius': 'self.DistanceRadius',
+                           'DirectionWithLeia': 'self.DirectionWithLeia'})
 
             smach.StateMachine.add(
                 'GreenAndReadBouyNav',
-                GreenAndReadBouyNav(self.data),
-                transitions={'desideNextState': 'DesideNextState'})
+                GreenAndReadBouyNav(),
+                transitions={'desideNextState': 'DesideNextState'},
+                remapping={'vessel_position': 'self.data.vessel_position',
+                           'current_green_bouy': 'self.data.current_green_bouy',
+                           'current_red_bouy': 'self.data.current_red_bouy',
+                           'DistanceRadius': 'self.DistanceRadius',
+                           'DirectionWithLeia': 'self.DirectionWithLeia'})
 
             smach.StateMachine.add(
                 'NorthMarkerNav',
-                NorthMarkerNav(self.data),
+                NorthMarkerNav(),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'SouthMarkerNav',
-                SouthMarkerNav(self.data),
+                SouthMarkerNav(),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'EastMarkerNav',
-                EastMarkerNav(self.data),
+                EastMarkerNav(),
                 transitions={'desideNextState': 'DesideNextState'})
 
             smach.StateMachine.add(
                 'WestMarkerNav',
-                WestMarkerNav(self.data),
+                WestMarkerNav(),
                 transitions={'desideNextState': 'DesideNextState'})
 
         # Start the state machine introspection server
@@ -184,7 +195,8 @@ class ManeuveringNavigationTasks:
             if outcome == 'STOP':
                 print("State machine stopped")
                 break
-
+            
+            sm.userdata = self.data
             ManeuveringNavigationTasks.find_closest_objects()
 
         sis.stop()
