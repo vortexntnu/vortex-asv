@@ -10,11 +10,12 @@ from std_msgs.msg import Float64
 from tf.transformations import euler_from_quaternion
 
 
-        
 class Idle(smach.State):
+
     def __init__(self):
-        smach.State.__init__(self, 
-            outcomes=['decideNextState', 'search'], #, 'stop'
+        smach.State.__init__(
+            self,
+            outcomes=['decideNextState', 'search'],  #, 'stop'
             input_keys=['closest_object', 'object_search_attempts'],
             output_keys=['object_search_attempts'])
 
@@ -44,7 +45,6 @@ class Search(smach.State):
             "/guidance_interface/desired_heading", Float64, queue_size=1)
 
         rospy.Subscriber("/odometry/filtered", Odometry, self.odom_cb)
-
 
     def odom_cb(self, msg):
         self.odom = msg
@@ -86,21 +86,22 @@ class Search(smach.State):
 class DesideNextState(smach.State):
 
     def __init__(self):
-        smach.State.__init__(self,
-                             outcomes=[
-                                 'greenAndReadBouyNav', 'red', 'green',
-                                 'north', 'south', 'east', 'west', 'idle'
-                             ],
-                             input_keys=['closest_data', "second_closest_data"])
+        smach.State.__init__(
+            self,
+            outcomes=[
+                'greenAndReadBouyNav', 'red', 'green', 'north', 'south',
+                'east', 'west', 'idle'
+            ],
+            input_keys=['closest_data', "second_closest_data"])
 
     def execute(self, userdata):
         rospy.loginfo('DesideNextState')
 
-        if userdata['closest_object'][
-                1] == 'red' and userdata['second_closest_object'][1] == 'green':
+        if userdata['closest_object'][1] == 'red' and userdata[
+                'second_closest_object'][1] == 'green':
             return 'greenAndRedBouyNav'
-        elif userdata['closest_object'][
-                1] == 'green' and userdata['second_closest_object'][1] == 'red':
+        elif userdata['closest_object'][1] == 'green' and userdata[
+                'second_closest_object'][1] == 'red':
             return 'greenAndRedBouyNav'
         elif userdata['closest_object'][1] == 'red':
             return 'red'
@@ -121,10 +122,14 @@ class DesideNextState(smach.State):
 class OneRedBouyNav(smach.State):
 
     def __init__(self):
-        smach.State.__init__(self, outcomes=['desideNextState'],
-                             input_keys=['vessel_position', 'current_red_bouy', 'DistanceRadius', 'DirectionWithLeia'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState'],
+                             input_keys=[
+                                 'vessel_position', 'current_red_bouy',
+                                 'DistanceRadius', 'DirectionWithLeia'
+                             ])
 
-    def execute(self,userdata):
+    def execute(self, userdata):
         rospy.loginfo('OneRedBouyNav')
 
         next_waypoint = NavAroundOneObject(userdata['vessel_position'],
@@ -140,10 +145,14 @@ class OneRedBouyNav(smach.State):
 class OneGreenBouyNav(smach.State):
 
     def __init__(self):
-        smach.State.__init__(self, outcomes=['desideNextState'],
-                             input_keys=['vessel_position', 'current_green_bouy', 'DistanceRadius', 'DirectionWithLeia'])
+        smach.State.__init__(self,
+                             outcomes=['desideNextState'],
+                             input_keys=[
+                                 'vessel_position', 'current_green_bouy',
+                                 'DistanceRadius', 'DirectionWithLeia'
+                             ])
 
-    def execute(self,userdata):
+    def execute(self, userdata):
         rospy.loginfo('OneGreenBouyNav')
 
         next_waypoint = NavAroundOneObject(userdata['vessel_position'],
@@ -161,7 +170,10 @@ class GreenAndReadBouyNav(smach.State):
     def __init__(self):
         smach.State.__init__(self,
                              outcomes=['desideNextState'],
-                             input_keys=['current_green_bouy', 'current_red_bouy', 'DirectionWithLeia'])
+                             input_keys=[
+                                 'current_green_bouy', 'current_red_bouy',
+                                 'DirectionWithLeia'
+                             ])
 
     def execute(self, userdata):
         rospy.loginfo('GreenAndReadBouyNav')
