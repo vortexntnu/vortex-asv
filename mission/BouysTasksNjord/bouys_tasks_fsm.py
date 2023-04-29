@@ -110,7 +110,7 @@ class ManeuveringNavigationTasks:
             #This must also be updated to use remapping insted of taking inn self.data
             smach.StateMachine.add(
                 'Search',
-                Search(),
+                Search(self.data),
                 transitions={'idle': 'Idle'})
 
             smach.StateMachine.add('DesideNextState',
