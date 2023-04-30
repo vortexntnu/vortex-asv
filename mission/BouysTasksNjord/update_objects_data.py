@@ -72,12 +72,29 @@ class UpdateDataNode:
                                             msg.pose.pose.position.y)
 
     def obj_pos_cb(self, msg):
-        self.red_bouy_array = msg.red_bouy_array
-        self.green_bouy_array = msg.green_bouy_array
-        self.north_marker_array = msg.north_marker_array
-        self.south_marker_array = msg.south_marker_array
-        self.east_marker_array = msg.east_marker_array
-        self.west_marker_array = msg.west_marker_array
+        
+        self.red_bouy_array = []
+        self.green_bouy_array = []
+        self.north_marker_array = []
+        self.south_marker_array = []
+        self.east_marker_array = []
+        self.west_marker_array = []
+
+        for detected_object in len(msg.array):
+            if detected_object[2] == 'red':
+                self.red_bouy_array.append(detected_object)
+            elif detected_object[2] == 'green':
+                self.green_bouy_array.append(detected_object)
+            elif detected_object[2] == 'north':
+                self.north_marker_array.append(detected_object)
+            elif detected_object[2] == 'south':
+                self.south_marker_array.append(detected_object)
+            elif detected_object[2] == 'east':
+                self.east_marker_array.append(detected_object)
+            elif detected_object[2] == 'west':
+                self.west_marker_array.append(detected_object)
+            else:
+                rospy.loginfo("Received unsupported object type")
 
     # def update_array(array, new_point):
     #     updated = False
