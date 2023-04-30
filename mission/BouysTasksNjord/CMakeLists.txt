@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(Njord_fsm)
+project(njord_fsm)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   vortex_msgs
-  smach
-  smach_ros
+  # smach
+  # smach_ros
 )
 
 
@@ -18,5 +18,5 @@ catkin_package(
 
 
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  #${catkin_INCLUDE_DIRS}
 )

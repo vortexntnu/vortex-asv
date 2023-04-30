@@ -21,6 +21,7 @@ RUN apt update && \
     ros-$distro-move-base-msgs \
     ros-$distro-tf \
     ros-$distro-tf2 \
+    ros-$distro-smach \
     ros-$distro-smach-ros \
     ros-$distro-eigen-conversions \
     libeigen3-dev \
