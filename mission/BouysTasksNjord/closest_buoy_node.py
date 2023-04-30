@@ -73,7 +73,7 @@ class UpdateBuoyMarkerNode:
         msg = DetectedObjectArray()
         
         for buoy in self.buoys:
-            single_message = DetectedObjects()
+            single_message = DetectedObject()
             single_message.x = buoy.x
             single_message.y = buoy.y
             single_message.type_ = buoy.type_
@@ -110,7 +110,7 @@ class UpdateBuoyMarkerNode:
 
 if __name__ == "__main__":
     try: 
-         UpdateBouyMarkerNode()
+         UpdateBuoyMarkerNode()
          rospy.spin()
     except rospy.ROSInterruptException:
         pass
