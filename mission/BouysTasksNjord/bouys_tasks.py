@@ -47,6 +47,7 @@ class Search(smach.State):
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
 
+        # Publisher to heading controller
         self.heading_pub = rospy.Publisher(
             "/guidance_interface/desired_heading", Float64, queue_size=1)
 
@@ -55,13 +56,16 @@ class Search(smach.State):
     def odom_cb(self, msg):
         self.odom = msg
 
+    # TODO: should be generalized and added to shared package
     def within_acceptance_margins(setpoint, current):
         error = abs(setpoint - current)
         if error < 0.1:
             return True
         return False
 
+    # Turns ASV by specified angle
     def yaw_to_angle(self, angle):
+        # Find heading corresponding to the change in angle
         orientation = self.odom.pose.pose.orientation
         orientation_list = [
             orientation.x, orientation.y, orientation.z, orientation.w
@@ -69,6 +73,7 @@ class Search(smach.State):
         yaw = euler_from_quaternion(orientation_list)[2]
         heading_goal = yaw + angle
 
+        # publishes heading to heading controller, and waits until the new heading is reached
         self.heading_pub.Publish(heading_goal)
         print(f"Searching for {self.task}, angle: ({angle}) ...")
         while not self.within_acceptance_margins(heading_goal, yaw):
@@ -82,6 +87,7 @@ class Search(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing Search')
 
+        #Turns side to side 
         self.yaw_to_angle(45)
         self.yaw_to_angle(-90)
         self.yaw_to_angle(45)
