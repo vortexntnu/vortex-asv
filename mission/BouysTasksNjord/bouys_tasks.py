@@ -37,12 +37,11 @@ class Idle(smach.State):
 class Search(smach.State):
     # Must be changed so it returns object search attempts. Should be done here, not in idle state.
     def __init__(self):
-        smach.State.__init__(
-            self, 
-            outcomes=['idle'], 
-            input_keys=['object_search_attempts'], 
-            output_keys=['object_search_attempts'])
-        
+        smach.State.__init__(self,
+                             outcomes=['idle'],
+                             input_keys=['object_search_attempts'],
+                             output_keys=['object_search_attempts'])
+
         self.task = "Buoy"
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
@@ -85,7 +84,7 @@ class Search(smach.State):
         self.yaw_to_angle(45)
         self.yaw_to_angle(-90)
         self.yaw_to_angle(45)
-        
+
         userdata.object_search_attempts += 1
 
         return 'idle'
@@ -93,7 +92,10 @@ class Search(smach.State):
 
 class DetectedObjectsNavigation():
     #In future data = closest_data, and we sould also find second_closest_data, to be able to set 2 insted of one waypoint.
-    def __init__(self, outcomes=['idle'], input_keys=[], output_keys=['closest_object']):
+    def __init__(self,
+                 outcomes=['idle'],
+                 input_keys=[],
+                 output_keys=['closest_object']):
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
         self.data = DetectedObjectsData()
         self.closest_object = (math.inf, '')
