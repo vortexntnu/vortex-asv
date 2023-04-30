@@ -18,7 +18,7 @@ class ManeuveringNavigationTasks:
 
     def spin(self):
 
-        sm = smach.StateMachine(outcomes=['STOP'])
+        sm = smach.StateMachine(outcomes=['Stop'])
 
         with sm:
             smach.StateMachine.add('Idle',
@@ -26,17 +26,18 @@ class ManeuveringNavigationTasks:
                                    transitions={
                                        'detectedObjectsNavigation':
                                        'DetectedObjectsNavigation',
-                                       'search': 'Search'
+                                       'search': 'Search',
+                                       'stop': 'Stop',
                                    },
                                    remapping={
                                        'closest_object':
                                        'closest_object',
                                        'object_search_attempts':
-                                       'object_search_attempst'
+                                       'object_search_attempts'
                                    })
 
             smach.StateMachine.add('Search',
-                                   Search(self.data),
+                                   Search(),
                                    transitions={
                                        'detectedObjectsNavigation':
                                        'DetectedObjectsNavigation'
@@ -44,19 +45,17 @@ class ManeuveringNavigationTasks:
                                    remapping={
                                        'closest_object':
                                        'closest_object',
-                                       'object_search_attempst':
-                                       'object_search_attempst'
+                                       'object_search_attempts':
+                                       'object_search_attempts'
                                    })
 
             smach.StateMachine.add('DetectedObjectsNavigation',
                                    DetectedObjectsNavigation(),
-                                   transitions={'idle'},
+                                   transitions={'idle': 'Idle'},
                                    remapping={
                                        'closest_object':
                                        'closest_object',
-                                       'object_search_attempst':
-                                       'object_search_attempst'
-                                   })
+                                    })
 
         # Start the state machine introspection server
         sis = smach_ros.IntrospectionServer('state_machine', sm, '/SM_ROOT')

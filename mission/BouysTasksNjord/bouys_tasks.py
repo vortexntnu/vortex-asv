@@ -17,7 +17,7 @@ class Idle(smach.State):
     def __init__(self):
         smach.State.__init__(
             self,
-            outcomes=['decideNextState', 'search'],  #, 'stop'
+            outcomes=['detectedObjectsNavigation', 'search', 'stop'],  #, 'stop'
             input_keys=['closest_object', 'object_search_attempts'],
             output_keys=['object_search_attempts'])
 
@@ -25,7 +25,7 @@ class Idle(smach.State):
         rospy.loginfo('Executing Idle')
 
         if userdata.closest_object[1] == '':
-            if userdata.object_search_attempts >= 5:
+            if userdata.object_search_attempts >= math.inf: #Change to 5 later
                 return 'stop'
             else:
                 return 'search'
@@ -96,12 +96,12 @@ class Search(smach.State):
         return 'detectedObjectsNavigation'
 
 
-class DetectedObjectsNavigation():
+class DetectedObjectsNavigation(smach.State):
 
-    def __init__(self,
-                 outcomes=['idle'],
-                 input_keys=[],
-                 output_keys=['closest_object']):
+    def __init__(self):
+        smach.State.__init__(self, 
+                             outcomes=['idle'],
+                             output_keys=['closest_object'])
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
         self.data = DetectedObjectsData()
         self.closest_object = (math.inf, math.inf, '')
@@ -177,6 +177,7 @@ class DetectedObjectsNavigation():
                         self.DistanceRadius, self.DirectionWithLeia)
                     self.send_wp(next_waypoint)
 
+        userdata['closest_object'] = self.closest_object
         return 'idle'
 
     def data_cb(self, msg):
