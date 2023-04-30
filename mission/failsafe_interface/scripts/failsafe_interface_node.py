@@ -17,15 +17,18 @@ class FailSafeInterface(object):
         )
         # Initialize the pin
         init_pin(self.gpioSoftWareKillSwitch)
-
+        
+        #Repeat process for the other pins
         self.gpioSoftWareOperationMode = rospy.get_param(
             "/failsafe/gpio/gpioSoftWareOperationMode"
         )
         init_pin(self.gpioSoftWareOperationMode)
-
+        
+        #Repeat process for the other pins
         self.gpioFailSafeStatus = rospy.get_param("/failsafe/gpio/gpioFailSafeStatus")
         init_pin(self.gpioFailSafeStatus)
-
+        
+        #Repeat process for the other pins
         self.gpioHardWareOperationMode = rospy.get_param(
             "/failsafe/gpio/gpioHardWareOperationMode"
         )
@@ -50,17 +53,23 @@ class FailSafeInterface(object):
 
         set_pin_as_input(self.gpioFailSafeStatus)
         set_pin_as_input(self.gpioHardWareOperationMode)
-
+        
+        #Create publisher for the hardware fail safe
         self.pubFailSafeStatus = rospy.Publisher(
             topicFailSafeStatus, String, queue_size=10
         )
+        
+        #Create publisher for the hardware operation mode
         self.pubHardWareOperationMode = rospy.Publisher(
             topicHardWareOperationMode, String, queue_size=10
         )
-
+        
+        #Create subscriber for the software kill switch
         self.subSoftWareKillSwitch = rospy.Subscriber(
             topicSoftWareKillSwitch, String, self.writeSoftwareKillSwitch
         )
+        
+        #Create subscriber for the software operation mode
         self.subSoftWareOperationMode = rospy.Subscriber(
             topicSoftWareOperationMode, String, self.writeSoftwareOperationMode
         )
