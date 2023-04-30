@@ -86,7 +86,7 @@ class Search(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing Search')
 
-        #Turns side to side 
+        #Turns side to side
         self.yaw_to_angle(45)
         self.yaw_to_angle(-90)
         self.yaw_to_angle(45)
