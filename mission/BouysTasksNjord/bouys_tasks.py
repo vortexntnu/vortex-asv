@@ -37,12 +37,11 @@ class Idle(smach.State):
 class Search(smach.State):
     # Must be changed so it returns object search attempts. Should be done here, not in idle state.
     def __init__(self):
-        smach.State.__init__(
-            self, 
-            outcomes=['idle'], 
-            input_keys=['object_search_attempts'], 
-            output_keys=['object_search_attempts'])
-        
+        smach.State.__init__(self,
+                             outcomes=['idle'],
+                             input_keys=['object_search_attempts'],
+                             output_keys=['object_search_attempts'])
+
         self.task = "Buoy"
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
@@ -91,7 +90,7 @@ class Search(smach.State):
         self.yaw_to_angle(45)
         self.yaw_to_angle(-90)
         self.yaw_to_angle(45)
-        
+
         userdata.object_search_attempts += 1
 
         return 'idle'
@@ -99,13 +98,16 @@ class Search(smach.State):
 
 class DetectedObjectsNavigation():
     #In future data = closest_data, and we sould also find second_closest_data, to be able to set 2 insted of one waypoint.
-    def __init__(self, outcomes=['idle'], input_keys=[], output_keys=['closest_object']):
+    def __init__(self,
+                 outcomes=['idle'],
+                 input_keys=[],
+                 output_keys=['closest_object']):
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
         self.data = DetectedObjectsData()
-        self.closest_object = (math.inf, '')
-        self.second_closest_object = (math.inf, '')
-        self.third_closest_object = (math.inf, '')
-        self.fourth_closest_object = (math.inf, '')
+        self.closest_object = (math.inf, math.inf, '')
+        self.second_closest_object = (math.inf, math.inf, '')
+        self.third_closest_object = (math.inf, math.inf, '')
+        self.fourth_closest_object = (math.inf, math.inf, '')
 
         self.DistanceRadius = 3
         self.DirectionWithLeia = True
@@ -119,77 +121,60 @@ class DetectedObjectsNavigation():
     #Contains lots of information that is duplicated. Should be switched out.
     def execute(self, userdata):
 
-        self.find_closest_objects()
-
         while self.closest_object != '':  # and self.enabled == True:
 
-            if self.closest_object[1] == 'red' and self.second_closest_object[
-                    1] == 'green' or self.closest_object[
-                        1] == 'green' and self.second_closest_object[
-                            1] == 'red':
-                GreenBouy = self.data.current_green_bouy
-                RedBouy = self.data.current_red_bouy
-                midpoint = ((GreenBouy[0] + RedBouy[0]) / 2,
-                            (GreenBouy[1] + RedBouy[1]) / 2)
+            self.find_closest_objects()
+
+            if self.closest_object[2] == 'red' and self.second_closest_object[
+                    2] == 'green' or self.closest_object[
+                        2] == 'green' and self.second_closest_object[
+                            2] == 'red':
+                midpoint = (
+                    (self.closest_object[0] + self.second_closest_object[0]) /
+                    2,
+                    (self.closest_object[1] + self.second_closest_object[1]) /
+                    2)
                 self.send_wp(self.data.vessel_position)
                 self.overwrite_with_new_waypoint(midpoint)
 
-                if self.third_object[1] == 'red' and self.fourth_closest_object[
-                        1] == 'green' or self.third_object[
-                            1] == 'green' and self.fourth_closest_object[
-                                1] == 'red':
-                    GreenBouy = self.data.next_green_bouy
-                    RedBouy = self.data.next_red_bouy
-                    midpoint = ((GreenBouy[0] + RedBouy[0]) / 2,
-                                (GreenBouy[1] + RedBouy[1]) / 2)
-                    self.send_wp(midpoint)
-
-                if self.third_object[1] == 'red':
+                if self.third_closest_object[
+                        2] == 'red' and self.fourth_closest_object[
+                            2] == 'green' or self.third_closest_object[
+                                2] == 'green' and self.fourth_closest_object[
+                                    2] == 'red':
+                    midpoint2 = ((self.third_closest_object[0] +
+                                  self.fourth_closest_object[0]) / 2,
+                                 (self.third_closest_object[1] +
+                                  self.fourth_closest_object[1]) / 2)
+                    self.send_wp(midpoint2)
+                elif self.third_closest_object != '':
                     next_waypoint = self.NavAroundOneObject(
-                        self.data.vessel_position, self.data.next_red_bouy,
+                        self.data.vessel_position, self.third_closest_object,
                         self.DistanceRadius, self.DirectionWithLeia)
                     self.send_wp(next_waypoint)
 
-                if self.third_object[1] == 'green':
-                    next_waypoint = self.NavAroundOneObject(
-                        self.data.vessel_position, self.data.next_green_bouy,
-                        self.DistanceRadius, self.DirectionWithLeia)
-                    self.send_wp(next_waypoint)
-
-            elif self.closest_object[1] == 'red':
+            elif self.closest_object[2] != '':
                 next_waypoint = self.NavAroundOneObject(
-                    self.data.vessel_position, self.data.current_red_bouy,
+                    self.data.vessel_position, self.closest_object,
                     self.DistanceRadius, self.DirectionWithLeia)
                 self.send_wp(self.data.vessel_position)
                 self.overwrite_with_new_waypoint(next_waypoint)
 
-                if self.second_closest_object == 'red':
+                if self.second_closest_object[
+                        2] == 'red' and self.third_closest_object[
+                            2] == 'green' or self.second_closest_object[
+                                2] == 'green' and self.third_closest_object[
+                                    2] == 'red':
+                    midpoint = ((self.second_closest_object[0] +
+                                 self.third_closest_object[0]) / 2,
+                                (self.second_closest_object[1] +
+                                 self.third_closest_object[1]) / 2)
+                    self.send_wp(midpoint)
+                elif self.second_closest_object != '':
                     next_waypoint = self.NavAroundOneObject(
-                        self.data.vessel_position, self.data.next_red_bouy,
+                        self.data.vessel_position, self.second_closest_object,
                         self.DistanceRadius, self.DirectionWithLeia)
                     self.send_wp(next_waypoint)
-
-            elif self.closest_object[1] == 'green':
-                next_waypoint = self.NavAroundOneObject(
-                    self.data.vessel_position, self.data.current_green_bouy,
-                    self.DistanceRadius, self.DirectionWithLeia)
-                self.send_wp(userdata['vessel_position'])
-                self.overwrite_with_new_waypoint(next_waypoint)
-
-                if self.second_closest_object == 'green':
-                    next_waypoint = self.NavAroundOneObject(
-                        self.data.vessel_position, self.data.next_green_bouy,
-                        self.DistanceRadius, self.DirectionWithLeia)
-                    self.send_wp(next_waypoint)
-
-            elif self.closest_object[1] == 'north':
-                pass
-            elif self.closest_object[1] == 'south':
-                pass
-            elif self.closest_object[1] == 'east':
-                pass
-            elif self.closest_object[1] == 'west':
-                pass
 
         return 'idle'
 
@@ -225,43 +210,55 @@ class DetectedObjectsNavigation():
         self.data.vessel_position = (msg.pose.pose.position.x,
                                      msg.pose.pose.position.y)
 
-    #Must be updated to also find third and fouth closes objects
+    #Must be updated to also find third and fouth closes objects.
     def find_closest_objects(self):
-        for name, new_object in vars(self.data).items():
-            if name.startswith('current_') or (name.endswith('bouy')
-                                               or name.endswith('marker')):
+        self.closest_object = (math.inf, math.inf, '')
+        self.second_closest_object = (math.inf, math.inf, '')
+        self.third_closest_object = (math.inf, math.inf, '')
+        self.fourth_closest_object = (math.inf, math.inf, '')
 
-                new_obj_type = new_object[2]
+        for name, new_object in vars(self.data).items():
+            if name.startswith('current') or (name.endswith('bouy')
+                                              or name.endswith('marker')):
+                #New object
                 new_obj_pos = (new_object[0], new_object[1])
                 dist_to_new_obj = UpdateDataNode.distance(
                     self.data.vessel_position, new_obj_pos)
-
-                old_closest_obj_type = self.closest_object[2]
+                #Old closest object
                 old_closest_obj_pos = (self.closest_object[0],
                                        self.closest_object[1])
                 dist_to_old_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_closest_obj_pos)
-
-                old_second_closest_obj_type = self.second_closest_object[2]
+                #Old second closest object
                 old_second_closest_obj_pos = (self.second_closest_object[0],
                                               self.second_closest_object[1])
                 dist_to_old_second_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_second_closest_obj_pos)
+                #Old third closest object
+                old_third_closest_obj_pos = (self.third_closest_object[0],
+                                             self.third_closest_object[1])
+                dist_to_old_third_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, old_third_closest_obj_pos)
+                #Old fourth closest object
+                old_fourth_closest_obj_pos = (self.fourth_closest_object[0],
+                                              self.fourth_closest_object[1])
+                dist_to_old_fourth_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, old_fourth_closest_obj_pos)
 
             if dist_to_new_obj < dist_to_old_closest_obj:
-                self.second_closest_object = (dist_to_old_closest_obj,
-                                              old_closest_obj_type)
-                self.closest_object = (dist_to_new_obj, new_obj_type)
-
+                self.fourth_closest_object = self.third_closest_object
+                self.third_closest_object = self.second_closest_object
+                self.second_closest_object = self.closest_object
+                self.closest_object = new_object
             elif dist_to_new_obj < dist_to_old_second_closest_obj:
-                self.second_closest_object = (dist_to_new_obj, new_obj_type)
-                self.closest_object = (dist_to_old_closest_obj,
-                                       old_closest_obj_type)
-            else:  #No new closest objects, but updating distance to the old closest objects again because our position may have changed
-                self.second_closest_object = (dist_to_old_second_closest_obj,
-                                              old_second_closest_obj_type)
-                self.closest_object = (dist_to_old_closest_obj,
-                                       old_closest_obj_type)
+                self.fourth_closest_object = self.third_closest_object
+                self.third_closest_object = self.second_closest_object
+                self.second_closest_object = new_object
+            elif dist_to_new_obj < dist_to_old_third_closest_obj:
+                self.fourth_closest_object = self.third_closest_object
+                self.third_closest_object = new_object
+            elif dist_to_new_obj < dist_to_old_fourth_closest_obj:
+                self.fourth_closest_object = new_object
 
     def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
         """
