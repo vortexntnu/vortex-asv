@@ -6,8 +6,8 @@ import time
 import numpy as np
 
 
-
 class Buoy:
+
     def __init__(self, x, y, type_):
         """
         x: float
@@ -24,45 +24,47 @@ class Buoy:
         other: Buoy
         """
         if self.type_ != other.type_:
-            raise ValueError(f"Expected same buoy type, got: '{self.type_}' and '{other.type_}'")
+            raise ValueError(
+                f"Expected same buoy type, got: '{self.type_}' and '{other.type_}'"
+            )
+
     # Overloads
     def __sub__(self, other):
         """
         other: Buoy
         """
         self.assert_type(other)
-        return Buoy(
-            self.x - other.x,
-            self.y - other.y,
-            self.type_
-        )
+        return Buoy(self.x - other.x, self.y - other.y, self.type_)
+
     def __abs__(self):
         return np.sqrt(self.x**2 + self.y**2)
 
 
 class UpdateBuoyMarkerNode:
+
     def __init__(self):
         rospy.init_node('UpdateBuoyMarkerNode', anonymous=True)
 
-        self.subscribeTo = rospy.Subscriber('bueys/all_buoys_in_world_frame', DetectedObjectArray, self.new_buoy_marker_callback)
-        self.pub = rospy.Publisher('bouys_and_markers', DetectedObjectArray, queue_size = 10 )  
-        
+        self.subscribeTo = rospy.Subscriber('bueys/all_buoys_in_world_frame',
+                                            DetectedObjectArray,
+                                            self.new_buoy_marker_callback)
+        self.pub = rospy.Publisher('bouys_and_markers',
+                                   DetectedObjectArray,
+                                   queue_size=10)
+
         self.buoys = []
 
-        self.dist_treshold = 1.  # Threshold for updating buey position  
-        self.time_treshold = 3.  # Seconds that object is not seen 
+        self.dist_treshold = 1.  # Threshold for updating buey position
+        self.time_treshold = 3.  # Seconds that object is not seen
 
-    def convert_topic_buoys(self, msg): 
+    def convert_topic_buoys(self, msg):
         """
         Convert topic 'bueys/all_buoys_in_world_frame' to Buoy-type, then return array of all buoys.
         """
         buoys = []
         for topic_element in msg:
-            buoys.append(Buoy(
-                topic_element.x,
-                topic_element.y,
-                topic_element.type_
-            ))
+            buoys.append(
+                Buoy(topic_element.x, topic_element.y, topic_element.type_))
 
         return buoys
 
@@ -71,17 +73,15 @@ class UpdateBuoyMarkerNode:
         Publish the internally stored buoys to topic as DetectedObjectArray type.
         """
         msg = DetectedObjectArray()
-        
+
         for buoy in self.buoys:
             single_message = DetectedObjects()
             single_message.x = buoy.x
             single_message.y = buoy.y
             single_message.type_ = buoy.type_
             msg.DetectedObjectArray.append(single_message)
-        
+
         self.pub.publish(msg)
-
-
 
     def new_buoy_marker_callback(self, msg):
         """
@@ -102,20 +102,16 @@ class UpdateBuoyMarkerNode:
                     self.buoys[i] = new_buoy
                     new_buoys.remove(new_buoy)
 
-                    break # This is assuming there are no topic-buoys within
-                          # threshold proximity to each other.
+                    break  # This is assuming there are no topic-buoys within
+                    # threshold proximity to each other.
         # Add new bouys
         self.buoys += new_buoys
         self.publish_buoys()
 
+
 if __name__ == "__main__":
-    try: 
-         UpdateBouyMarkerNode()
-         rospy.spin()
+    try:
+        UpdateBouyMarkerNode()
+        rospy.spin()
     except rospy.ROSInterruptException:
         pass
-    
-
-
-
-
