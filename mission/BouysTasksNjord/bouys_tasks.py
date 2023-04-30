@@ -17,7 +17,8 @@ class Idle(smach.State):
     def __init__(self):
         smach.State.__init__(
             self,
-            outcomes=['detectedObjectsNavigation', 'search', 'stop'],  #, 'stop'
+            outcomes=['detectedObjectsNavigation', 'search',
+                      'stop'],  #, 'stop'
             input_keys=['closest_object', 'object_search_attempts'],
             output_keys=['object_search_attempts'])
 
@@ -25,7 +26,7 @@ class Idle(smach.State):
         rospy.loginfo('Executing Idle')
 
         if userdata.closest_object[1] == '':
-            if userdata.object_search_attempts >= math.inf: #Change to 5 later
+            if userdata.object_search_attempts >= math.inf:  #Change to 5 later
                 return 'stop'
             else:
                 return 'search'
@@ -99,7 +100,7 @@ class Search(smach.State):
 class DetectedObjectsNavigation(smach.State):
 
     def __init__(self):
-        smach.State.__init__(self, 
+        smach.State.__init__(self,
                              outcomes=['idle'],
                              output_keys=['closest_object'])
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
