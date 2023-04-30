@@ -85,7 +85,7 @@ class UpdateDataNode:
 
     #Must probably be switched out when message is defined
     def obj_pos_cb(self, msg):
-        
+
         self.red_bouy_array = []
         self.green_bouy_array = []
         self.north_marker_array = []
