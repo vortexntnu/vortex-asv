@@ -35,6 +35,7 @@ class Idle(smach.State):
 
 
 class Search(smach.State):
+
     def __init__(self):
         smach.State.__init__(self,
                              outcomes=['detectedObjectsNavigation'],
@@ -96,6 +97,7 @@ class Search(smach.State):
 
 
 class DetectedObjectsNavigation():
+
     def __init__(self,
                  outcomes=['idle'],
                  input_keys=[],
@@ -123,13 +125,27 @@ class DetectedObjectsNavigation():
             self.find_closest_objects()
 
             #Make new path based on the two closest bouys beeing green and red.
-            if self.closest_object[2] == 'red' and self.second_closest_object[2] == 'green' or self.closest_object[2] == 'green' and self.second_closest_object[2] == 'red':
-                midpoint = ((self.closest_object[0] + self.second_closest_object[0])/2, (self.closest_object[1] + self.second_closest_object[1])/2)
+            if self.closest_object[2] == 'red' and self.second_closest_object[
+                    2] == 'green' or self.closest_object[
+                        2] == 'green' and self.second_closest_object[
+                            2] == 'red':
+                midpoint = (
+                    (self.closest_object[0] + self.second_closest_object[0]) /
+                    2,
+                    (self.closest_object[1] + self.second_closest_object[1]) /
+                    2)
                 self.send_wp(self.data.vessel_position)
                 self.overwrite_with_new_waypoint(midpoint)
                 #Add new waypoint to path based on third and fouth closest objects beeing green and red, or if we just have a third closest object.
-                if self.third_closest_object[2] == 'red' and self.fourth_closest_object[2] == 'green' or self.third_closest_object[2] == 'green' and self.fourth_closest_object[2] == 'red':
-                    midpoint2 = ((self.third_closest_object[0] + self.fourth_closest_object[0])/2, (self.third_closest_object[1] + self.fourth_closest_object[1])/2)
+                if self.third_closest_object[
+                        2] == 'red' and self.fourth_closest_object[
+                            2] == 'green' or self.third_closest_object[
+                                2] == 'green' and self.fourth_closest_object[
+                                    2] == 'red':
+                    midpoint2 = ((self.third_closest_object[0] +
+                                  self.fourth_closest_object[0]) / 2,
+                                 (self.third_closest_object[1] +
+                                  self.fourth_closest_object[1]) / 2)
                     self.send_wp(midpoint2)
                 elif self.third_closest_object != '':
                     next_waypoint = self.NavAroundOneObject(
@@ -224,8 +240,10 @@ class DetectedObjectsNavigation():
                 dist_to_old_third_closest_obj = UpdateDataNode.distance(
                     self.data.vessel_position, old_third_closest_obj_pos)
                 #Old fourth closest object
-                old_fourth_closest_obj_pos = (self.fourth_closest_object[0],self.fourth_closest_object[1])
-                dist_to_old_fourth_closest_obj = UpdateDataNode.distance(self.data.vessel_position, old_fourth_closest_obj_pos)
+                old_fourth_closest_obj_pos = (self.fourth_closest_object[0],
+                                              self.fourth_closest_object[1])
+                dist_to_old_fourth_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, old_fourth_closest_obj_pos)
             #Update closest objects each iteration using new_object
             if dist_to_new_obj < dist_to_old_closest_obj:
                 self.fourth_closest_object = self.third_closest_object
@@ -309,7 +327,7 @@ class DetectedObjectsNavigation():
         else:
             rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
 
-    #Remove all waypoints, but not the last one, in waypointlist, and add a new waypoint. 
+    #Remove all waypoints, but not the last one, in waypointlist, and add a new waypoint.
     def overwrite_with_new_waypoint(waypoint_in):
         wp = WaypointRequest()
         wp.waypoint = waypoint_in
