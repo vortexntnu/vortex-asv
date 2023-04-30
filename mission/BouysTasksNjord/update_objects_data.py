@@ -139,7 +139,7 @@ class UpdateDataNode:
         self.object_data.vessel_position = (msg.pose.pose.position.x, msg.pose.pose.position.y, 'vessel')
 
     def obj_pos_cb(self, msg):
-        
+
         self.red_bouy_array = []
         self.green_bouy_array = []
         self.north_marker_array = []
