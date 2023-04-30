@@ -50,9 +50,11 @@ class UpdateDataNode:
                                    queue_size=1)
 
     def spin(self):
-        #Much duplication that should be switched out.
-        VesselPos = self.object_data.vessel_position
+        #TODO:Much duplication that should be switched out.
 
+        #Make sure all distances are calculated using same position
+        VesselPos = self.object_data.vessel_position
+        #Calculate current and next objects for each type
         closest_object, second_closest_object = UpdateDataNode.find_two_closest_objects_in_array(
             VesselPos, self.red_bouy_array)
         if closest_object != None:
@@ -87,6 +89,7 @@ class UpdateDataNode:
         if closest_object != None:
             self.object_data.current_west_marker = closest_object
 
+        #Make a message to be published
         msg = DetectedObjectArray()
         msg.header = Header()
         msg.header.stamp = rospy.Time.now()
@@ -145,6 +148,7 @@ class UpdateDataNode:
         self.object_data.vessel_position = (msg.pose.pose.position.x,
                                             msg.pose.pose.position.y, 'vessel')
 
+    #Update arrays with new inforamtion from topic. 
     def obj_pos_cb(self, msg):
 
         self.red_bouy_array = []

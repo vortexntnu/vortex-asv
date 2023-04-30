@@ -13,7 +13,7 @@ from update_objects_data import DetectedObjectsData, UpdateDataNode
 
 
 class Idle(smach.State):
-    # Need to be added that idle make the vessel stop moving, before entering search state.
+    # TODO: Idle must stop the vessel before entering search state.
     def __init__(self):
         smach.State.__init__(
             self,
@@ -35,7 +35,6 @@ class Idle(smach.State):
 
 
 class Search(smach.State):
-    # Must be changed so it returns object search attempts. Should be done here, not in idle state.
     def __init__(self):
         smach.State.__init__(self,
                              outcomes=['idle'],
@@ -91,7 +90,6 @@ class Search(smach.State):
 
 
 class DetectedObjectsNavigation():
-    #In future data = closest_data, and we sould also find second_closest_data, to be able to set 2 insted of one waypoint.
     def __init__(self,
                  outcomes=['idle'],
                  input_keys=[],
@@ -112,18 +110,18 @@ class DetectedObjectsNavigation():
         self.vessel_pos_sub = rospy.Subscriber('/odometry/filtered', Odometry,
                                                self.odom_cb)
 
-    #Contains lots of information that is duplicated. Should be switched out.
     def execute(self, userdata):
 
         while self.closest_object != '': # and self.enabled == True:
 
             self.find_closest_objects()
 
+            #Make new path based on the two closest bouys beeing green and red.
             if self.closest_object[2] == 'red' and self.second_closest_object[2] == 'green' or self.closest_object[2] == 'green' and self.second_closest_object[2] == 'red':
                 midpoint = ((self.closest_object[0] + self.second_closest_object[0])/2, (self.closest_object[1] + self.second_closest_object[1])/2)
                 self.send_wp(self.data.vessel_position)
                 self.overwrite_with_new_waypoint(midpoint)
-
+                #Add new waypoint to path based on third and fouth closest objects beeing green and red, or if we just have a third closest object.
                 if self.third_closest_object[2] == 'red' and self.fourth_closest_object[2] == 'green' or self.third_closest_object[2] == 'green' and self.fourth_closest_object[2] == 'red':
                     midpoint2 = ((self.third_closest_object[0] + self.fourth_closest_object[0])/2, (self.third_closest_object[1] + self.fourth_closest_object[1])/2)
                     self.send_wp(midpoint2)
@@ -131,7 +129,7 @@ class DetectedObjectsNavigation():
                     next_waypoint = self.NavAroundOneObject(self.data.vessel_position, self.third_closest_object, self.DistanceRadius, self.DirectionWithLeia)
                     self.send_wp(next_waypoint)
 
-
+            #Make new path based on having a closest object and perheps also a second closest object (which is not green and red)
             elif self.closest_object[2] != '':
                 next_waypoint = self.NavAroundOneObject(self.data.vessel_position, self.closest_object, self.DistanceRadius, self.DirectionWithLeia)
                 self.send_wp(self.data.vessel_position)
@@ -147,7 +145,7 @@ class DetectedObjectsNavigation():
         return 'idle'
 
     def data_cb(self, msg):
-        #Much duplication that should be switched out.
+        #TODO:Much duplication that should be switched out.
         detected_objects = msg.detected_objects
         self.data.current_red_bouy = (detected_objects[0].x,
                                       detected_objects[0].y,
@@ -178,7 +176,6 @@ class DetectedObjectsNavigation():
         self.data.vessel_position = (msg.pose.pose.position.x,
                                      msg.pose.pose.position.y)
 
-    #Must be updated to also find third and fouth closes objects.
     def find_closest_objects(self):
         self.closest_object = (math.inf, math.inf, '')
         self.second_closest_object = (math.inf, math.inf, '')
@@ -202,7 +199,7 @@ class DetectedObjectsNavigation():
                 #Old fourth closest object
                 old_fourth_closest_obj_pos = (self.fourth_closest_object[0],self.fourth_closest_object[1])
                 dist_to_old_fourth_closest_obj = UpdateDataNode.distance(self.data.vessel_position, old_fourth_closest_obj_pos)
-
+            #Update closest objects each iteration using new_object
             if dist_to_new_obj < dist_to_old_closest_obj:
                 self.fourth_closest_object = self.third_closest_object
                 self.third_closest_object = self.second_closest_object
@@ -267,6 +264,7 @@ class DetectedObjectsNavigation():
 
         return (xWP, yWP)
 
+    #Add single waypoint to current waypoint list
     def send_wp(waypoint_in):
         wp = WaypointRequest()
         wp.waypoint = waypoint_in
@@ -284,6 +282,7 @@ class DetectedObjectsNavigation():
         else:
             rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
 
+    #Remove all waypoints, but not the last one, in waypointlist, and add a new waypoint. 
     def overwrite_with_new_waypoint(waypoint_in):
         wp = WaypointRequest()
         wp.waypoint = waypoint_in
