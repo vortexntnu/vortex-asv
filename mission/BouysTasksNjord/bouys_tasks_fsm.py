@@ -37,7 +37,10 @@ class ManeuveringNavigationTasks:
 
             smach.StateMachine.add('Search',
                                    Search(self.data),
-                                   transitions={'detectedObjectsNavigation': 'DetectedObjectsNavigation'},
+                                   transitions={
+                                       'detectedObjectsNavigation':
+                                       'DetectedObjectsNavigation'
+                                   },
                                    remapping={
                                        'closest_object':
                                        'closest_object',
