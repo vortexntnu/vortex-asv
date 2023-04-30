@@ -17,17 +17,18 @@ class Idle(smach.State):
     def __init__(self):
         smach.State.__init__(
             self,
-            outcomes=['detectedObjectsNavigation', 'search', 'stop'],  #, 'stop'
-            input_keys=['closest_object', 'object_search_attempts'],
-            output_keys=['object_search_attempts'])
+            outcomes=['detectedObjectsNavigation', 'search', 'stop'], 
+            input_keys=['closest_object', 'object_search_attempts'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing Idle')
 
-        if userdata.closest_object[1] == '':
-            if userdata.object_search_attempts >= math.inf: #Change to 5 later
+        if userdata.closest_object[2] == '':
+            if userdata.object_search_attempts >= 5: 
                 return 'stop'
             else:
+                #while not standing still:
+                #    try to stand still
                 return 'search'
         else:
             userdata.object_search_attempts = 0

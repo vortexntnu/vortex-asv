@@ -6,9 +6,7 @@ import smach
 import smach_ros
 import math
 from bouys_tasks import Idle, Search, DetectedObjectsNavigation
-from nav_msgs.msg import Odometry
-from update_objects_data import DetectedObjectsData, UpdateDataNode  # custom message type for the combined data.
-from vortex_msgs.msg import DetectedObjectArray, DetectedObject
+
 
 
 class ManeuveringNavigationTasks:
@@ -17,10 +15,11 @@ class ManeuveringNavigationTasks:
         rospy.init_node('Bouys_tasks_fsm')
 
     def spin(self):
-
         sm = smach.StateMachine(outcomes=['Stop'])
 
         with sm:
+            sm.userdata.closest_object = (math.inf, math.inf, '')
+            sm.userdata.object_search_attempts = 0
             smach.StateMachine.add('Idle',
                                    Idle(),
                                    transitions={
@@ -33,7 +32,7 @@ class ManeuveringNavigationTasks:
                                        'closest_object':
                                        'closest_object',
                                        'object_search_attempts':
-                                       'object_search_attempts'
+                                       'object_search_attempts',
                                    })
 
             smach.StateMachine.add('Search',
@@ -43,10 +42,8 @@ class ManeuveringNavigationTasks:
                                        'DetectedObjectsNavigation'
                                    },
                                    remapping={
-                                       'closest_object':
-                                       'closest_object',
                                        'object_search_attempts':
-                                       'object_search_attempts'
+                                        'object_search_attempts',
                                    })
 
             smach.StateMachine.add('DetectedObjectsNavigation',
