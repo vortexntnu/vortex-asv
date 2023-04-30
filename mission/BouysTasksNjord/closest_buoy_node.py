@@ -52,7 +52,6 @@ class UpdateBuoyMarkerNode:
                                    queue_size=10)
 
         self.buoys = []
-        
 
         self.dist_treshold = 1.  # Threshold for updating buey position
         self.time_treshold = 3.  # Seconds that object is not seen
