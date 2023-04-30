@@ -13,11 +13,11 @@ class VelocityObstacle:
     The Velocity Obstacle class
 
         A computational class used by the collision avoidance system 
-        to determine if a collison can occur, and how the UAV should respond
+        to determine if a collison can occur, and how the ASV should respond
 
         obstacle: An odometry of the object to avoid
         radius_o: The radius of obstacle
-        vessel: An odometry of the UAV vessel 
+        vessel: An odometry of the ASV vessel 
     """
 
     def __init__(self, radius_o, obstacle,vessel):
@@ -46,7 +46,7 @@ class VelocityObstacle:
         self.right_angle = theta_ro-theta_ray
         self.left_angle = theta_ro + theta_ray 
 
-    def check_if_collision(self):
+    def is_collision(self):
         """
         Returns true if the current velocity results in a collision.
         Uses a truncated VO collision cone
@@ -65,8 +65,9 @@ class VelocityObstacle:
         return angle > self.right_angle and angle < self.left_angle and math.sqrt(velocity_r.x**2+velocity_r.y**2) > max_truncated_veloctiy
 
 
-    #Needs correction, according to boating rules   
+    #TODO Needs correction, according to boating rules   
 
+    def choose_velocity(self):
         """
         
         Determines a reference velocity for the velocity controller.
@@ -76,12 +77,12 @@ class VelocityObstacle:
         a buffered version of the collision cone angle.
         Returns:
             Tuple containing:
-                abs_vel: The current speed of the UAV
-                new_angle: The desired heading of the UAV
+                abs_vel: The current speed of the ASV
+                new_angle: The desired heading of the ASV
 
         """
 
-        #Current implementation need some work. Doesnt really follow COLREG, and doesnt really achieve constant speed
+        ##TODO urrent implementation need some work. Doesnt really follow COLREG, and doesnt really achieve constant speed
 
         buffer_angle = math.pi/6 #placeholder
         velocity_o = self.obstacle.twist.twist.linear
@@ -98,10 +99,6 @@ class VelocityObstacle:
         
         else:
             new_angle = self.right_angle - buffer_angle
-        #abs_vel = math.sqrt((velocity_r.x)**2+(velocity_r.y)**2)
-        #new_velocity = Vector3(math.cos(new_angle)*abs_vel + velocity_o.x  ,math.sin(new_angle)*abs_vel + velocity_o.y,0)
-        #new_velocity.x = new_velocity.x/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
-        #new_velocity.y = new_velocity.y/(math.sqrt(new_velocity.x**2+new_velocity.y**2))*abs_vel
         return abs_vel,new_angle
 
 
@@ -119,8 +116,6 @@ class VelocityObstacle:
         velocity_o = self.obstacle.twist.twist.linear
         return (theta_ro>= 0 and math.atan2(velocity_o.y,velocity_o.x) < math.pi/2 and math.atan2(velocity_o.y,velocity_o.x) >= -math.pi/2) or not (theta_ro>= 0 and math.atan2(velocity_o.y,velocity_o.x) <= math.pi/2 or math.atan2(velocity_o.y,velocity_o.x) >= -math.pi/2)
 
-        
-#Chat GPT example
 MAX_SPEED = 10.0  # maximum speed of the vessel
 MAX_ACCELERATION = 1.0  # maximum acceleration of the vessel
 MAX_TURN_RATE = 0.5  # maximum turning rate of the vessel
@@ -207,96 +202,9 @@ def spin(self):
         #implemen tmath
         #implement landmar server
 
-
-
-# def find_new_velocity(current_velocity, current_speed, goal, obstacle_positions, obstacle_radii, theta_max):
-#     # Define variables
-#     velocity = cp.Variable(2)
-    
-#     # Define objective
-#     obj = cp.Minimize(cp.norm(velocity - goal))
-    
-#     # Define constraints
-#     constraints = []
-#     for i in range(len(obstacle_positions)):
-#         constraints.append(cp.norm(velocity - obstacle_positions[i]) >= obstacle_radii[i])
-#     constraints.append(cp.norm(velocity) == current_speed)
-#     constraints.append((velocity @ current_velocity) / current_speed >= np.cos(theta_max))
-    
-#     # Define and solve problem
-#     problem = cp.Problem(obj, constraints)
-#     problem.solve()
-    
-#     # Return new velocity vector
-#     return velocity.value
-
-
-        
-
 if __name__ == "__main__":
 
     node = VelocityObstacle()
     node.spin()
-    # #Test with no velocity translation
-    # obstacle = Odometry()
-    # obstacle.pose.pose.position = Point(5,0,0)
-    # obstacle.twist.twist.linear = Vector3(0,0,0)
-    # vessel = Odometry()
-    # vessel.pose.pose.position = Point(0,0,0)
-    
-    # VO = VelocityObstacle(1,obstacle,vessel)
-    # VO.set_cone_angles()
-    # print(VO.left_angle*180/math.pi)
-    # print(VO.right_angle*180/math.pi)
-
-    # #Test with velocity translation
-    # obstacle = Odometry()
-    # obstacle.pose.pose.position = Point(5,0,0)
-    # obstacle.twist.twist.linear = Vector3(-100,0,0)
-    # vessel = Odometry()
-    # vessel.pose.pose.position = Point(0,0,0)
-    # vessel.twist.twist.linear = Vector3(-1000,0,0)
-
-    
-    # VO = VelocityObstacle(1,obstacle,vessel)
-    # VO.set_cone_angles()
-    # print(VO.check_if_collision())
-
-    # #Choose velocity test
-    # obstacle = Odometry()
-    # obstacle.pose.pose.position = Point(5,0,0)
-    # obstacle.twist.twist.linear = Vector3(0,1,0)
-    # vessel = Odometry()
-    # vessel.pose.pose.position = Point(0,0,0)
-    # vessel.twist.twist.linear = Vector3(1,0,0)
-    
-    # VO = VelocityObstacle(1,obstacle,vessel)
-    # VO.set_cone_angles()
-    # print(VO.choose_velocity())
-    # #VO.vessel.twist.twist.linear = VO.choose_velocity()
-    # print(VO.check_if_collision())
-    
-
-    # boat = Vessel(0,0,5,4,2)
-    # obs = Vessel(0,12,5,0,2)
-    # obs_vector = [obs]
-    # new_boat = vo_collision_avoidance(boat,obs_vector)
-    # speedx = new_boat.vx
-    # speedy = new_boat.vy
-    # print(speedx)
-    # print(speedy)
-
-    # Sample parameter values
-    # current_velocity = np.array([1, 0])
-    # current_speed = 2
-    # goal = np.array([10, 10])
-    # obstacle_positions = [np.array([3, 3]), np.array([7, 7])]
-    # obstacle_radii = [1, 2]
-    # theta_max = np.pi/6  # 30 degrees in radians
-
-    # # Find new velocity
-    # new_velocity = find_new_velocity(current_velocity, current_speed, goal, obstacle_positions, obstacle_radii, theta_max)
-
-    # # Print new velocity
-    # print("New velocity: ", new_velocity)
+   
 

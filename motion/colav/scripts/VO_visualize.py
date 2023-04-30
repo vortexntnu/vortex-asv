@@ -5,7 +5,7 @@ from matplotlib.animation import FuncAnimation
 from geometry_msgs.msg import Point,Vector3
 import matplotlib.patches as mpatches
 import time as time
-import VOMATH as VO
+import motion.colav.scripts.VO_math as VO
 import math
 import cmath
 @dataclass
@@ -148,99 +148,11 @@ class Ownship(Vessel):
             new_heading = self.right_angle-buffer
         
         print(new_heading)
-            
         
-        # heading = int(self.desired_velocity*180/math.pi)
-        # if self.choose_left_cone(closest_intruder):
-        #     for i in range(heading, 360):
-        #         if not self.check_if_collision(closest_intruder):
-        #             return (heading + 10)*math.pi/180, False
-        #         heading=+1
-        # else:
-        #     print("Right")
-        #     for i in range(heading, 0, -1):
-        #         if not self.check_if_collision(closest_intruder):
-        #             return (heading - 10)*math.pi/180, False
-        #         heading=-1
-
-    #     v_robot = [self.vx,self.vy]
-    #   #  for target in targets:
-
-    #     v_obstacle =[closest_intruder.vx,closest_intruder.vy]
-
-        
-    #         # Compute the relative velocity between the robot and the obstacle
-    #     v_relative = [v_obstacle[0] - v_robot[0], v_obstacle[1] - v_robot[1]]
-
-    #     # Compute the angle of the relative velocity vector
-    #     theta_relative = math.atan2(v_relative[1], v_relative[0])
-
-    #     # Define the maximum angular velocity of the robot
-    #     max_angular_velocity = math.pi/4  # 45 degrees per second
-
-    #     # Define the time horizon for collision avoidance
-    #     time_horizon = 5  # seconds
-
-    #     # Compute the left and right VO cone angles
-    #     theta_l = theta_relative - max_angular_velocity * time_horizon
-    #     theta_r = theta_relative + max_angular_velocity * time_horizon
-    #     v_current = math.sqrt(self.vx**2+self.vy**2)
-    #     v_pref = self.desired_velocity
-    #     # Calculate the velocity obstacle
-    #     t = math.tan(theta_l) + math.tan(theta_r)
-    #     s = 2 * v_current / t
-    #     v_hat = math.atan2(-math.sin(theta_l) - math.sin(theta_r), -math.cos(theta_l) - math.cos(theta_r))
-    #     v_bar = v_hat + math.pi / 2
-
-        # Calculate the direction of the new heading
-        # if v_current < v_pref:
-        #     # If the robot is slower than its preferred speed, move in the preferred direction
-        #     new_heading = v_bar
-        # else:
-            # Otherwise, move in the direction of the velocity obstacle
-        #new_heading = math.atan2(s * math.sin(v_hat), v_current + s * math.cos(v_hat))
-
-        #print(new_heading)
-
-        # if self.colavtimer == 0:
-        #     self.colavtimer = 100
-        #     self.lastheading = new_heading
-        # else:
-        #     self.colavtimer = self.colavtimer-1
-        #     new_heading = self.lastheading
         current_heading = math.atan2(self.vy,self.vx)
 
         return (new_heading-current_heading)*2,False
 
-        # Convert the heading to degrees for display purposes
-
-        # Print the new heading
-      ##  print("New heading: %.2f degrees" % new_heading_degrees)
-
-
-
-        # # Calculate relative bearing        
-        # ownship_bearing = np.arctan2(self.vy, self.vx)
-        # relative_bearing = theta - ownship_bearing 
-        # if relative_bearing < 0:
-        #     relative_bearing += 2 * np.pi
-        #     # Check if intruder is within the conic section in front of ownship
-        # if abs(relative_bearing) <= self.collision_sector / 2:
-        #     # # If intruder is directly in front of the ownship, stop to avoid collision            # if dist < self.min_range / 2:            #     return 0.0, True            
-        #     # # Calculate the distance from the intruder to the line perpendicular to ownship's heading            
-        #     distance_to_line = abs(dy * np.cos(ownship_bearing) - dx * np.sin(ownship_bearing))
-        #     # Check if intruder is within the conic section 
-        #     if distance_to_line < dist * np.sin(self.collision_sector / 2):
-        #     # Adjust heading to steer away from the intruder                
-        #         adjustment = np.pi /3             # If intruder is approaching from the right, go around the back of the intruder                
-        #         if relative_bearing > np.pi:
-        #             print("Intruder on the right")
-        #             return adjustment, False
-        #     # If intruder is approaching from the left, steer away from it                
-        #         if relative_bearing < np.pi:
-        #             print("Intruder on the left")
-        #             return -adjustment, False
-        # return 0.0, False 
     def update(self):
         if not self.waypoints:
             return 
@@ -269,8 +181,6 @@ class Ownship(Vessel):
         theta =  np.arctan2(dy, dx) + adjustment      
         desired_vx = desired_velocity * np.cos(theta)
         desired_vy = desired_velocity * np.sin(theta)
-        # self.vx += (desired_vx - self.vx) * dt        
-        # self.vy += (desired_vy - self.vy) * dt
         self.vx = desired_vx
         self.vy = desired_vy        
         self.x += self.vx * dt        
@@ -307,15 +217,11 @@ class VesselVisualiser:
             ownship.update_intruders(self.intruders)
             ownship.update()
             print(ownship.x)
-            ## translated
-            #self.arrowl =  self.ax.arrow(ownship.x+ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.lvec[0], ownship.lvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
-            #self.arrowr = self.ax.arrow(ownship.x+ ownship.closestintruderv[0], ownship.y+ownship.closestintruderv[1], ownship.rvec[0], ownship.rvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
+
             self.harrow =self.ax.arrow(ownship.x, ownship.y, ownship.vx-ownship.closestintruderv[0],ownship.vy-ownship.closestintruderv[1], head_width=0.20, head_length=0.1, fc='blue', ec='red')
-            #non translated
+
             self.arrowl =  self.ax.arrow(ownship.x, ownship.y, ownship.lvec[0], ownship.lvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
             self.arrowr = self.ax.arrow(ownship.x, ownship.y, ownship.rvec[0], ownship.rvec[1], head_width=0.05, head_length=0.1, fc='blue', ec='blue')
-           # self.harrow =self.ax.arrow(ownship.x, ownship.y, ownship.vx,ownship.vy, head_width=0.20, head_length=0.1, fc='blue', ec='red')
-
 
         for intruder in self.intruders:
             intruder.update()
@@ -344,7 +250,7 @@ if __name__ == "__main__":
     Ownship(x=-2.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     Ownship(x=3.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     Ownship(x=-3.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
-    Ownship(x=4.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0), # head on with compliant target    
+    Ownship(x=4.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     Ownship(x=-4.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     Ownship(x=5.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     Ownship(x=-5.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
@@ -359,25 +265,8 @@ if __name__ == "__main__":
     Ownship(x=10.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     Ownship(x=-10.0, y=-9.0, waypoints=[(0, 10)], desired_velocity=1.0),
     ]
-    # Left approach    
-    #intruders = [
-       # Intruder(-6, 0, 0.7, 0.0, 1.0, 'g', process_noise=0.0), # Left to right        
-        #Intruder(6, 0, -0.7, 0.0, 0.8, 'g', process_noise=0.0), # Right to left        
-        #Intruder(-5, -5, 0.5, 0.5, 1.0, 'g', 0.0),
-    
-        #Intruder(0, 0, 0.1, 0.05, 1.0, 'b', 0.2),        
-        #Intruder(0, 0, -0.1, 0.05, 1.0, 'b', 0.2),        
-        #Intruder(0, 0, 0.1, -0.05, 1.0, 'b', 0.2),        
-        #Intruder(0, 0, -0.1, -0.05, 1.0, 'b', 0.2),    
-   # ]
-    # Right approach    
-    intruders = [   Intruder(5, 0, -0.5, 0, 1.0, 'g', process_noise=0.0),                      #To the left
-                    #Intruder(-5, 0, 0.5, 0, 1.0, 'g', process_noise=0.0),                      #To the right
-                    #Intruder(0, 0, 0, 0, 1.0, 'g', process_noise=0.0),                         #Still
-                    #Intruder(0, 0, 0, -0.2, 1.0, 'g', process_noise=0.0),                      #Towards you
-                    #Intruder(5, 3, -0.5, -0.5, 1.0, 'g', process_noise=0.0),                   #Upper corner
-                    #Intruder(0, -3, 0, 0.3, 1.0, 'g', process_noise=0.0),                      #Slow in front
-                    #Intruder(-10, -10, 1, 1, 1.0, 'g', process_noise=0.0),                     #coming from behind
+
+    intruders = [   Intruder(5, 0, -0.5, 0, 1.0, 'g', process_noise=0.0),                
                     ]    
     ownship = Ownship(x=0.0, y=-9.0, waypoints=[(0, 9)], desired_velocity=1.0)    
     

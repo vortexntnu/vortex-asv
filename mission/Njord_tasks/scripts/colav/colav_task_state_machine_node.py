@@ -17,24 +17,20 @@ class ColavTask:
     and switches mode if the obstacle comes too clos. Los guidance will then be paused, and
     collision avoidance is called through a service. The colav system will check for possible 
     collisions, and take evasive action. When the collision avoidance no longer detects 
-    a possible collision, it will stop controlling the UAV. LOS then is turned on again. 
+    a possible collision, it will stop controlling the ASV. LOS then is turned on again. 
     This implementation only allows for avoidance of a single object. 
     
     """
     def __init__(self):
 
         """
-        To start the task, an start_task_sub subscriber is implemented.
+        To start the task, a start_task_sub subscriber is implemented.
         Posting an odometry of the goal to the "goaltopic" topic, will
         cause the task to start.
         """
-        rospy.init_node("colav_fsm",anonymous=True)
+        rospy.init_node("colav_fsm",anonymous=False)
         self.vessel = Odometry()
         self.obstacle = Odometry()
-
-
-        #Subscribers
-        #placeholder topic
         self.start_task_sub = rospy.Subscriber(
             "goaltopic",Odometry,self.run_task,queue_size=1
         )
@@ -53,9 +49,9 @@ class ColavTask:
 
     def vessel_callback(self,data):
         """
-        Update the postion of the UAV
+        Update the postion of the ASV
         Args:
-            data: An odometry of the UAV position
+            data: An odometry of the ASV position
         """
         self.vessel = data
 
@@ -72,8 +68,8 @@ class ColavTask:
 
         """
         
-        Callback funtion for the start_task subscriber.
-        Assumes that the UAV is reasonably placed before the goal is
+        Callback function for the start_task subscriber.
+        Assumes that the ASV is reasonably placed before the goal is
         posted.
         Args:
             data: An odometry of the goal
@@ -103,8 +99,9 @@ class ColavTask:
 
         pause_los = SetBoolRequest()
         colav_trigger = TriggerRequest()
-    #should make check VO cone here
-        while response is True:
+        #TODO should make check VO cone here
+        
+        while response.success is True:
             if self.vessel_in_danger_zone():
                 try:
                     rospy.loginfo("Pausing LOS")
@@ -132,7 +129,7 @@ class ColavTask:
         Checks if the UAV is closer to the obstacle than some predefined radius
         """
 
-        danger_zone_r = 666 #placeholder
+        danger_zone_r = 666 
         return sqrt((self.vessel.pose.pose.position.x-self.obstacle.pose.pose.position.x)**2+(self.vessel.pose.pose.position.y-self.obstacle.pose.pose.position.y)**2) < danger_zone_r
 
 

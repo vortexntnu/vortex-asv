@@ -19,7 +19,7 @@ class VOControllerNode:
     
 
     def __init__(self):
-        rospy.init_node("colav",anonymous=True)
+        rospy.init_node("colav",anonymous=False)
 
         self.vessel = Odometry()
         self.obstacle = Odometry()
@@ -48,7 +48,7 @@ class VOControllerNode:
         """
 
         Avoids collison by continuously updating the desired velociy,
-        and sending it to the AUV's velocity controller. This is implemented as a service that 
+        and sending it to the ASV's speed- and heading controller. This is implemented as a service that 
         will run as long a collision is possible.
 
         Current implementation always puts the vessel behind the obstacle
@@ -57,7 +57,7 @@ class VOControllerNode:
 
 
         VO = VelocityObstacle(None,self.obstacle,self.vessel) #Placeholder None
-        while VO.check_if_collision():
+        while VO.is_collision():
             ref_speed, ref_heading = VO.choose_velocity()
             data = GuidanceData()
             data.psi_d = ref_heading

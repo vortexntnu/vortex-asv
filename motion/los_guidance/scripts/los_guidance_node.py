@@ -1,30 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#!/usr/bin/python3
 # Written by Kristoffer Rakstad Solberg, Student
 # Documented by Christopher Strom and Jae Hyeong Hwang
 # Copyright (c) 2020 Manta AUV, Vortex NTNU.
@@ -254,7 +228,11 @@ class LOS:
 
 class LosPathFollowing(object):
     """
-        self.reference_mod
+     Attributes:
+            _feedback	A vortex_msgs action that contains the distance to goal
+            _result		A vortex_msgs action, true if a goal is set within the
+                                    sphereof acceptance, false if not
+            self.reference_mod
     Nodes created:
             los
     Subscribes to:
@@ -291,7 +269,6 @@ class LosPathFollowing(object):
             "/pose_gt", Odometry, self.callback, queue_size=1
         )  # 20hz
         #Services
-        #placeholder srv name
         self.pause_srv = rospy.Service(
             "/pause_los", SetBool, self.pause_los
         )
@@ -360,10 +337,6 @@ class LosPathFollowing(object):
             )
 
         return x_d
-
- 
-
-    
 
     def callback(self, msg):
         """
