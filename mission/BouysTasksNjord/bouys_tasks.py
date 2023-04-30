@@ -57,7 +57,7 @@ class Search(smach.State):
         self.odom = msg
 
     # TODO: should be generalized and added to shared package
-    def within_acceptance_margins(setpoint, current):
+    def within_acceptance_margins(self, setpoint, current):
         error = abs(setpoint - current)
         if error < 0.1:
             return True
@@ -74,7 +74,7 @@ class Search(smach.State):
         heading_goal = yaw + angle
 
         # publishes heading to heading controller, and waits until the new heading is reached
-        self.heading_pub.Publish(heading_goal)
+        self.heading_pub.publish(heading_goal)
         print(f"Searching for {self.task}, angle: ({angle}) ...")
         while not self.within_acceptance_margins(heading_goal, yaw):
             self.rate.sleep()
