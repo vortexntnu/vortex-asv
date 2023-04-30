@@ -45,6 +45,7 @@ class Search(smach.State):
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
 
+        # Publisher to heading controller
         self.heading_pub = rospy.Publisher(
             "/guidance_interface/desired_heading", Float64, queue_size=1)
 
@@ -53,13 +54,16 @@ class Search(smach.State):
     def odom_cb(self, msg):
         self.odom = msg
 
+    # TODO: should be generalized and added to shared package
     def within_acceptance_margins(setpoint, current):
         error = abs(setpoint - current)
         if error < 0.1:
             return True
         return False
 
+    # Turns ASV by specified angle
     def yaw_to_angle(self, angle):
+        # Find heading corresponding to the change in angle
         orientation = self.odom.pose.pose.orientation
         orientation_list = [
             orientation.x, orientation.y, orientation.z, orientation.w
@@ -67,6 +71,7 @@ class Search(smach.State):
         yaw = euler_from_quaternion(orientation_list)[2]
         heading_goal = yaw + angle
 
+        # publishes heading to heading controller, and waits until the new heading is reached
         self.heading_pub.Publish(heading_goal)
         print(f"Searching for {self.task}, angle: ({angle}) ...")
         while not self.within_acceptance_margins(heading_goal, yaw):
@@ -80,6 +85,7 @@ class Search(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing Search')
 
+        #Turns side to side
         self.yaw_to_angle(45)
         self.yaw_to_angle(-90)
         self.yaw_to_angle(45)
@@ -101,8 +107,8 @@ class DetectedObjectsNavigation():
         self.third_closest_object = (math.inf, math.inf, '')
         self.fourth_closest_object = (math.inf, math.inf, '')
 
-        self.DistanceRadius = 3  
-        self.DirectionWithLeia = True 
+        self.DistanceRadius = 3
+        self.DirectionWithLeia = True
         self.ObjectSearchAttempts = 0
 
         self.data_sub = rospy.Subscriber('detected_objects',
@@ -112,7 +118,7 @@ class DetectedObjectsNavigation():
 
     def execute(self, userdata):
 
-        while self.closest_object != '': # and self.enabled == True:
+        while self.closest_object != '':  # and self.enabled == True:
 
             self.find_closest_objects()
 
@@ -126,22 +132,35 @@ class DetectedObjectsNavigation():
                     midpoint2 = ((self.third_closest_object[0] + self.fourth_closest_object[0])/2, (self.third_closest_object[1] + self.fourth_closest_object[1])/2)
                     self.send_wp(midpoint2)
                 elif self.third_closest_object != '':
-                    next_waypoint = self.NavAroundOneObject(self.data.vessel_position, self.third_closest_object, self.DistanceRadius, self.DirectionWithLeia)
+                    next_waypoint = self.NavAroundOneObject(
+                        self.data.vessel_position, self.third_closest_object,
+                        self.DistanceRadius, self.DirectionWithLeia)
                     self.send_wp(next_waypoint)
 
             #Make new path based on having a closest object and perheps also a second closest object (which is not green and red)
             elif self.closest_object[2] != '':
-                next_waypoint = self.NavAroundOneObject(self.data.vessel_position, self.closest_object, self.DistanceRadius, self.DirectionWithLeia)
+                next_waypoint = self.NavAroundOneObject(
+                    self.data.vessel_position, self.closest_object,
+                    self.DistanceRadius, self.DirectionWithLeia)
                 self.send_wp(self.data.vessel_position)
                 self.overwrite_with_new_waypoint(next_waypoint)
 
-                if self.second_closest_object[2] == 'red' and self.third_closest_object[2] == 'green' or self.second_closest_object[2] == 'green' and self.third_closest_object[2] == 'red':
-                    midpoint = ((self.second_closest_object[0] + self.third_closest_object[0])/2, (self.second_closest_object[1] + self.third_closest_object[1])/2)
+                if self.second_closest_object[
+                        2] == 'red' and self.third_closest_object[
+                            2] == 'green' or self.second_closest_object[
+                                2] == 'green' and self.third_closest_object[
+                                    2] == 'red':
+                    midpoint = ((self.second_closest_object[0] +
+                                 self.third_closest_object[0]) / 2,
+                                (self.second_closest_object[1] +
+                                 self.third_closest_object[1]) / 2)
                     self.send_wp(midpoint)
                 elif self.second_closest_object != '':
-                    next_waypoint = self.NavAroundOneObject(self.data.vessel_position, self.second_closest_object, self.DistanceRadius, self.DirectionWithLeia)
+                    next_waypoint = self.NavAroundOneObject(
+                        self.data.vessel_position, self.second_closest_object,
+                        self.DistanceRadius, self.DirectionWithLeia)
                     self.send_wp(next_waypoint)
-        
+
         return 'idle'
 
     def data_cb(self, msg):
@@ -183,19 +202,27 @@ class DetectedObjectsNavigation():
         self.fourth_closest_object = (math.inf, math.inf, '')
 
         for name, new_object in vars(self.data).items():
-            if name.startswith('current') or (name.endswith('bouy') or name.endswith('marker')):
+            if name.startswith('current') or (name.endswith('bouy')
+                                              or name.endswith('marker')):
                 #New object
                 new_obj_pos = (new_object[0], new_object[1])
-                dist_to_new_obj = UpdateDataNode.distance(self.data.vessel_position, new_obj_pos)
+                dist_to_new_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, new_obj_pos)
                 #Old closest object
-                old_closest_obj_pos = (self.closest_object[0],self.closest_object[1])
-                dist_to_old_closest_obj = UpdateDataNode.distance(self.data.vessel_position, old_closest_obj_pos)
+                old_closest_obj_pos = (self.closest_object[0],
+                                       self.closest_object[1])
+                dist_to_old_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, old_closest_obj_pos)
                 #Old second closest object
-                old_second_closest_obj_pos = (self.second_closest_object[0],self.second_closest_object[1])
-                dist_to_old_second_closest_obj = UpdateDataNode.distance(self.data.vessel_position, old_second_closest_obj_pos)
+                old_second_closest_obj_pos = (self.second_closest_object[0],
+                                              self.second_closest_object[1])
+                dist_to_old_second_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, old_second_closest_obj_pos)
                 #Old third closest object
-                old_third_closest_obj_pos = (self.third_closest_object[0],self.third_closest_object[1])
-                dist_to_old_third_closest_obj = UpdateDataNode.distance(self.data.vessel_position, old_third_closest_obj_pos)
+                old_third_closest_obj_pos = (self.third_closest_object[0],
+                                             self.third_closest_object[1])
+                dist_to_old_third_closest_obj = UpdateDataNode.distance(
+                    self.data.vessel_position, old_third_closest_obj_pos)
                 #Old fourth closest object
                 old_fourth_closest_obj_pos = (self.fourth_closest_object[0],self.fourth_closest_object[1])
                 dist_to_old_fourth_closest_obj = UpdateDataNode.distance(self.data.vessel_position, old_fourth_closest_obj_pos)
@@ -214,7 +241,7 @@ class DetectedObjectsNavigation():
                 self.third_closest_object = new_object
             elif dist_to_new_obj < dist_to_old_fourth_closest_obj:
                 self.fourth_closest_object = new_object
-    
+
     def NavAroundOneObject(ASVPos, object, radius, directionWithLeia):
         """
             object (B)
