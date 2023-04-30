@@ -31,13 +31,13 @@ class Idle(smach.State):
                 return 'search'
         else:
             userdata.object_search_attempts = 0
-            return 'decideNextState'
+            return 'detectedObjectsNavigation'
 
 
 class Search(smach.State):
     def __init__(self):
         smach.State.__init__(self,
-                             outcomes=['idle'],
+                             outcomes=['detectedObjectsNavigation'],
                              input_keys=['object_search_attempts'],
                              output_keys=['object_search_attempts'])
 
@@ -92,7 +92,7 @@ class Search(smach.State):
 
         userdata.object_search_attempts += 1
 
-        return 'idle'
+        return 'detectedObjectsNavigation'
 
 
 class DetectedObjectsNavigation():
