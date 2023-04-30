@@ -50,9 +50,8 @@ class ManeuveringNavigationTasks:
                                    DetectedObjectsNavigation(),
                                    transitions={'idle': 'Idle'},
                                    remapping={
-                                       'closest_object':
-                                       'closest_object',
-                                    })
+                                       'closest_object': 'closest_object',
+                                   })
 
         # Start the state machine introspection server
         sis = smach_ros.IntrospectionServer('state_machine', sm, '/SM_ROOT')

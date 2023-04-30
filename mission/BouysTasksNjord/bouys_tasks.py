@@ -100,7 +100,7 @@ class Search(smach.State):
 class DetectedObjectsNavigation(smach.State):
 
     def __init__(self):
-        smach.State.__init__(self, 
+        smach.State.__init__(self,
                              outcomes=['idle'],
                              output_keys=['closest_object'])
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
