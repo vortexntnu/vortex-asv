@@ -6,7 +6,6 @@ from task_manager.cfg import NjordTasksConfig
 
 
 def callback(config, level):
-    rospy.loginfo("""Server: task change request: {Njord_tasks}""".format(**config))
     return config
 
 
