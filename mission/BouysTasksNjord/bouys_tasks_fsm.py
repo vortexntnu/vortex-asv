@@ -8,7 +8,6 @@ import math
 from bouys_tasks import Idle, Search, DetectedObjectsNavigation
 
 
-
 class ManeuveringNavigationTasks:
 
     def __init__(self):
@@ -43,7 +42,7 @@ class ManeuveringNavigationTasks:
                                    },
                                    remapping={
                                        'object_search_attempts':
-                                        'object_search_attempts',
+                                       'object_search_attempts',
                                    })
 
             smach.StateMachine.add('DetectedObjectsNavigation',
