@@ -110,9 +110,9 @@ class UpdateBuoyMarkerNode:
 
 
 if __name__ == "__main__":
-    try: 
-         UpdateBuoyMarkerNode()
-         rospy.spin()
+    try:
+        UpdateBuoyMarkerNode()
+        rospy.spin()
 
     except rospy.ROSInterruptException:
         pass
