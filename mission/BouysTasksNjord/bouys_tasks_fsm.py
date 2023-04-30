@@ -15,7 +15,6 @@ class ManeuveringNavigationTasks:
 
     def __init__(self):
         rospy.init_node('Bouys_tasks_fsm')
-        
 
     def spin(self):
 
@@ -24,22 +23,37 @@ class ManeuveringNavigationTasks:
         with sm:
             smach.StateMachine.add('Idle',
                                    Idle(),
-                                    transitions={'detectedObjectsNavigation': 'DetectedObjectsNavigation',
-                                                 'search': 'Search'},
-                                    remapping={'closest_object': 'closest_object',
-                                               'object_search_attempts': 'object_search_attempst'})
+                                   transitions={
+                                       'detectedObjectsNavigation':
+                                       'DetectedObjectsNavigation',
+                                       'search': 'Search'
+                                   },
+                                   remapping={
+                                       'closest_object':
+                                       'closest_object',
+                                       'object_search_attempts':
+                                       'object_search_attempst'
+                                   })
 
             smach.StateMachine.add('Search',
                                    Search(self.data),
                                    transitions={'idle': 'Idle'},
-                                   remapping={'closest_object': 'closest_object',
-                                              'object_search_attempst': 'object_search_attempst'})
-            
+                                   remapping={
+                                       'closest_object':
+                                       'closest_object',
+                                       'object_search_attempst':
+                                       'object_search_attempst'
+                                   })
+
             smach.StateMachine.add('DetectedObjectsNavigation',
                                    DetectedObjectsNavigation(),
                                    transitions={'idle'},
-                                   remapping={'closest_object': 'closest_object',
-                                              'object_search_attempst': 'object_search_attempst'})
+                                   remapping={
+                                       'closest_object':
+                                       'closest_object',
+                                       'object_search_attempst':
+                                       'object_search_attempst'
+                                   })
 
         # Start the state machine introspection server
         sis = smach_ros.IntrospectionServer('state_machine', sm, '/SM_ROOT')
