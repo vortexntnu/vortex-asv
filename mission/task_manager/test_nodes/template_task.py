@@ -6,7 +6,6 @@ from task_manager_defines import defines
 
 
 class Template_task:
-
     """
     This task is a template for how one can set up a real task with the task manager
     This task is not defined in the class Tasks in defines.py, as this is just an example
@@ -20,15 +19,16 @@ class Template_task:
 
         self.isEnabled = False
 
-        task_manager_server = rospy.get_param("/task_manager/task_manager_Server")
+        task_manager_server = rospy.get_param(
+            "/task_manager/task_manager_Server")
 
         # Subscribing to changes in task manager gui
         task_manager_client = dynamic_reconfigure.client.Client(
-            task_manager_server, timeout=5, config_callback=self.callback
-        )
+            task_manager_server, timeout=5, config_callback=self.callback)
 
     def callback(self, config):
-        rospy.loginfo("""Client: task change request: {Njord_tasks}""".format(**config))
+        rospy.loginfo(
+            """Client: task change request: {Njord_tasks}""".format(**config))
         activated_task_id = config["Njord_tasks"]
 
         # The template_task is not a real task defined in the Tasks class
