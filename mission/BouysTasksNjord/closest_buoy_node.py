@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from vortex_msgs.msg import DetectedObjectArray, DetectedObject
 import time
@@ -44,7 +44,7 @@ class UpdateBuoyMarkerNode:
     def __init__(self):
         rospy.init_node('UpdateBuoyMarkerNode', anonymous=True)
 
-        self.subscribeTo = rospy.Subscriber('bueys/all_buoys_in_world_frame',
+        self.subscribeTo = rospy.Subscriber('bouys/all_buoys_in_world_frame',
                                             DetectedObjectArray,
                                             self.new_buoy_marker_callback)
         self.pub = rospy.Publisher('bouys_and_markers',
@@ -52,6 +52,7 @@ class UpdateBuoyMarkerNode:
                                    queue_size=10)
 
         self.buoys = []
+        
 
         self.dist_treshold = 1.  # Threshold for updating buey position
         self.time_treshold = 3.  # Seconds that object is not seen
@@ -61,7 +62,7 @@ class UpdateBuoyMarkerNode:
         Convert topic 'bueys/all_buoys_in_world_frame' to Buoy-type, then return array of all buoys.
         """
         buoys = []
-        for topic_element in msg:
+        for topic_element in msg.DetectedObjectArray:
             buoys.append(
                 Buoy(topic_element.x, topic_element.y, topic_element.type))
 
@@ -87,7 +88,6 @@ class UpdateBuoyMarkerNode:
         Callback function used to sort out buoys of interrest (?).
         msg: DetectedObjectArray
         """
-
         new_buoys = self.convert_topic_buoys(msg)
         for i, buoy in enumerate(self.buoys):
             # Delete buoys that have not been observed for a while
