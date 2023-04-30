@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import rospy
-# from std_msgs.msg import String
 from vortex_msgs.msg import DetectedObjectArray, DetectedObject
 import time
 import numpy as np
@@ -64,7 +63,7 @@ class UpdateBuoyMarkerNode:
         buoys = []
         for topic_element in msg:
             buoys.append(
-                Buoy(topic_element.x, topic_element.y, topic_element.type_))
+                Buoy(topic_element.x, topic_element.y, topic_element.type))
 
         return buoys
 
@@ -78,7 +77,7 @@ class UpdateBuoyMarkerNode:
             single_message = DetectedObject()
             single_message.x = buoy.x
             single_message.y = buoy.y
-            single_message.type_ = buoy.type_
+            single_message.type = buoy.type_
             msg.DetectedObjectArray.append(single_message)
 
         self.pub.publish(msg)
