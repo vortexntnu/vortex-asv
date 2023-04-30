@@ -1,8 +1,9 @@
 <launch>
   <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}" />
 
-  <rosparam command="load" file="$(find asv_setup)/config/robots/temp_config.yaml"/>
+  <rosparam command="load" file="$(find asv_setup)/config/robots/naglfar.yaml"/>
   <rosparam command="load" file="$(find asv_setup)/config/topics.yaml"/>
+  <rosparam command="load" file="$(find asv_setup)/params/gnc.yaml"/>
 
   <node pkg="thruster_allocator"  type="thruster_allocator_node" name="allocator"  output="screen"/>
 </launch>

@@ -57,8 +57,13 @@ class PIDRegulator:
                 float:	The controller gain u
         """
 
+        if self.prev_t == -1:
+            self.prev_t = t
+            return 0.0
+
         derr_dt = 0.0
         dt = t - self.prev_t
+
         if self.prev_t > 0.0 and dt > 0.0:
             derr_dt = (err - self.prev_err) / dt
             self.integral += 0.5 * (err + self.prev_err) * dt
