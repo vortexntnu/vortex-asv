@@ -11,6 +11,7 @@ from tf.transformations import euler_from_quaternion
 from vortex_msgs.msg import DetectedObjectArray, DetectedObject
 from update_objects_data import DetectedObjectsData, UpdateDataNode
 
+
 class Idle(smach.State):
     # Need to be added that idle make the vessel stop moving, before entering search state.
     def __init__(self):
@@ -23,21 +24,24 @@ class Idle(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing Idle')
 
-        if userdata['closest_object'][1] == '':
-            #userdata['object_search_attempts'] += 1
-            if userdata['object_search_attempts'] >= 5:
+        if userdata.closest_object[1] == '':
+            if userdata.object_search_attempts >= 5:
                 return 'stop'
             else:
                 return 'search'
         else:
-            userdata['object_search_attempts'] = 0
+            userdata.object_search_attempts = 0
             return 'decideNextState'
 
 
 class Search(smach.State):
     # Must be changed so it returns object search attempts. Should be done here, not in idle state.
     def __init__(self):
-        smach.State.__init__(self, outcomes=['idle'])
+        smach.State.__init__(self,
+                             outcomes=['idle'],
+                             input_keys=['object_search_attempts'],
+                             output_keys=['object_search_attempts'])
+
         self.task = "Buoy"
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
@@ -74,18 +78,24 @@ class Search(smach.State):
             ]
             yaw = euler_from_quaternion(orientation_list)[2]
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('Executing Search')
 
         self.yaw_to_angle(45)
         self.yaw_to_angle(-90)
         self.yaw_to_angle(45)
 
+        userdata.object_search_attempts += 1
+
         return 'idle'
+
 
 class DetectedObjectsNavigation():
     #In future data = closest_data, and we sould also find second_closest_data, to be able to set 2 insted of one waypoint.
-    def __init__(self, outcomes=['idle'], input_keys=[]):
+    def __init__(self,
+                 outcomes=['idle'],
+                 input_keys=[],
+                 output_keys=['closest_object']):
         #self.enabled = rospy.get_param("/tasks/maneuvering_navigation_tasks")
         self.data = DetectedObjectsData()
         self.closest_object = (math.inf, math.inf, '')
@@ -97,8 +107,10 @@ class DetectedObjectsNavigation():
         self.DirectionWithLeia = True 
         self.ObjectSearchAttempts = 0
 
-        self.data_sub = rospy.Subscriber('detected_objects', DetectedObjectArray, self.data_cb)
-        self.vessel_pos_sub = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_cb)
+        self.data_sub = rospy.Subscriber('detected_objects',
+                                         DetectedObjectArray, self.data_cb)
+        self.vessel_pos_sub = rospy.Subscriber('/odometry/filtered', Odometry,
+                                               self.odom_cb)
 
     #Contains lots of information that is duplicated. Should be switched out.
     def execute(self, userdata):
@@ -133,7 +145,7 @@ class DetectedObjectsNavigation():
                     self.send_wp(next_waypoint)
         
         return 'idle'
-            
+
     def data_cb(self, msg):
         #Much duplication that should be switched out.
         detected_objects = msg.detected_objects
@@ -150,11 +162,11 @@ class DetectedObjectsNavigation():
                                      detected_objects[3].y,
                                      detected_objects[3].type)
         self.data.current_north_marker = (detected_objects[4].x,
-                                         detected_objects[4].y,
-                                         detected_objects[4].type)
+                                          detected_objects[4].y,
+                                          detected_objects[4].type)
         self.data.current_south_marker = (detected_objects[5].x,
-                                         detected_objects[5].y,
-                                         detected_objects[5].type)
+                                          detected_objects[5].y,
+                                          detected_objects[5].type)
         self.data.current_east_marker = (detected_objects[6].x,
                                          detected_objects[6].y,
                                          detected_objects[6].type)
@@ -163,7 +175,8 @@ class DetectedObjectsNavigation():
                                          detected_objects[7].type)
 
     def odom_cb(self, msg):
-        self.data.vessel_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)
+        self.data.vessel_position = (msg.pose.pose.position.x,
+                                     msg.pose.pose.position.y)
 
     #Must be updated to also find third and fouth closes objects.
     def find_closest_objects(self):
@@ -220,7 +233,7 @@ class DetectedObjectsNavigation():
         objectType = object[2]
         xWP = 0
         yWP = 0
-    
+
         if directionWithLeia == True:
             # Calculate the coordinates of next waypoint.
             xAC = ASVPos[0] - object[0]  #xB - xA
@@ -251,9 +264,9 @@ class DetectedObjectsNavigation():
                     yAC_normalized *= -1
             xWP = object[0] + radius * xAC_normalized
             yWP = object[1] + radius * yAC_normalized
-    
+
         return (xWP, yWP)
-    
+
     def send_wp(waypoint_in):
         wp = WaypointRequest()
         wp.waypoint = waypoint_in
@@ -270,7 +283,7 @@ class DetectedObjectsNavigation():
             rospy.loginfo(f"Waypoint {wp.waypoint} sent successfully!")
         else:
             rospy.logwarn(f"Waypoint {wp.waypoint} could not be set!")
-    
+
     def overwrite_with_new_waypoint(waypoint_in):
         wp = WaypointRequest()
         wp.waypoint = waypoint_in
@@ -280,11 +293,12 @@ class DetectedObjectsNavigation():
             rospy.wait_for_service(
                 "/navigation/overwrite_waypoint_list_with_new_waypoint")
             overwrite_waypoint_client = rospy.ServiceProxy(
-                "/navigation/overwrite_waypoint_list_with_new_waypoint", Waypoint)
+                "/navigation/overwrite_waypoint_list_with_new_waypoint",
+                Waypoint)
             response = overwrite_waypoint_client(wp)
         except rospy.ServiceException as e:
             print("Service call failed: {}".format(e))
-    
+
         if response.success:
             rospy.loginfo(f"Waypoint {wp.waypoint} sent successfully!")
         else:
