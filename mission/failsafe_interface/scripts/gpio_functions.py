@@ -9,7 +9,12 @@ import time
 
 import subprocess
 
-sudoPassword = "rock"
+#We store the password in a file locally on the rock pi
+passwordFile = open("/home/rock/Documents/password.txt", "r")
+
+sudoPassword = passwordFile.readline().strip()
+
+passwordFile.close()
 
 
 def init_pin(pin):
