@@ -12,9 +12,11 @@ from std_msgs.msg import Header
 
 class DetectedObjectsData:
     #Latitude; x, Longitude; y
-    def __init__(self):  #  x, y, type
+    def __init__(self):       #  x, y, type
         self.current_red_bouy = (0, 0, 'red')
+        self.next_red_bouy = (0, 0, 'red')
         self.current_green_bouy = (0, 0, 'green')
+        self.next_green_bouy = (0, 0, 'green')
         self.current_north_marker = (0, 0, 'north')
         self.current_south_marker = (0, 0, 'south')
         self.current_east_marker = (0, 0, 'east')
@@ -48,16 +50,36 @@ class UpdateDataNode:
                                    queue_size=1)
 
     def spin(self):
-
+        #Much duplication that should be switched out. 
         VesselPos = self.object_data.vessel_position
 
-        self.object_data.current_red_bouy = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.red_bouy_array)
-        self.object_data.current_green_bouy = UpdateDataNode.find_closest_object_in_array(
-            VesselPos, self.green_bouy_array)
-        # find closest north, south, east and west marker.
+        closest_object, second_closest_object = UpdateDataNode.find_two_closest_objects_in_array(VesselPos, self.red_bouy_array)
+        if closest_object != None:
+            self.object_data.current_red_bouy = closest_object
+        if second_closest_object != None:
+            self.object_data.next_red_bouy = second_closest_object
 
-        UpdateDataNode.find_closest_objects()
+        closest_object, second_closest_object = UpdateDataNode.find_two_closest_objects_in_array(VesselPos, self.green_bouy_array)
+        if closest_object != None:
+            self.object_data.current_green_bouy = closest_object
+        if second_closest_object != None:
+            self.object_data.next_green_bouy = second_closest_object
+
+        closest_object, second_closest_object = UpdateDataNode.find_two_closest_objects_in_array(VesselPos, self.north_marker_array)
+        if closest_object != None:
+            self.object_data.current_north_marker = closest_object
+
+        closest_object, second_closest_object = UpdateDataNode.find_two_closest_objects_in_array(VesselPos, self.south_marker_array)
+        if closest_object != None:
+            self.object_data.current_south_marker = closest_object
+
+        closest_object, second_closest_object = UpdateDataNode.find_two_closest_objects_in_array(VesselPos, self.east_marker_array)
+        if closest_object != None:
+            self.object_data.current_east_marker = closest_object
+            
+        closest_object, second_closest_object = UpdateDataNode.find_two_closest_objects_in_array(VesselPos, self.west_marker_array)
+        if closest_object != None:
+            self.object_data.current_west_marker = closest_object
 
         msg = DetectedObjectArray()
         msg.header = Header()
@@ -69,21 +91,53 @@ class UpdateDataNode:
         red_bouy.type = self.object_data.current_red_bouy[2]
         msg.detected_objects.append(red_bouy)
 
+        next_red_bouy = DetectedObject()
+        next_red_bouy.x = self.object_data.next_red_bouy[0]
+        next_red_bouy.y = self.object_data.next_red_bouy[1]
+        next_red_bouy.type = self.object_data.next_red_bouy[2]
+        msg.detected_objects.append(next_red_bouy)
+
         green_bouy = DetectedObject()
         green_bouy.x = self.object_data.current_green_bouy[0]
         green_bouy.y = self.object_data.current_green_bouy[1]
         green_bouy.type = self.object_data.current_green_bouy[2]
         msg.detected_objects.append(green_bouy)
 
-        # Update msg with current north, south, east and  west marker.
+        next_green_bouy = DetectedObject()
+        next_green_bouy.x = self.object_data.next_green_bouy[0]
+        next_green_bouy.y = self.object_data.next_green_bouy[1]
+        next_green_bouy.type = self.object_data.next_green_bouy[2]
+        msg.detected_objects.append(next_green_bouy)
+
+        north_marker = DetectedObject()
+        north_marker.x = self.object_data.current_north_marker[0]
+        north_marker.y = self.object_data.current_north_marker[1]
+        north_marker.type = self.object_data.current_north_marker[2]
+        msg.detected_objects.append(north_marker)
+
+        south_marker = DetectedObject()
+        south_marker.x = self.object_data.current_south_marker[0]
+        south_marker.y = self.object_data.current_south_marker[1]
+        south_marker.type = self.object_data.current_south_marker[2]
+        msg.detected_objects.append(south_marker)
+
+        east_marker = DetectedObject()
+        east_marker.x = self.object_data.current_east_marker[0]
+        east_marker.y = self.object_data.current_east_marker[1]
+        east_marker.type = self.object_data.current_east_marker[2]
+        msg.detected_objects.append(east_marker)
+
+        west_marker = DetectedObject()
+        west_marker.x = self.object_data.current_west_marker[0]
+        west_marker.y = self.object_data.current_west_marker[1]
+        west_marker.type = self.object_data.current_west_marker[2]
+        msg.detected_objects.append(west_marker)
 
         self.pub.publish(msg)
 
     def odom_cb(self, msg):
-        self.object_data.vessel_position = (msg.pose.pose.position.x,
-                                            msg.pose.pose.position.y, 'vessel')
+        self.object_data.vessel_position = (msg.pose.pose.position.x, msg.pose.pose.position.y, 'vessel')
 
-    #Must probably be switched out when message is defined
     def obj_pos_cb(self, msg):
         
         self.red_bouy_array = []
@@ -109,30 +163,26 @@ class UpdateDataNode:
             else:
                 rospy.loginfo("Received unsupported object type")
 
-    # def update_array(array, new_point):
-    #     updated = False
-    #     for i, existing_point in enumerate(array):
-    #         distance = UpdateDataNode.distance(new_point, existing_point)
-    #         if distance <= 1:
-    #             array[i] = new_point
-    #             updated = True
-    #             break
-    #     if not updated:
-    #         array = np.vstack([array, new_point])
-
-    #     return array
-
-    def find_closest_object_in_array(position, positions_array):
+    def find_two_closest_objects_in_array(position, positions_array):
         closest_position = None
         closest_distance = math.inf
+        second_closest_position = None
+        second_closest_distance = math.inf
 
         for pos in positions_array:
             distance = UpdateDataNode.distance(position, pos)
             if distance < closest_distance:
+                second_closest_distance = closest_distance
+                second_closest_position = closest_position
                 closest_distance = distance
                 closest_position = pos
+            elif distance < second_closest_distance:
+                second_closest_distance = distance
+                second_closest_position = pos
 
-        return closest_position
+
+        return closest_position, second_closest_position
+    
 
     def distance(ObjectOnePosition, ObjectTwoPosition):
         x1, y1 = ObjectOnePosition
