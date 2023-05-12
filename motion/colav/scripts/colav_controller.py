@@ -36,7 +36,6 @@ class ColavController:
         )
 
         self.colav_pub = rospy.Publisher(
-
             rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
             queue_size=1)
@@ -126,7 +125,6 @@ class ColavController:
         elif zone == Zones.COLIMM and not VO.check_if_collision():
             return None
 
-
         approach = self.gen_approach(closest_obst, self.vessel)
 
         if approach == Approaches.FRONT or approach == Approaches.RIGHT:
@@ -171,7 +169,6 @@ class ColavController:
         elif distance < self.colimm_max_r and distance > self.stop_zone_r:
             return Zones.COLIMM
         return Zones.STOPNOW
-
 
 
 if __name__ == "__main__":

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-
-
 from geometry_msgs.msg import Point, Vector3
 from nav_msgs.msg import Odometry
 import math
@@ -84,5 +82,3 @@ class VelocityObstacle:
         print("vels", dvx, dvy)
 
         return angle > self.right_angle - bouffer and angle < self.left_angle + bouffer
-
-
