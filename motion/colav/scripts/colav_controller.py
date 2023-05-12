@@ -4,13 +4,8 @@ import rospy
 from nav_msgs.msg import Odometry
 from vortex_msgs.msg import GuidanceData, OdometryArray
 import math
-from VOMATH import VelocityObstacle, Obstacle, Zones, Approaches
+from motion.colav.scripts.VO_math import VelocityObstacle, Obstacle, Zones, Approaches
 from tf.transformations import euler_from_quaternion
-
-#----------------------------------------------------
-# Still dont know the datatype given from perception,
-# so just assuming odometry or now
-#----------------------------------------------------
 
 
 class ColavController:
@@ -41,8 +36,7 @@ class ColavController:
         )
 
         self.colav_pub = rospy.Publisher(
-            # rospy.get_param("/guidance_interface/colav_data"),
-            #"/guidance/colav_data",
+
             rospy.get_param("/guidance_interface/colav_data"),
             GuidanceData,
             queue_size=1)
@@ -66,7 +60,6 @@ class ColavController:
 
     def obst_callback(self, msg):
         self.obstacles = msg.odometry_array
-        # print("rec msg:",msg)
         if len(self.obstacles) == 0:
             print("empty!")
             return
@@ -74,7 +67,6 @@ class ColavController:
         if colav_data is None:
             return
         self.colav_pub.publish(colav_data)
-        print("publishing data")
 
     def get_closest_obst(self, obstacles: dict) -> Odometry:
         shortest_dist = math.inf
@@ -130,17 +122,14 @@ class ColavController:
                 self.vessel_odom.pose.pose.orientation.w,
             ]
             data.psi = euler_from_quaternion(orientation_list)[2]
-            ##Set velocity to zero and heading to same as before:))
             return data
         elif zone == Zones.COLIMM and not VO.check_if_collision():
             return None
 
-        #Now in collision imminent state
 
         approach = self.gen_approach(closest_obst, self.vessel)
 
         if approach == Approaches.FRONT or approach == Approaches.RIGHT:
-            print("doodo")
             buffer = math.pi / 6
             new_heading = VO.right_angle - buffer
 
@@ -156,7 +145,6 @@ class ColavController:
                 self.vessel_odom.pose.pose.orientation.w,
             ]
             data.psi = euler_from_quaternion(orientation_list)[2]
-            # choose right cone
             return data
         elif approach == Approaches.BEHIND or approach == Approaches.LEFT:
             return None
@@ -184,13 +172,6 @@ class ColavController:
             return Zones.COLIMM
         return Zones.STOPNOW
 
-    # def run(self):
-    #     while True:
-    #         if rospy.get_param("/tasks/task_1"):
-    #             colav_data = self.gen_colav_data()
-    #             if colav_data is None:
-    #                 continue
-    #             self.colav_pub.publish(colav_data)
 
 
 if __name__ == "__main__":
