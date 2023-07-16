@@ -1,7 +1,6 @@
 import rospy
 import RPi.GPIO as GPIO
-
-SF_OP_MOD_PIN = 20
+from std_msgs.msg import String
 
 
 class FailSafeInterface(object):
@@ -28,16 +27,13 @@ class FailSafeInterface(object):
         self.softWareOperationMode = message.data
         GPIO.write(self.gpioSoftWareOperationMode, self.softWareOperationMode)
 
-
 def FailSafeNodeSetup():
     rospy.init_node("failsafe_interface_node", anonymous=True)
     print("Set up the node")
     failsafe = FailSafeInterface()
 
     while not rospy.is_shutdown():
-        print("Got into the loop")
-        failsafe.readPins()
-
+        failsafe.writeSoftwareOperationMode(FailSafeInterface,)
 
 if __name__ == "__main__":
     try:

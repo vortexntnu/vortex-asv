@@ -1,0 +1,5 @@
+The current_failsade.py file is to run on boot as a cronjob
+
+failsafe_interface_node is to be deprecated
+
+software_operation_mode is to be ran with ROS
