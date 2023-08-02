@@ -1,6 +1,8 @@
 import numpy as np
 
+
 class PIDController3DOF:
+
     def __init__(self, Kp, Ki, Kd, setpoint):
         self.Kp = np.array(Kp)
         self.Ki = np.array(Ki)

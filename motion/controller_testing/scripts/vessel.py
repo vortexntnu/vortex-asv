@@ -2,7 +2,9 @@
 
 import numpy as np
 
+
 class Vessel3DOF:
+
     def __init__(self, mass, damping, inertia):
         # Mass and inertia matrix
         self.M = np.diag([mass, mass, inertia])
@@ -10,7 +12,7 @@ class Vessel3DOF:
         # Damping matrix
         self.D = np.diag([damping, damping, damping])
 
-        # State vector [u, v, r, x, y, psi], 
+        # State vector [u, v, r, x, y, psi],
         # where u, v, r are velocities and x, y, psi are positions
         self.state = np.zeros(6)
 
