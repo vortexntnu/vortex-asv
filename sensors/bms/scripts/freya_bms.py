@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import subprocess
 
+
 def execute_jbdtool(usb_port):
     """
     This function executes the jbdtool command to query the BMS (Battery Management System)
@@ -21,17 +22,21 @@ def execute_jbdtool(usb_port):
         Cells: 4.006,4.005,4.000,4.005,4.000,4.000
     """
 
-
     command = ["./jbdtool", "-t", f"serial:/dev/{usb_port}"]
     working_directory = "/home/vortex/bms/jbdtool"
 
     try:
-        response = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, cwd=working_directory)
+        response = subprocess.run(command,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  check=True,
+                                  cwd=working_directory)
         return response
-        
+
     except subprocess.CalledProcessError as e:
         print("An error occurred while executing the command.")
         print("Error:", e.stderr.decode())
+
 
 def parse_bms_data(response):
     output = response.stdout.decode()
