@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<launch>
+    <arg name="PI" value="3.14159265"/>
+
+    <arg name="PI_OVER_TWO"             value="$(eval 0.5 * arg('PI'))"/>
+    <arg name="PI_OVER_FOUR"            value="$(eval 0.25 * arg('PI'))"/>
+    <arg name="PI_THREE_QUARTERS"       value="$(eval 0.75 * arg('PI'))"/>
+    <arg name="NEG_PI_THREE_QUARTERS"   value="$(eval -0.75 * arg('PI'))"/>
+    <arg name="NEG_PI_OVER_FOUR"        value="$(eval -0.25 * arg('PI'))"/>
+    <arg name="PI_AND_A_HALF"           value="$(eval 1.5 * arg('PI'))"/>
+    <arg name="ZED2_ANGLE"              value="$(eval 0.175 * arg('PI'))"/>
+
+
+    <!-- Lidar -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_lidar" args="0 0 0.03565 0 0 0 base_link os_lidar" />
+
+    <!-- ZED2 Camera -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_zed2_camera_center" args="-0.03005 0 0.2203 0 0 0 base_link zed2i_camera_center" />
+
+
+</launch> 
