@@ -101,8 +101,7 @@ void ThrusterInterface::publish_thrust_to_escs(std::vector<double> forces) {
 
   // Send the I2C message
   if (write(file, pwm_bytes.data(), data_size) != data_size) {
-    std::cerr << "Error sending data\n";
-    exit(1);
+    std::cerr << "Error sending data, ignoring message...\n";
   }
 
   close(file);
