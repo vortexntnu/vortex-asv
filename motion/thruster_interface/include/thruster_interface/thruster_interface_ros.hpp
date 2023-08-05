@@ -4,6 +4,7 @@
 #include "thruster_interface/thruster_interface.hpp"
 
 #include "vortex_msgs/ThrusterForces.h"
+#include "vortex_msgs/Pwm.h"
 
 #include <ros/package.h>
 #include <ros/ros.h>
@@ -15,6 +16,7 @@ private:
   ThrusterInterface thrusterInterface{mapping_file};
   ros::NodeHandle nh;
   ros::Subscriber sub;
+  ros::Publisher pwm_pub;
 
 public:
   ThrusterInterfaceROS();

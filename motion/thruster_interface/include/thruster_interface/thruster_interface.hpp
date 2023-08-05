@@ -23,12 +23,13 @@ private:
   const int I2C_ADDRESS = 0x21;
   const char *I2C_DEVICE = "/dev/i2c-1";
 
-  float interpolate(float force);
   std::vector<uint8_t> pwm_to_bytes(const std::vector<int> &pwm_values);
 
 public:
   ThrusterInterface(std::string mapping_file);
   void publish_thrust_to_escs(std::vector<double> forces);
+  float interpolate(float force);
+
 };
 
 #endif // THRUSTER_INTERFACE_HPP
