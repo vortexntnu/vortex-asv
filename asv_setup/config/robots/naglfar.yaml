@@ -31,7 +31,7 @@ propulsion:
       yaw:   true
   thrusters:
     num: 4
-    configuration_matrix_NED:
+    configuration_matrix: #NED
       [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
        [ -0.70711,  0.70711,   -0.70711,  0.70711], # Sway
        [ 0.27738,   0.27738,  -0.27738,  -0.27738]] # Yaw

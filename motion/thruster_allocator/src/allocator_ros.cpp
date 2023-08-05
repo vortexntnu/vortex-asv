@@ -76,7 +76,7 @@ void Allocator::spinOnce() {
 
   if (!saturateVector(&thruster_forces, m_min_thrust, m_max_thrust))
     ROS_WARN_THROTTLE(1, "Thruster forces vector required saturation.");
-
+  //std::cout << thruster_forces << std::endl;
   vortex_msgs::ThrusterForces msg_out;
   arrayEigenToMsg(thruster_forces, &msg_out);
 
