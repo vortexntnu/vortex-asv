@@ -29,7 +29,7 @@ class ThrusterInterface(object):
         self.thruster_directions = thruster_directions
         self.thruster_offsets = thruster_offsets
 
-        self.bus = smbus2.SMBus(7)
+        self.bus = smbus2.SMBus(1)
         self.address = 0x21
 
         self.thruster_operational_voltage_range = rospy.get_param(
