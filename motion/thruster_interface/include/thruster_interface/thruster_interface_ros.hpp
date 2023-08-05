@@ -3,8 +3,8 @@
 
 #include "thruster_interface/thruster_interface.hpp"
 
-#include "vortex_msgs/ThrusterForces.h"
 #include "vortex_msgs/Pwm.h"
+#include "vortex_msgs/ThrusterForces.h"
 
 #include <ros/package.h>
 #include <ros/ros.h>

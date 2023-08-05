@@ -49,7 +49,8 @@ float ThrusterInterface::interpolate(float force) {
     return pwm1;
   }
 
-  int pwm_signal = std::round(pwm1 + ((force - force1) * (pwm2 - pwm1)) / (force2 - force1) + 0.5);
+  int pwm_signal = std::round(
+      pwm1 + ((force - force1) * (pwm2 - pwm1)) / (force2 - force1) + 0.5);
 
   int clipped_pwm_signal = std::min(std::max(pwm_signal, 1100), 1900);
 

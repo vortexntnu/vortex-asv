@@ -29,7 +29,6 @@ public:
   ThrusterInterface(std::string mapping_file);
   void publish_thrust_to_escs(std::vector<double> forces);
   float interpolate(float force);
-
 };
 
 #endif // THRUSTER_INTERFACE_HPP

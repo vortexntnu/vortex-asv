@@ -26,12 +26,12 @@ void ThrusterInterfaceROS::thrustCallback(
   vortex_msgs::Pwm pwm_msg;
   // TODO: Get mapping from rosparam
   std::vector<int> thruster_map = {0, 1, 2, 3};
-  for(int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     pwm_msg.positive_width_us.push_back(pwm_values[i]);
     pwm_msg.pins.push_back(thruster_map[i]);
-  } 
+  }
 
   pwm_pub.publish(pwm_msg);
 
-  //thrusterInterface.publish_thrust_to_escs(forces_in_grams);
+  // thrusterInterface.publish_thrust_to_escs(forces_in_grams);
 }
