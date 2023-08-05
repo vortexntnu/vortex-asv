@@ -11,15 +11,32 @@ n_min = -10000
 k_pos = 0.005
 k_neg = 0.001
 
+
 # Skew-symmetric matrix
 def Smtrx(vector):
-    return np.array([[0, -vector[2], vector[1]], [vector[2], 0, -vector[0]], [-vector[1], vector[0], 0]])
+    return np.array([[0, -vector[2], vector[1]], [vector[2], 0, -vector[0]],
+                     [-vector[1], vector[0], 0]])
+
 
 # Rotation matrix from Euler angles (zyx convention)
 def Rzyx(phi, theta, psi):
-    return np.array([[np.cos(psi) * np.cos(theta), np.cos(psi) * np.sin(theta) * np.sin(phi) - np.sin(psi) * np.cos(phi), np.cos(psi) * np.sin(theta) * np.cos(phi) + np.sin(psi) * np.sin(phi)],
-                    [np.sin(psi) * np.cos(theta), np.sin(psi) * np.sin(theta) * np.sin(phi) + np.cos(psi) * np.cos(phi), np.sin(psi) * np.sin(theta) * np.cos(phi) - np.cos(psi) * np.sin(phi)],
-                    [-np.sin(theta), np.cos(theta) * np.sin(phi), np.cos(theta) * np.cos(phi)]])
+    return np.array([[
+        np.cos(psi) * np.cos(theta),
+        np.cos(psi) * np.sin(theta) * np.sin(phi) - np.sin(psi) * np.cos(phi),
+        np.cos(psi) * np.sin(theta) * np.cos(phi) + np.sin(psi) * np.sin(phi)
+    ],
+                     [
+                         np.sin(psi) * np.cos(theta),
+                         np.sin(psi) * np.sin(theta) * np.sin(phi) +
+                         np.cos(psi) * np.cos(phi),
+                         np.sin(psi) * np.sin(theta) * np.cos(phi) -
+                         np.cos(psi) * np.sin(phi)
+                     ],
+                     [
+                         -np.sin(theta),
+                         np.cos(theta) * np.sin(phi),
+                         np.cos(theta) * np.cos(phi)
+                     ]])
 
 
 def model(x, tau):
@@ -68,18 +85,28 @@ def model(x, tau):
     K_pp = 0  # Quadratic damping - Roll (Ns)
     M_qq = 0  # Quadratic damping - Pitch (Ns)
     N_rr = 0.1  # Quadratic damping - Yaw (Ns)
-    D_q = np.diag([abs(X_uu * x[6]), abs(Y_vv * x[7]), abs(Z_ww * x[8]), abs(K_pp * x[9]), abs(M_qq * x[10]), abs(N_rr * x[11])])  # Quadratic damping matrix
+    D_q = np.diag([
+        abs(X_uu * x[6]),
+        abs(Y_vv * x[7]),
+        abs(Z_ww * x[8]),
+        abs(K_pp * x[9]),
+        abs(M_qq * x[10]),
+        abs(N_rr * x[11])
+    ])  # Quadratic damping matrix
 
     D = D_l + D_q  # Damping matrix
 
     # Coriolis and centripetal matrix
-    CRB = m * np.block([[np.zeros((3, 3)), -Smtrx(np.array([x[6], x[7], x[8]]))],
-                    [Smtrx(np.array([x[6], x[7], x[8]])), -Smtrx(I.dot(np.array([x[9], x[10], x[11]])))]])
+    CRB = m * np.block(
+        [[np.zeros((3, 3)), -Smtrx(np.array([x[6], x[7], x[8]]))],
+         [
+             Smtrx(np.array([x[6], x[7], x[8]])),
+             -Smtrx(I.dot(np.array([x[9], x[10], x[11]])))
+         ]])
 
-
-    CA = m * np.block([[np.zeros((3, 3)), -Smtrx(np.array([x[0], x[1], x[2]]))],
-                   [np.zeros((3, 3)), np.zeros((3, 3))]])
-
+    CA = m * np.block([[
+        np.zeros((3, 3)), -Smtrx(np.array([x[0], x[1], x[2]]))
+    ], [np.zeros((3, 3)), np.zeros((3, 3))]])
 
     C = CRB + CA
 
@@ -95,7 +122,9 @@ def model(x, tau):
     eta = x[0:6]
     nu = x[6:12]
 
-    J = np.block([[np.eye(3), np.zeros((3, 3))], [np.zeros((3, 3)), Rzyx(eta[3], eta[4], eta[5])]])
+    J = np.block([[np.eye(3), np.zeros((3, 3))],
+                  [np.zeros((3, 3)),
+                   Rzyx(eta[3], eta[4], eta[5])]])
 
     M_inv = np.linalg.inv(M)
 
