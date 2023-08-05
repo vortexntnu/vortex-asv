@@ -48,7 +48,7 @@ propulsion:
     offset: [0, 0, 0, 0] # Disclose during thruster mapping
   command:
     wrench:
-      max:     [33.9, 33.9, 48.0, 7.6, 3.2, 9.9]
-      scaling: [ 0.4,  0.4,  0.6, 0.3, 0.7, 0.4]
+      max:     [150.0, 150.0, 150.0, 150.0, 150.0, 150.0]
+      scaling: [ 1.0,  1.0,  1.0, 1.0, 1.0, 1.0]
 
 computer: "pc-debug"
