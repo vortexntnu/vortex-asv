@@ -141,3 +141,4 @@ bool Allocator::healthyWrench(const Eigen::VectorXd &v) const {
 
   return true;
 }
+
