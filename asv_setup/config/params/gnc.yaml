@@ -20,6 +20,6 @@ controllers:
 
 joystick:
   scaling:
-    surge: 0
-    sway: 0
-    yaw: 0
+    surge: 100.0
+    sway: 100.0
+    yaw: 100.0

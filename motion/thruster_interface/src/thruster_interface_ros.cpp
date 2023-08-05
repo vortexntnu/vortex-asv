@@ -3,6 +3,8 @@
 ThrusterInterfaceROS::ThrusterInterfaceROS() {
   sub = nh.subscribe("/thrust/thruster_forces", 10,
                      &ThrusterInterfaceROS::thrustCallback, this);
+
+  pwm_pub = nh.advertise<vortex_msgs::Pwm>("/pwm", 10);
 }
 
 void ThrusterInterfaceROS::thrustCallback(
@@ -16,5 +18,21 @@ void ThrusterInterfaceROS::thrustCallback(
       msg->thrust[2] * newton_to_gram_conversion_factor,
       msg->thrust[3] * newton_to_gram_conversion_factor};
 
-  thrusterInterface.publish_thrust_to_escs(forces_in_grams);
+  std::vector<int> pwm_values;
+  for (auto force : forces_in_grams) {
+    pwm_values.push_back(thrusterInterface.interpolate(force));
+  }
+
+  vortex_msgs::Pwm pwm_msg;
+  // TODO: Get mapping from rosparam
+  std::vector<int> thruster_map = {0, 1, 2, 3};
+  for (int i = 0; i < 4; i++) {
+    pwm_msg.positive_width_us.push_back(pwm_values[i]);
+    pwm_msg.pins.push_back(thruster_map[i]);
+  }
+
+  pwm_pub.publish(pwm_msg);
+
+  // thrusterInterface.publish_thrust_to_escs(forces_in_grams);
 }
+

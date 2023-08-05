@@ -2,6 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import Joy
+from geometry_msgs.msg import Wrench
 
 
 class JoystickInterface:
@@ -17,11 +18,6 @@ class JoystickInterface:
         self.joystick_surge_scaling = rospy.get_param(
             "/joystick/scaling/surge")
         self.joystick_sway_scaling = rospy.get_param("/joystick/scaling/sway")
-        self.joystick_heave_scaling = rospy.get_param(
-            "/joystick/scaling/heave")
-        self.joystick_roll_scaling = rospy.get_param("/joystick/scaling/roll")
-        self.joystick_pitch_scaling = rospy.get_param(
-            "/joystick/scaling/pitch")
         self.joystick_yaw_scaling = rospy.get_param("/joystick/scaling/yaw")
 
         self.joystick_buttons_map = [
@@ -53,9 +49,13 @@ class JoystickInterface:
                                              Joy,
                                              self.joystick_cb,
                                              queue_size=1)
-        self.joystick_pub = rospy.Publisher("/mission/joystick_data",
-                                            Joy,
-                                            queue_size=1)
+
+        self.force_pub = rospy.Publisher("/thrust/desired_force",
+                                         Wrench,
+                                         queue_size=1)
+        self.torque_pub = rospy.Publisher("/thrust/desired_torque",
+                                          Wrench,
+                                          queue_size=1)
 
         rospy.loginfo("Joystick interface is up and running")
 
@@ -71,35 +71,18 @@ class JoystickInterface:
 
         surge = axes["vertical_axis_left_stick"] * self.joystick_surge_scaling
         sway = axes["horizontal_axis_left_stick"] * self.joystick_sway_scaling
-        heave = (axes["RT"] - axes["LT"]) / 2 * self.joystick_heave_scaling
-        roll = (buttons["RB"] - buttons["LB"]) * self.joystick_roll_scaling
-        pitch = axes[
-            "vertical_axis_right_stick"] * self.joystick_pitch_scaling * (-1)
         yaw = axes["horizontal_axis_right_stick"] * self.joystick_yaw_scaling
 
-        dpad_lights = axes["dpad_horizontal"]
-        dpad_gripper = axes["dpad_vertical"]
+        wrench_msg = Wrench()
+        wrench_msg.force.x = surge
+        wrench_msg.force.y = sway
+        wrench_msg.torque.z = yaw
 
-        joystick_msg = Joy()
-        joystick_msg.axes = [
-            surge,
-            sway,
-            heave,
-            roll,
-            pitch,
-            yaw,
-            dpad_lights,
-            dpad_gripper,
-        ]
-
-        self.joystick_pub.publish(joystick_msg)
+        self.force_pub.publish(wrench_msg)
+        self.torque_pub.publish(wrench_msg)
 
 
 if __name__ == "__main__":
 
-    try:
-        joystick_interface = JoystickInterface()
-        rospy.spin()
-
-    except rospy.ROSInterruptException:
-        pass
+    joystick_interface = JoystickInterface()
+    rospy.spin()
