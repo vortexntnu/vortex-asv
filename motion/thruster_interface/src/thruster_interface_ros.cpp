@@ -28,7 +28,8 @@ void ThrusterInterfaceROS::thrustCallback(
   std::vector<int> thruster_map = {0, 1, 2, 3};
   std::vector<int> pwm_offsets = {100, 100, 100, 100};
   for (int i = 0; i < 4; i++) {
-    int pwm_clamped = std::min(std::max(pwm_values[i] + pwm_offsets[i], 1100), 1900);
+    int pwm_clamped =
+        std::min(std::max(pwm_values[i] + pwm_offsets[i], 1100), 1900);
     pwm_msg.positive_width_us.push_back();
     pwm_msg.pins.push_back(thruster_map[i]);
   }
