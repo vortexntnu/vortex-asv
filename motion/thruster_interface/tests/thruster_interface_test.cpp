@@ -104,34 +104,35 @@ int main() {
     return 1;
   }
 
- for (int i = 0; i <= 10; i++){
-  std::cout << i << ": ";
-  float desired_force_thr_1 = 0.0; // 12000 - 250*i;
-  float desired_force_thr_2 = 0.0; //-5000 + 500*i; //12000 - 250*i;
-  float desired_force_thr_3 = 0.0; //-5000 + 500*i; //0.0; //12000 - 250*i;
-  float desired_force_thr_4 = 0.0; //-5000 + 500 * i; // 12000 - 250*i;
+  for (int i = 0; i <= 10; i++) {
+    std::cout << i << ": ";
+    float desired_force_thr_1 = 0.0; // 12000 - 250*i;
+    float desired_force_thr_2 = 0.0; //-5000 + 500*i; //12000 - 250*i;
+    float desired_force_thr_3 = 0.0; //-5000 + 500*i; //0.0; //12000 - 250*i;
+    float desired_force_thr_4 = 0.0; //-5000 + 500 * i; // 12000 - 250*i;
 
-  int pwm_thr_1 = interpolate(pwm_table, desired_force_thr_1);
-  int pwm_thr_2 = interpolate(pwm_table, desired_force_thr_2);
-  int pwm_thr_3 = interpolate(pwm_table, desired_force_thr_3);
-  int pwm_thr_4 = interpolate(pwm_table, desired_force_thr_4);
+    int pwm_thr_1 = interpolate(pwm_table, desired_force_thr_1);
+    int pwm_thr_2 = interpolate(pwm_table, desired_force_thr_2);
+    int pwm_thr_3 = interpolate(pwm_table, desired_force_thr_3);
+    int pwm_thr_4 = interpolate(pwm_table, desired_force_thr_4);
 
-  std::vector<int> pwm_values = {pwm_thr_1, pwm_thr_2, pwm_thr_3, pwm_thr_4};
-  std::vector<uint8_t> pwm_bytes = pwm_to_bytes(pwm_values);
+    std::vector<int> pwm_values = {pwm_thr_1, pwm_thr_2, pwm_thr_3, pwm_thr_4};
+    std::vector<uint8_t> pwm_bytes = pwm_to_bytes(pwm_values);
 
-  int data_size = pwm_bytes.size();
+    int data_size = pwm_bytes.size();
 
-  // Send the I2C message
-  auto write_feedback = write(file, pwm_bytes.data(), data_size);
-  if (write_feedback != data_size) {
-    std::cerr << "Feedback: " << write_feedback << " Data size: " << data_size  << ". Error sending data, ignoring...\n";
+    // Send the I2C message
+    auto write_feedback = write(file, pwm_bytes.data(), data_size);
+    if (write_feedback != data_size) {
+      std::cerr << "Feedback: " << write_feedback << " Data size: " << data_size
+                << ". Error sending data, ignoring...\n";
+    } else {
+      std::cout << "Feedback: " << write_feedback << " Data size: " << data_size
+                << " Data sent successfully!\n";
+    }
+
+    close(file);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
-  else{
-    std::cout << "Feedback: " << write_feedback << " Data size: " << data_size << " Data sent successfully!\n";
-  }
-
-  close(file);
-std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-}
   return 0;
 }

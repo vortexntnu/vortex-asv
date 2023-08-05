@@ -35,4 +35,3 @@ void ThrusterInterfaceROS::thrustCallback(
 
   // thrusterInterface.publish_thrust_to_escs(forces_in_grams);
 }
-

@@ -87,10 +87,10 @@ void ThrusterInterface::publish_thrust_to_escs(std::vector<double> forces) {
   int data_size = pwm_bytes.size();
 
   // DEBUG
-  //for (auto pwm : pwm_values) {
+  // for (auto pwm : pwm_values) {
   //    std::cout << pwm << " ";
   //}
-  //std::cout << std::endl;
+  // std::cout << std::endl;
 
   int file = open(I2C_DEVICE, O_RDWR);
   if (file < 0) {
