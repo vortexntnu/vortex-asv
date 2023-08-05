@@ -4,6 +4,7 @@ import rospy
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Wrench
 
+
 class JoystickInterface:
 
     def __init__(self):
@@ -48,9 +49,13 @@ class JoystickInterface:
                                              Joy,
                                              self.joystick_cb,
                                              queue_size=1)
-        
-        self.force_pub = rospy.Publisher("/thrust/desired_force", Wrench, queue_size=1)
-        self.torque_pub = rospy.Publisher("/thrust/desired_torque", Wrench, queue_size=1)
+
+        self.force_pub = rospy.Publisher("/thrust/desired_force",
+                                         Wrench,
+                                         queue_size=1)
+        self.torque_pub = rospy.Publisher("/thrust/desired_torque",
+                                          Wrench,
+                                          queue_size=1)
 
         rospy.loginfo("Joystick interface is up and running")
 
@@ -81,4 +86,3 @@ if __name__ == "__main__":
 
     joystick_interface = JoystickInterface()
     rospy.spin()
-
