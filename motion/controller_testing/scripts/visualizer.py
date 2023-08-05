@@ -23,7 +23,9 @@ def get_2d_state(state):
     vy = state[7]
     return x, y, psi, vx, vy
 
+
 class VesselVisualizer:
+
     def __init__(self, vessel):
         self.vessel = vessel
 
@@ -39,7 +41,6 @@ class VesselVisualizer:
         
         self.arrow = plt.Arrow(x, y, np.cos(psi), np.sin(psi), width=0.1)
         self.ax_vessel.add_patch(self.arrow)
-
 
         # Initialize the path line
         self.path, = self.ax_vessel.plot(x, y, color="red")
@@ -60,7 +61,7 @@ class VesselVisualizer:
 
     def update(self, frame):
         self.current_time += DT
-        
+
         # Clear the previous arrow
         self.arrow.remove()
 
@@ -130,11 +131,24 @@ class VesselVisualizer:
         self.ax_vx.legend()
         self.ax_vy.legend()
 
+        self.ax_x.set_ylim(
+            min(x_y_data) - y_padding,
+            max(max(x_y_data), pid_controller.setpoint[0]) + y_padding)
+        self.ax_y.set_ylim(
+            min(y_y_data) - y_padding,
+            max(max(y_y_data), pid_controller.setpoint[1]) + y_padding)
+        self.ax_psi.set_ylim(
+            min(psi_y_data) - y_padding,
+            max(max(psi_y_data), pid_controller.setpoint[2]) + y_padding)
 
     def animate(self):
         NUMBER_OF_FRAMES = 2000
         TIME_BETWEEN_FRAMES_MS = 50
-        anim = FuncAnimation(self.fig, self.update, frames=np.arange(0, NUMBER_OF_FRAMES, DT), interval=TIME_BETWEEN_FRAMES_MS, repeat=False)
+        anim = FuncAnimation(self.fig,
+                             self.update,
+                             frames=np.arange(0, NUMBER_OF_FRAMES, DT),
+                             interval=TIME_BETWEEN_FRAMES_MS,
+                             repeat=False)
         plt.show()
 
 
