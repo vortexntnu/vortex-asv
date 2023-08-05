@@ -36,9 +36,9 @@ float ThrusterInterface::interpolate(float force) {
     }
     auto lower_bound = std::prev(upper_bound);
 
-    if (lower_bound == pwm_table.end()) {
-        return upper_bound->second;
-    }
+  if (lower_bound == pwm_table.end()) {
+    return upper_bound->second;
+  }
 
     float force1 = lower_bound->first;
     float force2 = upper_bound->first;
@@ -46,11 +46,12 @@ float ThrusterInterface::interpolate(float force) {
     float pwm1 = lower_bound->second;
     float pwm2 = upper_bound->second;
 
-    if (force1 == force2) {
-        return pwm1;
-    }
+  if (force1 == force2) {
+    return pwm1;
+  }
 
-    return std::round(pwm1 + ((force - force1) * (pwm2 - pwm1)) / (force2 - force1) + 0.5);
+  return std::round(
+      pwm1 + ((force - force1) * (pwm2 - pwm1)) / (force2 - force1) + 0.5);
 }
 
 std::vector<uint8_t> ThrusterInterface::pwm_to_bytes(const std::vector<int> &pwm_values) {
