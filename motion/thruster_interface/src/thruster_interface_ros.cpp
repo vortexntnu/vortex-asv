@@ -8,7 +8,7 @@ ThrusterInterfaceROS::ThrusterInterfaceROS() {
 void ThrusterInterfaceROS::thrustCallback(
     const vortex_msgs::ThrusterForces::ConstPtr &msg) {
   // Convert from Newton to grams
-  double newton_to_gram_conversion_factor = 101.97162;
+  double newton_to_gram_conversion_factor = 1019.7162;
 
   std::vector<double> forces_in_grams = {
       msg->thrust[0] * newton_to_gram_conversion_factor,
