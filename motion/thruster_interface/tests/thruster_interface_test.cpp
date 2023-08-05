@@ -13,9 +13,8 @@
 
 #include <vector>
 
-#include <thread>
 #include <chrono>
-
+#include <thread>
 
 float desired_force = 0;
 
@@ -62,74 +61,71 @@ std::vector<uint8_t> pwm_to_bytes(const std::vector<int> &pwm_values) {
 }
 
 int main() {
-    // Create an empty map
-    std::map<double, double> pwm_table;
+  // Create an empty map
+  std::map<double, double> pwm_table;
 
-    // Open the data file
-    std::ifstream data("../config/ThrustMe_P1000_force_mapping.csv");
-    
-    if (!data.is_open()) {
-        std::cerr << "Unable to open file\n";
-        return 1;
-    }
+  // Open the data file
+  std::ifstream data("../config/ThrustMe_P1000_force_mapping.csv");
 
-    std::string line;
-    // Ignore the header line
-    std::getline(data, line);
+  if (!data.is_open()) {
+    std::cerr << "Unable to open file\n";
+    return 1;
+  }
 
-    while (std::getline(data, line)) {
-        std::istringstream stream(line);
+  std::string line;
+  // Ignore the header line
+  std::getline(data, line);
 
-        std::string force_str, pwm_str;
+  while (std::getline(data, line)) {
+    std::istringstream stream(line);
 
-        std::getline(stream, force_str, '\t');
-        std::getline(stream, pwm_str);
+    std::string force_str, pwm_str;
 
-        double force = std::stod(force_str);
-        double pwm = std::stod(pwm_str);
+    std::getline(stream, force_str, '\t');
+    std::getline(stream, pwm_str);
 
-        pwm_table[force] = pwm;
-    }
+    double force = std::stod(force_str);
+    double pwm = std::stod(pwm_str);
 
-    const int I2C_BUS = 1;
-    const int I2C_ADDRESS = 0x21;
+    pwm_table[force] = pwm;
+  }
 
+  const int I2C_BUS = 1;
+  const int I2C_ADDRESS = 0x21;
 
-    int file = open("/dev/i2c-1", O_RDWR);
-    if (file < 0) {
-        std::cerr << "Error opening device\n";
-        return 1;
-    }
+  int file = open("/dev/i2c-1", O_RDWR);
+  if (file < 0) {
+    std::cerr << "Error opening device\n";
+    return 1;
+  }
 
-    if (ioctl(file, I2C_SLAVE, I2C_ADDRESS) < 0) {
-        std::cerr << "Error setting I2C address\n";
-        return 1;
-    }
+  if (ioctl(file, I2C_SLAVE, I2C_ADDRESS) < 0) {
+    std::cerr << "Error setting I2C address\n";
+    return 1;
+  }
 
+  float desired_force_thr_1 = 0.0; // 12000 - 250*i;
+  float desired_force_thr_2 = 0.0; //-5000 + 500*i; //12000 - 250*i;
+  float desired_force_thr_3 = 0.0; //-5000 + 500*i; //0.0; //12000 - 250*i;
+  float desired_force_thr_4 = -5000 + 500 * i; // 12000 - 250*i;
 
-    float desired_force_thr_1 = 0.0; //12000 - 250*i;
-    float desired_force_thr_2 = 0.0; //-5000 + 500*i; //12000 - 250*i;
-    float desired_force_thr_3 = 0.0;//-5000 + 500*i; //0.0; //12000 - 250*i;
-    float desired_force_thr_4 = -5000 + 500*i; //12000 - 250*i;
+  int pwm_thr_1 = interpolate(pwm_table, desired_force_thr_1);
+  int pwm_thr_2 = interpolate(pwm_table, desired_force_thr_2);
+  int pwm_thr_3 = interpolate(pwm_table, desired_force_thr_3);
+  int pwm_thr_4 = interpolate(pwm_table, desired_force_thr_4);
 
-    int pwm_thr_1 = interpolate(pwm_table, desired_force_thr_1);
-    int pwm_thr_2 = interpolate(pwm_table, desired_force_thr_2);
-    int pwm_thr_3 = interpolate(pwm_table, desired_force_thr_3);
-    int pwm_thr_4 = interpolate(pwm_table, desired_force_thr_4);
+  std::vector<int> pwm_values = {pwm_thr_1, pwm_thr_2, pwm_thr_3, pwm_thr_4};
+  std::vector<uint8_t> pwm_bytes = pwm_to_bytes(pwm_values);
 
-    std::vector<int> pwm_values = {pwm_thr_1, pwm_thr_2, pwm_thr_3, pwm_thr_4};
-    std::vector<uint8_t> pwm_bytes = pwm_to_bytes(pwm_values);
+  int data_size = pwm_bytes.size();
 
-
-    int data_size = pwm_bytes.size();
-
-    // Send the I2C message
-    if (write(file, pwm_bytes.data(), data_size) != data_size) {
+  // Send the I2C message
+  if (write(file, pwm_bytes.data(), data_size) != data_size) {
     std::cerr << "Error sending data\n";
     return 1;
-    }
+  }
 
-    close(file);
+  close(file);
 
-    return 0;
+  return 0;
 }
