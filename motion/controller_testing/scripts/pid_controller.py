@@ -1,5 +1,8 @@
 import numpy as np
 
+def ssa(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
 class PIDController3DOF:
     def __init__(self, Kp, Ki, Kd, setpoint):
         self.Kp = np.array(Kp)
@@ -15,7 +18,11 @@ class PIDController3DOF:
         self.previous_error = np.zeros(3)
 
     def control(self, state, dt):
-        error = self.setpoint - state
+        x_error = self.setpoint[0] - state[0]
+        y_error = self.setpoint[1] - state[1]
+        yaw_error = ssa(self.setpoint[2] - state[2])
+
+        error = np.array((x_error, y_error, yaw_error))
 
         P = np.dot(self.Kp, error)
         self.integral_error += error * dt
