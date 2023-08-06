@@ -50,10 +50,10 @@ class JoystickInterface:
                                              self.joystick_cb,
                                              queue_size=1)
 
-        self.force_pub = rospy.Publisher("/thrust/desired_force",
+        self.force_pub = rospy.Publisher("/thrust/force_input",
                                          Wrench,
                                          queue_size=1)
-        self.torque_pub = rospy.Publisher("/thrust/desired_torque",
+        self.torque_pub = rospy.Publisher("/thrust/torque_input",
                                           Wrench,
                                           queue_size=1)
 
