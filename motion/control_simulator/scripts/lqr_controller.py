@@ -6,7 +6,7 @@ def ssa(angle):
 
 class LQRController:
 
-    def __init__(self, M, D, Q, R, setpoint, actuator_limits=np.inf):
+    def __init__(self, M, D, Q, R, actuator_limits=np.inf):
         """
         An LQR controller based on a simplified mass-damper vessel model
 
@@ -14,7 +14,7 @@ class LQRController:
         """
         self.Q = np.diag(Q)
         self.R = np.diag(R)
-        self.setpoint = np.array(setpoint)
+        self.setpoint = None
         self.M = M
         self.D = D
 
@@ -23,7 +23,15 @@ class LQRController:
 
         self.actuator_limits = actuator_limits
 
+    def set_setpoint(self, setpoint):
+        self.setpoint = setpoint
+
     def control(self, state, dt):
+
+        if self.setpoint is None:
+            print("Setpoint not set! Returning zero tau...")
+            return np.zeros(3)
+        
         state_with_integral = np.concatenate((state, self.integral_states))
 
         A, B = self.linearize(state_with_integral, dt)

@@ -11,7 +11,9 @@ from lqr_controller import LQRController
 import vessel
 
 import rospy
-from geometry_msgs.msg import Wrench
+from geometry_msgs.msg import Point, Quaternion, Twist, Vector3, Wrench
+from nav_msgs.msg import Odometry
+from tf.transformations import quaternion_from_euler
 
 DT = 0.1
 
@@ -35,6 +37,7 @@ class VesselVisualizer:
 
         x, y, psi, vx, vy, vpsi = self.vessel.state
         self.external_control_signal = np.zeros(3)
+        self.u = np.zeros(3)
         self.brownian_motion_state = np.zeros(2)
 
         self.arrow = plt.Arrow(x, y, np.cos(psi), np.sin(psi), width=0.1)
@@ -55,22 +58,35 @@ class VesselVisualizer:
 
         self.current_time = 0.0
 
+        self.odom_pub = rospy.Publisher("/odometry/filtered", Odometry, queue_size=10)
+
     def wrench_callback(self, data):
-        x_scale = 0.1
-        y_scale = 0.1
-        yaw_scale = 0.1
-        self.external_control_signal = np.array((x_scale*data.force.x, y_scale*data.force.y, yaw_scale*data.torque.z))
+        x_scale = 1.0
+        y_scale = 1.0
+        yaw_scale = 1.0
+        self.u = np.array((x_scale*data.force.x, y_scale*data.force.y, yaw_scale*data.torque.z))
 
 
     def update(self, frame):
         self.update_time_and_motion_state()
-        u = lqr_controller.control(self.vessel.state, DT) + self.external_control_signal
 
-        self.vessel.step(DT, u)
+        self.vessel.step(DT, self.u)
         self.update_and_draw_arrow()
         self.update_path_line()
         self.update_and_plot_signals(frame)
         self.update_legends_and_axes(frame)
+
+        odom = Odometry()
+
+        # Assuming self.vessel.state is in the order: [x, y, yaw, vx, vy, vyaw]
+        odom.pose.pose.position = Point(self.vessel.state[0], self.vessel.state[1], 0)
+        quaternion = quaternion_from_euler(0, 0, self.vessel.state[2])
+        odom.pose.pose.orientation = Quaternion(*quaternion)
+        odom.twist.twist = Twist(Vector3(self.vessel.state[3], self.vessel.state[4], 0),
+                                 Vector3(0, 0, self.vessel.state[5]))
+
+        # Publish the message
+        self.odom_pub.publish(odom)
         
 
     def update_time_and_motion_state(self):
@@ -103,7 +119,7 @@ class VesselVisualizer:
             line = getattr(self, f"{signal}_line")
             
             line.set_data(np.append(line.get_xdata(), frame), np.append(line.get_ydata(), data))
-            getattr(self, f"ax_{signal}").axhline(y=lqr_controller.setpoint[i], color='r')
+            getattr(self, f"ax_{signal}").axhline(y=0, color='r')
 
 
     def update_legends_and_axes(self, frame):
@@ -120,7 +136,7 @@ class VesselVisualizer:
             axis.set_xlim(max(0, frame - window_size), frame + 1)
             axis.set_ylim(
                 min(line.get_ydata()) - y_padding,
-                max(max(line.get_ydata()), lqr_controller.setpoint[2]) + y_padding)
+                max(max(line.get_ydata()), 0) + y_padding)
             axis.legend()
 
 
@@ -137,20 +153,33 @@ class VesselVisualizer:
 
 
 if __name__ == '__main__':
+
+    rospy.init_node("vessel_simulator")
     # # Initiate the vessel
-    mass = 20.0
-    damping = 2.0
-    inertia = 1.0
-    simulated_vessel = vessel.Vessel3DOF(mass, damping, inertia)
+    mass = 50.0
+    inertia = 5.0
 
-    setpoint = [1.0, 1.0, np.pi/2, 0, 0, 0]
+    damping_x = 5.0
+    damping_y = 20.0
+    damping_psi = 15.0
 
-    # Define the LQR controller
-    # x, y, psi, u, v, r
-    Q = [10.0, 10.0, 0.1, 0.001, 0.001, 0.001, 1.0, 1.0]  # State cost weights
-    R = [0.01, 0.01, 0.01]  # Control cost weight
-    lqr_controller = LQRController(simulated_vessel.M, simulated_vessel.D, Q, R, setpoint, actuator_limits=150.0)
+
+    # M = mass, mass, inertia
+    # D = damping x, y, yaw
+    M = np.diag([mass, mass, inertia])
+    D = np.diag([damping_x, damping_y, damping_psi])
+    simulated_vessel = vessel.Vessel3DOF(mass, damping_x, damping_y, damping_psi, inertia)
+
+    # setpoint = [1.0, 1.0, np.pi/2, 0, 0, 0]
+
+    # # Define the LQR controller
+    # # x, y, psi, u, v, r
+    # Q = [10.0, 10.0, 0.1, 0.001, 0.001, 0.001, 1.0, 1.0]  # State cost weights
+    # R = [0.01, 0.01, 0.01]  # Control cost weight
+    # lqr_controller = LQRController(simulated_vessel.M, simulated_vessel.D, Q, R, actuator_limits=150.0)
+    # lqr_controller.set_setpoint(setpoint)
 
     # Create a visualizer and animate
     visualizer = VesselVisualizer(simulated_vessel)
     visualizer.animate()
+
