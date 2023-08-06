@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
+</launch>
