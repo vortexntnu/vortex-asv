@@ -1,21 +1,28 @@
 import numpy as np
 
+
 def ssa(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
+
 def RT(yaw):
-    return np.array([
-        [np.cos(yaw), np.sin(yaw), 0],
-        [-np.sin(yaw), np.cos(yaw), 0],
-        [0, 0, 1]
-    ])
+    return np.array([[np.cos(yaw), np.sin(yaw), 0],
+                     [-np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+
 
 def saturation(control, min_value, max_value):
     return np.clip(control, min_value, max_value)
 
+
 class MIMO3DOFNonlinearPID:
 
-    def __init__(self, Kp, Ki, Kd, setpoint, min_output=-np.inf, max_output=np.inf):
+    def __init__(self,
+                 Kp,
+                 Ki,
+                 Kd,
+                 setpoint,
+                 min_output=-np.inf,
+                 max_output=np.inf):
         self.Kp = np.diag(Kp)
         self.Ki = np.diag(Ki)
         self.Kd = np.diag(Kd)
@@ -44,5 +51,3 @@ class MIMO3DOFNonlinearPID:
         self.previous_error = eta_error
 
         return RT(eta[2]) @ self.output
-
-

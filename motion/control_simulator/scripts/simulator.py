@@ -59,25 +59,25 @@ class VesselVisualizer:
         x_scale = 0.1
         y_scale = 0.1
         yaw_scale = 0.1
-        self.external_control_signal = np.array((x_scale*data.force.x, y_scale*data.force.y, yaw_scale*data.torque.z))
-
+        self.external_control_signal = np.array(
+            (x_scale * data.force.x, y_scale * data.force.y,
+             yaw_scale * data.torque.z))
 
     def update(self, frame):
         self.update_time_and_motion_state()
-        u = lqr_controller.control(self.vessel.state, DT) + self.external_control_signal
+        u = lqr_controller.control(self.vessel.state,
+                                   DT) + self.external_control_signal
 
         self.vessel.step(DT, u)
         self.update_and_draw_arrow()
         self.update_path_line()
         self.update_and_plot_signals(frame)
         self.update_legends_and_axes(frame)
-        
 
     def update_time_and_motion_state(self):
         self.current_time += DT
-        self.brownian_motion_state += np.sqrt(DT) * np.random.normal(scale=1.0, size=2)
-
-
+        self.brownian_motion_state += np.sqrt(DT) * np.random.normal(scale=1.0,
+                                                                     size=2)
 
     def update_and_draw_arrow(self):
         self.arrow.remove()
@@ -86,32 +86,38 @@ class VesselVisualizer:
         x, y, psi, vx, vy, vpsi = self.vessel.state
         psi = ssa(psi)
 
-        self.arrow = plt.Arrow(x, y, arrow_length * np.cos(psi), arrow_length * np.sin(psi), width=arrow_width)
+        self.arrow = plt.Arrow(x,
+                               y,
+                               arrow_length * np.cos(psi),
+                               arrow_length * np.sin(psi),
+                               width=arrow_width)
         self.ax_vessel.add_patch(self.arrow)
-
 
     def update_path_line(self):
         old_path = self.path.get_data()
-        new_path = (np.append(old_path[0], self.vessel.state[0]), np.append(old_path[1], self.vessel.state[1]))
+        new_path = (np.append(old_path[0], self.vessel.state[0]),
+                    np.append(old_path[1], self.vessel.state[1]))
         self.path.set_data(new_path)
-
 
     def update_and_plot_signals(self, frame):
         signals = ['x', 'y', 'psi', 'vx', 'vy']
         for i, signal in enumerate(signals):
             data = self.vessel.state[i]
             line = getattr(self, f"{signal}_line")
-            
-            line.set_data(np.append(line.get_xdata(), frame), np.append(line.get_ydata(), data))
-            getattr(self, f"ax_{signal}").axhline(y=lqr_controller.setpoint[i], color='r')
 
+            line.set_data(np.append(line.get_xdata(), frame),
+                          np.append(line.get_ydata(), data))
+            getattr(self, f"ax_{signal}").axhline(y=lqr_controller.setpoint[i],
+                                                  color='r')
 
     def update_legends_and_axes(self, frame):
         signals = ['x', 'y', 'psi', 'vx', 'vy']
-        labels = ['North', 'East', 'Heading', 'Surge Velocity', 'Sway Velocity']
+        labels = [
+            'North', 'East', 'Heading', 'Surge Velocity', 'Sway Velocity'
+        ]
         y_padding = 0.25
         window_size = 500
-        
+
         for signal, label in zip(signals, labels):
             line = getattr(self, f"{signal}_line")
             axis = getattr(self, f"ax_{signal}")
@@ -120,10 +126,9 @@ class VesselVisualizer:
             axis.set_xlim(max(0, frame - window_size), frame + 1)
             axis.set_ylim(
                 min(line.get_ydata()) - y_padding,
-                max(max(line.get_ydata()), lqr_controller.setpoint[2]) + y_padding)
+                max(max(line.get_ydata()), lqr_controller.setpoint[2]) +
+                y_padding)
             axis.legend()
-
-
 
     def animate(self):
         NUMBER_OF_FRAMES = 2000
@@ -143,13 +148,18 @@ if __name__ == '__main__':
     inertia = 1.0
     simulated_vessel = vessel.Vessel3DOF(mass, damping, inertia)
 
-    setpoint = [1.0, 1.0, np.pi/2, 0, 0, 0]
+    setpoint = [1.0, 1.0, np.pi / 2, 0, 0, 0]
 
     # Define the LQR controller
     # x, y, psi, u, v, r
     Q = [10.0, 10.0, 0.1, 0.001, 0.001, 0.001, 1.0, 1.0]  # State cost weights
     R = [0.01, 0.01, 0.01]  # Control cost weight
-    lqr_controller = LQRController(simulated_vessel.M, simulated_vessel.D, Q, R, setpoint, actuator_limits=150.0)
+    lqr_controller = LQRController(simulated_vessel.M,
+                                   simulated_vessel.D,
+                                   Q,
+                                   R,
+                                   setpoint,
+                                   actuator_limits=150.0)
 
     # Create a visualizer and animate
     visualizer = VesselVisualizer(simulated_vessel)
