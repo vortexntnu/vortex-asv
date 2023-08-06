@@ -33,7 +33,7 @@ class LQRController:
         if self.setpoint is None:
             print("Setpoint not set! Returning zero tau...")
             return np.zeros(3)
-        
+
         state_with_integral = np.concatenate((state, self.integral_states))
 
         A, B = self.linearize(state_with_integral, dt)

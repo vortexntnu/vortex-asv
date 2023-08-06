@@ -2,6 +2,7 @@
 
 import numpy as np
 
+
 class Vessel3DOF:
 
     def __init__(self, mass, damping_x, damping_y, damping_psi, inertia):

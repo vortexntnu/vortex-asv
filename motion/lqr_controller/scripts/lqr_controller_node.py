@@ -11,8 +11,6 @@ from tf.transformations import euler_from_quaternion
 from lqr_controller import LQRController
 
 
-
-
 class LQRControllerNode:
 
     def __init__(self):
@@ -27,14 +25,14 @@ class LQRControllerNode:
         damping_y = 20.0
         damping_psi = 15.0
 
-
         # M = mass, mass, inertia
         # D = damping x, y, yaw
         M = np.diag([mass, mass, inertia])
         D = np.diag([damping_x, damping_y, damping_psi])
 
         # State vector is : [x, y, psi, u, v, r]
-        Q = [10.0, 10.0, 0.1, 0.001, 0.001, 0.001, 1.0, 1.0]  # State cost weights
+        Q = [10.0, 10.0, 0.1, 0.001, 0.001, 0.001, 1.0,
+             1.0]  # State cost weights
         R = [0.01, 0.01, 0.01]  # Control cost weight
 
         self.setpoints = np.zeros(6)
@@ -45,12 +43,16 @@ class LQRControllerNode:
         self.lqr_controller.set_setpoint(self.setpoints)
 
         # Whenever a state input is received, publish a control force
-        rospy.Subscriber("/odometry/filtered", Odometry, self.odometry_callback)
+        rospy.Subscriber("/odometry/filtered", Odometry,
+                         self.odometry_callback)
 
         rospy.Subscriber("/controller/lqr/enable", Bool, self.enable_callback)
-        rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray, self.setpoint_callback)
+        rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
+                         self.setpoint_callback)
 
-        self.tau_pub = rospy.Publisher("/thrust/force_input", Wrench, queue_size=10)
+        self.tau_pub = rospy.Publisher("/thrust/force_input",
+                                       Wrench,
+                                       queue_size=10)
 
         self.last_time = rospy.get_time()
 
@@ -62,15 +64,17 @@ class LQRControllerNode:
     def setpoint_callback(self, msg):
         number_of_setpoints = len(msg.data)
         if number_of_setpoints != 6:
-            rospy.logwarn(f"LQR setpoints must be an array of 6 elements, received {number_of_setpoints}. Setpoints not updated...") 
+            rospy.logwarn(
+                f"LQR setpoints must be an array of 6 elements, received {number_of_setpoints}. Setpoints not updated..."
+            )
             return
-        
+
         rospy.loginfo(f"Setting LQR setpoints to: {msg.data}")
         self.lqr_controller.set_setpoint(msg.data)
         rospy.loginfo(self.lqr_controller.setpoint)
-        
+
     def odometry_callback(self, msg):
-        
+
         if not self.do_publish_tau:
             return
 
@@ -80,7 +84,9 @@ class LQRControllerNode:
 
         # Extract the orientation quaternion
         orientation_q = msg.pose.pose.orientation
-        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        orientation_list = [
+            orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w
+        ]
 
         # Convert quaternion to Euler angles
         (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
@@ -111,8 +117,6 @@ class LQRControllerNode:
 
         # You can then publish this Wrench message
         self.tau_pub.publish(wrench)
-        
-
 
 
 if __name__ == "__main__":
@@ -120,6 +124,3 @@ if __name__ == "__main__":
     lqr_controller = LQRControllerNode()
 
     rospy.spin()
-
-
-
