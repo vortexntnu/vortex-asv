@@ -18,6 +18,7 @@ class Waypoint:
     east: float
     heading: float
 
+
 class LQRGuidanceROS:
 
     def __init__(self):
@@ -29,15 +30,17 @@ class LQRGuidanceROS:
         # Subscriptions
         rospy.Subscriber("/odometry/filtered", Odometry,
                          self.odometry_callback)
-        rospy.Subscriber("/guidance/lqr/clear_waypoints", Empty, 
+        rospy.Subscriber("/guidance/lqr/clear_waypoints", Empty,
                          self.clear_waypoints_callback)
-        rospy.Subscriber("/guidance/lqr/add_waypoint", Point, 
+        rospy.Subscriber("/guidance/lqr/add_waypoint", Point,
                          self.add_waypoint_callback)
 
         # Publishers
-        self.setpoint_pub = rospy.Publisher("/controller/lqr/setpoints", 
-                                            Float64MultiArray, queue_size=10)
-        self.enable_pub = rospy.Publisher("/controller/lqr/enable", Bool, 
+        self.setpoint_pub = rospy.Publisher("/controller/lqr/setpoints",
+                                            Float64MultiArray,
+                                            queue_size=10)
+        self.enable_pub = rospy.Publisher("/controller/lqr/enable",
+                                          Bool,
                                           queue_size=10)
 
     def odometry_callback(self, data):
@@ -47,7 +50,8 @@ class LQRGuidanceROS:
             dx = data.pose.pose.position.x - waypoint.north
             dy = data.pose.pose.position.y - waypoint.east
             if np.hypot(dx, dy) < CONVERGENCE_RADIUS:
-                rospy.loginfo(f"Reached waypoint {self.current_waypoint_index}")
+                rospy.loginfo(
+                    f"Reached waypoint {self.current_waypoint_index}")
                 self.send_waypoint(self.current_waypoint_index + 1)
 
     def publish_setpoint(self, waypoint):

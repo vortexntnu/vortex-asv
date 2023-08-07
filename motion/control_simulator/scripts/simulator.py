@@ -26,7 +26,7 @@ class VesselVisualizer:
 
         rospy.Subscriber("/thrust/force_input", Wrench, self.wrench_callback)
         rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
-                    self.setpoint_callback)
+                         self.setpoint_callback)
         self.vessel = vessel
 
         self.fig, self.axes = plt.subplots(nrows=3, ncols=2, figsize=(10, 10))
@@ -42,14 +42,17 @@ class VesselVisualizer:
         self.u = np.zeros(3)
         self.brownian_motion_state = np.zeros(2)
 
-        psi_north = psi + np.pi/2
+        psi_north = psi + np.pi / 2
 
-        self.arrow = plt.Arrow(x, y, np.cos(psi_north), np.sin(psi_north), width=0.1)
+        self.arrow = plt.Arrow(x,
+                               y,
+                               np.cos(psi_north),
+                               np.sin(psi_north),
+                               width=0.1)
         self.ax_vessel.add_patch(self.arrow)
 
         # Initialize the path line
         self.path, = self.ax_vessel.plot(x, y, color="red")
-
 
         self.setpoints = np.zeros(6)
         self.sp_x_line, = self.ax_x.plot(0, self.setpoints[0], color="r")
@@ -57,7 +60,7 @@ class VesselVisualizer:
         self.sp_psi_line, = self.ax_psi.plot(0, self.setpoints[2], color="r")
         self.sp_vx_line, = self.ax_vx.plot(0, self.setpoints[3], color="r")
         self.sp_vy_line, = self.ax_vy.plot(0, self.setpoints[4], color="r")
-        
+
         self.window_size = 50
 
         self.ax_vessel.set_xlim(-5, 5)
@@ -75,7 +78,7 @@ class VesselVisualizer:
         self.odom_pub = rospy.Publisher("/odometry/filtered",
                                         Odometry,
                                         queue_size=10)
-        
+
     def setpoint_callback(self, msg):
         #rospy.loginfo(f"Simulator received setpoints: {msg.data}")
         number_of_setpoints = len(msg.data)
@@ -126,8 +129,7 @@ class VesselVisualizer:
         x, y, psi, vx, vy, vpsi = self.vessel.state
         psi = ssa(psi)
 
-
-        psi_north = ssa(-psi + np.pi/2)
+        psi_north = ssa(-psi + np.pi / 2)
         self.arrow = plt.Arrow(y,
                                x,
                                arrow_length * np.cos(psi_north),
@@ -138,8 +140,10 @@ class VesselVisualizer:
     def update_path_line(self):
         window_size = 1000
         old_path = self.path.get_data()
-        new_path = (np.append(old_path[0][-window_size:], self.vessel.state[1]),
-                    np.append(old_path[1][-window_size:], self.vessel.state[0]))
+        new_path = (np.append(old_path[0][-window_size:],
+                              self.vessel.state[1]),
+                    np.append(old_path[1][-window_size:],
+                              self.vessel.state[0]))
         self.path.set_data(new_path)
 
     def update_and_plot_signals(self, frame):
@@ -160,13 +164,17 @@ class VesselVisualizer:
 
             # Update the setpoint line with new data point
             sp_line = getattr(self, f"sp_{signal}_line")
-            sp_x_data = np.append(sp_line.get_xdata()[-self.window_size:], frame)
-            sp_y_data = np.append(sp_line.get_ydata()[-self.window_size:], setpoint)
+            sp_x_data = np.append(sp_line.get_xdata()[-self.window_size:],
+                                  frame)
+            sp_y_data = np.append(sp_line.get_ydata()[-self.window_size:],
+                                  setpoint)
             sp_line.set_data(sp_x_data, sp_y_data)
 
     def update_legends_and_axes(self, frame):
         signals = ['x', 'y', 'psi', 'vx', 'vy']
-        labels = ['North', 'East', 'Heading', 'Surge Velocity', 'Sway Velocity']
+        labels = [
+            'North', 'East', 'Heading', 'Surge Velocity', 'Sway Velocity'
+        ]
         y_padding = 0.25
 
         self.ax_vessel.set_ylabel("North [m]")
@@ -179,13 +187,12 @@ class VesselVisualizer:
             line.set_label(label)
 
             axis.set_xlim(min(line.get_xdata()), max(line.get_xdata()))
-            
+
             axis.set_ylim(
                 min(min(line.get_ydata()), self.setpoints[i]) - y_padding,
                 max(max(line.get_ydata()), self.setpoints[i]) + y_padding)
-            
-            axis.legend()
 
+            axis.legend()
 
     def animate(self):
         NUMBER_OF_FRAMES = 2000
