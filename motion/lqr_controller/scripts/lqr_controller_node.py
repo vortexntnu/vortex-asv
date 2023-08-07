@@ -31,7 +31,7 @@ class LQRControllerNode:
         D = np.diag([damping_x, damping_y, damping_psi])
 
         # State vector is : [x, y, psi, u, v, r]
-        Q = [10.0, 10.0, 0.1, 0.001, 0.001, 0.001, 1.0,
+        Q = [10.0, 10.0, 1.0, 0.001, 0.001, 0.001, 1.0,
              1.0]  # State cost weights
         R = [0.01, 0.01, 0.01]  # Control cost weight
 
@@ -71,7 +71,6 @@ class LQRControllerNode:
 
         rospy.loginfo(f"Setting LQR setpoints to: {msg.data}")
         self.lqr_controller.set_setpoint(msg.data)
-        rospy.loginfo(self.lqr_controller.setpoint)
 
     def odometry_callback(self, msg):
 

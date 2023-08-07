@@ -77,7 +77,7 @@ class VesselVisualizer:
                                         queue_size=10)
         
     def setpoint_callback(self, msg):
-        rospy.loginfo(f"Simulator received setpoints: {msg.data}")
+        #rospy.loginfo(f"Simulator received setpoints: {msg.data}")
         number_of_setpoints = len(msg.data)
         if number_of_setpoints != 6:
             return
@@ -93,7 +93,7 @@ class VesselVisualizer:
 
     def update(self, frame):
         self.update_time_and_motion_state()
-
+        #random_external_noise = np.append(self.brownian_motion_state, 0.0)
         self.vessel.step(DT, self.u)
         self.update_and_draw_arrow()
         self.update_path_line()
@@ -127,7 +127,7 @@ class VesselVisualizer:
         psi = ssa(psi)
 
 
-        psi_north = ssa(psi + np.pi/2)
+        psi_north = ssa(-psi + np.pi/2)
         self.arrow = plt.Arrow(y,
                                x,
                                arrow_length * np.cos(psi_north),
@@ -136,15 +136,18 @@ class VesselVisualizer:
         self.ax_vessel.add_patch(self.arrow)
 
     def update_path_line(self):
+        window_size = 1000
         old_path = self.path.get_data()
-        new_path = (np.append(old_path[0][-self.window_size:], self.vessel.state[1]),
-                    np.append(old_path[1][-self.window_size:], self.vessel.state[0]))
+        new_path = (np.append(old_path[0][-window_size:], self.vessel.state[1]),
+                    np.append(old_path[1][-window_size:], self.vessel.state[0]))
         self.path.set_data(new_path)
 
     def update_and_plot_signals(self, frame):
         signals = ['x', 'y', 'psi', 'vx', 'vy']
         for i, signal in enumerate(signals):
             data = self.vessel.state[i]
+            if signal == "psi":
+                data = ssa(data)
             line = getattr(self, f"{signal}_line")
 
             # append the new data point and only keep the last 'self.window_size' points
