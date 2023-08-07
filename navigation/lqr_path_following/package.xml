@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>lqr_guidance</name>
+  <name>lqr_path_following</name>
   <version>0.0.0</version>
-  <description>The lqr_guidance package</description>
+  <description>The lqr_path_following package</description>
 
   <maintainer email="detoxte@gmail.com">Christopher Strøm</maintainer>
 

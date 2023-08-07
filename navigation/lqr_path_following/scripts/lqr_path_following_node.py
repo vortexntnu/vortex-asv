@@ -10,9 +10,9 @@ import numpy as np
 CONVERGENCE_RADIUS = 0.25  # the radius of convergence in x-y
 CONVERGENCE_ANGLE = np.pi / 8  # the convergence range for heading in radians
 
+# TODO: Add option to set path-dependent heading
 
 @dataclass
-# TODO: Add heading
 class Waypoint:
     north: float
     east: float
