@@ -11,15 +11,23 @@
     <rosparam command="load" file="$(find asv_setup)/config/robots/temp_config.yaml"/>
     <rosparam command="load" file="$(find asv_setup)/config/topics.yaml"/>
 
-    <group if="$(eval type == 'real')">
-    <!-- Put drivers here -->
-    </group>
-    
-    <!-- Remap ground truth from heron simulator-->
-    <!-- <remap from="/pose_gt" to="/odometry/filtered"/> -->
 
-    <!-- INCLUDES-->
-    <include file="$(find motion_launch)/launch/motion.launch"              pass_all_args="true"/>
-    <include file="$(find navigation_launch)/launch/navigation.launch"      pass_all_args="true"/>
+    <!-- Sensors -->
+    <!-- TODO: Seapath interface launch -->
+
+
+    <!-- Mission -->
+    <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/>
+
+
+    <!-- Motion -->
+    <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
+
+    <node pkg="thruster_allocator"  type="thruster_allocator_node" name="allocator"  output="screen"/>
+
+    <node pkg="thruster_interface"  type="thruster_interface_node" name="thruster_interface_node"  output="screen"/>
+
+    <!-- Navigation -->
+    <node pkg="lqr_path_following" type="lqr_path_following_node.py" name="lqr_path_following" output="screen" />
 
 </launch>

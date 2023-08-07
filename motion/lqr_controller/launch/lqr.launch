@@ -6,5 +6,5 @@
   <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
 
   <!-- Run the LQR guidance node -->
-  <node pkg="lqr_guidance" type="lqr_guidance_node.py" name="lqr_guidance_node" output="screen" />
+  <node pkg="lqr_path_following" type="lqr_path_following_node.py" name="lqr_path_following" output="screen" />
 </launch>
