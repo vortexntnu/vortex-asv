@@ -12,6 +12,7 @@ CONVERGENCE_ANGLE = np.pi / 8  # the convergence range for heading in radians
 
 # TODO: Add option to set path-dependent heading
 
+
 @dataclass
 class Waypoint:
     north: float
