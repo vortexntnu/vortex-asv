@@ -96,8 +96,8 @@ class VesselVisualizer:
 
     def update(self, frame):
         self.update_time_and_motion_state()
-        #random_external_noise = np.append(self.brownian_motion_state, 0.0)
-        self.vessel.step(DT, self.u)
+        random_external_noise = np.append(self.brownian_motion_state, 0.0)
+        self.vessel.step(DT, self.u + random_external_noise)
         self.update_and_draw_arrow()
         self.update_path_line()
         self.update_and_plot_signals(frame)
