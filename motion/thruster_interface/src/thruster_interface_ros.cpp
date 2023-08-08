@@ -25,13 +25,13 @@ void ThrusterInterfaceROS::thrustCallback(
 
   vortex_msgs::Pwm pwm_msg;
   // TODO: Get mapping and offsets from rosparam
-  std::vector<int> thruster_map = {0, 1, 2, 3};
+  std::vector<int> thruster_to_pin_map = {1, 3, 2, 0};
   std::vector<int> pwm_offsets = {100, 100, 100, 100};
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) { // Iterates through thruster 0 to 3, where 0 is front right, iterated clockwise
     int pwm_clamped =
         std::min(std::max(pwm_values[i] + pwm_offsets[i], 1100), 1900);
     pwm_msg.positive_width_us.push_back(pwm_clamped);
-    pwm_msg.pins.push_back(thruster_map[i]);
+    pwm_msg.pins.push_back(thruster_to_pin_map[i]);
   }
 
   pwm_pub.publish(pwm_msg);
