@@ -7,11 +7,6 @@ from geometry_msgs.msg import Point
 import rospy
 import numpy as np
 
-CONVERGENCE_RADIUS = 0.25  # the radius of convergence in x-y
-CONVERGENCE_ANGLE = np.pi / 4  # the convergence range for heading in radians
-
-
-
 @dataclass
 class Waypoint:
     north: float
@@ -23,14 +18,17 @@ class LQRGuidanceROS:
     def __init__(self):
         rospy.init_node("lqr_guidance")
 
+        self.interpolation_step_size = rospy.get_param("lqr_guidance/interpolation_step_size", 1.0)
+        
+        self.convergence_radius = rospy.get_param("lqr_guidance/convergence/radius", 0.25)
+        self.convergence_angle = rospy.get_param("lqr_guidance/convergence/angle", np.pi / 4)
+
+        self.use_path_dependent_heading = rospy.get_param("lqr_guidance/use_path_dependent_heading", True)
+        self.do_debug_print = rospy.get_param("lqr_guidance/debug/print", False)
+
         self.waypoints = []
         self.current_waypoint_index = None
-        self.INTERPOLATION_STEP_SIZE = 1.0
-
         self.current_pose = np.zeros(3)
-
-        self.use_path_dependent_heading = True
-        self.do_debug_print = False
 
         rospy.Subscriber("/odometry/filtered", Odometry,
                          self.odometry_callback)
@@ -73,8 +71,7 @@ class LQRGuidanceROS:
             dx = position.x - waypoint.north
             dy = position.y - waypoint.east
             dyaw = np.abs(self.ssa(waypoint.heading - yaw))
-            # TODO: Check for converged heading!
-            if np.hypot(dx, dy) < CONVERGENCE_RADIUS and dyaw < CONVERGENCE_ANGLE:
+            if np.hypot(dx, dy) < convergence_radius and dyaw < convergence_angle:
                 if self.do_debug_print:
                     rospy.loginfo(
                         f"Reached waypoint {self.current_waypoint_index}")
@@ -130,7 +127,7 @@ class LQRGuidanceROS:
         distance = np.hypot(dx, dy)
 
         num_intermediate_points = int(
-            np.ceil(distance / self.INTERPOLATION_STEP_SIZE))
+            np.ceil(distance / self.interpolation_step_size))
         
         if self.use_path_dependent_heading:
             heading = np.arctan2(dy, dx)
