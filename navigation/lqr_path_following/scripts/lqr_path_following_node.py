@@ -36,6 +36,7 @@ class LQRGuidanceROS:
                          self.clear_waypoints_callback)
         rospy.Subscriber("/guidance/lqr/add_waypoint", Point,
                          self.add_waypoint_callback)
+        rospy.Subscriber("/guidance/lqr/toggle_path_dependent_heading", Bool, self.toggle_path_dependent_heading)
 
         self.setpoint_pub = rospy.Publisher("/controller/lqr/setpoints",
                                             Float64MultiArray,
@@ -71,7 +72,7 @@ class LQRGuidanceROS:
             dx = position.x - waypoint.north
             dy = position.y - waypoint.east
             dyaw = np.abs(self.ssa(waypoint.heading - yaw))
-            if np.hypot(dx, dy) < convergence_radius and dyaw < convergence_angle:
+            if np.hypot(dx, dy) < self.convergence_radius and dyaw < self.convergence_angle:
                 if self.do_debug_print:
                     rospy.loginfo(
                         f"Reached waypoint {self.current_waypoint_index}")
@@ -143,6 +144,9 @@ class LQRGuidanceROS:
                 heading
             )
             self.waypoints.append(intermediate_point)
+
+    def toggle_path_dependent_heading(self, msg):
+        self.use_path_dependent_heading = msg.data
 
 
 
