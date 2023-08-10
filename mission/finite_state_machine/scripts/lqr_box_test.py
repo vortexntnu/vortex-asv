@@ -8,6 +8,8 @@ import rospy
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Point
 
+from lqr_interface import LQRInterface
+
 
 @dataclass
 # TODO: Add heading
@@ -24,10 +26,8 @@ class LQRControllerBoxTest:
     def __init__(self):
         rospy.init_node("lqr_box_path_generator")
 
-        self.add_waypoint_publisher = rospy.Publisher(
-            "/guidance/lqr/add_waypoint", Point, queue_size=10)
-        self.enable_controller_publisher = rospy.Publisher(
-            "/controller/lqr/enable", Bool, queue_size=10)
+        self.lqr_interface = LQRInterface()
+
 
         north = 3
         east = 3
@@ -59,10 +59,10 @@ class LQRControllerBoxTest:
 
         # Interpolate and publish waypoints
         for waypoint in waypoints:
-            self.add_waypoint_publisher.publish(waypoint)
+            self.lqr_interface.add_point(waypoint)
             rospy.sleep(0.1)
 
-        self.enable_controller_publisher.publish(Bool(True))
+        self.lqr_interface.turn_on_controller()
 
 
 if __name__ == "__main__":
