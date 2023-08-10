@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-from pid_controller import ssa
 from std_msgs.msg import Float64MultiArray
 
 import vessel
@@ -17,6 +16,8 @@ from tf.transformations import quaternion_from_euler
 
 DT = 0.1
 
+def ssa(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
 
 class VesselVisualizer:
 
