@@ -10,6 +10,6 @@
   <rosparam file="$(find lqr_path_following)/params/config.yaml" command="load" />
   <node pkg="lqr_path_following" type="lqr_path_following_node.py" name="lqr_path_following" output="screen" />
 
-  <node pkg="finite_state_machine" type="lqr_dp_test.py" name="lqr_box_test" output="screen"/>
+  <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/>
 
 </launch>
