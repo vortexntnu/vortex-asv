@@ -30,7 +30,7 @@ class LQRControllerNode:
         M = np.diag([mass, mass, inertia])
         D = np.diag([damping_x, damping_y, damping_psi])
 
-        # State vector is : [x, y, psi, u, v, r]
+        # State vector is : [x, y, psi, u, v, r, integral_x, integral,y]
         Q = [10.0, 10.0, 1.0, 0.001, 0.001, 0.001, 1.0,
              1.0]  # State cost weights
         R = [0.01, 0.01, 0.01]  # Control cost weight

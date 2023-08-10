@@ -38,7 +38,6 @@ class LQRControllerBoxTest:
 
     def generate_and_publish_box(self, north, east):
         waypoints = [
-            Point(0.0, 0.0, 0.0),  # Starting position
             Point(north, east, -np.pi / 2),  # top_right
             Point(north, -east, -np.pi),  # top_left
             Point(-north, -east, np.pi / 2),  # bottom_left
@@ -59,31 +58,11 @@ class LQRControllerBoxTest:
         ]
 
         # Interpolate and publish waypoints
-        for i in range(len(waypoints) - 1):
-            self.interpolate_and_publish(waypoints[i], waypoints[i + 1])
+        for waypoint in waypoints:
+            self.add_waypoint_publisher.publish(waypoint)
+            rospy.sleep(0.1)
 
-        rospy.sleep(1.0)
         self.enable_controller_publisher.publish(Bool(True))
-
-    def interpolate_and_publish(self, waypoint1, waypoint2):
-        """Interpolate between two waypoints and publish them."""
-        dx = waypoint2.x - waypoint1.x
-        dy = waypoint2.y - waypoint1.y
-        distance = np.hypot(dx, dy)
-
-        num_intermediate_points = int(
-            np.ceil(distance / INTERPOLATION_STEP_SIZE))
-
-        for i in range(num_intermediate_points +
-                       1):  # +1 to include the endpoint
-            ratio = i / num_intermediate_points  # this will be 1 for the endpoint
-            intermediate_point = Point(
-                waypoint1.x + ratio * dx,
-                waypoint1.y + ratio * dy,
-                waypoint1.z  # assuming constant heading
-            )
-            self.add_waypoint_publisher.publish(intermediate_point)
-            rospy.sleep(0.01)  # you can adjust this delay as necessary
 
 
 if __name__ == "__main__":
