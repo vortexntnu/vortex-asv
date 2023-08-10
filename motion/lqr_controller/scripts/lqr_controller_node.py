@@ -23,10 +23,11 @@ class LQRControllerNode:
         damping_y = rospy.get_param("lqr_controller/damping/y", 20.0)
         damping_psi = rospy.get_param("lqr_controller/damping/psi", 15.0)
 
-        Q = rospy.get_param("lqr_controller/Q", [10.0, 10.0, 1.0, 0.001, 0.001, 0.001, 1.0, 1.0])
+        Q = rospy.get_param("lqr_controller/Q",
+                            [10.0, 10.0, 1.0, 0.001, 0.001, 0.001, 1.0, 1.0])
         R = rospy.get_param("lqr_controller/R", [0.01, 0.01, 0.01])
 
-        M = np.diag([mass, mass, inertia]) 
+        M = np.diag([mass, mass, inertia])
         D = np.diag([damping_x, damping_y, damping_psi])
 
         self.setpoints = np.zeros(6)

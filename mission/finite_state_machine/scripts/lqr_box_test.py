@@ -28,7 +28,6 @@ class LQRControllerBoxTest:
 
         self.lqr_interface = LQRInterface()
 
-
         north = 3
         east = 3
 
