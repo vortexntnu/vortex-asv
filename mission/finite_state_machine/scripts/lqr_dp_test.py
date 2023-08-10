@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 """
 DP mode requires that you set a point, and that you turn off path-dependent heading
 """
@@ -7,6 +6,7 @@ DP mode requires that you set a point, and that you turn off path-dependent head
 import rospy
 from geometry_msgs.msg import Point
 from lqr_interface import LQRInterface
+
 
 class LQRControllerDPTest:
 

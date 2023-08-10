@@ -16,8 +16,10 @@ from tf.transformations import quaternion_from_euler
 
 DT = 0.1
 
+
 def ssa(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
+
 
 class VesselVisualizer:
 
