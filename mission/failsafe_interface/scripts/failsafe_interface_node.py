@@ -3,42 +3,58 @@
 import rospy
 
 from std_msgs.msg import String
+import RPi._GPIO as GPIO
 
-from gpio_functions import *
+#from gpio_functions import *
 
 
 class FailSafeInterface(object):
     def __init__(
         self,
     ):
+        GPIO.setmode(GPIO.BOARD)
         # Fetch the pin numbers from the ASV.yaml file
         self.gpioSoftWareKillSwitch = rospy.get_param(
             "/failsafe/gpio/gpioSoftWareKillSwitch"
         )
         # Initialize the pin
-        init_pin(self.gpioSoftWareKillSwitch)
+        GPIO.setmode(self.gpioSoftWareKillSwitch, GPIO.OUT)
+        #init_pin(self.gpioSoftWareKillSwitch)
+
         
         #Repeat process for the other pins
         self.gpioSoftWareOperationMode = rospy.get_param(
             "/failsafe/gpio/gpioSoftWareOperationMode"
         )
-        init_pin(self.gpioSoftWareOperationMode)
+        
+        GPIO.setmode(self.gpioSoftWareOperationMode, GPIO.OUT)
+
+        #init_pin(self.gpioSoftWareOperationMode)
+
         
         #Repeat process for the other pins
         self.gpioFailSafeStatus = rospy.get_param("/failsafe/gpio/gpioFailSafeStatus")
-        init_pin(self.gpioFailSafeStatus)
+        GPIO.setmode(self.gpioFailSafeStatus, GPIO.IN)
+
+        #init_pin(self.softWareOperationMode)
+
         
         #Repeat process for the other pins
         self.gpioHardWareOperationMode = rospy.get_param(
             "/failsafe/gpio/gpioHardWareOperationMode"
         )
-        init_pin(self.gpioHardWareOperationMode)
+
+        
+        GPIO.setmode(self.gpioHardWareOperationMode, GPIO.IN)
+        #init_pin(self.gpioFailSafeStatus)
+
 
         # Fetch topics
         topicFailSafeStatus = rospy.get_param("/failsafe/publishers/failSafeStatus")
         topicHardWareOperationMode = rospy.get_param(
             "/failsafe/publishers/hardwareOperationMode"
         )
+
         topicSoftWareKillSwitch = rospy.get_param(
             "/failsafe/subscribers/softWareKillSwitch"
         )
@@ -48,11 +64,11 @@ class FailSafeInterface(object):
         )
 
         # Set pins as inputs or outputs
-        set_pin_as_output(self.gpioSoftWareKillSwitch)
-        set_pin_as_output(self.gpioSoftWareOperationMode)
+        #set_pin_as_output(self.gpioSoftWareKillSwitch)
+        #set_pin_as_output(self.gpioSoftWareOperationMode)
 
-        set_pin_as_input(self.gpioFailSafeStatus)
-        set_pin_as_input(self.gpioHardWareOperationMode)
+        #set_pin_as_input(self.gpioFailSafeStatus)
+        #set_pin_as_input(self.gpioHardWareOperationMode)
         
         #Create publisher for the hardware fail safe
         self.pubFailSafeStatus = rospy.Publisher(
@@ -76,8 +92,10 @@ class FailSafeInterface(object):
 
     def readPins(self):
         # Read the pins
-        self.failSafeStatus = pin_read(self.gpioFailSafeStatus)
-        self.hardWareOperationMode = pin_read(self.gpioHardWareOperationMode)
+        self.failSafeStatus = GPIO.read(self.gpioFailSafeStatus)
+        self.hardwareOperationMode = GPIO.read(self.gpioHardWareOperationMode)
+        #self.failSafeStatus = pin_read(self.gpioFailSafeStatus)
+        #self.hardWareOperationMode = pin_read(self.gpioHardWareOperationMode)
 
         # Publish accordingly, need to make it into a string
         self.pubFailSafeStatus.publish(str(self.failSafeStatus))
@@ -88,12 +106,14 @@ class FailSafeInterface(object):
     # Output software kill switch through pin
     def writeSoftwareKillSwitch(self, message):
         self.softWareKillSwitch = message.data
-        pin_write(self.gpioSoftWareKillSwitch, self.softWareKillSwitch)
+        GPIO.out(self.gpioSoftWareKillSwitch, self.softWareKillSwitch)
+        #pin_write(self.gpioSoftWareKillSwitch, self.softWareKillSwitch)
 
     # Output software operation mode through pin
     def writeSoftwareOperationMode(self, message):
         self.softWareOperationMode = message.data
-        pin_write(self.gpioSoftWareOperationMode, self.softWareOperationMode)
+        GPIO.out(self.gpioSoftWareOperationMode, self.softWareOperationMode)
+        #pin_write(self.gpioSoftWareOperationMode, self.softWareOperationMode)
 
 
 def FailSafeNodeSetup():
