@@ -31,7 +31,7 @@ class VesselVisualizer:
         rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
                          self.setpoint_callback)
         rospy.Subscriber("/guidance/lqr/add_waypoint", Point,
-                    self.add_waypoint_callback)
+                         self.add_waypoint_callback)
         self.vessel = vessel
 
         self.fig, self.axes = plt.subplots(nrows=3, ncols=2, figsize=(10, 10))
@@ -90,9 +90,9 @@ class VesselVisualizer:
         """
         north = msg.x
         east = msg.y
-        self.ax_vessel.plot(east, north, 'rx')  # Plotting the waypoint as a red cross
+        self.ax_vessel.plot(east, north,
+                            'rx')  # Plotting the waypoint as a red cross
 
-    
     def setpoint_callback(self, msg):
         #rospy.loginfo(f"Simulator received setpoints: {msg.data}")
         number_of_setpoints = len(msg.data)
