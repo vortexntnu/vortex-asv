@@ -27,7 +27,6 @@ class FailSafeInterface(object):
 
         self.gpioSoftWareOperationMode = 18
 
-
         #Repeat process for the other pins
         #self.gpioSoftWareOperationMode = rospy.get_param(
         #    "/failsafe/gpio/gpioSoftWareOperationMode"
