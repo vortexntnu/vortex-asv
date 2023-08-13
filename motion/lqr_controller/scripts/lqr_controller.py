@@ -54,6 +54,7 @@ class LQRController:
                 np.sign(
                     self.integral_states)):  # Integral reset on sign change
             self.integral_states = np.array([0.0, 0.0])
+            
 
         return np.ravel(tau_body)
 

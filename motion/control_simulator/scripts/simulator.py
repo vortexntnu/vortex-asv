@@ -27,7 +27,7 @@ class VesselVisualizer:
 
         rospy.init_node('vessel_simulator')
 
-        rospy.Subscriber("/thrust/force_input", Wrench, self.wrench_callback)
+        rospy.Subscriber("/thrust/wrench_input", Wrench, self.wrench_callback)
         rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
                          self.setpoint_callback)
         rospy.Subscriber("/guidance/lqr/add_waypoint", Point,
@@ -111,7 +111,7 @@ class VesselVisualizer:
     def update(self, frame):
         self.update_time_and_motion_state()
         random_external_noise = np.append(self.brownian_motion_state, 0.0)
-        self.vessel.step(DT, self.u + random_external_noise)
+        self.vessel.step(DT, self.u)
         self.update_and_draw_arrow()
         self.update_path_line()
         self.update_and_plot_signals(frame)
