@@ -5,8 +5,6 @@ import rospy
 from lqr_interface import LQRInterface
 
 from geometry_msgs.msg import Point
-
-
 """
 DOCKING SEARCH
 
@@ -20,8 +18,6 @@ Convert centroid to world point.
 
 Return world point to DockingConverge.
 """
-
-
 """
 DOCKING CONVERGE
 
@@ -31,14 +27,11 @@ If closer than some predefined limit (i.e. 3m), move to execute with the current
 
 else once halfway to world point, move back to DockingSearch.
 """
-
-
 """
 DOCKING EXECUTE
 
 Use lqr_move_to_point, but use a much smaller Q matrix for slower convergence.
 """
-
 
 
 class states:
@@ -47,20 +40,23 @@ class states:
     EXECUTE = 2
 
 
-
 class DockingTask:
 
     def __init__(self):
         rospy.init_node("docking_task_node")
 
-        aruco_pose_sub = rospy.Subscriber("/detector/aruco", self.aruco_pose_cb, queue_size=10)
-        waypoint_reached_signal = rospy.Subscriber("/controller/lqr/final_waypoint_reached", self.waypoint_reached_signal_cb, queue_size=10)
+        aruco_pose_sub = rospy.Subscriber("/detector/aruco",
+                                          self.aruco_pose_cb,
+                                          queue_size=10)
+        waypoint_reached_signal = rospy.Subscriber(
+            "/controller/lqr/final_waypoint_reached",
+            self.waypoint_reached_signal_cb,
+            queue_size=10)
 
         self.lqr_controller_interface = LQRInterface()
 
         self.aruco_detection = None
         self.waypoint_reached_signal = False
-
 
         self.state = states.SEARCH
         self.converge_entry_flag = False
@@ -80,7 +76,6 @@ class DockingTask:
         # Convert aruco detection to bearing
         pass
 
-
     def aruco_pose_cb(self, detection):
         if self.state == states.SEARCH:
             # We only update the detection we keep when we are in search mode
@@ -90,8 +85,6 @@ class DockingTask:
 
     def waypoint_reached_signal_cb(self, msg):
         self.waypoint_reached_signal = msg.data
-        
-
 
     def spin_once(self):
 
@@ -99,7 +92,6 @@ class DockingTask:
             # Simply wait for aruco detections
             # Might need to do exploration if no marker is found from the current position of the ASV
             return
-        
 
         # Here we assume to have a valid aruco detection
         bearing = self.bearing_from_aruco_detection()
@@ -119,11 +111,7 @@ class DockingTask:
                 self.state = states.SEARCH
 
             return
-        
 
-
-
-        
 
 if __name__ == "__main__":
 
@@ -134,5 +122,3 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         state_machine.spin_once()
         rate.sleep()
-
-    

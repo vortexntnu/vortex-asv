@@ -52,7 +52,8 @@ class LQRGuidanceROS:
         self.enable_pub = rospy.Publisher("/controller/lqr/enable",
                                           Bool,
                                           queue_size=10)
-        self.final_waypoint_reached_pub = rospy.Publisher("/controller/lqr/final_waypoint_reached", Bool, queue_size=10)
+        self.final_waypoint_reached_pub = rospy.Publisher(
+            "/controller/lqr/final_waypoint_reached", Bool, queue_size=10)
 
     def ssa(self, angle):
         return (angle + np.pi) % (2 * np.pi) - np.pi
