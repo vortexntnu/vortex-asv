@@ -23,7 +23,10 @@ class FailSafeInterface(object):
         # Initialize the pin
         GPIO.setup(self.gpioSoftWareKillSwitch, GPIO.OUT)
 
+        GPIO.output(self.gpioSoftWareKillSwitch, 1)
+
         self.gpioSoftWareOperationMode = 18
+
 
         #Repeat process for the other pins
         #self.gpioSoftWareOperationMode = rospy.get_param(
@@ -31,6 +34,8 @@ class FailSafeInterface(object):
         #)
 
         GPIO.setup(self.gpioSoftWareOperationMode, GPIO.OUT)
+
+        GPIO.output(self.gpioHardWareOperationMode, 0)
 
         #Repeat process for the other pins
 
