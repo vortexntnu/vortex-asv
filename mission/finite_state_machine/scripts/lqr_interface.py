@@ -4,6 +4,8 @@ import rospy
 from std_msgs.msg import Bool, Empty
 from geometry_msgs.msg import Point
 
+import numpy as np
+
 
 class LQRInterface:
 
@@ -36,6 +38,17 @@ class LQRInterface:
 
     def clear_all_waypoints(self):
         self.clear_waypoints_publisher.publish(Empty())
+
+    def north_east_displacement_in_meters(target_north, target_east, origin_north, origin_east):
+        earth_radius_wgs84 = 6371 * 1000.0
+
+        meter_per_degree_lat = earth_radius_wgs84 * np.pi / 180.0
+        meter_per_degree_lon = meter_per_degree_lat * np.cos(origin_north * np.pi / 180.0)
+
+        displacement_north = (target_north - origin_north) * meter_per_degree_lat
+        displacement_east = (target_east - origin_east) * meter_per_degree_lon
+
+        return displacement_north, displacement_east
 
 
 if __name__ == "__main__":
