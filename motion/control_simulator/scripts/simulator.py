@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-from pid_controller import ssa
 from std_msgs.msg import Float64MultiArray
 
 import vessel
@@ -18,6 +17,10 @@ from tf.transformations import quaternion_from_euler
 DT = 0.1
 
 
+def ssa(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
+
 class VesselVisualizer:
 
     def __init__(self, vessel):
@@ -27,6 +30,8 @@ class VesselVisualizer:
         rospy.Subscriber("/thrust/force_input", Wrench, self.wrench_callback)
         rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
                          self.setpoint_callback)
+        rospy.Subscriber("/guidance/lqr/add_waypoint", Point,
+                         self.add_waypoint_callback)
         self.vessel = vessel
 
         self.fig, self.axes = plt.subplots(nrows=3, ncols=2, figsize=(10, 10))
@@ -78,6 +83,15 @@ class VesselVisualizer:
         self.odom_pub = rospy.Publisher("/odometry/filtered",
                                         Odometry,
                                         queue_size=10)
+
+    def add_waypoint_callback(self, msg):
+        """
+        Callback to add a waypoint to the ax_vessel plot
+        """
+        north = msg.x
+        east = msg.y
+        self.ax_vessel.plot(east, north,
+                            'rx')  # Plotting the waypoint as a red cross
 
     def setpoint_callback(self, msg):
         #rospy.loginfo(f"Simulator received setpoints: {msg.data}")

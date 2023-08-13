@@ -16,24 +16,19 @@ class LQRControllerNode:
     def __init__(self):
         rospy.init_node("lqr_controller")
 
-        # TODO: Get parameters from config, and use axis-specific damping
+        mass = rospy.get_param("lqr_controller/mass", 50.0)
+        inertia = rospy.get_param("lqr_controller/inertia", 5.0)
 
-        mass = 50.0
-        inertia = 5.0
+        damping_x = rospy.get_param("lqr_controller/damping/x", 5.0)
+        damping_y = rospy.get_param("lqr_controller/damping/y", 20.0)
+        damping_psi = rospy.get_param("lqr_controller/damping/psi", 15.0)
 
-        damping_x = 5.0
-        damping_y = 20.0
-        damping_psi = 15.0
+        Q = rospy.get_param("lqr_controller/Q",
+                            [10.0, 10.0, 1.0, 0.001, 0.001, 0.001, 1.0, 1.0])
+        R = rospy.get_param("lqr_controller/R", [0.01, 0.01, 0.01])
 
-        # M = mass, mass, inertia
-        # D = damping x, y, yaw
         M = np.diag([mass, mass, inertia])
         D = np.diag([damping_x, damping_y, damping_psi])
-
-        # State vector is : [x, y, psi, u, v, r]
-        Q = [10.0, 10.0, 1.0, 0.001, 0.001, 0.001, 1.0,
-             1.0]  # State cost weights
-        R = [0.01, 0.01, 0.01]  # Control cost weight
 
         self.setpoints = np.zeros(6)
 

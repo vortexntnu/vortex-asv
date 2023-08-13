@@ -2,32 +2,41 @@
 <launch>
     <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}" />
 
-    <!-- INPUT ARGS -->
+    <!-- Input arguments -->
     <arg name="type" default="real"/> <!-- real | simulator -->
 
-    <!-- PARAMETERS -->
+    <!-- General parameters -->
     <rosparam command="load" file="$(find asv_setup)/config/environments/trondheim_freshwater.yaml"/>
     <rosparam command="load" file="$(find asv_setup)/config/params/gnc.yaml"/>
     <rosparam command="load" file="$(find asv_setup)/config/robots/temp_config.yaml"/>
     <rosparam command="load" file="$(find asv_setup)/config/topics.yaml"/>
 
+    <!-- Transforms -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_mru_broadcaster"
+        args="0.1 0 0 0 0 0  body mru" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_gnss_broadcaster"
+        args="0.1 0 0 0 0 0  body gnss" />
 
     <!-- Sensors -->
-    <!-- TODO: Seapath interface launch -->
+    <node pkg="seapath_gnss_ros_driver" type="seapath_gnss_ros_driver_node" name="seapath_gnss_ros_driver_node" output="screen"/>
+    <node pkg="mru_ros_driver" type="mru_ros_driver_node" name="mru_ros_driver_node" output="screen"/>
 
-
-    <!-- Mission -->
-    <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/>
-
+    <node pkg="seapath_ahrs" type="seapath_ahrs_node" name="seapath_ahrs_node" output="screen"/>
+    <node pkg="seapath_ekf" type="seapath_ekf_node" name="seapath_ekf_node" output="screen"/>
 
     <!-- Motion -->
+    <rosparam file="$(find lqr_controller)/params/config.yaml" command="load" />
     <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
 
     <node pkg="thruster_allocator"  type="thruster_allocator_node" name="allocator"  output="screen"/>
-
     <node pkg="thruster_interface"  type="thruster_interface_node" name="thruster_interface_node"  output="screen"/>
 
     <!-- Navigation -->
+    <rosparam file="$(find lqr_path_following)/params/config.yaml" command="load" />
     <node pkg="lqr_path_following" type="lqr_path_following_node.py" name="lqr_path_following" output="screen" />
+
+    <!-- Mission: Consider moving to separate launch -->
+    <!-- <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/> -->
 
 </launch>

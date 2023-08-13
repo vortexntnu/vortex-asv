@@ -38,8 +38,8 @@ void ThrusterInterfaceROS::thrustCallback(
     int pwm_value_correct_direction =
         center_pwm_value + thruster_direction_map[i] * offset_from_center_value;
 
-    int pwm_clamped = std::min(
-        std::max(pwm_value_correct_direction, 1100), 1900);
+    int pwm_clamped =
+        std::min(std::max(pwm_value_correct_direction, 1100), 1900);
     pwm_msg.positive_width_us.push_back(pwm_clamped);
     pwm_msg.pins.push_back(thruster_to_pin_map[i]);
   }
