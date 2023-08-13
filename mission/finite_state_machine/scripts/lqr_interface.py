@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Empty
 from geometry_msgs.msg import Point
 
 
@@ -15,6 +15,7 @@ class LQRInterface:
             "/controller/lqr/enable", Bool, queue_size=10)
         self.toggle_path_dependent_heading = rospy.Publisher(
             "/guidance/lqr/toggle_path_dependent_heading", Bool, queue_size=10)
+        self.clear_waypoints_publisher = rospy.Publisher("/guidance/lqr/clear_waypoints", Empty, queue_size=10)
 
     def add_point(self, point, path_dependent_heading=False):
         self.add_waypoint_publisher.publish(point)
@@ -31,6 +32,9 @@ class LQRInterface:
 
     def set_path_dependent_heading(self, data):
         self.toggle_path_dependent_heading.publish(Bool(data))
+
+    def clear_all_waypoints(self):
+        self.clear_waypoints_publisher.publish(Empty())
 
 
 if __name__ == "__main__":
