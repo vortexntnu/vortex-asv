@@ -14,3 +14,4 @@ class Task:
 class Tasks:
     joystick = Task(id=0, name="joystick")
     collision_avoidance = Task(id=1, name="collision_avoidance")
+    obj_nav_and_man = Task(id=2, name="obj_nav_and_man")
