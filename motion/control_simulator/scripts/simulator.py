@@ -20,7 +20,9 @@ DT = 0.1
 def ssa(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
+
 class TargetVessel:
+
     def __init__(self, start, end, speed):
         self.start = np.array(start, dtype=np.float64)
         self.end = np.array(end, dtype=np.float64)
@@ -39,13 +41,13 @@ class TargetVessel:
         # Assuming the target vessel's position is stored in self.target_vessel.position
         target_point.x = self.position[0]  # North position
         target_point.y = self.position[1]  # East position
-        
+
         # Assuming yaw is in radians and stored as self.target_vessel.yaw
-        target_point.z = np.arctan2(self.direction[1], self.direction[0]) # Yaw
-        
+        target_point.z = np.arctan2(self.direction[1],
+                                    self.direction[0])  # Yaw
+
         # Publish the point
         self.target_pub.publish(target_point)
-
 
     def step(self, dt):
         movement = self.speed * dt * self.direction
@@ -54,6 +56,7 @@ class TargetVessel:
         if np.linalg.norm(self.end - self.position) < self.speed * dt:
             self.direction *= -1
             self.end, self.start = self.start, self.end
+
 
 class VesselVisualizer:
 
@@ -76,10 +79,16 @@ class VesselVisualizer:
         self.ax_vx = self.axes[2, 0]
         self.ax_vy = self.axes[2, 1]
 
-        self.target_vessel = TargetVessel(np.array([-4, -4]), np.array([4, 4]), 0.5)
+        self.target_vessel = TargetVessel(np.array([-4, -4]), np.array([4, 4]),
+                                          0.5)
         dx = self.target_vessel.direction[0] * 1.0
         dy = self.target_vessel.direction[1] * 1.0
-        self.target_arrow = plt.Arrow(self.target_vessel.position[0], self.target_vessel.position[1], dx, dy, width=0.5, color="green")
+        self.target_arrow = plt.Arrow(self.target_vessel.position[0],
+                                      self.target_vessel.position[1],
+                                      dx,
+                                      dy,
+                                      width=0.5,
+                                      color="green")
 
         self.ax_vessel.add_patch(self.target_arrow)
 
@@ -180,7 +189,12 @@ class VesselVisualizer:
         x, y = self.target_vessel.position
         dx = self.target_vessel.direction[0] * 1.0
         dy = self.target_vessel.direction[1] * 1.0
-        self.target_arrow = plt.Arrow(self.target_vessel.position[0], self.target_vessel.position[1], dx, dy, width=0.5, color="green")
+        self.target_arrow = plt.Arrow(self.target_vessel.position[0],
+                                      self.target_vessel.position[1],
+                                      dx,
+                                      dy,
+                                      width=0.5,
+                                      color="green")
         self.ax_vessel.add_patch(self.target_arrow)
 
     def update_time_and_motion_state(self):
