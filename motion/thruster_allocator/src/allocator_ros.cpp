@@ -95,7 +95,6 @@ void Allocator::wrenchCallback(const geometry_msgs::Wrench &msg_in) {
   body_frame_force_x = msg_in.force.x;
   body_frame_force_y = msg_in.force.y;
   body_frame_torque = msg_in.torque.z;
-
 }
 
 Eigen::VectorXd

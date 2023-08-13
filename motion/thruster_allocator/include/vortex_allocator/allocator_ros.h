@@ -16,8 +16,8 @@ public:
   /**
    * @brief Callback function for getting force wrench
    *
-   * @param msg Wrench message containing linear forces in BODY and torque about the vertical axis
-   * frame
+   * @param msg Wrench message containing linear forces in BODY and torque about
+   * the vertical axis frame
    */
   void wrenchCallback(const geometry_msgs::Wrench &msg);
 

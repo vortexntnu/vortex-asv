@@ -62,8 +62,8 @@ class JoystickInterface:
                                              queue_size=1)
 
         self.wrench_pub = rospy.Publisher("/thrust/wrench_input",
-                                         Wrench,
-                                         queue_size=1)
+                                          Wrench,
+                                          queue_size=1)
 
         self.software_killswitch_signal_publisher = rospy.Publisher(
             "/softWareKillSwtich", Bool, queue_size=10)
