@@ -7,7 +7,6 @@ from std_msgs.msg import Float32
 
 import RPi.GPIO as GPIO
 
-
 # Pin number to control
 FS_PIN = 33
 
@@ -24,9 +23,8 @@ GPIO.setup(FS_PIN, GPIO.OUT)
 # to read voltage and current from ADC on PDB through I2C
 i2c_adress = 0x69
 
-        # init of I2C bus communication
+# init of I2C bus communication
 bus = smbus.SMBus(1)
-
 
 psm_to_battery_voltage = 11.0  # V/V
 psm_to_battery_current_scale_factor = 37.8788  # A/V
@@ -34,10 +32,8 @@ psm_to_battery_current_offset = 0.330  # V
 
 upper_current_threshold = 100
 
-channel_current = MCP342x(bus,
-                        i2c_adress,
-                        channel=1,
-                        resolution=18)  # current
+channel_current = MCP342x(bus, i2c_adress, channel=1, resolution=18)  # current
+
 
 # Function to control the pin based on the current
 def current_fs(value):
@@ -54,7 +50,7 @@ def current_fs(value):
             else:
                 GPIO.output(FS_PIN, GPIO.HIGH)
 
+
 while True:
 
-    
     current_fs(channel_current)

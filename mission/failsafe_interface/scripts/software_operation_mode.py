@@ -4,28 +4,26 @@ from std_msgs.msg import String
 
 
 class FailSafeInterface(object):
-    def __init__(
-        self,
-    ):  
+
+    def __init__(self, ):
         #Repeat process for the other pins
         self.gpioSoftWareOperationMode = rospy.get_param(
-            "/failsafe/gpio/gpioSoftWareOperationMode"
-        )
+            "/failsafe/gpio/gpioSoftWareOperationMode")
         GPIO.setmode(self.gpioSoftWareOperationMode)
-        
+
         topicSoftWareOperationMode = rospy.get_param(
-            "/failsafe/subscribers/softWareOperationMode"
-        )
+            "/failsafe/subscribers/softWareOperationMode")
 
         #Create subscriber for the software operation mode
         self.subSoftWareOperationMode = rospy.Subscriber(
-            topicSoftWareOperationMode, String, self.writeSoftwareOperationMode
-        )
+            topicSoftWareOperationMode, String,
+            self.writeSoftwareOperationMode)
 
     # Output software operation mode through pin
     def writeSoftwareOperationMode(self, message):
         self.softWareOperationMode = message.data
         GPIO.write(self.gpioSoftWareOperationMode, self.softWareOperationMode)
+
 
 def FailSafeNodeSetup():
     rospy.init_node("failsafe_interface_node", anonymous=True)
@@ -33,7 +31,8 @@ def FailSafeNodeSetup():
     failsafe = FailSafeInterface()
 
     while not rospy.is_shutdown():
-        failsafe.writeSoftwareOperationMode(FailSafeInterface,)
+        failsafe.writeSoftwareOperationMode(FailSafeInterface, )
+
 
 if __name__ == "__main__":
     try:

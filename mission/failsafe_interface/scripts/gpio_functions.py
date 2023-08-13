@@ -3,7 +3,6 @@
 # In short, to work with the GPIO pins we need to work with files.
 # We go to /sys/class/gpio/ and we get a folder (gpio133 for example) for each initalized pin
 
-
 import os
 import time
 
@@ -57,7 +56,8 @@ def pin_read(pin):
     try:
         # With the /value file we read the input
         command = f'sudo sh -c "cat /sys/class/gpio/gpio{pin}/value"'
-        output_str = os.popen("echo %s|sudo -S %s" % (sudoPassword, command)).read()
+        output_str = os.popen("echo %s|sudo -S %s" %
+                              (sudoPassword, command)).read()
         output_int = int(output_str)
         return output_int
 
