@@ -15,7 +15,8 @@ class LQRInterface:
             "/controller/lqr/enable", Bool, queue_size=10)
         self.toggle_path_dependent_heading = rospy.Publisher(
             "/guidance/lqr/toggle_path_dependent_heading", Bool, queue_size=10)
-        self.clear_waypoints_publisher = rospy.Publisher("/guidance/lqr/clear_waypoints", Empty, queue_size=10)
+        self.clear_waypoints_publisher = rospy.Publisher(
+            "/guidance/lqr/clear_waypoints", Empty, queue_size=10)
 
     def add_point(self, point, path_dependent_heading=False):
         self.add_waypoint_publisher.publish(point)
