@@ -5,10 +5,11 @@ from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Wrench
 from std_msgs.msg import Bool
 
+
 class states:
     XBOX_MODE = 1
     AUTONOMOUS_MODE = 2
-    NO_GO = 3 # Do nothing
+    NO_GO = 3  # Do nothing
 
 
 class JoystickInterface:
@@ -66,15 +67,20 @@ class JoystickInterface:
         self.torque_pub = rospy.Publisher("/thrust/torque_input",
                                           Wrench,
                                           queue_size=1)
-        
-        self.software_killswitch_signal_publisher = rospy.Publisher("/softWareKillSwtich", Bool, queue_size=10)
-        self.operational_mode_signal_publisher = rospy.Publisher("/softWareOperationMode", Bool, queue_size=10)
-        self.enable_controller_publisher = rospy.Publisher("/controller/lqr/enable", Bool, queue_size=10)
+
+        self.software_killswitch_signal_publisher = rospy.Publisher(
+            "/softWareKillSwtich", Bool, queue_size=10)
+        self.operational_mode_signal_publisher = rospy.Publisher(
+            "/softWareOperationMode", Bool, queue_size=10)
+        self.enable_controller_publisher = rospy.Publisher(
+            "/controller/lqr/enable", Bool, queue_size=10)
 
         rospy.loginfo("Joystick interface is up and running")
 
-        self.software_killswitch_signal_publisher.publish(Bool(False)) # initially signal that we are blocking
-        self.operational_mode_signal_publisher.publish(Bool(True)) # Signal that we are not in autonomous mode
+        self.software_killswitch_signal_publisher.publish(
+            Bool(False))  # initially signal that we are blocking
+        self.operational_mode_signal_publisher.publish(
+            Bool(True))  # Signal that we are not in autonomous mode
 
     def create_2d_wrench_message(self, x, y, yaw):
         wrench_msg = Wrench()
@@ -82,17 +88,17 @@ class JoystickInterface:
         wrench_msg.force.y = y
         wrench_msg.torque.z = yaw
         return wrench_msg
-    
+
     def publish_wrench_message(self, wrench):
         self.force_pub.publish(wrench)
         self.torque_pub.publish(wrench)
-
 
     def transition_to_xbox_mode(self):
         # We want to turn off controller when moving to xbox mode
         self.enable_controller_publisher.publish(Bool(False))
 
-        self.operational_mode_signal_publisher.publish(Bool(True)) # signal that we enter xbox mode
+        self.operational_mode_signal_publisher.publish(
+            Bool(True))  # signal that we enter xbox mode
 
         self.state = states.XBOX_MODE
 
@@ -101,11 +107,10 @@ class JoystickInterface:
         wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
         self.publish_wrench_message(wrench_msg)
 
-        self.operational_mode_signal_publisher.publish(Bool(False)) # signal that we are turning on autonomous mode
+        self.operational_mode_signal_publisher.publish(
+            Bool(False))  # signal that we are turning on autonomous mode
 
         self.state = states.AUTONOMOUS_MODE
-
-        
 
     def joystick_cb(self, msg):
         current_time = rospy.Time.now().to_sec()
@@ -137,21 +142,24 @@ class JoystickInterface:
         if software_control_mode_button or xbox_control_mode_button or software_killswitch_button:
             self.last_button_press_time = current_time
 
-        if self.state == states.NO_GO and software_killswitch_button: # Toggle ks on and off
-            self.software_killswitch_signal_publisher.publish(Bool(True)) # signal that killswitch is not blocking
+        if self.state == states.NO_GO and software_killswitch_button:  # Toggle ks on and off
+            self.software_killswitch_signal_publisher.publish(
+                Bool(True))  # signal that killswitch is not blocking
             self.transition_to_xbox_mode()
             return
 
         if software_killswitch_button:
             rospy.loginfo("SW killswitch")
-            self.software_killswitch_signal_publisher.publish(Bool(False)) # signal that killswitch is blocking
-            self.enable_controller_publisher.publish(Bool(False)) # Turn off controller in sw killswitch
+            self.software_killswitch_signal_publisher.publish(
+                Bool(False))  # signal that killswitch is blocking
+            self.enable_controller_publisher.publish(
+                Bool(False))  # Turn off controller in sw killswitch
             # Publish a zero wrench message when sw killing
             wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
             self.publish_wrench_message(wrench_msg)
             self.state = states.NO_GO
             return
-        
+
         wrench_msg = self.create_2d_wrench_message(surge, sway, yaw)
 
         if self.state == states.XBOX_MODE:
@@ -160,8 +168,6 @@ class JoystickInterface:
 
             if software_control_mode_button:
                 self.transition_to_autonomous_mode()
-
-
 
         if self.state == states.AUTONOMOUS_MODE:
             rospy.loginfo("autonomous mode")
