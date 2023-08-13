@@ -2,7 +2,7 @@
 
 import rospy
 
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 import RPi._GPIO as GPIO
 
 
@@ -10,95 +10,122 @@ class FailSafeInterface(object):
     def __init__(
         self,
     ):
+
         GPIO.setmode(GPIO.BOARD)
+
+        #Temporary solution because .yaml file is non-cooperative
+        self.gpioSoftWareKillSwitch = 13
+
         # Fetch the pin numbers from the ASV.yaml file
-        self.gpioSoftWareKillSwitch = rospy.get_param(
-            "/failsafe/gpio/gpioSoftWareKillSwitch"
-        )
+        #self.gpioSoftWareKillSwitch = rospy.get_param(
+        #    "/failsafe/gpio/gpioSoftWareKillSwitch"
+        #)
+
         # Initialize the pin
-        GPIO.setmode(self.gpioSoftWareKillSwitch, GPIO.OUT)
+        GPIO.setup(self.gpioSoftWareKillSwitch, GPIO.OUT)
 
+        self.gpioSoftWareOperationMode = 18
         
         #Repeat process for the other pins
-        self.gpioSoftWareOperationMode = rospy.get_param(
-            "/failsafe/gpio/gpioSoftWareOperationMode"
-        )
+        #self.gpioSoftWareOperationMode = rospy.get_param(
+        #    "/failsafe/gpio/gpioSoftWareOperationMode"
+        #)
         
-        GPIO.setmode(self.gpioSoftWareOperationMode, GPIO.OUT)
-
-
-        
-        #Repeat process for the other pins
-        self.gpioFailSafeStatus = rospy.get_param("/failsafe/gpio/gpioFailSafeStatus")
-        GPIO.setmode(self.gpioFailSafeStatus, GPIO.IN)
+        GPIO.setup(self.gpioSoftWareOperationMode, GPIO.OUT)
 
 
         
         #Repeat process for the other pins
-        self.gpioHardWareOperationMode = rospy.get_param(
-            "/failsafe/gpio/gpioHardWareOperationMode"
-        )
+
+        self.gpioFailSafeStatus = 15
+
+        #self.gpioFailSafeStatus = rospy.get_param("/failsafe/gpio/gpioFailSafeStatus")
+        GPIO.setup(self.gpioFailSafeStatus, GPIO.IN)
+
 
         
-        GPIO.setmode(self.gpioHardWareOperationMode, GPIO.IN)
+        #Repeat process for the other pins
+
+        self.gpioHardWareOperationMode = 16
+
+        #self.gpioHardWareOperationMode = rospy.get_param(
+        #    "/failsafe/gpio/gpioHardWareOperationMode"
+        #)
+
+        
+        GPIO.setup(self.gpioHardWareOperationMode, GPIO.IN)
         #init_pin(self.gpioFailSafeStatus)
 
 
         # Fetch topics
-        topicFailSafeStatus = rospy.get_param("/failsafe/publishers/failSafeStatus")
-        topicHardWareOperationMode = rospy.get_param(
-            "/failsafe/publishers/hardwareOperationMode"
-        )
+        topicFailSafeStatus = '/failSafeStatus'
+        topicHardWareOperationMode = '/hardWareOperationMode'
 
-        topicSoftWareKillSwitch = rospy.get_param(
-            "/failsafe/subscribers/softWareKillSwitch"
-        )
+        topicSoftWareKillSwitch = '/softWareKillSwtich'
+        topicSoftWareOperationMode = '/softWareOperationMode'
 
-        topicSoftWareOperationMode = rospy.get_param(
-            "/failsafe/subscribers/softWareOperationMode"
-        )
+        #topicFailSafeStatus = rospy.get_param("/failsafe/publishers/failSafeStatus")
+        #topicHardWareOperationMode = rospy.get_param(
+        #    "/failsafe/publishers/hardwareOperationMode"
+        #)
+
+        #topicSoftWareKillSwitch = rospy.get_param(
+        #    "/failsafe/subscribers/softWareKillSwitch"
+        #)
+
+        #topicSoftWareOperationMode = rospy.get_param(
+        #    "/failsafe/subscribers/softWareOperationMode"
+        #)
 
         
         #Create publisher for the hardware fail safe
         self.pubFailSafeStatus = rospy.Publisher(
-            topicFailSafeStatus, String, queue_size=10
+            topicFailSafeStatus, Bool, queue_size=10
         )
         
         #Create publisher for the hardware operation mode
         self.pubHardWareOperationMode = rospy.Publisher(
-            topicHardWareOperationMode, String, queue_size=10
+            topicHardWareOperationMode, Bool, queue_size=10
         )
         
         #Create subscriber for the software kill switch
         self.subSoftWareKillSwitch = rospy.Subscriber(
-            topicSoftWareKillSwitch, String, self.writeSoftwareKillSwitch
+            topicSoftWareKillSwitch, Bool, self.writeSoftwareKillSwitch
         )
         
         #Create subscriber for the software operation mode
         self.subSoftWareOperationMode = rospy.Subscriber(
-            topicSoftWareOperationMode, String, self.writeSoftwareOperationMode
+            topicSoftWareOperationMode, Bool, self.writeSoftwareOperationMode
         )
 
     def readPins(self):
         # Read the pins
-        self.failSafeStatus = GPIO.read(self.gpioFailSafeStatus)
-        self.hardwareOperationMode = GPIO.read(self.gpioHardWareOperationMode)
+        self.failSafeStatus = GPIO.input(self.gpioFailSafeStatus)
+        self.hardWareOperationMode = GPIO.input(self.gpioHardWareOperationMode)
 
         # Publish accordingly, need to make it into a string
-        self.pubFailSafeStatus.publish(str(self.failSafeStatus))
-        self.pubHardWareOperationMode.publish(str(self.hardWareOperationMode))
+        self.pubFailSafeStatus.publish(self.failSafeStatus)
+        self.pubHardWareOperationMode.publish(self.hardWareOperationMode)
 
-        rospy.loginfo("Received software kill status %s", self.failSafeStatus)
+        #rospy.loginfo("Received hardware kill status %s", self.failSafeStatus)
 
     # Output software kill switch through pin
     def writeSoftwareKillSwitch(self, message):
+        rospy.loginfo("softwarekill")
         self.softWareKillSwitch = message.data
-        GPIO.out(self.gpioSoftWareKillSwitch, self.softWareKillSwitch)
+        GPIO.output(self.gpioSoftWareKillSwitch, self.softWareKillSwitch)
+        rospy.loginfo("Outputting software killswitch %s", self.softWareKillSwitch)
 
     # Output software operation mode through pin
     def writeSoftwareOperationMode(self, message):
+        rospy.loginfo("softwareopmode")
         self.softWareOperationMode = message.data
-        GPIO.out(self.gpioSoftWareOperationMode, self.softWareOperationMode)
+        GPIO.output(self.gpioSoftWareOperationMode, self.softWareOperationMode)
+        rospy.loginfo("Outputting software operation mode %s", self.softWareOperationMode)
+
+
+
+    
 
 
 def FailSafeNodeSetup():
@@ -107,7 +134,6 @@ def FailSafeNodeSetup():
     failsafe = FailSafeInterface()
 
     while not rospy.is_shutdown():
-        print("Got into the loop")
         failsafe.readPins()
 
 
