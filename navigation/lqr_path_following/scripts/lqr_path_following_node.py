@@ -52,6 +52,7 @@ class LQRGuidanceROS:
         self.enable_pub = rospy.Publisher("/controller/lqr/enable",
                                           Bool,
                                           queue_size=10)
+        self.final_waypoint_reached_pub = rospy.Publisher("/controller/lqr/final_waypoint_reached", Bool, queue_size=10)
 
     def ssa(self, angle):
         return (angle + np.pi) % (2 * np.pi) - np.pi
@@ -104,6 +105,7 @@ class LQRGuidanceROS:
             #self.enable_pub.publish(True)
         else:
             rospy.loginfo("Final waypoint reached!")
+            self.final_waypoint_reached_pub.publish(Bool(True))
             #self.enable_pub.publish(False)
 
     def clear_waypoints_callback(self, data):
@@ -113,6 +115,7 @@ class LQRGuidanceROS:
         rospy.loginfo("Waypoints cleared!")
 
     def add_waypoint_callback(self, data):
+        self.final_waypoint_reached_pub.publish(Bool(False))
         new_waypoint = Waypoint(data.x, data.y, data.z)
 
         starting_waypoint = None
