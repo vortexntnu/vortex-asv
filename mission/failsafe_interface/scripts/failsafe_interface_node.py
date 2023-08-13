@@ -5,8 +5,6 @@ import rospy
 from std_msgs.msg import String
 import RPi._GPIO as GPIO
 
-#from gpio_functions import *
-
 
 class FailSafeInterface(object):
     def __init__(
@@ -19,7 +17,6 @@ class FailSafeInterface(object):
         )
         # Initialize the pin
         GPIO.setmode(self.gpioSoftWareKillSwitch, GPIO.OUT)
-        #init_pin(self.gpioSoftWareKillSwitch)
 
         
         #Repeat process for the other pins
@@ -29,14 +26,12 @@ class FailSafeInterface(object):
         
         GPIO.setmode(self.gpioSoftWareOperationMode, GPIO.OUT)
 
-        #init_pin(self.gpioSoftWareOperationMode)
 
         
         #Repeat process for the other pins
         self.gpioFailSafeStatus = rospy.get_param("/failsafe/gpio/gpioFailSafeStatus")
         GPIO.setmode(self.gpioFailSafeStatus, GPIO.IN)
 
-        #init_pin(self.softWareOperationMode)
 
         
         #Repeat process for the other pins
@@ -63,12 +58,6 @@ class FailSafeInterface(object):
             "/failsafe/subscribers/softWareOperationMode"
         )
 
-        # Set pins as inputs or outputs
-        #set_pin_as_output(self.gpioSoftWareKillSwitch)
-        #set_pin_as_output(self.gpioSoftWareOperationMode)
-
-        #set_pin_as_input(self.gpioFailSafeStatus)
-        #set_pin_as_input(self.gpioHardWareOperationMode)
         
         #Create publisher for the hardware fail safe
         self.pubFailSafeStatus = rospy.Publisher(
@@ -94,8 +83,6 @@ class FailSafeInterface(object):
         # Read the pins
         self.failSafeStatus = GPIO.read(self.gpioFailSafeStatus)
         self.hardwareOperationMode = GPIO.read(self.gpioHardWareOperationMode)
-        #self.failSafeStatus = pin_read(self.gpioFailSafeStatus)
-        #self.hardWareOperationMode = pin_read(self.gpioHardWareOperationMode)
 
         # Publish accordingly, need to make it into a string
         self.pubFailSafeStatus.publish(str(self.failSafeStatus))
@@ -107,13 +94,11 @@ class FailSafeInterface(object):
     def writeSoftwareKillSwitch(self, message):
         self.softWareKillSwitch = message.data
         GPIO.out(self.gpioSoftWareKillSwitch, self.softWareKillSwitch)
-        #pin_write(self.gpioSoftWareKillSwitch, self.softWareKillSwitch)
 
     # Output software operation mode through pin
     def writeSoftwareOperationMode(self, message):
         self.softWareOperationMode = message.data
         GPIO.out(self.gpioSoftWareOperationMode, self.softWareOperationMode)
-        #pin_write(self.gpioSoftWareOperationMode, self.softWareOperationMode)
 
 
 def FailSafeNodeSetup():

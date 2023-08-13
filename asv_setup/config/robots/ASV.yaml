@@ -7,7 +7,7 @@ failsafe:
     softWareOperationMode: '/softWareOperationMode'
 
   gpio:
-    gpioSoftWareKillSwitch: 33      #pin 33
-    gpioSoftWareOperationMode: 31    #pin 31
-    gpioFailSafeStatus: 35         #pin 35
-    gpioHardWareOperationMode: 29   #pin 29
+    gpioSoftWareKillSwitch: 13      #pin 33
+    gpioSoftWareOperationMode: 18    #pin 31
+    gpioFailSafeStatus: 15         #pin 35
+    gpioHardWareOperationMode: 16   #pin 29

@@ -37,7 +37,7 @@ def set_pin_as_output(pin):
 def pin_write(pin, value):
     try:
         # With the /value file we set the output
-        sudoPassword = "rock"
+        sudoPassword = ""
         command = f'sudo sh -c "echo {value} > /sys/class/gpio/gpio{pin}/value"'
         p = os.system("echo %s|sudo -S %s" % (sudoPassword, command))
     except:
