@@ -44,6 +44,7 @@ class Maneuvering1(smach.State):
 
         if (rospy.get_param("/tasks/sea_marker_task1") == True):
             #Code for task 1 here
+            LQRInterface.add_point(self.wp_goal2)
             self.set_wp_to_avoid_objects()
             return 'maneuvering1'
 
