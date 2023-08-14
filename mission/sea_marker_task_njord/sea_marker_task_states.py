@@ -58,55 +58,53 @@ class Maneuvering1(smach.State):
 
     def set_wp_to_avoid_objects(self):
 
-        #Find path to goal from boat position
         position = self.odom.pose.pose.position
-        radius1 = 1.2
-        radius2 = 1.7
-        radius3 = 2
+        radius1 = 1
+        radius2 = 1.4
+        radius3 = 1.6
         distance_tolerance = 0.2
 
         #Find necessary waypoints between the boat and the wp_goal,
         #such that the vessel do not get to close to a sea marker.
-        for sea_marker in len(self.sea_marker_list):
-            if (sea_marker[2].endswith('bouy')):
+        for sea_marker in self.sea_marker_list:
 
-                #Check if we are to close to bouy, if so, get out using wp
-                sea_marker_coordinate = (sea_marker[0], sea_marker[1])
-                bouy_distance = calculate_distance(position, sea_marker_coordinate)
+            sea_marker_coordinate = (sea_marker[0], sea_marker[1])
+            bouy_distance = calculate_distance(position, sea_marker_coordinate)
+            sea_marker_coordinate = (sea_marker[0], sea_marker[1])
 
-                #Check if intermediate coordiante is inside small safety circle.
-                sea_marker_coordinate = (sea_marker[0], sea_marker[1])
-                #distance1 = calculate_distance(Intermediate_coordiante, sea_marker_coordinate)
-                if (bouy_distance > radius3):
-                    LQRInterface.clear_all_waypoints()
-                    LQRInterface.add_point(self.wp_goal2)
+            if (bouy_distance > radius3):
+                LQRInterface.clear_all_waypoints()
+                LQRInterface.add_point(self.wp_goal2)
 
-                elif (bouy_distance > radius2):
+            elif (bouy_distance > radius2):
+
+                #Test if we can reach goal without entering radius1, if so, set goal as next wp. 
+                
+                tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius2, position[0], position[1])
+                distance_pos_to_tangent_pos = calculate_distance(position, tangent_points[0])
+                if distance_pos_to_tangent_pos < distance_tolerance:
+                    tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius1, position[0], position[1])
+                for i, point in enumerate(tangent_points):
                     
-                    tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius2, position[0], position[1])
-                    distance_pos_to_tangent_pos = calculate_distance(position, tangent_points[0])
-                    if distance_pos_to_tangent_pos < distance_tolerance:
-                        tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius1, position[0], position[1])
-
-                    for i, point in enumerate(tangent_points):
+                    if sea_marker[2].startswith('red') and i == 0:
+                        LQRInterface.clear_all_waypoints()
+                        LQRInterface.add_point(point)
+                        LQRInterface.add_point(self.wp_goal2)
                         
-                        if sea_marker[2].startswith('red') and i == 0:
-                            LQRInterface.clear_all_waypoints()
-                            LQRInterface.add_point(point)
-                            LQRInterface.add_point(self.wp_goal2)
+                    elif sea_marker[2].startswith('green') and i == 1:
+                        LQRInterface.clear_all_waypoints()
+                        LQRInterface.add_point(point)
+                        LQRInterface.add_point(self.wp_goal2)
 
-                        elif sea_marker[2].startswith('green') and i == 1:
-                            LQRInterface.clear_all_waypoints()
-                            LQRInterface.add_point(point)
-                            LQRInterface.add_point(self.wp_goal2)
+            elif (bouy_distance > radius1):
+                 #Go straight away from bouy
+                 print("do nothing")
 
-                else:
-                    #Go straight away from bouy
-                    vector_to_bouy = calculate_vector(position, sea_marker_coordinate)
-                    next_wp = (position[0] - vector_to_bouy[0], position[1] - vector_to_bouy[1])
-                    LQRInterface.add_point(next_wp)
-                    LQRInterface.add_point(self.wp_goal2)
-
+            elif (bouy_distance <= radius1):
+                 vector_to_bouy = calculate_vector(position, sea_marker_coordinate)
+                 next_wp = (position[0] - vector_to_bouy[0], position[1] - vector_to_bouy[1])
+                 LQRInterface.add_point(next_wp)
+                 LQRInterface.add_point(self.wp_goal2)
 
 
 class Maneuvering2(smach.State):
@@ -195,66 +193,65 @@ class Maneuvering3(smach.State):
 
     def set_wp_to_avoid_objects(self):
 
-        #Find path to goal from boat position
         position = self.odom.pose.pose.position
-        #vector = calculate_vector(position, (self.wp_goal2[0], self.wp_goal2[1]))
-        #Intermediate_coordiante = (position[0]+vector[0]/2, position[1]+vector[1]/2)
-        radius1 = 1.2
-        radius2 = 1.7
-        radius3 = 2
+        radius1 = 1
+        radius2 = 1.4
+        radius3 = 1.6
         distance_tolerance = 0.2
 
         #Find necessary waypoints between the boat and the wp_goal,
         #such that the vessel do not get to close to a sea marker.
         for sea_marker in len(self.sea_marker_list):
-            if (sea_marker[2].endswith('bouy')) or (sea_marker[2].endswith('marker')):
 
-                #Check if we are to close to bouy, if so, get out using wp
-                sea_marker_coordinate = (sea_marker[0], sea_marker[1])
-                bouy_distance = calculate_distance(position, sea_marker_coordinate)
+            sea_marker_coordinate = (sea_marker[0], sea_marker[1])
+            bouy_distance = calculate_distance(position, sea_marker_coordinate)
+            sea_marker_coordinate = (sea_marker[0], sea_marker[1])
+   
+            if (bouy_distance > radius3):
+                LQRInterface.clear_all_waypoints()
+                LQRInterface.add_point(self.wp_goal2)
 
-                #Check if intermediate coordiante is inside small safety circle.
-                sea_marker_coordinate = (sea_marker[0], sea_marker[1])
-                #distance1 = calculate_distance(Intermediate_coordiante, sea_marker_coordinate)
-                if (bouy_distance > radius3):
-                    LQRInterface.clear_all_waypoints()
-                    LQRInterface.add_point(self.wp_goal2)
+            elif (bouy_distance > radius2):
 
-                elif (bouy_distance > radius2):
+                #Test if we can reach goal without entering radius1, if so, set goal as next wp. 
+                
+                tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius2, position[0], position[1])
+                distance_pos_to_tangent_pos = calculate_distance(position, tangent_points[0])
+
+                if distance_pos_to_tangent_pos < distance_tolerance:
+                    tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius1, position[0], position[1])
+                
+                for i, point in enumerate(tangent_points):
                     
-                    tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius2, position[0], position[1])
-                    distance_pos_to_tangent_pos = calculate_distance(position, tangent_points[0])
-                    if distance_pos_to_tangent_pos < distance_tolerance:
-                        tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius1, position[0], position[1])
+                    if sea_marker[2].startswith('red') and i == 1:
+                        LQRInterface.clear_all_waypoints()
+                        LQRInterface.add_point(point)
+                        LQRInterface.add_point(self.wp_goal2)
 
-                    for i, point in enumerate(tangent_points):
-                        
-                        if sea_marker[2].startswith('red') and i == 1:
-                            LQRInterface.clear_all_waypoints()
-                            LQRInterface.add_point(point)
-                            LQRInterface.add_point(self.wp_goal2)
+                    elif sea_marker[2].startswith('green') and i == 0:
+                        LQRInterface.clear_all_waypoints()
+                        LQRInterface.add_point(point)
+                        LQRInterface.add_point(self.wp_goal2)
 
-                        elif sea_marker[2].startswith('green') and i == 0:
-                            LQRInterface.clear_all_waypoints()
-                            LQRInterface.add_point(point)
-                            LQRInterface.add_point(self.wp_goal2)
+                    elif sea_marker[2].startswith('east') and i == 0:
+                        LQRInterface.clear_all_waypoints()
+                        LQRInterface.add_point(point)
+                        LQRInterface.add_point(self.wp_goal2)
 
-                        elif sea_marker[2].startswith('east') and i == 0:
-                            LQRInterface.clear_all_waypoints()
-                            LQRInterface.add_point(point)
-                            LQRInterface.add_point(self.wp_goal2)
+                    elif sea_marker[2].startswith('west') and i == 1:
+                        LQRInterface.clear_all_waypoints()
+                        LQRInterface.add_point(point)
+                        LQRInterface.add_point(self.wp_goal2)
 
-                        elif sea_marker[2].startswith('west') and i == 1:
-                            LQRInterface.clear_all_waypoints()
-                            LQRInterface.add_point(point)
-                            LQRInterface.add_point(self.wp_goal2)
+            elif (bouy_distance > radius1):
+                 #Go straight away from bouy
+                 print("do nothing")
 
-                else:
-                    #Go straight away from bouy
-                    vector_to_bouy = calculate_vector(position, sea_marker_coordinate)
-                    next_wp = (position[0] - vector_to_bouy[0], position[1] - vector_to_bouy[1])
-                    LQRInterface.add_point(next_wp)
-                    LQRInterface.add_point(self.wp_goal2)
+            elif (bouy_distance <= radius1):
+                 vector_to_bouy = calculate_vector(position, sea_marker_coordinate)
+                 next_wp = (position[0] - vector_to_bouy[0], position[1] - vector_to_bouy[1])
+                 LQRInterface.add_point(next_wp)
+                 LQRInterface.add_point(self.wp_goal2)
 
 
 def calculate_vector(coord1, coord2):
