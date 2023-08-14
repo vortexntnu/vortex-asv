@@ -39,15 +39,15 @@ class Buoy:
         return np.sqrt(self.x**2 + self.y**2)
 
 
-class UpdateBuoyMarkerNode:
+class UpdateSeaMarkersNode:
 
     def __init__(self):
-        rospy.init_node('UpdateBuoyMarkerNode', anonymous=True)
+        rospy.init_node('UpdateSeaMarkersNode', anonymous=True)
 
         self.subscribeTo = rospy.Subscriber('bouys/all_buoys_in_world_frame',
                                             DetectedObjectArray,
                                             self.new_buoy_marker_callback)
-        self.pub = rospy.Publisher('bouys_and_markers',
+        self.pub = rospy.Publisher('sea_markers',
                                    DetectedObjectArray,
                                    queue_size=10)
 
@@ -80,6 +80,7 @@ class UpdateBuoyMarkerNode:
             single_message.type = buoy.type_
             msg.DetectedObjectArray.append(single_message)
 
+
         self.pub.publish(msg)
 
     def new_buoy_marker_callback(self, msg):
@@ -102,14 +103,15 @@ class UpdateBuoyMarkerNode:
 
                     break  # This is assuming there are no topic-buoys within
                     # threshold proximity to each other.
-        # Add new bouys
+
+        # Add new bouy
         self.buoys += new_buoys
         self.publish_buoys()
 
 
 if __name__ == "__main__":
     try:
-        UpdateBuoyMarkerNode()
+        UpdateSeaMarkersNode()
         rospy.spin()
 
     except rospy.ROSInterruptException:
