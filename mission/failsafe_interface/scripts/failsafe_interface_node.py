@@ -36,7 +36,7 @@ class FailSafeInterface(object):
 
         self.gpioHardWareOperationMode = 16
 
-        GPIO.output(self.gpioHardWareOperationMode, 0)
+        GPIO.output(self.gpioSoftWareOperationMode, 0)
 
         #Repeat process for the other pins
 
