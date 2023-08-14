@@ -28,33 +28,40 @@ class TargetVessel:
         self.end = np.array(end, dtype=np.float64)
         self.speed = speed
         self.position = np.array(start, dtype=np.float64)
-        self.direction = self.end - self.start
-        self.direction /= np.linalg.norm(self.direction)
 
-        self.target_pub = rospy.Publisher('/pdaf/target', Point, queue_size=10)
+        # Calculate initial yaw based on start and end positions
+        self.yaw = np.arctan2(self.end[1] - self.start[1],
+                              self.end[0] - self.start[0])
+
+        self.target_pub = rospy.Publisher('/pdaf/target',
+                                          Odometry,
+                                          queue_size=10)
         self.publish_target_position()
 
     def publish_target_position(self):
-        # Construct a Point message
-        target_point = Point()
+        target_odom = Odometry()
+        target_odom.pose.pose.position.x = self.position[0]
+        target_odom.pose.pose.position.y = self.position[1]
 
-        # Assuming the target vessel's position is stored in self.target_vessel.position
-        target_point.x = self.position[0]  # North position
-        target_point.y = self.position[1]  # East position
+        q = quaternion_from_euler(0.0, 0.0, self.yaw)
+        target_odom.pose.pose.orientation.x = q[0]
+        target_odom.pose.pose.orientation.y = q[1]
+        target_odom.pose.pose.orientation.z = q[2]
+        target_odom.pose.pose.orientation.w = q[3]
 
-        # Assuming yaw is in radians and stored as self.target_vessel.yaw
-        target_point.z = np.arctan2(self.direction[1],
-                                    self.direction[0])  # Yaw
+        target_odom.twist.twist.linear.x = np.cos(self.yaw) * self.speed
+        target_odom.twist.twist.linear.y = np.sin(self.yaw) * self.speed
 
-        # Publish the point
-        self.target_pub.publish(target_point)
+        self.target_pub.publish(target_odom)
 
     def step(self, dt):
-        movement = self.speed * dt * self.direction
+        movement = np.array([np.cos(self.yaw),
+                             np.sin(self.yaw)]) * self.speed * dt
         self.position += movement
 
         if np.linalg.norm(self.end - self.position) < self.speed * dt:
-            self.direction *= -1
+            self.yaw += np.pi  # reverse direction (by adding pi to the yaw)
+            self.yaw %= 2 * np.pi  # keep yaw within [0, 2*pi]
             self.end, self.start = self.start, self.end
 
 
@@ -79,12 +86,14 @@ class VesselVisualizer:
         self.ax_vx = self.axes[2, 0]
         self.ax_vy = self.axes[2, 1]
 
-        self.target_vessel = TargetVessel(np.array([-4, -4]), np.array([4, 4]),
-                                          0.5)
-        dx = self.target_vessel.direction[0] * 1.0
-        dy = self.target_vessel.direction[1] * 1.0
-        self.target_arrow = plt.Arrow(self.target_vessel.position[0],
-                                      self.target_vessel.position[1],
+        #self.target_vessel = TargetVessel(np.array([2, 4]), np.array([2, -4]), 0.5) # target moves right to left
+        #self.target_vessel = TargetVessel(np.array([2, -4]), np.array([2, 4]), 0.5) # target moves left to right
+        self.target_vessel = TargetVessel(np.array([-1, 4]), np.array(
+            [2, -4]), 0.5)  # target moves right to left at an angle
+        dy = np.cos(self.target_vessel.yaw) * self.target_vessel.speed
+        dx = np.sin(self.target_vessel.yaw) * self.target_vessel.speed
+        self.target_arrow = plt.Arrow(self.target_vessel.position[1],
+                                      self.target_vessel.position[0],
                                       dx,
                                       dy,
                                       width=0.5,
@@ -187,10 +196,10 @@ class VesselVisualizer:
     def update_and_draw_target(self):
         self.target_arrow.remove()
         x, y = self.target_vessel.position
-        dx = self.target_vessel.direction[0] * 1.0
-        dy = self.target_vessel.direction[1] * 1.0
-        self.target_arrow = plt.Arrow(self.target_vessel.position[0],
-                                      self.target_vessel.position[1],
+        dy = np.cos(self.target_vessel.yaw) * self.target_vessel.speed
+        dx = np.sin(self.target_vessel.yaw) * self.target_vessel.speed
+        self.target_arrow = plt.Arrow(self.target_vessel.position[1],
+                                      self.target_vessel.position[0],
                                       dx,
                                       dy,
                                       width=0.5,
