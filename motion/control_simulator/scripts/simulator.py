@@ -22,6 +22,7 @@ def ssa(angle):
 
 
 class TargetVessel:
+
     def __init__(self, start, end, speed):
         self.start = np.array(start, dtype=np.float64)
         self.end = np.array(end, dtype=np.float64)
