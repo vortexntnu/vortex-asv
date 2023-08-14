@@ -4,7 +4,7 @@ import rospy
 import smach
 import smach_ros
 import math
-from sea_marker_task_states import Maneuvering
+from sea_marker_task_states import Maneuvering1, Maneuvering2, Maneuvering3
 
 
 class sea_marker_task:
@@ -16,9 +16,23 @@ class sea_marker_task:
         sm = smach.StateMachine(outcomes=['Stop'])
 
         with sm:
-            smach.StateMachine.add('Maneuvering',
-                                   Maneuvering(),
-                                   transitions={'maneuvering': 'Maneuvering',
+            smach.StateMachine.add('Maneuvering1',
+                                   Maneuvering1(),
+                                   transitions={'maneuvering1': 'Maneuvering1',
+                                                'maneuvering2': 'Maneuvering2',
+                                                'maneuvering3': 'Maneuvering3',
+                                                'stop':'Stop'})
+            smach.StateMachine.add('Maneuvering2',
+                                   Maneuvering2(),
+                                   transitions={'maneuvering1': 'Maneuvering1',
+                                                'maneuvering2': 'Maneuvering2',
+                                                'maneuvering3': 'Maneuvering3',
+                                                'stop':'Stop'})
+            smach.StateMachine.add('Maneuvering3',
+                                   Maneuvering3(),
+                                   transitions={'maneuvering1': 'Maneuvering1',
+                                                'maneuvering2': 'Maneuvering2',
+                                                'maneuvering3': 'Maneuvering3',
                                                 'stop':'Stop'})
 
 
@@ -28,7 +42,7 @@ class sea_marker_task:
 
         while not rospy.is_shutdown():
 
-            if not (rospy.get_param("/tasks/sea_marker_task1") or self.enabled = rospy.get_param("/tasks/sea_marker_task2") or self.enabled = rospy.get_param("/tasks/sea_marker_task3")):
+            if not (rospy.get_param("/tasks/sea_marker_task1") or rospy.get_param("/tasks/sea_marker_task2") or rospy.get_param("/tasks/sea_marker_task3")):
                 print("Exiting because this fsm should be inactive.")
                 break
 
@@ -43,7 +57,7 @@ class sea_marker_task:
 
 if __name__ == "__main__":
     try:
-        fsm_node = ManeuveringNavigationTasks()
+        fsm_node = sea_marker_task()
         fsm_node.spin()
     except rospy.ROSInterruptException:
         pass
