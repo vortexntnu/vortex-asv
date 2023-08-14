@@ -25,6 +25,7 @@ void ThrusterInterfaceROS::thrustCallback(
 
   vortex_msgs::Pwm pwm_msg;
   // TODO: Get mapping and offsets from rosparam
+  // Give thrust to thruster 0: publish on pin = thruster_to_pin_map[0]
   std::vector<int> thruster_to_pin_map = {1, 3, 2, 0};
   std::vector<int> thruster_direction_map = {1, 1, 1, -1};
   std::vector<int> pwm_offsets = {100, 100, 100, 100};

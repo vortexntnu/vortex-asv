@@ -21,13 +21,50 @@ def ssa(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
 
+class TargetVessel:
+
+    def __init__(self, start, end, speed):
+        self.start = np.array(start, dtype=np.float64)
+        self.end = np.array(end, dtype=np.float64)
+        self.speed = speed
+        self.position = np.array(start, dtype=np.float64)
+        self.direction = self.end - self.start
+        self.direction /= np.linalg.norm(self.direction)
+
+        self.target_pub = rospy.Publisher('/pdaf/target', Point, queue_size=10)
+        self.publish_target_position()
+
+    def publish_target_position(self):
+        # Construct a Point message
+        target_point = Point()
+
+        # Assuming the target vessel's position is stored in self.target_vessel.position
+        target_point.x = self.position[0]  # North position
+        target_point.y = self.position[1]  # East position
+
+        # Assuming yaw is in radians and stored as self.target_vessel.yaw
+        target_point.z = np.arctan2(self.direction[1],
+                                    self.direction[0])  # Yaw
+
+        # Publish the point
+        self.target_pub.publish(target_point)
+
+    def step(self, dt):
+        movement = self.speed * dt * self.direction
+        self.position += movement
+
+        if np.linalg.norm(self.end - self.position) < self.speed * dt:
+            self.direction *= -1
+            self.end, self.start = self.start, self.end
+
+
 class VesselVisualizer:
 
     def __init__(self, vessel):
 
         rospy.init_node('vessel_simulator')
 
-        rospy.Subscriber("/thrust/force_input", Wrench, self.wrench_callback)
+        rospy.Subscriber("/thrust/wrench_input", Wrench, self.wrench_callback)
         rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
                          self.setpoint_callback)
         rospy.Subscriber("/guidance/lqr/add_waypoint", Point,
@@ -41,6 +78,19 @@ class VesselVisualizer:
         self.ax_psi = self.axes[1, 1]
         self.ax_vx = self.axes[2, 0]
         self.ax_vy = self.axes[2, 1]
+
+        self.target_vessel = TargetVessel(np.array([-4, -4]), np.array([4, 4]),
+                                          0.5)
+        dx = self.target_vessel.direction[0] * 1.0
+        dy = self.target_vessel.direction[1] * 1.0
+        self.target_arrow = plt.Arrow(self.target_vessel.position[0],
+                                      self.target_vessel.position[1],
+                                      dx,
+                                      dy,
+                                      width=0.5,
+                                      color="green")
+
+        self.ax_vessel.add_patch(self.target_arrow)
 
         x, y, psi, vx, vy, vpsi = self.vessel.state
         self.external_control_signal = np.zeros(3)
@@ -111,7 +161,10 @@ class VesselVisualizer:
     def update(self, frame):
         self.update_time_and_motion_state()
         random_external_noise = np.append(self.brownian_motion_state, 0.0)
-        self.vessel.step(DT, self.u + random_external_noise)
+        self.vessel.step(DT, self.u)
+        self.target_vessel.step(DT)
+        self.target_vessel.publish_target_position()
+        self.update_and_draw_target()
         self.update_and_draw_arrow()
         self.update_path_line()
         self.update_and_plot_signals(frame)
@@ -130,6 +183,19 @@ class VesselVisualizer:
 
         # Publish the message
         self.odom_pub.publish(odom)
+
+    def update_and_draw_target(self):
+        self.target_arrow.remove()
+        x, y = self.target_vessel.position
+        dx = self.target_vessel.direction[0] * 1.0
+        dy = self.target_vessel.direction[1] * 1.0
+        self.target_arrow = plt.Arrow(self.target_vessel.position[0],
+                                      self.target_vessel.position[1],
+                                      dx,
+                                      dy,
+                                      width=0.5,
+                                      color="green")
+        self.ax_vessel.add_patch(self.target_arrow)
 
     def update_time_and_motion_state(self):
         self.current_time += DT

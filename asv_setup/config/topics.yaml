@@ -6,8 +6,7 @@ asv:
     output: "/thrust/thruster_forces" # Actuator forces
 
   thruster_manager: 
-    torque: "/thrust/torque_input"
-    force: "/thrust/force_input"
+    wrench: "/thrust/wrench_input"
     output: "/thrust/thruster_forces" # Actuator forces
 
 guidance_interface:

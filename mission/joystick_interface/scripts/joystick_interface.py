@@ -61,10 +61,7 @@ class JoystickInterface:
                                              self.joystick_cb,
                                              queue_size=1)
 
-        self.force_pub = rospy.Publisher("/thrust/force_input",
-                                         Wrench,
-                                         queue_size=1)
-        self.torque_pub = rospy.Publisher("/thrust/torque_input",
+        self.wrench_pub = rospy.Publisher("/thrust/wrench_input",
                                           Wrench,
                                           queue_size=1)
 
@@ -90,8 +87,7 @@ class JoystickInterface:
         return wrench_msg
 
     def publish_wrench_message(self, wrench):
-        self.force_pub.publish(wrench)
-        self.torque_pub.publish(wrench)
+        self.wrench_pub.publish(wrench)
 
     def transition_to_xbox_mode(self):
         # We want to turn off controller when moving to xbox mode
