@@ -42,9 +42,9 @@ class sea_marker_task:
 
         while not rospy.is_shutdown():
 
-            if not (rospy.get_param("/tasks/sea_marker_task1") or rospy.get_param("/tasks/sea_marker_task2") or rospy.get_param("/tasks/sea_marker_task3")):
-                print("Exiting because this fsm should be inactive.")
-                break
+            # if not (rospy.get_param("/tasks/sea_marker_task1") or rospy.get_param("/tasks/sea_marker_task2") or rospy.get_param("/tasks/sea_marker_task3")):
+            #     print("Exiting because this fsm should be inactive.")
+            #     break
 
             ud = smach.UserData()
             outcome = sm.execute(ud)
