@@ -44,7 +44,6 @@ class Maneuvering1(smach.State):
 
         if (rospy.get_param("/tasks/sea_marker_task1") == True):
             #Code for task 1 here
-            LQRInterface.add_point(self.wp_goal2)
             self.set_wp_to_avoid_objects()
             return 'maneuvering1'
 
@@ -61,22 +60,30 @@ class Maneuvering1(smach.State):
 
         #Find path to goal from boat position
         position = self.odom.pose.pose.position
-        vector = calculate_vector(position, (self.wp_goal2[0], self.wp_goal2[1]))
-        Intermediate_coordiante = (position[0]+vector[0]/2, position[1]+vector[1]/2)
-        
+        #vector = calculate_vector(position, (self.wp_goal2[0], self.wp_goal2[1]))
+        #Intermediate_coordiante = (position[0]+vector[0]/2, position[1]+vector[1]/2)
+        radius1 = 1.2
+        radius2 = 1.7
+        radius3 = 2
+        distance_tolerance = 0.2
 
         #Find necessary waypoints between the boat and the wp_goal,
         #such that the vessel do not get to close to a sea marker.
         for sea_marker in len(self.sea_marker_list):
             if (sea_marker[2].endswith('bouy')):
-                radius1 = 1.2
-                radius2 = 1.5
-                distance_tolerance = 0.2
+
+                #Check if we are to close to bouy, if so, get out using wp
+                sea_marker_coordinate = (sea_marker[0], sea_marker[1])
+                bouy_distance = calculate_distance(position, sea_marker_coordinate)
 
                 #Check if intermediate coordiante is inside small safety circle.
                 sea_marker_coordinate = (sea_marker[0], sea_marker[1])
-                distance1 = calculate_distance(Intermediate_coordiante, sea_marker_coordinate)
-                if (distance1 < radius1):
+                #distance1 = calculate_distance(Intermediate_coordiante, sea_marker_coordinate)
+                if (bouy_distance > radius3):
+                    LQRInterface.clear_all_waypoints()
+                    LQRInterface.add_point(self.wp_goal2)
+
+                elif (bouy_distance > radius2):
                     
                     tangent_points = calculate_tangent_points(sea_marker[0], sea_marker[1], radius2, position[0], position[1])
                     distance_pos_to_tangent_pos = calculate_distance(position, tangent_points[0])
@@ -88,19 +95,21 @@ class Maneuvering1(smach.State):
                         if sea_marker[2].startswith('red') and i == 0:
                             LQRInterface.clear_all_waypoints()
                             LQRInterface.add_point(point)
+                            LQRInterface.add_point(self.wp_goal2)
 
                         elif sea_marker[2].startswith('green') and i == 1:
                             LQRInterface.clear_all_waypoints()
                             LQRInterface.add_point(point)
+                            LQRInterface.add_point(self.wp_goal2)
 
-                
-                #if so, reset wp list and make intermediete waypoint using big safety circle 
+                else:
+                    #Go straight away from bouy
+                    vector_to_bouy = calculate_vector(position, sea_marker_coordinate)
+                    next_wp = (position[0] - vector_to_bouy[0], position[1] - vector_to_bouy[1])
+                    LQRInterface.add_point(next_wp)
+                    LQRInterface.add_point(self.wp_goal2)
+                    pass
 
-
-                #Check if path goes through small safty circle around bouy
-
-                #if so, reset wp list and make another intermediete waypoint using small safety circle
-                pass
 
 
 class Maneuvering2(smach.State):
