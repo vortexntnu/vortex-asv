@@ -64,7 +64,8 @@ ThrusterInterface::pwm_to_bytes(const std::vector<int> &pwm_values) {
   std::vector<uint8_t> bytes;
   for (const auto &val : pwm_values) {
     // Ensure the value is in the correct range and cast to an integer
-    int pwm_int = static_cast<int>(std::min(std::max(val, 1300), 1700)); // min 1100, max 1900
+    int pwm_int = static_cast<int>(
+        std::min(std::max(val, 1300), 1700)); // min 1100, max 1900
 
     // Split the integer into most significant byte (MSB) and least significant
     // byte (LSB)
