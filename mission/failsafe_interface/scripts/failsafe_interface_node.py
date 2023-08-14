@@ -34,6 +34,8 @@ class FailSafeInterface(object):
 
         GPIO.setup(self.gpioSoftWareOperationMode, GPIO.OUT)
 
+        self.gpioHardWareOperationMode = 16
+
         GPIO.output(self.gpioHardWareOperationMode, 0)
 
         #Repeat process for the other pins
@@ -45,7 +47,6 @@ class FailSafeInterface(object):
 
         #Repeat process for the other pins
 
-        self.gpioHardWareOperationMode = 16
 
         #self.gpioHardWareOperationMode = rospy.get_param(
         #    "/failsafe/gpio/gpioHardWareOperationMode"
