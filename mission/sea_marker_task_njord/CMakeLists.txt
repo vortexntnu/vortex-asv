@@ -2,9 +2,13 @@ cmake_minimum_required(VERSION 3.0.2)
 project(njord_fsm)
 
 find_package(catkin REQUIRED COMPONENTS
+  sensor_msgs
   roscpp
   rospy
   vortex_msgs
+  move_base_msgs
+  actionlib
+  message_generation
   # smach
   # smach_ros
 )

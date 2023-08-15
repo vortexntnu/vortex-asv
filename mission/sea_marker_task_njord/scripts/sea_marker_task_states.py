@@ -7,7 +7,7 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
 from tf.transformations import euler_from_quaternion
 from vortex_msgs.msg import DetectedObjectArray, DetectedObject
-from ../finite_state_machine/scripts/lqr_interface import LQRInterface
+from lqr_interface import LQRInterface
 
 
 class Maneuvering1(smach.State):
@@ -138,6 +138,7 @@ class Maneuvering2(smach.State):
 
         elif (rospy.get_param("/tasks/sea_marker_task2") == True):
             #Code for task 2 here
+            
             return 'maneuvering2'
 
         elif (rospy.get_param("/tasks/sea_marker_task3") == True):
