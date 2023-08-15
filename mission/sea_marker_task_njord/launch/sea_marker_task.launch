@@ -1,0 +1,17 @@
+<launch>
+
+  <!-- Run the LQR controller node -->
+  <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
+
+  <!-- Run the LQR guidance node -->
+  <node pkg="lqr_guidance" type="lqr_guidance_node.py" name="lqr_guidance_node" output="screen" />
+
+  <node pkg="njord_fsm" type="lqr_interface.py" name="lqr_interface" output="screen"/>
+
+  <node pkg="njord_fsm" type="new_sea_markers.py" name="new_sea_markers" output="screen"/>
+
+  <node pkg="njord_fsm" type="sea_marker_task_fsm.py" name="sea_marker_task_fsm" output="screen"/>
+
+  <node pkg="njord_fsm" type="sea_marker_task_states.py" name="sea_marker_task_states" output="screen"/>
+  
+</launch>
