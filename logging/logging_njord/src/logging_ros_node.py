@@ -79,7 +79,10 @@ class DataLoggerNode:
     def battery_callback(self, data):
         self.log_lock.acquire()
         if (data.location == 'ttyUSB1'):
-            self.current_battery = [data.voltage * data.current, self.find_battery_percentage_left(data.voltage)]
+            self.current_battery = [
+                data.voltage * data.current,
+                self.find_battery_percentage_left(data.voltage)
+            ]
         self.log_lock.release()
 
     def timer_callback(self):
