@@ -126,7 +126,7 @@ class Maneuvering2(smach.State):
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
 
-        self.wp_goal3 = (63.44085336373529,10.4236652692412)
+        self.wp_goal3 = (63.44085336373529, 10.4236652692412)
 
         # Publisher to heading controller
         self.heading_pub = rospy.Publisher(
@@ -166,7 +166,6 @@ class Maneuvering2(smach.State):
             ]
             yaw = euler_from_quaternion(orientation_list)[2]
 
-
     def execute(self, userdata):
 
         if (rospy.get_param("/tasks/sea_marker_task1") == True):
@@ -174,7 +173,7 @@ class Maneuvering2(smach.State):
 
         elif (rospy.get_param("/tasks/sea_marker_task2") == True):
             #Code for task 2 here
-            
+
             #Spin 360 degrees
             self.yaw_to_angle(360)
 
@@ -294,10 +293,12 @@ class Maneuvering3(smach.State):
                 print("do nothing")
 
             elif (bouy_distance <= radius1):
-                 vector_to_bouy = calculate_vector(position, sea_marker_coordinate)
-                 next_wp = (position[0] - vector_to_bouy[0], position[1] - vector_to_bouy[1])
-                 LQRInterface.add_point(next_wp)
-                 LQRInterface.add_point(self.wp_goal4)
+                vector_to_bouy = calculate_vector(position,
+                                                  sea_marker_coordinate)
+                next_wp = (position[0] - vector_to_bouy[0],
+                           position[1] - vector_to_bouy[1])
+                LQRInterface.add_point(next_wp)
+                LQRInterface.add_point(self.wp_goal4)
 
 
 def calculate_vector(coord1, coord2):
