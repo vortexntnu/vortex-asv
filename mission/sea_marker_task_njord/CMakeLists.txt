@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   vortex_msgs
-  move_base_msgs
+  #move_base_msgs
   actionlib
   message_generation
   # smach
