@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
   ros::Publisher battery_pub =
       nh.advertise<sensor_msgs::BatteryState>("/internal/status/bms", 10);
 
-  std::vector<std::string> usb_ports = {"ttyUSB1", "ttyUSB2"}; //
+  std::vector<std::string> usb_ports = {"ttyUSB0", "ttyUSB1"}; //
 
   ros::Rate rate(1); // 1 Hz
 

@@ -15,7 +15,7 @@ def main():
                                   queue_size=10)
 
     # List of USB devices to loop through
-    usb_ports = ["ttyUSB1", "ttyUSB2"]  # Add as many as you need
+    usb_ports = ["ttyUSB0", "ttyUSB1"]  # Add as many as you need
 
     # Rate object to control the loop rate (in Hz)
     rate = rospy.Rate(1)  # 1 Hz
@@ -23,7 +23,7 @@ def main():
     while not rospy.is_shutdown():
         for usb_port in usb_ports:
             response = execute_jbdtool(usb_port)
-            if response.stdout != b'':  # Check if data is received
+            if response.stdout is not None:  # Check if data is received
 
                 voltage, current, temps, cells = parse_bms_data(response)
 

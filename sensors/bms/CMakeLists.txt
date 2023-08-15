@@ -18,7 +18,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 ## Declare catkin package
 catkin_package(
-  # NCLUDE_DIRS include
+  # INCLUDE_DIRS include
   LIBRARIES freya_bms
   CATKIN_DEPENDS roscpp sensor_msgs
   DEPENDS Boost
