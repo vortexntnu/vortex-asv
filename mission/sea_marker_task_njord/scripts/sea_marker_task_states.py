@@ -21,7 +21,7 @@ class Maneuvering1(smach.State):
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
 
-        self.wp_goal2 = (0,0)
+        self.wp_goal2 = (63.4408827099077, 10.42366526929412)
 
         self.sea_marker_list = []
 
@@ -118,7 +118,11 @@ class Maneuvering2(smach.State):
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
 
-        self.wp_goal2 = (0,0)
+        self.wp_goal3 = (63.44085336373529,10.4236652692412)
+
+        # Publisher to heading controller
+        self.heading_pub = rospy.Publisher(
+            "/guidance_interface/desired_heading", Float64, queue_size=1)
 
         rospy.Subscriber("/odometry/filtered", Odometry, self.odom_cb)
 
@@ -130,6 +134,26 @@ class Maneuvering2(smach.State):
     def data_cb(self, msg):
         self.sea_marker_list = msg.DetectedObjectArray
 
+    def yaw_to_angle(self, angle):
+        # Find heading corresponding to the change in angle
+        orientation = self.odom.pose.pose.orientation
+        orientation_list = [
+            orientation.x, orientation.y, orientation.z, orientation.w
+        ]
+        yaw = euler_from_quaternion(orientation_list)[2]
+        heading_goal = yaw + angle
+
+        # publishes heading to heading controller, and waits until the new heading is reached
+        self.heading_pub.publish(heading_goal)
+        print(f"Searching for {self.task}, angle: ({angle}) ...")
+        while not self.within_acceptance_margins(heading_goal, yaw):
+            self.rate.sleep()
+            orientation = self.odom.pose.pose.orientation
+            orientation_list = [
+                orientation.x, orientation.y, orientation.z, orientation.w
+            ]
+            yaw = euler_from_quaternion(orientation_list)[2]
+
 
     def execute(self, userdata):
 
@@ -139,6 +163,13 @@ class Maneuvering2(smach.State):
         elif (rospy.get_param("/tasks/sea_marker_task2") == True):
             #Code for task 2 here
             
+            #Spin 360 degrees
+            self.yaw_to_angle(360)
+
+            #Go to goal3
+            LQRInterface.clear_all_waypoints()
+            LQRInterface.add_point(self.wp_goal3)
+
             return 'maneuvering2'
 
         elif (rospy.get_param("/tasks/sea_marker_task3") == True):
@@ -158,7 +189,7 @@ class Maneuvering3(smach.State):
         self.odom = Odometry()
         self.rate = rospy.Rate(10)
 
-        self.wp_goal2 = (0,0)
+        self.wp_goal4 = (63.441300763375004, 10.424084261708332)
 
         self.sea_marker_list = []
 
@@ -210,7 +241,7 @@ class Maneuvering3(smach.State):
    
             if (bouy_distance > radius3):
                 LQRInterface.clear_all_waypoints()
-                LQRInterface.add_point(self.wp_goal2)
+                LQRInterface.add_point(self.wp_goal4)
 
             elif (bouy_distance > radius2):
 
@@ -227,22 +258,22 @@ class Maneuvering3(smach.State):
                     if sea_marker[2].startswith('red') and i == 1:
                         LQRInterface.clear_all_waypoints()
                         LQRInterface.add_point(point)
-                        LQRInterface.add_point(self.wp_goal2)
+                        LQRInterface.add_point(self.wp_goal4)
 
                     elif sea_marker[2].startswith('green') and i == 0:
                         LQRInterface.clear_all_waypoints()
                         LQRInterface.add_point(point)
-                        LQRInterface.add_point(self.wp_goal2)
+                        LQRInterface.add_point(self.wp_goal4)
 
                     elif sea_marker[2].startswith('east') and i == 0:
                         LQRInterface.clear_all_waypoints()
                         LQRInterface.add_point(point)
-                        LQRInterface.add_point(self.wp_goal2)
+                        LQRInterface.add_point(self.wp_goal4)
 
                     elif sea_marker[2].startswith('west') and i == 1:
                         LQRInterface.clear_all_waypoints()
                         LQRInterface.add_point(point)
-                        LQRInterface.add_point(self.wp_goal2)
+                        LQRInterface.add_point(self.wp_goal4)
 
             elif (bouy_distance > radius1):
                  #Go straight away from bouy
@@ -252,7 +283,7 @@ class Maneuvering3(smach.State):
                  vector_to_bouy = calculate_vector(position, sea_marker_coordinate)
                  next_wp = (position[0] - vector_to_bouy[0], position[1] - vector_to_bouy[1])
                  LQRInterface.add_point(next_wp)
-                 LQRInterface.add_point(self.wp_goal2)
+                 LQRInterface.add_point(self.wp_goal4)
 
 
 def calculate_vector(coord1, coord2):
