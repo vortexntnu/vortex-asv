@@ -91,8 +91,11 @@ class DataLoggerNode:
                 self.find_battery_percentage_left(data.voltage)
             ]
 
-        self.current_battery_total = [self.current_battery1[0] + self.current_battery2[0], (self.current_battery1[1] + self.current_battery2[1])/2]
-        
+        self.current_battery_total = [
+            self.current_battery1[0] + self.current_battery2[0],
+            (self.current_battery1[1] + self.current_battery2[1]) / 2
+        ]
+
         self.log_lock.release()
 
     def timer_callback(self):
