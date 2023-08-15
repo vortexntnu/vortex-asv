@@ -37,6 +37,6 @@
     <node pkg="lqr_path_following" type="lqr_path_following_node.py" name="lqr_path_following" output="screen" />
 
     <!-- Mission: Consider moving to separate launch -->
-    <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/>
+    <!-- <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/> -->
 
 </launch>

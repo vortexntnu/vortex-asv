@@ -21,13 +21,57 @@ def ssa(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
 
+class TargetVessel:
+
+    def __init__(self, start, end, speed):
+        self.start = np.array(start, dtype=np.float64)
+        self.end = np.array(end, dtype=np.float64)
+        self.speed = speed
+        self.position = np.array(start, dtype=np.float64)
+
+        # Calculate initial yaw based on start and end positions
+        self.yaw = np.arctan2(self.end[1] - self.start[1],
+                              self.end[0] - self.start[0])
+
+        self.target_pub = rospy.Publisher('/pdaf/target',
+                                          Odometry,
+                                          queue_size=10)
+        self.publish_target_position()
+
+    def publish_target_position(self):
+        target_odom = Odometry()
+        target_odom.pose.pose.position.x = self.position[0]
+        target_odom.pose.pose.position.y = self.position[1]
+
+        q = quaternion_from_euler(0.0, 0.0, self.yaw)
+        target_odom.pose.pose.orientation.x = q[0]
+        target_odom.pose.pose.orientation.y = q[1]
+        target_odom.pose.pose.orientation.z = q[2]
+        target_odom.pose.pose.orientation.w = q[3]
+
+        target_odom.twist.twist.linear.x = np.cos(self.yaw) * self.speed
+        target_odom.twist.twist.linear.y = np.sin(self.yaw) * self.speed
+
+        self.target_pub.publish(target_odom)
+
+    def step(self, dt):
+        movement = np.array([np.cos(self.yaw),
+                             np.sin(self.yaw)]) * self.speed * dt
+        self.position += movement
+
+        if np.linalg.norm(self.end - self.position) < self.speed * dt:
+            self.yaw += np.pi  # reverse direction (by adding pi to the yaw)
+            self.yaw %= 2 * np.pi  # keep yaw within [0, 2*pi]
+            self.end, self.start = self.start, self.end
+
+
 class VesselVisualizer:
 
     def __init__(self, vessel):
 
         rospy.init_node('vessel_simulator')
 
-        rospy.Subscriber("/thrust/force_input", Wrench, self.wrench_callback)
+        rospy.Subscriber("/thrust/wrench_input", Wrench, self.wrench_callback)
         rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
                          self.setpoint_callback)
         rospy.Subscriber("/guidance/lqr/add_waypoint", Point,
@@ -41,6 +85,21 @@ class VesselVisualizer:
         self.ax_psi = self.axes[1, 1]
         self.ax_vx = self.axes[2, 0]
         self.ax_vy = self.axes[2, 1]
+
+        #self.target_vessel = TargetVessel(np.array([2, 4]), np.array([2, -4]), 0.5) # target moves right to left
+        #self.target_vessel = TargetVessel(np.array([2, -4]), np.array([2, 4]), 0.5) # target moves left to right
+        self.target_vessel = TargetVessel(np.array([-1, 4]), np.array(
+            [2, -4]), 0.5)  # target moves right to left at an angle
+        dy = np.cos(self.target_vessel.yaw) * self.target_vessel.speed
+        dx = np.sin(self.target_vessel.yaw) * self.target_vessel.speed
+        self.target_arrow = plt.Arrow(self.target_vessel.position[1],
+                                      self.target_vessel.position[0],
+                                      dx,
+                                      dy,
+                                      width=0.5,
+                                      color="green")
+
+        self.ax_vessel.add_patch(self.target_arrow)
 
         x, y, psi, vx, vy, vpsi = self.vessel.state
         self.external_control_signal = np.zeros(3)
@@ -111,7 +170,10 @@ class VesselVisualizer:
     def update(self, frame):
         self.update_time_and_motion_state()
         random_external_noise = np.append(self.brownian_motion_state, 0.0)
-        self.vessel.step(DT, self.u + random_external_noise)
+        self.vessel.step(DT, self.u)
+        self.target_vessel.step(DT)
+        self.target_vessel.publish_target_position()
+        self.update_and_draw_target()
         self.update_and_draw_arrow()
         self.update_path_line()
         self.update_and_plot_signals(frame)
@@ -130,6 +192,19 @@ class VesselVisualizer:
 
         # Publish the message
         self.odom_pub.publish(odom)
+
+    def update_and_draw_target(self):
+        self.target_arrow.remove()
+        x, y = self.target_vessel.position
+        dy = np.cos(self.target_vessel.yaw) * self.target_vessel.speed
+        dx = np.sin(self.target_vessel.yaw) * self.target_vessel.speed
+        self.target_arrow = plt.Arrow(self.target_vessel.position[1],
+                                      self.target_vessel.position[0],
+                                      dx,
+                                      dy,
+                                      width=0.5,
+                                      color="green")
+        self.ax_vessel.add_patch(self.target_arrow)
 
     def update_time_and_motion_state(self):
         self.current_time += DT

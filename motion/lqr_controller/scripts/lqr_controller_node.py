@@ -24,7 +24,7 @@ class LQRControllerNode:
         damping_psi = rospy.get_param("lqr_controller/damping/psi", 15.0)
 
         Q = rospy.get_param("lqr_controller/Q",
-                            [10.0, 10.0, 1.0, 0.001, 0.001, 0.001, 1.0, 1.0])
+                            [10.0, 10.0, 1.5, 0.001, 0.001, 0.001, 1.0, 1.0])
         R = rospy.get_param("lqr_controller/R", [0.01, 0.01, 0.01])
 
         M = np.diag([mass, mass, inertia])
@@ -45,7 +45,7 @@ class LQRControllerNode:
         rospy.Subscriber("/controller/lqr/setpoints", Float64MultiArray,
                          self.setpoint_callback)
 
-        self.tau_pub = rospy.Publisher("/thrust/force_input",
+        self.tau_pub = rospy.Publisher("/thrust/wrench_input",
                                        Wrench,
                                        queue_size=10)
 
@@ -85,14 +85,10 @@ class LQRControllerNode:
         # Convert quaternion to Euler angles
         (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
 
-        # Extract the linear velocities
         vx = msg.twist.twist.linear.x
         vy = msg.twist.twist.linear.y
-
-        # Extract the angular velocity (yaw rate)
         vyaw = msg.twist.twist.angular.z
 
-        # Combine all data into numpy array
         state = np.array([x, y, yaw, vx, vy, vyaw])
 
         current_time = rospy.get_time()
@@ -109,7 +105,6 @@ class LQRControllerNode:
         wrench.torque.y = 0.0
         wrench.torque.z = tau[2]
 
-        # You can then publish this Wrench message
         self.tau_pub.publish(wrench)
 
 
