@@ -30,7 +30,7 @@ class DataLoggerNode:
         script_directory = Path(__file__).resolve().parent
         csv_file_path = script_directory.parent / 'logs' / csv_file_name
 
-        self.csv_file = open(csv_file_path, 'w')
+        self.csv_file = open(csv_file_name, 'w')
         self.csv_writer = csv.writer(self.csv_file, delimiter=',')
 
         self.csv_writer.writerow([
@@ -80,12 +80,12 @@ class DataLoggerNode:
 
     def battery_callback(self, data):
         self.log_lock.acquire()
-        if (data.location == 'ttyUSB1'):
+        if (data.location == 'ttyUSB0'):
             self.current_battery1 = [
                 data.voltage * data.current,
                 self.find_battery_percentage_left(data.voltage)
             ]
-        else if (data.location == 'ttyUSB2'):
+        elif (data.location == 'ttyUSB1'):
             self.current_battery2 = [
                 data.voltage * data.current,
                 self.find_battery_percentage_left(data.voltage)
