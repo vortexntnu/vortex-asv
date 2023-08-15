@@ -43,7 +43,8 @@ class Maneuvering1(smach.State):
 
         if (rospy.get_param("/tasks/sea_marker_task1") == True):
             #Code for task 1 here
-            self.set_wp_to_avoid_objects()
+            LQRInterface.add_point(self.wp_goal2)
+            #self.set_wp_to_avoid_objects()
             return 'maneuvering1'
 
         elif (rospy.get_param("/tasks/sea_marker_task2") == True):
@@ -108,6 +109,7 @@ class Maneuvering1(smach.State):
                                                   sea_marker_coordinate)
                 next_wp = (position[0] - vector_to_bouy[0],
                            position[1] - vector_to_bouy[1])
+                LQRInterface.clear_all_waypoints()
                 LQRInterface.add_point(next_wp)
                 LQRInterface.add_point(self.wp_goal2)
 
@@ -226,7 +228,8 @@ class Maneuvering3(smach.State):
 
         elif (rospy.get_param("/tasks/sea_marker_task3") == True):
             #Code for task 3 here
-            self.set_wp_to_avoid_objects()
+            LQRInterface.add_point(self.wp_goal4)
+            #self.set_wp_to_avoid_objects()
             return 'maneuvering3'
 
         return 'stop'
@@ -297,6 +300,7 @@ class Maneuvering3(smach.State):
                                                   sea_marker_coordinate)
                 next_wp = (position[0] - vector_to_bouy[0],
                            position[1] - vector_to_bouy[1])
+                LQRInterface.clear_all_waypoints()
                 LQRInterface.add_point(next_wp)
                 LQRInterface.add_point(self.wp_goal4)
 
