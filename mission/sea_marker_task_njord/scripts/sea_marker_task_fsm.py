@@ -18,23 +18,28 @@ class sea_marker_task:
         with sm:
             smach.StateMachine.add('Maneuvering1',
                                    Maneuvering1(),
-                                   transitions={'maneuvering1': 'Maneuvering1',
-                                                'maneuvering2': 'Maneuvering2',
-                                                'maneuvering3': 'Maneuvering3',
-                                                'stop':'Stop'})
+                                   transitions={
+                                       'maneuvering1': 'Maneuvering1',
+                                       'maneuvering2': 'Maneuvering2',
+                                       'maneuvering3': 'Maneuvering3',
+                                       'stop': 'Stop'
+                                   })
             smach.StateMachine.add('Maneuvering2',
                                    Maneuvering2(),
-                                   transitions={'maneuvering1': 'Maneuvering1',
-                                                'maneuvering2': 'Maneuvering2',
-                                                'maneuvering3': 'Maneuvering3',
-                                                'stop':'Stop'})
+                                   transitions={
+                                       'maneuvering1': 'Maneuvering1',
+                                       'maneuvering2': 'Maneuvering2',
+                                       'maneuvering3': 'Maneuvering3',
+                                       'stop': 'Stop'
+                                   })
             smach.StateMachine.add('Maneuvering3',
                                    Maneuvering3(),
-                                   transitions={'maneuvering1': 'Maneuvering1',
-                                                'maneuvering2': 'Maneuvering2',
-                                                'maneuvering3': 'Maneuvering3',
-                                                'stop':'Stop'})
-
+                                   transitions={
+                                       'maneuvering1': 'Maneuvering1',
+                                       'maneuvering2': 'Maneuvering2',
+                                       'maneuvering3': 'Maneuvering3',
+                                       'stop': 'Stop'
+                                   })
 
         # Start the state machine introspection server
         sis = smach_ros.IntrospectionServer('state_machine', sm, '/SM_ROOT')

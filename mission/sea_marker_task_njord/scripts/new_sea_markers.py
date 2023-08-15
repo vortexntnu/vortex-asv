@@ -80,7 +80,6 @@ class UpdateSeaMarkersNode:
             single_message.type = buoy.type_
             msg.DetectedObjectArray.append(single_message)
 
-
         self.pub.publish(msg)
 
     def new_buoy_marker_callback(self, msg):
