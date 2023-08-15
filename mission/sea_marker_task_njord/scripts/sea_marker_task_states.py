@@ -134,6 +134,12 @@ class Maneuvering2(smach.State):
     def data_cb(self, msg):
         self.sea_marker_list = msg.DetectedObjectArray
 
+    def within_acceptance_margins(self, setpoint, current):
+        error = abs(setpoint - current)
+        if error < 0.1:
+            return True
+        return False
+
     def yaw_to_angle(self, angle):
         # Find heading corresponding to the change in angle
         orientation = self.odom.pose.pose.orientation
