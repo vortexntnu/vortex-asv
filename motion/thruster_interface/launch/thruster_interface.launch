@@ -1,9 +1,11 @@
 <launch>
   <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}" />
 
-  <rosparam command="load" file="$(find asv_setup)/config/robots/temp_config.yaml"/>
-  <rosparam command="load" file="$(find asv_setup)/config/topics.yaml"/>
+  <rosparam command="load" file="$(find pca9685_ros_driver)/params/pca_params.yaml"/>
+  <node pkg="pca9685_ros_driver" type="pca9685_ros_node.py" name="pca9685_ros_driver" output="screen" />
 
-  <node pkg="thruster_interface"  type="thruster_interface_node.py" name="thruster_interface"  output="screen"/>
+  <rosparam command="load" file="$(find asv_setup)/config/robots/naglfar.yaml"/>
+
+  <node pkg="thruster_interface"  type="thruster_interface_node" name="thruster_interface_node"  output="screen"/>
 </launch>
 

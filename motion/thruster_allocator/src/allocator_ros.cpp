@@ -11,18 +11,15 @@
 Allocator::Allocator(ros::NodeHandle nh)
     : m_nh(nh), m_min_thrust(-std::numeric_limits<double>::infinity()),
       m_max_thrust(std::numeric_limits<double>::infinity()) {
-  std::string torque_topic;
+  std::string wrench_topic;
   std::string force_topic;
   std::string pub_topic;
 
-  m_nh.getParam("/asv/thruster_manager/torque", torque_topic);
-  m_nh.getParam("/asv/thruster_manager/force", force_topic);
+  m_nh.getParam("/asv/thruster_manager/wrench", wrench_topic);
   m_nh.getParam("/asv/thruster_manager/output", pub_topic);
 
-  m_sub_torque =
-      m_nh.subscribe(torque_topic, 1, &Allocator::torqueWrenchCallback, this);
-  m_sub_force =
-      m_nh.subscribe(force_topic, 1, &Allocator::forceWrenchCallback, this);
+  m_sub_wrench =
+      m_nh.subscribe(wrench_topic, 1, &Allocator::wrenchCallback, this);
 
   m_pub = m_nh.advertise<vortex_msgs::ThrusterForces>(pub_topic, 1);
 
@@ -76,7 +73,7 @@ void Allocator::spinOnce() {
 
   if (!saturateVector(&thruster_forces, m_min_thrust, m_max_thrust))
     ROS_WARN_THROTTLE(1, "Thruster forces vector required saturation.");
-
+  // std::cout << thruster_forces << std::endl;
   vortex_msgs::ThrusterForces msg_out;
   arrayEigenToMsg(thruster_forces, &msg_out);
 
@@ -87,26 +84,16 @@ void Allocator::spinOnce() {
   m_pub.publish(msg_out);
 }
 
-void Allocator::forceWrenchCallback(const geometry_msgs::Wrench &msg_in) {
+void Allocator::wrenchCallback(const geometry_msgs::Wrench &msg_in) {
   const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(msg_in);
 
   if (!healthyWrench(body_frame_forces)) {
-    ROS_ERROR("ASV forces vector invalid, ignoring.");
+    ROS_ERROR("ASV wrench vector invalid, ignoring.");
     return;
   }
 
   body_frame_force_x = msg_in.force.x;
   body_frame_force_y = msg_in.force.y;
-}
-
-void Allocator::torqueWrenchCallback(const geometry_msgs::Wrench &msg_in) {
-  const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(msg_in);
-
-  if (!healthyWrench(body_frame_forces)) {
-    ROS_ERROR("ASV torque vector invalid, ignoring.");
-    return;
-  }
-
   body_frame_torque = msg_in.torque.z;
 }
 

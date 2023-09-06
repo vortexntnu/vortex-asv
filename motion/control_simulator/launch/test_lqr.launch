@@ -1,0 +1,15 @@
+<launch>
+  <!-- Run the control simulator -->
+  <node pkg="control_simulator" type="simulator.py" name="simulator" output="screen" />
+
+  <!-- Run the LQR controller node -->
+  <rosparam file="$(find lqr_controller)/params/config.yaml" command="load" />
+  <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
+
+  <!-- Run the LQR guidance node -->
+  <rosparam file="$(find lqr_path_following)/params/config.yaml" command="load" />
+  <node pkg="lqr_path_following" type="lqr_path_following_node.py" name="lqr_path_following" output="screen" />
+
+  <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/>
+
+</launch>

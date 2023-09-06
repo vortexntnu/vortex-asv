@@ -1,0 +1,9 @@
+lqr_controller:
+  mass: 50.0
+  inertia: 5.0
+  damping:
+    x: 5.0
+    y: 20.0
+    psi: 15.0
+  Q: [20.0, 20.0, 10, 0.001, 0.001, 0.001, 1.0, 1.0]  # State costs for [x, y, psi, u, v, r, integral_x, integral,y]
+  R: [0.01, 0.01, 0.01]  # Control cost weight

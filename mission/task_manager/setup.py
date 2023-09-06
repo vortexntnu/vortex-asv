@@ -7,6 +7,6 @@ setup(
     version="0.0.0",
     description="Defines for the task manager",
     author="Sigurd von Brandis",
-    author_email="Sigurdvb@stud.ntnu.no",
+    author_email="sigurdvbrandis@gmail.com",
     packages=find_packages(),
 )

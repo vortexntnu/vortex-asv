@@ -16,18 +16,10 @@ public:
   /**
    * @brief Callback function for getting force wrench
    *
-   * @param msg Wrench message containing linear forces in BODY
-   * frame
+   * @param msg Wrench message containing linear forces in BODY and torque about
+   * the vertical axis frame
    */
-  void forceWrenchCallback(const geometry_msgs::Wrench &msg);
-
-  /**
-   * @brief Callback function for getting torque wrench
-   *
-   * @param msg Wrench message containing angular forces in BODY
-   * frame
-   */
-  void torqueWrenchCallback(const geometry_msgs::Wrench &msg);
+  void wrenchCallback(const geometry_msgs::Wrench &msg);
 
   /**
    * @brief Function for periodically converting force & torque wrench in body
@@ -38,8 +30,7 @@ public:
 
 private:
   ros::NodeHandle m_nh;
-  ros::Subscriber m_sub_torque;
-  ros::Subscriber m_sub_force;
+  ros::Subscriber m_sub_wrench;
   ros::Publisher m_pub;
 
   int m_num_degrees_of_freedom;

@@ -14,3 +14,6 @@ class Task:
 class Tasks:
     joystick = Task(id=0, name="joystick")
     collision_avoidance = Task(id=1, name="collision_avoidance")
+    sea_marker_task1 = Task(id=2, name="sea_marker_task1")
+    sea_marker_task2 = Task(id=3, name="sea_marker_task2")
+    sea_marker_task3 = Task(id=4, name="sea_marker_task3")

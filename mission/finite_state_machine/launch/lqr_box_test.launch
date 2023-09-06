@@ -1,0 +1,13 @@
+<launch>
+  <!-- Run the control simulator -->
+  <node pkg="control_simulator" type="simulator.py" name="simulator" output="screen" />
+
+  <!-- Run the LQR controller node -->
+  <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
+
+  <!-- Run the LQR guidance node -->
+  <node pkg="lqr_guidance" type="lqr_guidance_node.py" name="lqr_guidance_node" output="screen" />
+
+
+  <node pkg="finite_state_machine" type="lqr_box_test.py" name="lqr_box_test" output="screen"/>
+</launch>

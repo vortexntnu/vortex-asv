@@ -1,0 +1,9 @@
+lqr_guidance:
+  use_path_dependent_heading: true
+  interpolation_step_size: 1.0
+  convergence:
+    radius: 0.25 # meters
+    angle: 0.785 # radians
+  
+  debug:
+    print: false
