@@ -1,0 +1,31 @@
+launch:
+  - set_environment_variable:
+      name: ROSCONSOLE_FORMAT
+      value: "[${severity}] [${time}] [${node}]: ${message}"
+
+  - declare_namespace:
+      namespace: joystick
+      with_arguments:
+        - ns_joystick
+
+  - rosparam_load_file:
+      param_file: asv_setup/config/params/gnc.yaml
+
+  - namespace:
+      namespace: ${arg.ns_joystick}
+      prefix: joy
+    launch:
+      - node:
+          package: joy
+          executable: joy_node
+          name: joystick_driver
+          output: screen
+          parameters:
+            _deadzone: 0.15
+            _autorepeat_rate: 100
+
+  - node:
+      package: joystick_interface
+      executable: joystick_interface.py
+      name: joystick_interface
+      output: screen

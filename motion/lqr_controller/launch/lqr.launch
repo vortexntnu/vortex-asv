@@ -1,6 +1,0 @@
-<launch>
-  <!-- Run the LQR controller node -->
-  <rosparam file="$(find lqr_controller)/params/config.yaml" command="load" />
-  <node pkg="lqr_controller" type="lqr_controller_node.py" name="lqr_controller_node" output="screen" />
-
-</launch>

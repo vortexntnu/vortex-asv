@@ -1,7 +1,0 @@
-<launch>
-  <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}" />
-
-  <rosparam command="load" file="$(find asv_setup)/config/robots/ASV.yaml" />
-
-  <node name="failsafe_interface" pkg="failsafe_interface" type="failsafe_interface_node.py" output="screen" />
-</launch>

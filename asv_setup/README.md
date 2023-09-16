@@ -11,12 +11,4 @@ There are currently no physical parameters
 This package contains a launchfile for each specific ASV. Additionally the pc.launch file is to
 be used on the topside computer that the joystick is connected to, for ROV operations.
 
-naglfar.launch is currently empty, except for input arguments
-
-For the ASV launchfiles, the following parameters can be used:
-
-| Parameter | Options         | Default   |
-| ----------|-----------------|-----------|
-| type      | real, simulator | simulator |
-
 
