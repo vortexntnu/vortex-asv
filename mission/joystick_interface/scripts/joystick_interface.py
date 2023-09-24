@@ -39,7 +39,8 @@ class JoystickInterface(Node):
         #self.wrench_publisher = self.create_publisher(Wrench, 'wrench_topic', 1)
 
         #self.node = rclpy.create_node('joystick_interface')
-        self.subscriber = self.create_subscription(Joy, 'joy',self.joystick_cb, 1)
+        self.subscriber = self.create_subscription(Joy, 'joy',
+                                                   self.joystick_cb, 1)
         #rclpy.shutdown()
 
     def create_2d_wrench_message(self, x, y, yaw):
@@ -48,8 +49,7 @@ class JoystickInterface(Node):
         wrench_msg.force.y = y
         wrench_msg.torque.z = yaw
         return wrench_msg
-    
-    
+
     """"
     def publish_wrench_message(self, wrench):
         self.wrench.pub.publish(wrench)
