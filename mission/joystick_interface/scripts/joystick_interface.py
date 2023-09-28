@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Wrench
@@ -8,8 +9,8 @@ from sensor_msgs.msg import Joy
 class JoystickInterface(Node):
 
     def __init__(self):
-        #rclpy.init()
-        super().__init__('joystick_interface_node')
+        rclpy.init() 
+
         #Mapping copy pasted from the original file
         self.joystick_buttons_map = [
             "A",
@@ -36,12 +37,13 @@ class JoystickInterface(Node):
             "dpad_vertical",
         ]
 
-        #self.wrench_publisher = self.create_publisher(Wrench, 'wrench_topic', 1)
 
-        #self.node = rclpy.create_node('joystick_interface')
+    
+        super().__init__('joystick_interface_node')
         self.subscriber = self.create_subscription(Joy, 'joy',
                                                    self.joystick_cb, 1)
-        #rclpy.shutdown()
+        
+        #self.wrench_publisher = self.create_publisher(Wrench, 'wrench_topic', 1)
 
     def create_2d_wrench_message(self, x, y, yaw):
         wrench_msg = Wrench()
@@ -58,13 +60,16 @@ class JoystickInterface(Node):
 
     def joystick_cb(self, msg):
         #print(f"Received message: {msg.buttons}")
+        print("hello")
         a = msg.buttons
         return a
 
-    def main(args=None):
-        rclpy.init(args=args)
-        joystick_interface = JoystickInterface()
-        rclpy.spin(joystick_interface)
-        joystick_interface.destroy_node()
-        rclpy.shutdown()
-        return
+def main(args=None):
+    #rclpy.init(args=args)
+    print("hello from main")
+    joystick_interface = JoystickInterface().subscriber
+    rclpy.spin(joystick_interface)
+    joystick_interface.destroy_node()
+
+    rclpy.shutdown()
+    return
