@@ -9,7 +9,7 @@ from sensor_msgs.msg import Joy
 class JoystickInterface(Node):
 
     def __init__(self):
-        rclpy.init() 
+        rclpy.init()
 
         #Mapping copy pasted from the original file
         self.joystick_buttons_map = [
@@ -37,12 +37,10 @@ class JoystickInterface(Node):
             "dpad_vertical",
         ]
 
-
-    
         super().__init__('joystick_interface_node')
         self.subscriber = self.create_subscription(Joy, 'joy',
                                                    self.joystick_cb, 1)
-        
+
         #self.wrench_publisher = self.create_publisher(Wrench, 'wrench_topic', 1)
 
     def create_2d_wrench_message(self, x, y, yaw):
@@ -63,6 +61,7 @@ class JoystickInterface(Node):
         print("hello")
         a = msg.buttons
         return a
+
 
 def main(args=None):
     #rclpy.init(args=args)

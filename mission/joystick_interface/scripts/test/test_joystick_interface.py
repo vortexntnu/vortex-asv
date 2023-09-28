@@ -22,5 +22,3 @@ class TestJoystickInterface:
         joy_msg.buttons = [1, 0, 1]
         assert JoystickInterface().joystick_cb(joy_msg) == joy_msg.buttons
         rclpy.shutdown()
-    
-    
