@@ -1,7 +1,8 @@
-/joystick_interface/joystick_interface:
-  scaling:
-    surge: 100.0
-    sway: 100.0
-    yaw: 100.0
+/joystick_interface:
+  ros__parameters:
+    surge: 300.0
+    sway: 200.0
+    yaw: 200.0
+
 
 
