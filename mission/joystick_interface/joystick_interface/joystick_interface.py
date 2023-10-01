@@ -100,6 +100,9 @@ def main():
 if __name__ == "__main__":
     main()
 
+if __name__ == "__main__":
+    main()
+
 #we want to move yaml into joystick_interface foulder
 #create launch file for joystick interface
 #modify pc launch file by taking out
