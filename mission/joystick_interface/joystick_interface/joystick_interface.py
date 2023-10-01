@@ -38,9 +38,12 @@ class JoystickInterface(Node):
 
         #Create a Publisher and a suscriber from the ros2 tutorial
         super().__init__('joystick_interface_node')
-        self.joy_subscriber = self.create_subscription(Joy, "/joystick/joy", self.joystick_cb, 1)
+        self.joy_subscriber = self.create_subscription(Joy, "/joystick/joy",
+                                                       self.joystick_cb, 1)
 
-        self.wrench_publisher = self.create_publisher(Wrench,"/thrust/wrench_input",1)
+        self.wrench_publisher = self.create_publisher(Wrench,
+                                                      "/thrust/wrench_input",
+                                                      1)
 
         #YAML file first need to be translating in ROS2 ; Getting the input from the controller'
         self.declare_parameter('surge', 100.0)
@@ -84,6 +87,7 @@ class JoystickInterface(Node):
 
         return wrench_msg
 
+
 def main():
     rclpy.init()
     print("hello from main")
@@ -95,6 +99,6 @@ def main():
     joystick_interface.destroy_node()
     rclpy.shutdown()
 
+
 if __name__ == "__main__":
     main()
-
