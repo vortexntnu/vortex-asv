@@ -4,8 +4,6 @@ from rclpy.node import Node
 from geometry_msgs.msg import Wrench
 from sensor_msgs.msg import Joy
 #git remote set-url origin git@github.com:vortexntnu/vortex-asv.git
-import yaml
-
 
 class JoystickInterface(Node):
 
@@ -51,11 +49,11 @@ class JoystickInterface(Node):
         self.declare_parameter('sway', 100.0)
         self.declare_parameter('yaw', 100.0)
 
-        self.joystick_surge_scaling = self.get_parameter(
-            'surge'
-        ).value  #is it getting the parameters from the YAML file ? No --> TO DO
+        self.joystick_surge_scaling = self.get_parameter('surge').value
         self.joystick_sway_scaling = self.get_parameter('sway').value
         self.joystick_yaw_scaling = self.get_parameter('yaw').value
+
+    
 
     def create_2d_wrench_message(self, x, y, yaw):
         wrench_msg = Wrench()
@@ -88,7 +86,6 @@ class JoystickInterface(Node):
 
         self.publish_wrench_message(wrench_msg)
 
-        #a = msg.buttons #to remove
         return wrench_msg
 
 
@@ -107,6 +104,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-#we want to move yaml into joystick_interface foulder
-#create launch file for joystick interface
-#modify pc launch file by taking out
