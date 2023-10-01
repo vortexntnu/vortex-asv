@@ -24,8 +24,11 @@ launch:
             _deadzone: 0.15
             _autorepeat_rate: 100
 
-  - node:
-      package: joystick_interface
-      executable: joystick_interface.py
-      name: joystick_interface
-      output: screen
+ # - node:
+ #     package: joystick_interface
+ #     executable: joystick_interface.py
+ #     name: joystick_interface
+ #     output: screen
+  -include:
+      file: "vortex-asv/mission/joystick_interface/launch/joystick_interface_launch.yaml" 
+  
