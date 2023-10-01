@@ -1,0 +1,13 @@
+launch:
+
+- node:
+    pkg: "joystick_interface"
+    exec: "joystick_interface"
+    name: "joystick_interface"
+    
+    #param from: /config/params.yaml
+    
+
+
+
+
