@@ -24,7 +24,7 @@ class TestJoystickInterface:
         joy_msg.buttons = [1, -1, -1, 0, 0, 6, 0, 0, 0, 0,
                            0]  #Should have 11 inputs self.joystick_buttons_map
         wrench_msg = JoystickInterface().joystick_cb(joy_msg)
-        assert wrench_msg.force.x == -100.0
-        assert wrench_msg.force.y == -100.0
+        assert wrench_msg.force.x == -300.0
+        assert wrench_msg.force.y == -200.0
         assert wrench_msg.torque.z == 0.0
         rclpy.shutdown()
