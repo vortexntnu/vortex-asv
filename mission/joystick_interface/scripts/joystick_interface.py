@@ -5,6 +5,7 @@ from geometry_msgs.msg import Wrench
 from sensor_msgs.msg import Joy
 #git remote set-url origin git@github.com:vortexntnu/vortex-asv.git
 
+
 class JoystickInterface(Node):
 
     def __init__(self):
@@ -52,8 +53,6 @@ class JoystickInterface(Node):
         self.joystick_surge_scaling = self.get_parameter('surge').value
         self.joystick_sway_scaling = self.get_parameter('sway').value
         self.joystick_yaw_scaling = self.get_parameter('yaw').value
-
-    
 
     def create_2d_wrench_message(self, x, y, yaw):
         wrench_msg = Wrench()
@@ -103,4 +102,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
