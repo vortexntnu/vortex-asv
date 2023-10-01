@@ -39,16 +39,21 @@ class JoystickInterface(Node):
 
         #Create a Publisher and a suscriber from the ros2 tutorial
         super().__init__('joystick_interface_node')
-        self.joy_subscriber = self.create_subscription(Joy, "/joystick/joy", self.joystick_cb, 1)
+        self.joy_subscriber = self.create_subscription(Joy, "/joystick/joy",
+                                                       self.joystick_cb, 1)
 
-        self.wrench_publisher = self.create_publisher(Wrench,"/thrust/wrench_input",1)
+        self.wrench_publisher = self.create_publisher(Wrench,
+                                                      "/thrust/wrench_input",
+                                                      1)
 
         #YAML file first need to be translating in ROS2 ; Getting the input from the controller'
         self.declare_parameter('surge', 100.0)
         self.declare_parameter('sway', 100.0)
         self.declare_parameter('yaw', 100.0)
 
-        self.joystick_surge_scaling = self.get_parameter('surge').value  #is it getting the parameters from the YAML file ? No --> TO DO
+        self.joystick_surge_scaling = self.get_parameter(
+            'surge'
+        ).value  #is it getting the parameters from the YAML file ? No --> TO DO
         self.joystick_sway_scaling = self.get_parameter('sway').value
         self.joystick_yaw_scaling = self.get_parameter('yaw').value
 
@@ -86,6 +91,7 @@ class JoystickInterface(Node):
         #a = msg.buttons #to remove
         return wrench_msg
 
+
 def main():
     rclpy.init()
     print("hello from main")
@@ -97,10 +103,10 @@ def main():
     joystick_interface.destroy_node()
     rclpy.shutdown()
 
+
 if __name__ == "__main__":
     main()
 
 #we want to move yaml into joystick_interface foulder
 #create launch file for joystick interface
 #modify pc launch file by taking out
-
