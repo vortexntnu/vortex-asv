@@ -47,9 +47,9 @@ qtcreator-*
 # Emacs
 .#*
 
-# Catkin custom files
-CATKIN_IGNORE
+# Colcon custom files
+COLKON_IGNORE
 
 # Custom ignores
 .vscode
-.catkin_tools
+.colcon_tools
