@@ -1,4 +1,3 @@
-#include "rclcpp/rclcpp.hpp"
 #include "../include/thruster_allocator/allocator_ros.hpp"
 #include "../include/thruster_allocator/allocator_utils.hpp"
 
