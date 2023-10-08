@@ -47,36 +47,36 @@ class JoystickInterface(Node):
             "dpad_vertical",
         ]
 
-        self.joy_subscriber = self.create_subscription(Joy, "/joystick/joy",
+        self.joy_subscriber = self.create_subscription(Joy, "joystick/joy",
                                                        self.joystick_cb, 1)
         self.wrench_publisher = self.create_publisher(Wrench,
-                                                      "/thrust/wrench_input",
+                                                      "thrust/wrench_input",
                                                       1)
 
-        self.declare_parameter('surge', 100.0)
-        self.declare_parameter('sway', 100.0)
-        self.declare_parameter('yaw', 100.0)
+        self.declare_parameter('surge_scale_factor', 100.0)
+        self.declare_parameter('sway_scale_factor', 100.0)
+        self.declare_parameter('yaw_scale_factor', 100.0)
 
         #Gets the scaling factors from the yaml file
-        self.joystick_surge_scaling = self.get_parameter('surge').value
-        self.joystick_sway_scaling = self.get_parameter('sway').value
-        self.joystick_yaw_scaling = self.get_parameter('yaw').value
+        self.joystick_surge_scaling = self.get_parameter('surge_scale_factor').value
+        self.joystick_sway_scaling = self.get_parameter('sway_scale_factor').value
+        self.joystick_yaw_scaling = self.get_parameter('yaw_scale_factor').value
 
         #Killswitch publisher
         self.software_killswitch_signal_publisher = self.create_publisher(
-            Bool, "/softWareKillSwitch", 10)
+            Bool, "softWareKillSwitch", 10)
         self.software_killswitch_signal_publisher.publish(
             Bool(data=False))  #Killswitch is not active
 
         #Operational mode publisher
         self.operational_mode_signal_publisher = self.create_publisher(
-            Bool, "/softWareOperationMode", 10)
+            Bool, "softWareOperationMode", 10)
         # Signal that we are not in autonomous mode
         self.operational_mode_signal_publisher.publish(Bool(data=True))
 
         #Controller publisher
         self.enable_controller_publisher = self.create_publisher(
-            Bool, "/controller/lqr/enable", 10)
+            Bool, "controller/lqr/enable", 10)
 
     #does a linear conversion from trigger inputs (1 to -1) to (1 to 2)
     def right_trigger_linear_converter(self, rt_input):

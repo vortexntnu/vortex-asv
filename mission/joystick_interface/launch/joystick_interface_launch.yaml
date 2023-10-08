@@ -5,7 +5,8 @@ launch:
     name: joystick_interface
     output: screen
     param:
-    - from: vortex-asv/mission/joystick_interface/config/params.yaml
+    - from: src/vortex-asv/mission/joystick_interface/config/params.yaml
+
 
 
 
