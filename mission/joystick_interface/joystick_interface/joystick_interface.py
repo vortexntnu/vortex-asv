@@ -38,11 +38,11 @@ class JoystickInterface(Node):
 
         self.joystick_axes_map = [
             "horizontal_axis_left_stick",  #Translation (Left and Right)
-            "vertical_axis_left_stick",  #Translation (Forwards and Backwards)
-            "LT",  #Negative thrust/torque multiplier
-            "horizontal_axis_right_stick",  #Rotation
+            "vertical_axis_left_stick",    #Translation (Forwards and Backwards)
+            "LT",                          #Negative thrust/torque multiplier
+            "horizontal_axis_right_stick", #Rotation
             "vertical_axis_right_stick",
-            "RT",  #Positive thrust/torque multiplier
+            "RT",                          #Positive thrust/torque multiplier
             "dpad_horizontal",
             "dpad_vertical",
         ]
