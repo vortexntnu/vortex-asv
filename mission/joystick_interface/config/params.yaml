@@ -1,14 +1,7 @@
 /joystick_interface:
   ros__parameters:
-<<<<<<< HEAD
-    surge: 200.0
-    sway: 200.0
-    yaw: 200.0
-=======
-    surge: 300.0
-    sway: 200.0
-    yaw: 200.0
-
->>>>>>> refs/remotes/origin/feature/joystickinterface
+    surge: 50.0
+    sway: 50.0
+    yaw: 50.0
 
 
