@@ -3,21 +3,10 @@ launch:
       pkg: tf2_ros
       exec: static_transform_publisher
       name: base_link_to_lidar
-      args: --frame-id base_link --child-frame-id os_lidar --x 0 --y 0 --z 0.03565 --roll 0 --pitch 0 --yaw 0
+      args: --frame-id base_link --child-frame-id os_lidar --x -0.0145 --y 0 --z -0.392425 --roll 0 --pitch 0 --yaw 0
 
   - node:
       pkg: tf2_ros
       exec: static_transform_publisher
       name: base_link_to_zed2_camera_center
-      args: --frame-id base_link --child-frame-id zed2i_camera_center --x -0.03005 --y 0 --z 0.2203 --roll 0 --pitch 0 --yaw 0
-      
-#Tall fra mechanical
-#Lidar
-#X: 0
-#Y (Høyde Z): Bunn til senter(50 - 28,35/2) + Origin til bunn av sensor(356,5) = 392.325 mm
-#Z: 0 
-
-#Kamera
-#X: -(268.56 mm + 31.58 mm)  = -300.14 mm 
-#Y (Høyde Z): 179.01 mm + 42.37mm distanse fra sentrumtil linse = 221.38 mm
-#Z (Y): 0
+      args: --frame-id base_link --child-frame-id zed2i_camera_center --x 0.3005 --y 0 --z -0.22036 --roll 0 --pitch 0 --yaw 0
