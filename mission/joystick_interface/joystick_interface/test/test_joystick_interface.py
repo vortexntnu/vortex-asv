@@ -14,7 +14,7 @@ class TestJoystickInterface:
         assert joystick.right_trigger_linear_converter(0) == 1.5
         assert joystick.right_trigger_linear_converter(-1) == 2
         rclpy.shutdown()
-    
+
     def test_left_trigger_linear_converter(self):
         rclpy.init()
         joystick = JoystickInterface()
@@ -22,7 +22,7 @@ class TestJoystickInterface:
         assert joystick.left_trigger_linear_converter(0) == 0.75
         assert joystick.left_trigger_linear_converter(-1) == 0.5
         rclpy.shutdown()
-    
+
     def test_2d_wrench_msg(self):
         rclpy.init()
         msg = JoystickInterface().create_2d_wrench_message(2.0, 3.0, 4.0)
@@ -73,6 +73,3 @@ class TestJoystickInterface:
         assert wrench_msg.force.y == -100.0
         assert wrench_msg.torque.z == 0.0
         rclpy.shutdown()
-
-
-
