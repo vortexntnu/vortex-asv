@@ -38,11 +38,11 @@ class JoystickInterface(Node):
 
         self.joystick_axes_map = [
             "horizontal_axis_left_stick",  #Translation (Left and Right)
-            "vertical_axis_left_stick",  #Translation (Forwards and Backwards)
-            "LT",  #Negative thrust/torque multiplier
-            "horizontal_axis_right_stick",  #Rotation
+            "vertical_axis_left_stick",    #Translation (Forwards and Backwards)
+            "LT",                          #Negative thrust/torque multiplier
+            "horizontal_axis_right_stick", #Rotation
             "vertical_axis_right_stick",
-            "RT",  #Positive thrust/torque multiplier
+            "RT",                          #Positive thrust/torque multiplier
             "dpad_horizontal",
             "dpad_vertical",
         ]
@@ -50,8 +50,7 @@ class JoystickInterface(Node):
         self.joy_subscriber = self.create_subscription(Joy, "/joystick/joy",
                                                        self.joystick_cb, 1)
         self.wrench_publisher = self.create_publisher(Wrench,
-                                                      "/thrust/wrench_input",
-                                                      1)
+                                                      "/thrust/wrench_input", 1)
 
         self.declare_parameter('surge', 100.0)
         self.declare_parameter('sway', 100.0)
@@ -71,22 +70,22 @@ class JoystickInterface(Node):
         #Operational mode publisher
         self.operational_mode_signal_publisher = self.create_publisher(
             Bool, "/softWareOperationMode", 10)
+        # Signal that we are not in autonomous mode
         self.operational_mode_signal_publisher.publish(
-            Bool(data=True))  # Signal that we are not in autonomous mode
+            Bool(data=True)) 
 
         #Controller publisher
         self.enable_controller_publisher = self.create_publisher(
             Bool, "/controller/lqr/enable", 10)
 
-    def right_trigger_linear_converter(
-            self, rt_input):  #triggers have an output from 1 to -1
-        output_value = (rt_input + 1) * (
-            -0.5) + 2  #does a linear conversion from (1 to -1) to (1 to 2)
+    #does a linear conversion from trigger inputs (1 to -1) to (1 to 2)
+    def right_trigger_linear_converter(self, rt_input):  
+        output_value = (rt_input + 1) * (-0.5) + 2  
         return output_value
 
-    def left_trigger_linear_converter(
-            self, lt_input):  #triggers have an output from 1 to -1
-        ouput_value = lt_input * 0.25 + 0.75  #does a linear conversion from (1 to -1) to (1 to 0.5)
+    #does a linear conversion from trigger input (1 to -1) to (1 to 0.5)
+    def left_trigger_linear_converter(self, lt_input):
+        ouput_value = lt_input * 0.25 + 0.75  
         return ouput_value
 
     def create_2d_wrench_message(self, x, y, yaw):
@@ -101,17 +100,20 @@ class JoystickInterface(Node):
 
     def transition_to_xbox_mode(self):
         # We want to turn off controller when moving to xbox mode
-        self.enable_controller_publisher.publish(Bool(data=False))
+        self.enable_controller_publisher.publish(
+            Bool(data=False))
+        # signal that we enter xbox mode
         self.operational_mode_signal_publisher.publish(
-            Bool(data=True))  # signal that we enter xbox mode
+            Bool(data=True))
         self.state = states.XBOX_MODE
 
     def transition_to_autonomous_mode(self):
         # We want to publish zero force once when transitioning
         wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
         self.publish_wrench_message(wrench_msg)
+        # signal that we are turning on autonomous mode
         self.operational_mode_signal_publisher.publish(
-            Bool(data=False))  # signal that we are turning on autonomous mode
+            Bool(data=False))
         self.state = states.AUTONOMOUS_MODE
 
     def joystick_cb(self, msg):
@@ -135,12 +137,9 @@ class JoystickInterface(Node):
         right_trigger = self.right_trigger_linear_converter(right_trigger)
         left_trigger = self.left_trigger_linear_converter(left_trigger)
 
-        surge = axes[
-            "vertical_axis_left_stick"] * self.joystick_surge_scaling * left_trigger * right_trigger
-        sway = axes[
-            "horizontal_axis_left_stick"] * self.joystick_sway_scaling * left_trigger * right_trigger
-        yaw = axes[
-            "horizontal_axis_right_stick"] * self.joystick_yaw_scaling * left_trigger * right_trigger
+        surge = axes["vertical_axis_left_stick"] * self.joystick_surge_scaling * left_trigger * right_trigger
+        sway = axes["horizontal_axis_left_stick"] * self.joystick_sway_scaling * left_trigger * right_trigger
+        yaw = axes["horizontal_axis_right_stick"] * self.joystick_yaw_scaling * left_trigger * right_trigger
 
         # Debounce for the buttons
         if current_time - self.last_button_press_time < self.debounce_duration:
@@ -151,19 +150,23 @@ class JoystickInterface(Node):
         # If any button is pressed, update the last button press time
         if software_control_mode_button or xbox_control_mode_button or software_killswitch_button:
             self.last_button_press_time = current_time
-
-        if self.state == states.NO_GO and software_killswitch_button:  # Toggle ks on and off
+        
+        # Toggle ks on and off
+        if self.state == states.NO_GO and software_killswitch_button:
+            # signal that killswitch is not blocking
             self.software_killswitch_signal_publisher.publish(
-                Bool(data=True))  # signal that killswitch is not blocking
+                Bool(data=True)) 
             self.transition_to_xbox_mode()
             return
 
         if software_killswitch_button:
             self.get_logger().info("SW killswitch", throttle_duration_sec=1)
+            # signal that killswitch is blocking
             self.software_killswitch_signal_publisher.publish(
-                Bool(data=False))  # signal that killswitch is blocking
+                Bool(data=False))
+            # Turn off controller in sw killswitch
             self.enable_controller_publisher.publish(
-                Bool(data=False))  # Turn off controller in sw killswitch
+                Bool(data=False))
             # Publish a zero wrench message when sw killing
             wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
             self.publish_wrench_message(wrench_msg)
