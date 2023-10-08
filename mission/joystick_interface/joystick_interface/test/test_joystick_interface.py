@@ -52,8 +52,8 @@ class TestJoystickInterface:
         joystick = JoystickInterface()
         joystick.state = states.XBOX_MODE
         joy_msg = Joy()
-        joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]  
-        joy_msg.buttons = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+        joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+        joy_msg.buttons = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         wrench_msg = joystick.joystick_cb(joy_msg)
         assert wrench_msg.force.x == 0.0
         assert wrench_msg.force.y == 0.0
@@ -67,7 +67,7 @@ class TestJoystickInterface:
         joystick.state = states.XBOX_MODE
         joy_msg = Joy()
         joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
-        joy_msg.buttons = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+        joy_msg.buttons = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         wrench_msg = joystick.joystick_cb(joy_msg)
         assert wrench_msg.force.x == -100.0
         assert wrench_msg.force.y == -100.0
