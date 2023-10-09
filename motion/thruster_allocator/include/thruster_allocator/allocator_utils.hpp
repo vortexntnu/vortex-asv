@@ -32,7 +32,7 @@ inline void printVector(std::string name, const Eigen::VectorXd &X) {
 inline bool calculatePseudoinverse(const Eigen::MatrixXd &X,
                                    Eigen::MatrixXd *X_pinv) {
   Eigen::MatrixXd pseudoinverse = X.transpose() * (X * X.transpose()).inverse();
-  
+
   if (isInvalidMatrix(pseudoinverse)) {
     return false;
   }
