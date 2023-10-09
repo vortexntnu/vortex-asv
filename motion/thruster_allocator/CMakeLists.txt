@@ -8,13 +8,15 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(vortex_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-add_executable(talker src/main.cpp)
-ament_target_dependencies(talker rclcpp geometry_msgs)
+add_executable(thruster_allocator_node src/main.cpp src/allocator_ros.cpp src/pseudoinverse_allocator.cpp)
+
+ament_target_dependencies(thruster_allocator_node rclcpp geometry_msgs vortex_msgs)
 
 install(TARGETS
-  talker
+  thruster_allocator_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
