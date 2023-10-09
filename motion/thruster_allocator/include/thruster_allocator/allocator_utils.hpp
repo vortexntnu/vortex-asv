@@ -1,11 +1,11 @@
 #ifndef VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
 #define VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
 
+#include "rclcpp/rclcpp.hpp"
+#include "vortex_msgs/msg/thruster_forces.hpp"
+#include <eigen3/Eigen/Eigen>
 #include <string>
 #include <vector>
-#include "rclcpp/rclcpp.hpp"
-#include <eigen3/Eigen/Eigen>
-#include "vortex_msgs/msg/thruster_forces.hpp"
 
 // Return true if X has any nan or inf elements.
 template <typename Derived>
@@ -23,7 +23,8 @@ inline void printMatrix(std::string name, const Eigen::MatrixXd &X) {
 
 // Calculate the pseudoinverse matrix of the matrix X.
 // Return false if the calculations fails.
-inline bool calculatePseudoinverse(const Eigen::MatrixXd &X, Eigen::MatrixXd *X_pinv) {
+inline bool calculatePseudoinverse(const Eigen::MatrixXd &X,
+                                   Eigen::MatrixXd *X_pinv) {
   Eigen::MatrixXd pseudoinverse = X.transpose() * (X * X.transpose()).inverse();
 
   if (isInvalidMatrix(pseudoinverse)) {
@@ -34,7 +35,7 @@ inline bool calculatePseudoinverse(const Eigen::MatrixXd &X, Eigen::MatrixXd *X_
 }
 
 //
-//TODO: Trengs disse funksjonene under?
+// TODO: Trengs disse funksjonene under?
 //
 
 // Read a matrix from the ROS parameter server.
@@ -65,13 +66,14 @@ inline Eigen::Matrix3d createSkewSymmetricMatrix(const Eigen::Vector3d &v) {
   return S;
 }
 
-inline void arrayEigenToMsg(const Eigen::VectorXd &u, vortex_msgs::msg::ThrusterForces *msg) {
-   int r = u.size();
-   std::vector<double> u_vec(r);
-   for (int i = 0; i < r; ++i)
-     u_vec[i] = u(i);
-   msg->thrust = u_vec;
- }
+inline void arrayEigenToMsg(const Eigen::VectorXd &u,
+                            vortex_msgs::msg::ThrusterForces *msg) {
+  int r = u.size();
+  std::vector<double> u_vec(r);
+  for (int i = 0; i < r; ++i)
+    u_vec[i] = u(i);
+  msg->thrust = u_vec;
+}
 
 // Saturate all elements of vector v to within [min, max].
 // Return true if all elements already are within the range.

@@ -16,6 +16,4 @@ private:
   Eigen::MatrixXd T_pinv;
 };
 
-
-
 #endif // VORTEX_ALLOCATOR_PSEUDOINVERSE_ALLOCATOR_HPP
