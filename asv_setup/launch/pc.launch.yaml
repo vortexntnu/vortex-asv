@@ -20,4 +20,4 @@ launch:
                 to: "/joystick/joy"
 
   - include:
-      file: "src/vortex-asv/mission/joystick_interface/launch/joystick_interface_launch.yaml" 
+      file: "src/vortex-asv/mission/joystick_interface/launch/joystick_interface.launch.yaml" 
