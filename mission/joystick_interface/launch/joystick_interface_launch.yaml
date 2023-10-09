@@ -1,0 +1,13 @@
+launch:
+- node:
+    pkg: joystick_interface
+    exec: joystick_interface.py
+    name: joystick_interface
+    output: screen
+    param:
+    - from: src/vortex-asv/mission/joystick_interface/config/params.yaml
+
+
+
+
+

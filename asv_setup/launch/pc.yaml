@@ -1,31 +1,23 @@
 launch:
-  - set_environment_variable:
+  - set_env:
       name: ROSCONSOLE_FORMAT
       value: "[${severity}] [${time}] [${node}]: ${message}"
 
-  - declare_namespace:
-      namespace: joystick
-      with_arguments:
-        - ns_joystick
-
-  - rosparam_load_file:
-      param_file: asv_setup/config/params/gnc.yaml
-
-  - namespace:
-      namespace: ${arg.ns_joystick}
-      prefix: joy
-    launch:
+  - group:
       - node:
-          package: joy
-          executable: joy_node
+          pkg: joy
+          exec: joy_node
           name: joystick_driver
           output: screen
-          parameters:
-            _deadzone: 0.15
-            _autorepeat_rate: 100
+          param:
+            - name: _deadzone
+              value: 0.15
+            - name: _autorepeat_rate
+              value: 100
+          remap:
+          -
+                from: "/joy"
+                to: "/joystick/joy"
 
-  - node:
-      package: joystick_interface
-      executable: joystick_interface.py
-      name: joystick_interface
-      output: screen
+  - include:
+      file: "src/vortex-asv/mission/joystick_interface/launch/joystick_interface_launch.yaml" 
