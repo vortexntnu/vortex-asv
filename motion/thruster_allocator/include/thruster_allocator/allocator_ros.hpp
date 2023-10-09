@@ -13,15 +13,19 @@ using namespace std::chrono_literals;
 class Allocator : public rclcpp::Node {
 public:
   explicit Allocator();
+  void spinOnce();
 
 private:
   Eigen::MatrixXd thrust_configuration =
-      (Eigen::MatrixXd(3, 4) << 0.70711, 0.70711, 0.70711, 0.70711, -0.70711,
-       0.70711, -0.70711, 0.70711, 0.27738, 0.27738, -0.27738, -0.27738)
-          .finished(); // Hardcoded thruster config matrix for T_pinv
+      (Eigen::MatrixXd(3, 4) << 
+      0.70711, 0.70711, 0.70711, 0.70711, 
+      -0.70711, 0.70711, -0.70711, 0.70711, 
+      0.27738, 0.27738, -0.27738, -0.27738)
+          .finished(); 
+          // Hardcoded thruster config matrix for T_pinv
 
-  void spinOnce();
   void wrench_callback(const geometry_msgs::msg::Wrench &msg);
+  bool healthyWrench(const Eigen::VectorXd &v) const;
   Eigen::VectorXd wrenchMsgToEigen(const geometry_msgs::msg::Wrench &msg) const;
   Eigen::VectorXd wrenchMsgToEigen(const float force_x, const float force_y,
                                    const float torque) const;

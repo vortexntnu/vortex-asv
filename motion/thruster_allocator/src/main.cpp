@@ -1,5 +1,5 @@
-#include "../include/thruster_allocator/allocator_ros.hpp"
-#include "../include/thruster_allocator/allocator_utils.hpp"
+#include "thruster_allocator/allocator_ros.hpp"
+#include "thruster_allocator/allocator_utils.hpp"
 
 int main(int argc, char **argv) {
 
@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
   rclcpp::Rate loop_rate(10);
 
   while (rclcpp::ok()) {
+    allocator->spinOnce();
     rclcpp::spin_some(allocator);
     loop_rate.sleep();
   }

@@ -1,6 +1,6 @@
-#include "../include/thruster_allocator/allocator_ros.hpp"
-#include "../include/thruster_allocator/allocator_utils.hpp"
-#include "../include/thruster_allocator/pseudoinverse_allocator.hpp"
+#include "thruster_allocator/allocator_ros.hpp"
+#include "thruster_allocator/allocator_utils.hpp"
+#include "thruster_allocator/pseudoinverse_allocator.hpp"
 #include "vortex_msgs/msg/thruster_forces.hpp"
 
 Allocator::Allocator() : Node("thrust_allocator_node") {
@@ -28,26 +28,44 @@ void Allocator::spinOnce() {
   const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(
       body_frame_force_x, body_frame_force_y, body_frame_torque);
 
+  
+  // printMatrix("T_pinv", m_pseudoinverse_allocator->T_pinv);
+
   // u vector
   Eigen::VectorXd thruster_forces =
       m_pseudoinverse_allocator->calculateAllocatedThrust(body_frame_forces);
 
   // TODO: Legg til isValicMatrix sjekk og clampVectorValues (saturateVector)
 
+  if(isInvalidMatrix(thruster_forces)){
+    RCLCPP_ERROR(get_logger(), "ThrusterForces vector invalid");
+    return;
+  }
+
   vortex_msgs::msg::ThrusterForces msg_out;
+  //printVector("thruster_forces", thruster_forces);
   arrayEigenToMsg(thruster_forces, &msg_out);
   for (int i = 0; i < 4; i++) // 4 thrusters
     msg_out.thrust[i] *= m_direction[i];
+  //for (double d : msg_out.thrust){
+  //  RCLCPP_INFO(this->get_logger(), "msg_out-thrust: '%f'", d);
+  //}
+  
   publisher_->publish(msg_out);
 }
 
 void Allocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
-  // const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(msg); // Wrench
+  const Eigen::VectorXd body_frame_forces = wrenchMsgToEigen(msg); // Wrench
   // health check
+  if (!healthyWrench(body_frame_forces)) {
+    RCLCPP_ERROR(get_logger(), "ASV wrench vector invalid, ignoring.");
+    return;
+  }
+
   body_frame_force_x = msg.force.x;
   body_frame_force_y = msg.force.y;
   body_frame_torque = msg.torque.z;
-  RCLCPP_INFO(this->get_logger(), "I heard: '%f'", msg.force.x);
+  //RCLCPP_INFO(this->get_logger(), "I heard: '%f'", msg.force.x);
 }
 
 Eigen::VectorXd
@@ -68,6 +86,20 @@ Eigen::VectorXd Allocator::wrenchMsgToEigen(const float force_x,
   body_frame_forces(2) = torque;  // yaw
   return body_frame_forces;
 }
+
+ bool Allocator::healthyWrench(const Eigen::VectorXd &v) const {
+  // Check for NaN/Inf
+  if (isInvalidMatrix(v))
+    return false;
+
+  // Check reasonableness
+  for (unsigned i = 0; i < v.size(); ++i)
+    if (std::abs(v[i]) > 100) //c_force_range_limit
+      return false;
+
+  return true;
+ }
+
 // void Allocator::timer_callback() {
 //     auto message = geometry_msgs::msg::Wrench();
 //     message.force.x = 1;

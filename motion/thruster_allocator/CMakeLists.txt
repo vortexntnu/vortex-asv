@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.8)
 project(thruster_allocator)
 
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -11,9 +16,24 @@ find_package(rclcpp REQUIRED)
 find_package(vortex_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-add_executable(thruster_allocator_node src/main.cpp src/allocator_ros.cpp src/pseudoinverse_allocator.cpp)
+include_directories(include)
 
-ament_target_dependencies(thruster_allocator_node rclcpp geometry_msgs vortex_msgs)
+add_executable(thruster_allocator_node 
+  src/main.cpp 
+  src/allocator_ros.cpp 
+  src/pseudoinverse_allocator.cpp
+  )
+
+ament_target_dependencies(thruster_allocator_node 
+  rclcpp 
+  geometry_msgs 
+  vortex_msgs
+  )
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
 
 install(TARGETS
   thruster_allocator_node

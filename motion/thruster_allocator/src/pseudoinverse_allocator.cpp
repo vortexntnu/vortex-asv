@@ -1,4 +1,4 @@
-#include "../include/thruster_allocator/pseudoinverse_allocator.hpp"
+#include "thruster_allocator/pseudoinverse_allocator.hpp"
 
 PseudoinverseAllocator::PseudoinverseAllocator(const Eigen::MatrixXd &T_pinv)
     : T_pinv(T_pinv) {}

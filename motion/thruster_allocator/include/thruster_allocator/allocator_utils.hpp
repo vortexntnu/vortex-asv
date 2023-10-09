@@ -21,12 +21,18 @@ inline void printMatrix(std::string name, const Eigen::MatrixXd &X) {
   RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), ss.str());
 }
 
+inline void printVector(std::string name, const Eigen::VectorXd &X) {
+  std::stringstream ss;
+  ss << std::endl << name << " = " << std::endl << X;
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), ss.str());
+}
+
 // Calculate the pseudoinverse matrix of the matrix X.
 // Return false if the calculations fails.
 inline bool calculatePseudoinverse(const Eigen::MatrixXd &X,
                                    Eigen::MatrixXd *X_pinv) {
   Eigen::MatrixXd pseudoinverse = X.transpose() * (X * X.transpose()).inverse();
-
+  
   if (isInvalidMatrix(pseudoinverse)) {
     return false;
   }
