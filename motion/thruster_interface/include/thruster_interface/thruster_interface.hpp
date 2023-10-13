@@ -29,4 +29,3 @@ public:
   void publish_thrust_to_escs(std::vector<double> forces);
   float interpolate(float force);
 };
-
