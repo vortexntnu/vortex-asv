@@ -11,7 +11,7 @@ using std::placeholders::_1;
 class ThrusterInterfaceROS : public rclcpp::Node {
 private:
   std::string mapping_file =
-      ament_index_cpp::get_package_share_directory("thruster_interface") +
+      ament_index_cpp::get_package_share_directory("thruster_interface") + 
       "/config/ThrustMe_P1000_force_mapping.csv";
   ThrusterInterface thrusterInterface{mapping_file};
 

@@ -21,7 +21,7 @@ include_directories(include)
 
 add_executable(${PROJECT_NAME}_node
   src/thruster_interface.cpp
-  src/thruster_interface_ros.cpp
+  src/thruster_interface_node.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}_node
@@ -32,12 +32,13 @@ ament_target_dependencies(${PROJECT_NAME}_node
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include 
 )
 
 # Install launch files.
 install(DIRECTORY
   launch
+  config
   DESTINATION share/${PROJECT_NAME}
 )
 

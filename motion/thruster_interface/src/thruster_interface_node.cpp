@@ -1,4 +1,4 @@
-#include <thruster_interface/thruster_interface_ros.hpp>
+#include <thruster_interface/thruster_interface_node.hpp>
 
 void ThrusterInterfaceROS::thrust_callback(
     const vortex_msgs::msg::ThrusterForces::SharedPtr msg) {
