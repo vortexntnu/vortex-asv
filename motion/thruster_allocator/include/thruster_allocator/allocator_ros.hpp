@@ -29,7 +29,6 @@ private:
   Eigen::VectorXd wrenchMsgToEigen(const geometry_msgs::msg::Wrench &msg) const;
   Eigen::VectorXd wrenchMsgToEigen(const float force_x, const float force_y,
                                    const float torque) const;
-  rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<vortex_msgs::msg::ThrusterForces>::SharedPtr publisher_;
   rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr subscription_;
   size_t count_;
