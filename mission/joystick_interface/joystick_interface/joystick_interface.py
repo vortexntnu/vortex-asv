@@ -53,9 +53,9 @@ class JoystickInterface(Node):
                                                       "thrust/wrench_input",
                                                       1)
 
-        self.declare_parameter('surge_scale_factor', 100.0)
-        self.declare_parameter('sway_scale_factor', 100.0)
-        self.declare_parameter('yaw_scale_factor', 100.0)
+        self.declare_parameter('surge_scale_factor', 50.0)
+        self.declare_parameter('sway_scale_factor', 50.0)
+        self.declare_parameter('yaw_scale_factor', 50.0)
 
         #Gets the scaling factors from the yaml file
         self.joystick_surge_scaling = self.get_parameter('surge_scale_factor').value
