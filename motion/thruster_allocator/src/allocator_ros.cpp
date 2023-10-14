@@ -78,14 +78,14 @@ Eigen::VectorXd Allocator::wrenchMsgToEigen(const float force_x,
   return body_frame_forces;
 }
 
- bool Allocator::healthyWrench(const Eigen::VectorXd &v) const {
+bool Allocator::healthyWrench(const Eigen::VectorXd &v) const {
   // Check for NaN/Inf
   if (isInvalidMatrix(v))
     return false;
 
   // Check reasonableness
   for (unsigned i = 0; i < v.size(); ++i)
-    if (std::abs(v[i]) > 100) //c_force_range_limit
+    if (std::abs(v[i]) > 100) // c_force_range_limit
       return false;
 
   return true;
