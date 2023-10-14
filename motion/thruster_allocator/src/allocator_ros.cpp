@@ -12,8 +12,10 @@ Allocator::Allocator() : Node("thrust_allocator_node") {
       "thrust/thruster_forces", 1);
 
   Eigen::MatrixXd thrust_configuration_pseudoinverse;
-  if (!calculatePseudoinverse(thrust_configuration, &thrust_configuration_pseudoinverse)) {
-    RCLCPP_FATAL(get_logger(), "Failed to compute pseudoinverse of thrust config matrix. Killing node...");
+  if (!calculatePseudoinverse(thrust_configuration,
+                              &thrust_configuration_pseudoinverse)) {
+    RCLCPP_FATAL(get_logger(), "Failed to compute pseudoinverse of thrust "
+                               "config matrix. Killing node...");
     rclcpp::shutdown();
   }
 
@@ -29,20 +31,20 @@ void Allocator::spinOnce() {
   Eigen::VectorXd thruster_forces =
       m_pseudoinverse_allocator->calculateAllocatedThrust(body_frame_forces);
 
-  if(isInvalidMatrix(thruster_forces)){
+  if (isInvalidMatrix(thruster_forces)) {
     RCLCPP_ERROR(get_logger(), "ThrusterForces vector invalid");
     return;
   }
 
   // Saturates output vector between min and max values
-  if(!saturateVectorValues(&thruster_forces, -100, 100)){
+  if (!saturateVectorValues(&thruster_forces, -100, 100)) {
     RCLCPP_WARN(get_logger(), "Thruster forces vector required saturation.");
   }
 
   vortex_msgs::msg::ThrusterForces msg_out;
   arrayEigenToMsg(thruster_forces, &msg_out);
   // Number of thrusters = 4
-  for (int i = 0; i < 4; i++){
+  for (int i = 0; i < 4; i++) {
     msg_out.thrust[i] *= m_direction[i];
   }
   publisher_->publish(msg_out);
@@ -89,4 +91,4 @@ bool Allocator::healthyWrench(const Eigen::VectorXd &v) const {
       return false;
 
   return true;
- }
+}

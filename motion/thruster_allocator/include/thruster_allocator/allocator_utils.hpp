@@ -32,7 +32,7 @@ inline void printVector(std::string name, const Eigen::VectorXd &M) {
 inline bool calculatePseudoinverse(const Eigen::MatrixXd &M,
                                    Eigen::MatrixXd *M_pinv) {
   Eigen::MatrixXd pseudoinverse = M.transpose() * (M * M.transpose()).inverse();
-  
+
   if (isInvalidMatrix(pseudoinverse)) {
     return false;
   }
@@ -67,7 +67,7 @@ inline void arrayEigenToMsg(const Eigen::VectorXd &u,
 }
 
 // Return the 3-by-3 skew-symmetric matrix of the vector v.
-// CURRENTLY UNUSED 
+// CURRENTLY UNUSED
 inline Eigen::Matrix3d createSkewSymmetricMatrix(const Eigen::Vector3d &v) {
   Eigen::Matrix3d S;
   S << 0, -v(2), v(1), v(2), 0, -v(0), -v(1), v(0), 0;
