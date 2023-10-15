@@ -2,39 +2,42 @@
 #define VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
 
 #include "rclcpp/rclcpp.hpp"
-#include <geometry_msgs/msg/wrench.hpp>
+#include <eigen3/Eigen/Eigen>
+#include <thruster_allocator/allocator_utils.hpp>
+#include <thruster_allocator/pseudoinverse_allocator.hpp>
 
-#include "allocator_utils.hpp"
-#include "pseudoinverse_allocator.hpp"
-#include "vortex_msgs/msg/thruster_forces.hpp"
+#include <geometry_msgs/msg/wrench.hpp>
+#include <vortex_msgs/msg/thruster_forces.hpp>
 
 using namespace std::chrono_literals;
 
 class Allocator : public rclcpp::Node {
 public:
   explicit Allocator();
-  void spinOnce();
+  void timer_callback();
 
 private:
+// Hardcoded thruster config matrix for T_pinv
+// clang-format off
   Eigen::MatrixXd thrust_configuration =
-      (Eigen::MatrixXd(3, 4) << 0.70711, 0.70711, 0.70711, 0.70711, -0.70711,
-       0.70711, -0.70711, 0.70711, 0.27738, 0.27738, -0.27738, -0.27738)
+      (Eigen::MatrixXd(3, 4) << 
+      0.70711, 0.70711, 0.70711, 0.70711, 
+      -0.70711, 0.70711, -0.70711, 0.70711, 
+      0.27738, 0.27738, -0.27738, -0.27738)
           .finished();
-  // Hardcoded thruster config matrix for T_pinv
+// clang-format on
 
   void wrench_callback(const geometry_msgs::msg::Wrench &msg);
   bool healthyWrench(const Eigen::VectorXd &v) const;
-  Eigen::VectorXd wrenchMsgToEigen(const geometry_msgs::msg::Wrench &msg) const;
-  Eigen::VectorXd wrenchMsgToEigen(const float force_x, const float force_y,
-                                   const float torque) const;
   rclcpp::Publisher<vortex_msgs::msg::ThrusterForces>::SharedPtr publisher_;
   rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr subscription_;
+  rclcpp::TimerBase::SharedPtr timer_;
   size_t count_;
-  float body_frame_force_x = 0.0;
-  float body_frame_force_y = 0.0;
-  float body_frame_torque = 0.0;
-  std::vector<int> m_direction = {1, 1, 1, 1};
-  std::unique_ptr<PseudoinverseAllocator> m_pseudoinverse_allocator;
+  int num_degrees_of_freedom_;
+  int num_thrusters_;
+  Eigen::Vector3d body_frame_forces_;
+  std::vector<int> direction_ = {1, 1, 1, 1};
+  PseudoinverseAllocator pseudoinverse_allocator_;
 };
 
 #endif // VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP

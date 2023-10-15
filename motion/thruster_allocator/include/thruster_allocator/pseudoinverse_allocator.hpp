@@ -12,7 +12,6 @@ public:
   explicit PseudoinverseAllocator(const Eigen::MatrixXd &T_pinv);
   Eigen::VectorXd calculateAllocatedThrust(const Eigen::VectorXd &tau);
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-private:
   Eigen::MatrixXd T_pinv;
 };
 
