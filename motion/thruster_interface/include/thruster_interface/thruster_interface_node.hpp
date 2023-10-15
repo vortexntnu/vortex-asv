@@ -22,9 +22,10 @@ private:
 public:
   ThrusterInterfaceROS() : Node("thruster_interface") {
     pwm_pub_ = this->create_publisher<vortex_msgs::msg::Pwm>("pwm", 10);
-    thruster_forces_sub_ = this->create_subscription<vortex_msgs::msg::ThrusterForces>(
-        "thrust/thruster_forces", 10,
-        std::bind(&ThrusterInterfaceROS::thrust_callback, this, _1));
+    thruster_forces_sub_ =
+        this->create_subscription<vortex_msgs::msg::ThrusterForces>(
+            "thrust/thruster_forces", 10,
+            std::bind(&ThrusterInterfaceROS::thrust_callback, this, _1));
   }
   void thrust_callback(const vortex_msgs::msg::ThrusterForces::SharedPtr msg);
 };
