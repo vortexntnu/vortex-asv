@@ -1,6 +1,8 @@
 /**
  * @file allocator_ros.cpp
- * @brief This file contains the implementation of the Allocator class, which allocates thrust to the ASV's thrusters based on the desired body frame forces.
+ * @brief This file contains the implementation of the Allocator class, which
+ * allocates thrust to the ASV's thrusters based on the desired body frame
+ * forces.
  */
 
 #include <thruster_allocator/allocator_ros.hpp>
@@ -13,10 +15,9 @@
 
 using namespace std::chrono_literals;
 
-Allocator::Allocator() : 
-  Node("thruster_allocator_node"),  
-  pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3,4))
-{
+Allocator::Allocator()
+    : Node("thruster_allocator_node"),
+      pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
   subscription_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
       std::bind(&Allocator::wrench_callback, this, std::placeholders::_1));
@@ -24,11 +25,12 @@ Allocator::Allocator() :
   publisher_ = this->create_publisher<vortex_msgs::msg::ThrusterForces>(
       "thrust/thruster_forces", 1);
 
-  timer_ = this->create_wall_timer(
-      100ms, std::bind(&Allocator::timer_callback, this));
+  timer_ = this->create_wall_timer(100ms,
+                                   std::bind(&Allocator::timer_callback, this));
 
   Eigen::MatrixXd thrust_configuration_pseudoinverse;
-  calculateRightPseudoinverse(thrust_configuration, thrust_configuration_pseudoinverse);
+  calculateRightPseudoinverse(thrust_configuration,
+                              thrust_configuration_pseudoinverse);
 
   // Set T_pinv in pseudoinverse_allocator_
   pseudoinverse_allocator_.T_pinv = thrust_configuration_pseudoinverse;
@@ -37,10 +39,12 @@ Allocator::Allocator() :
 }
 
 /**
- * @brief This function is called by the timer and calculates the allocated thrust based on the body frame forces.
- * It then saturates the output vector between min and max values and publishes the thruster forces to the topic "thrust/thruster_forces".
- * If the calculated thruster forces vector is invalid, it logs an error message.
- * If the thruster forces vector required saturation, it logs a warning message.
+ * @brief This function is called by the timer and calculates the allocated
+ * thrust based on the body frame forces. It then saturates the output vector
+ * between min and max values and publishes the thruster forces to the topic
+ * "thrust/thruster_forces". If the calculated thruster forces vector is
+ * invalid, it logs an error message. If the thruster forces vector required
+ * saturation, it logs a warning message.
  */
 
 void Allocator::timer_callback() {
@@ -67,14 +71,17 @@ void Allocator::timer_callback() {
 }
 
 /**
- * @brief Callback function for the wrench input subscription. It extracts the surge, sway and yaw values from the received geometry_msgs::msg::Wrench message and stores them in the body_frame_forces_ Eigen vector.
- * If the wrench vector is invalid (contains NaN or Inf values), it logs an error message and returns.
+ * @brief Callback function for the wrench input subscription. It extracts the
+ * surge, sway and yaw values from the received geometry_msgs::msg::Wrench
+ * message and stores them in the body_frame_forces_ Eigen vector. If the wrench
+ * vector is invalid (contains NaN or Inf values), it logs an error message and
+ * returns.
  * @param msg The received geometry_msgs::msg::Wrench message.
  */
 void Allocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
-  body_frame_forces_(0) = msg.force.x;   // surge
-  body_frame_forces_(1) = msg.force.y;   // sway
-  body_frame_forces_(2) = msg.torque.z;  // yaw
+  body_frame_forces_(0) = msg.force.x;  // surge
+  body_frame_forces_(1) = msg.force.y;  // sway
+  body_frame_forces_(2) = msg.torque.z; // yaw
   if (!healthyWrench(body_frame_forces_)) {
     RCLCPP_ERROR(get_logger(), "ASV wrench vector invalid, ignoring.");
     return;
@@ -83,7 +90,8 @@ void Allocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
 
 /**
  * @brief Checks if the given Eigen vector is a healthy wrench vector.
- * A healthy wrench vector is one that does not contain NaN or Inf values, and has reasonable values.
+ * A healthy wrench vector is one that does not contain NaN or Inf values, and
+ * has reasonable values.
  * @param v The Eigen vector to check.
  * @return True if the vector is healthy, false otherwise.
  */

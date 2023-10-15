@@ -10,14 +10,15 @@
 
 /**
  * @file allocator_utils.hpp
- * @brief This file contains utility functions for the thruster allocator module.
+ * @brief This file contains utility functions for the thruster allocator
+ * module.
  */
 
 // Return true if M has any NaN or INF elements.
 
 /**
  * @brief Check if the matrix has any NaN or INF elements.
- * 
+ *
  * @tparam Derived The type of the matrix.
  * @param M The matrix to check.
  * @return true if the matrix has any NaN or INF elements, false otherwise.
@@ -31,12 +32,13 @@ inline bool isInvalidMatrix(const Eigen::MatrixBase<Derived> &M) {
 
 /**
  * @brief Returns a string stream containing the matrix with the given name.
- * 
+ *
  * @param name The name of the matrix.
  * @param M The matrix to print.
  * @return std::stringstream The string stream containing the matrix.
  */
-inline std::stringstream printMatrix(std::string name, const Eigen::MatrixXd &M) {
+inline std::stringstream printMatrix(std::string name,
+                                     const Eigen::MatrixXd &M) {
   std::stringstream ss;
   ss << std::endl << name << " = " << std::endl << M;
   return ss;
@@ -44,12 +46,13 @@ inline std::stringstream printMatrix(std::string name, const Eigen::MatrixXd &M)
 
 /**
  * @brief Calculates the right pseudoinverse of the given matrix.
- * 
+ *
  * @param M The matrix to calculate the pseudoinverse of.
  * @param M_pinv The resulting pseudoinverse matrix.
  * @throws char* if the pseudoinverse is invalid.
  */
-inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M, Eigen::MatrixXd &M_pinv) {
+inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
+                                        Eigen::MatrixXd &M_pinv) {
   Eigen::MatrixXd pseudoinverse = M.transpose() * (M * M.transpose()).inverse();
   // pseudoinverse.completeOrthogonalDecomposition().pseudoInverse();
   if (isInvalidMatrix(pseudoinverse)) {
@@ -76,12 +79,15 @@ inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
 
 // Copies vector elements into ThrusterForces message
 /**
- * @brief Converts an Eigen VectorXd to a vortex_msgs::msg::ThrusterForces message.
- * 
+ * @brief Converts an Eigen VectorXd to a vortex_msgs::msg::ThrusterForces
+ * message.
+ *
  * @param u The Eigen VectorXd to be converted.
- * @param msg The vortex_msgs::msg::ThrusterForces message to store the converted values.
+ * @param msg The vortex_msgs::msg::ThrusterForces message to store the
+ * converted values.
  */
-inline void arrayEigenToMsg(const Eigen::VectorXd &u, vortex_msgs::msg::ThrusterForces &msg) {
+inline void arrayEigenToMsg(const Eigen::VectorXd &u,
+                            vortex_msgs::msg::ThrusterForces &msg) {
   int r = u.size();
   std::vector<double> u_vec(r);
   for (int i = 0; i < r; ++i)

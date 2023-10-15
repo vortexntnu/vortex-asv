@@ -17,15 +17,15 @@ public:
   void timer_callback();
 
 private:
-// Hardcoded thruster config matrix for T_pinv
-// clang-format off
+  // Hardcoded thruster config matrix for T_pinv
+  // clang-format off
   Eigen::MatrixXd thrust_configuration =
       (Eigen::MatrixXd(3, 4) << 
       0.70711, 0.70711, 0.70711, 0.70711, 
       -0.70711, 0.70711, -0.70711, 0.70711, 
       0.27738, 0.27738, -0.27738, -0.27738)
           .finished();
-// clang-format on
+  // clang-format on
 
   void wrench_callback(const geometry_msgs::msg::Wrench &msg);
   bool healthyWrench(const Eigen::VectorXd &v) const;
