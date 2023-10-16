@@ -53,7 +53,7 @@ float ThrusterInterface::interpolate(float force) {
       pwm1 + ((force - force1) * (pwm2 - pwm1)) / (force2 - force1) + 0.5);
 
   int clipped_pwm_signal =
-      std::min(std::max(pwm_signal, 1300), 1700); // min 1100, max 1900
+      std::min(std::max(pwm_signal, 1400), 1600); // min 1100, max 1900
 
   return clipped_pwm_signal;
 }
@@ -65,7 +65,7 @@ ThrusterInterface::pwm_to_bytes(const std::vector<int> &pwm_values) {
   for (const auto &val : pwm_values) {
     // Ensure the value is in the correct range and cast to an integer
     int pwm_int = static_cast<int>(
-        std::min(std::max(val, 1300), 1700)); // min 1100, max 1900
+        std::min(std::max(val, 1400), 1600)); // min 1100, max 1900
 
     // Split the integer into most significant byte (MSB) and least significant
     // byte (LSB)
