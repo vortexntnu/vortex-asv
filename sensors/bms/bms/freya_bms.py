@@ -1,11 +1,13 @@
 import subprocess
 
-# TODO: Fix so that it automatically detects which USB port to use
-# TODO: Check that data is received on initialization (find out if batteries are 
-# connected)
-
 class BMS:
-    """ Class containing Freya's BMS system
+    """ Class containing Freya's BMS system. 
+
+    Note: 
+    -----------
+    If no USB directory is passed in the constructor, the program queries all active 
+    ports to find out where battery pack is connected. Only pass in a USB directory 
+    if you are completely sure that it will be correct.
 
     Attributes:
     -----------
@@ -38,19 +40,37 @@ class BMS:
             changes the usb port for the BMS
     """
 
-    def __init__(self, usb_port: str) -> None:
+    def __init__(self, usb_port: str = None) -> None:
         """
             Parameters:
-                usb_port (str): USB port to connect to, either ttyUSB0 or ttyUSB1
+                usb_port (str): USB port to connect to, E.G. 'ttyUSB0'. If none is 
+                supplied, the program automatically tries to find the correct USB 
+                port 
 
             Returns:
                 None
 
             Note: Private members are denoted by _variable_name            
-        """
-        self.usb_port = usb_port
+        """     
+        if usb_port:
+            self._usb_port = usb_port
+            self._command = ["jbdtool", "-t", f"serial:/dev/{self._usb_port}"]
+        else:
+            print("Querying for USB devices...")
+            devices = subprocess.check_output(["ls", "/dev"], text=True).split("\n")
+            usb_devices = [device for device in devices if device[:6] == "ttyUSB"]
 
-        self.command = ["jbdtool", "-t", f"serial:/dev/{usb_port}"]
+            for i, device in enumerate(usb_devices):
+                self._usb_port = device
+                self._command = ["jbdtool", "-t", f"serial:/dev/{self._usb_port}"]
+                resp = self.get_bms_data()
+                if resp != "":
+                    print(f"Found device {self._usb_port}")
+                    break
+
+                if i == len(usb_devices) - 1:
+                    raise Exception("No USB device was found. Ensure that battery pack is connected to Raspberry Pi")
+                    
         self._voltage = 0
         self._current = 0
         self._design_capacity = 0
@@ -105,55 +125,54 @@ class BMS:
         """
 
         try: 
-            response = subprocess.run(self.command,
+            response = subprocess.run(self._command,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE,
                                   check=True)
             
-            return response
+            return response.stdout.decode()
         except subprocess.CalledProcessError as e:
             print("An error occured when getting BMS data")
             print(f"Error: {e.stderr.decode()}")
-            print("Please check that USBs are connected to Raspberry PI")
+            print("Please check that USBs are connected to Raspberry Pi, and that the _usb_port variable is set correctly")
+
             return None
 
-    def parse_bms_data(self, bms_data: subprocess.CompletedProcess) -> None:
+    def parse_bms_data(self, bms_data: str) -> None:
         """
             Parses BMS data and updates class members accordingly
 
             Parameters:
-                bms_data (subprocess.CompletedProcess): object containing result 
-                of the jbdtool command
+                bms_data (str): string containing result of the jbdtool command
 
             Returns: None
         """
         
-        data = bms_data.stdout.decode().split("\n")
-        
-        for element in data:
+        if bms_data == "":
+            print("Warning: No data was found.")
+            return
 
-            element = element.split()
-            print(element)
+        data = [entry.split() for entry in bms_data.split("\n")][:-1]       # [:-1] is only there because there is a empty list at the end for some reason
 
-        self._voltage = float(data[0])
-        self._current = float(data[1])
-        self._design_capacity = float(data[2])
-        self._remaining_capacity = float(data[3])
-        self._percent_capacity = float(data[4]) / 100
-        self._cycle_count = int(data[5])
-        self._probes = int(data[6])
-        self._strings = int(data[7])
-        self._temps = int(data[8].split(","))
-        self._cells = int(data[9].split(","))
-        self._balance = data[10]
-        self._cell_total = float(data[11])
-        self._cell_min = float(data[12])
-        self._cell_max = float(data[13])
-        self._cell_avg = float(data[14])
-        self._device_name = data[15]
-        self._manufacture_date = data[16]
-        self._version = data[17]
-        self._FET = data[18]
+        self._voltage = float(data[0][1])
+        self._current = float(data[1][1])
+        self._design_capacity = float(data[2][1])
+        self._remaining_capacity = float(data[3][1])
+        self._percent_capacity = float(data[4][1]) / 100
+        self._cycle_count = int(data[5][1])
+        self._probes = int(data[6][1])
+        self._strings = int(data[7][1])
+        self._temps = [float(temp) for temp in data[8][1].split(",")]
+        self._cells = [float(cell) for cell in data[9][1].split(",")]
+        self._balance = data[10][1]
+        self._cell_total = float(data[11][1])
+        self._cell_min = float(data[12][1])
+        self._cell_max = float(data[13][1])
+        self._cell_avg = float(data[14][1])
+        self._device_name = data[15][1]
+        self._manufacture_date = data[16][1]
+        self._version = data[17][1]
+        self._FET = data[18][1]
 
 
     def change_usb_port(self, usb_port: str) -> None:
@@ -167,8 +186,83 @@ class BMS:
                 None
         """
 
-        self.usb_port = usb_port
-        self.command = ["jbdtool", "-t", f"serial:/dev/{usb_port}"]
+        self._usb_port = usb_port
+        self._command = ["jbdtool", "-t", f"serial:/dev/{usb_port}"]
 
-test = BMS
-test.change_usb_port
+#region getters
+    @property 
+    def voltage(self):
+        return self._voltage
+
+    @property 
+    def current(self):
+        return self._current
+    
+    @property 
+    def design_capacity(self):    
+        return self._design_capacity
+
+    @property 
+    def remaining_capacity(self):
+        return self._remaining_capacity
+
+    @property 
+    def percent_capacity(self):    
+        return self._percent_capacity
+
+    @property 
+    def cycle_count(self):    
+        return self._cycle_count
+
+    @property 
+    def probes(self):    
+        return self._probes
+
+    @property 
+    def strings(self):    
+        return self._strings
+
+    @property 
+    def temps(self):    
+        return self._temps
+    
+    @property 
+    def cells(self):    
+        return self._cells
+    
+    @property 
+    def balance(self):    
+        return self._balance
+    
+    @property 
+    def cell_total(self):    
+        return self._cell_total
+    
+    @property 
+    def cell_min(self):    
+        return self._cell_min
+    
+    @property 
+    def cell_max(self):    
+        return self._cell_max
+    
+    @property 
+    def cell_avg(self):    
+        return self._cell_avg
+    
+    @property 
+    def device_name(self):    
+        return self._device_name
+    
+    @property 
+    def manufacture_date(self):    
+        return self._manufacture_date
+    
+    @property 
+    def version(self):    
+        return self._version
+    
+    @property 
+    def FET(self):    
+        return self._FET
+#endregion

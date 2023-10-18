@@ -1,0 +1,51 @@
+[2.433s] Invoking command in '/home/vortex/david_test_ws/vortex-asv/sensors/bms': PS1=${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[35m\]$(parse_git_branch)\[\033[00m\]\$ PYTHONPATH=/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/prefix_override:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/bms build --build-base /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build install --record /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log --single-version-externally-managed
+[3.312s] running egg_info
+[3.314s] creating build/bms/bms.egg-info
+[3.315s] writing build/bms/bms.egg-info/PKG-INFO
+[3.316s] writing dependency_links to build/bms/bms.egg-info/dependency_links.txt
+[3.317s] writing entry points to build/bms/bms.egg-info/entry_points.txt
+[3.317s] writing requirements to build/bms/bms.egg-info/requires.txt
+[3.318s] writing top-level names to build/bms/bms.egg-info/top_level.txt
+[3.318s] writing manifest file 'build/bms/bms.egg-info/SOURCES.txt'
+[3.325s] reading manifest file 'build/bms/bms.egg-info/SOURCES.txt'
+[3.328s] writing manifest file 'build/bms/bms.egg-info/SOURCES.txt'
+[3.329s] running build
+[3.329s] running build_py
+[3.330s] creating /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build
+[3.330s] creating /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib
+[3.331s] creating /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms
+[3.331s] copying bms/old_freya_bms_node.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms
+[3.331s] copying bms/freya_bms_node.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms
+[3.332s] copying bms/freya_bms.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms
+[3.333s] copying bms/__init__.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms
+[3.333s] copying bms/old_freya_bms.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms
+[3.334s] copying bms/testfile.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms
+[3.335s] running install
+[3.336s] /usr/lib/python3/dist-packages/setuptools/command/install.py:34: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+[3.336s]   warnings.warn(
+[3.337s] running install_lib
+[3.340s] creating /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms
+[3.341s] copying /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms/old_freya_bms_node.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms
+[3.341s] copying /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms/freya_bms_node.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms
+[3.342s] copying /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms/freya_bms.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms
+[3.343s] copying /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms/__init__.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms
+[3.343s] copying /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms/old_freya_bms.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms
+[3.344s] copying /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms/testfile.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms
+[3.347s] byte-compiling /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms/old_freya_bms_node.py to old_freya_bms_node.cpython-310.pyc
+[3.349s] byte-compiling /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms/freya_bms_node.py to freya_bms_node.cpython-310.pyc
+[3.351s] byte-compiling /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms/freya_bms.py to freya_bms.cpython-310.pyc
+[3.356s] byte-compiling /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms/__init__.py to __init__.cpython-310.pyc
+[3.357s] byte-compiling /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms/old_freya_bms.py to old_freya_bms.cpython-310.pyc
+[3.359s] byte-compiling /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms/testfile.py to testfile.cpython-310.pyc
+[3.360s] running install_data
+[3.362s] creating /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/ament_index
+[3.363s] creating /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/ament_index/resource_index
+[3.364s] creating /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/ament_index/resource_index/packages
+[3.364s] copying resource/bms -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/ament_index/resource_index/packages
+[3.365s] copying package.xml -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms
+[3.365s] running install_egg_info
+[3.371s] Copying build/bms/bms.egg-info to /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms-0.0.0-py3.10.egg-info
+[3.376s] running install_scripts
+[3.452s] Installing talker script to /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/bms
+[3.454s] writing list of installed files to '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log'
+[3.570s] Invoked command in '/home/vortex/david_test_ws/vortex-asv/sensors/bms' returned '0': PS1=${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[35m\]$(parse_git_branch)\[\033[00m\]\$ PYTHONPATH=/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/prefix_override:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/bms build --build-base /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build install --record /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log --single-version-externally-managed

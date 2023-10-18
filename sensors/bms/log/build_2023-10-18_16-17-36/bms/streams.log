@@ -1,0 +1,23 @@
+[2.484s] Invoking command in '/home/vortex/david_test_ws/vortex-asv/sensors/bms': PS1=${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[35m\]$(parse_git_branch)\[\033[00m\]\$ PYTHONPATH=/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/prefix_override:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/bms build --build-base /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build install --record /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log --single-version-externally-managed
+[3.378s] running egg_info
+[3.381s] writing build/bms/bms.egg-info/PKG-INFO
+[3.382s] writing dependency_links to build/bms/bms.egg-info/dependency_links.txt
+[3.383s] writing entry points to build/bms/bms.egg-info/entry_points.txt
+[3.384s] writing requirements to build/bms/bms.egg-info/requires.txt
+[3.384s] writing top-level names to build/bms/bms.egg-info/top_level.txt
+[3.392s] reading manifest file 'build/bms/bms.egg-info/SOURCES.txt'
+[3.396s] writing manifest file 'build/bms/bms.egg-info/SOURCES.txt'
+[3.396s] running build
+[3.397s] running build_py
+[3.399s] running install
+[3.400s] /usr/lib/python3/dist-packages/setuptools/command/install.py:34: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+[3.400s]   warnings.warn(
+[3.401s] running install_lib
+[3.408s] running install_data
+[3.410s] running install_egg_info
+[3.416s] removing '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms-0.0.0-py3.10.egg-info' (and everything under it)
+[3.418s] Copying build/bms/bms.egg-info to /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms-0.0.0-py3.10.egg-info
+[3.423s] running install_scripts
+[3.501s] Installing talker script to /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/bms
+[3.503s] writing list of installed files to '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log'
+[3.621s] Invoked command in '/home/vortex/david_test_ws/vortex-asv/sensors/bms' returned '0': PS1=${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[35m\]$(parse_git_branch)\[\033[00m\]\$ PYTHONPATH=/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/prefix_override:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/bms build --build-base /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build install --record /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log --single-version-externally-managed
