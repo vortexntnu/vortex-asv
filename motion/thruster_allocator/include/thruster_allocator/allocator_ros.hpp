@@ -11,7 +11,6 @@
 
 using namespace std::chrono_literals;
 
-// TODO: Rename to ThrusterAllocator
 class ThrusterAllocator : public rclcpp::Node {
 public:
   explicit ThrusterAllocator();
