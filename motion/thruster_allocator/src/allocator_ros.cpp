@@ -20,13 +20,14 @@ ThrusterAllocator::ThrusterAllocator()
       pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
   subscription_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
-      std::bind(&ThrusterAllocator::wrench_callback, this, std::placeholders::_1));
+      std::bind(&ThrusterAllocator::wrench_callback, this,
+                std::placeholders::_1));
 
   publisher_ = this->create_publisher<vortex_msgs::msg::ThrusterForces>(
       "thrust/thruster_forces", 1);
 
-  timer_ = this->create_wall_timer(100ms,
-                                   std::bind(&ThrusterAllocator::timer_callback, this));
+  timer_ = this->create_wall_timer(
+      100ms, std::bind(&ThrusterAllocator::timer_callback, this));
 
   Eigen::MatrixXd thrust_configuration_pseudoinverse;
   calculateRightPseudoinverse(thrust_configuration,
