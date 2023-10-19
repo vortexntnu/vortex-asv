@@ -11,9 +11,10 @@
 
 using namespace std::chrono_literals;
 
-class Allocator : public rclcpp::Node {
+// TODO: Rename to ThrusterAllocator
+class ThrusterAllocator : public rclcpp::Node {
 public:
-  explicit Allocator();
+  explicit ThrusterAllocator();
   void timer_callback();
 
 private:

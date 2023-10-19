@@ -15,18 +15,18 @@
 
 using namespace std::chrono_literals;
 
-Allocator::Allocator()
+ThrusterAllocator::ThrusterAllocator()
     : Node("thruster_allocator_node"),
       pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
   subscription_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
-      std::bind(&Allocator::wrench_callback, this, std::placeholders::_1));
+      std::bind(&ThrusterAllocator::wrench_callback, this, std::placeholders::_1));
 
   publisher_ = this->create_publisher<vortex_msgs::msg::ThrusterForces>(
       "thrust/thruster_forces", 1);
 
   timer_ = this->create_wall_timer(100ms,
-                                   std::bind(&Allocator::timer_callback, this));
+                                   std::bind(&ThrusterAllocator::timer_callback, this));
 
   Eigen::MatrixXd thrust_configuration_pseudoinverse;
   calculateRightPseudoinverse(thrust_configuration,
@@ -47,7 +47,7 @@ Allocator::Allocator()
  * saturation, it logs a warning message.
  */
 
-void Allocator::timer_callback() {
+void ThrusterAllocator::timer_callback() {
   Eigen::VectorXd thruster_forces =
       pseudoinverse_allocator_.calculateAllocatedThrust(body_frame_forces_);
 
@@ -78,7 +78,7 @@ void Allocator::timer_callback() {
  * returns.
  * @param msg The received geometry_msgs::msg::Wrench message.
  */
-void Allocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
+void ThrusterAllocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
   body_frame_forces_(0) = msg.force.x;  // surge
   body_frame_forces_(1) = msg.force.y;  // sway
   body_frame_forces_(2) = msg.torque.z; // yaw
@@ -95,7 +95,7 @@ void Allocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
  * @param v The Eigen vector to check.
  * @return True if the vector is healthy, false otherwise.
  */
-bool Allocator::healthyWrench(const Eigen::VectorXd &v) const {
+bool ThrusterAllocator::healthyWrench(const Eigen::VectorXd &v) const {
   // Check for NaN/Inf
   if (isInvalidMatrix(v))
     return false;

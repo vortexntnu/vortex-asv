@@ -56,7 +56,7 @@ inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
   Eigen::MatrixXd pseudoinverse = M.transpose() * (M * M.transpose()).inverse();
   // pseudoinverse.completeOrthogonalDecomposition().pseudoInverse();
   if (isInvalidMatrix(pseudoinverse)) {
-    throw "Invalid pseudoinverse calculated";
+    throw std::runtime_error("Invalid Psuedoinverse Calculated");
   }
   M_pinv = pseudoinverse;
 }
