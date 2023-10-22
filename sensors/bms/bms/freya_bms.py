@@ -56,7 +56,7 @@ class BMS:
             self._usb_port = usb_port
             self._command = ["jbdtool", "-t", f"serial:/dev/{self._usb_port}"]
         else:
-            print("Querying for USB devices...")
+            print("Looking for USB devices...")
             devices = subprocess.check_output(["ls", "/dev"], text=True).split("\n")
             usb_devices = [device for device in devices if device[:6] == "ttyUSB"]
 
@@ -70,7 +70,7 @@ class BMS:
 
                 if i == len(usb_devices) - 1:
                     raise Exception("No USB device was found. Ensure that battery pack is connected to Raspberry Pi")
-                    
+
         self._voltage = 0
         self._current = 0
         self._design_capacity = 0
@@ -198,7 +198,7 @@ class BMS:
     def current(self):
         return self._current
     
-    @property 
+    @property
     def design_capacity(self):    
         return self._design_capacity
 
@@ -219,11 +219,11 @@ class BMS:
         return self._probes
 
     @property 
-    def strings(self):    
+    def strings(self):
         return self._strings
 
     @property 
-    def temps(self):    
+    def temps(self):
         return self._temps
     
     @property 
