@@ -53,17 +53,6 @@ class BatteryMonitor:
         )
         self.system_current_state = (
             "No receive"  # should only be "No receive", "Error try:
-        
-            self.system_current = (self.channel_current.convert_and_read() -
-                                   self.psm_to_battery_current_offset
-                                   ) * self.psm_to_battery_current_scale_factor
-
-            if self.system_current_state != "Received":
-                self.system_current_state = "Received"
-        
-        except IOError:
-            self.I2C_error_counter_current += 1
-            self.system_current_state = "Error"", "Received"
         )
 
         # Create ROS publishers

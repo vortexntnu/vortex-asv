@@ -1,9 +1,18 @@
 #include <iostream>
 using namespace std; // do i need this?
 
-#include "i2c/smbus.h"
+//#include <linus/i2c-dev.h>
+//#include <sys/ioctl.h>
+#include "smbus.h"
 #include <time.h>
-//#include <MCP342x.h>
+#include "MCP342x.h"
+
+int main(){
+    cout << "Hello world" << endl;
+    cout << "smbus included" << endl;
+    cout << "MCP342x included" << endl;
+    return 0;
+}
 
 // include doesn't work well
 
