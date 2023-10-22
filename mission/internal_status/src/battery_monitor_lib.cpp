@@ -1,13 +1,13 @@
 #include <iostream>
-using namespace std;     //do i need this?
+using namespace std; // do i need this?
 
-#include <time.h>
 #include "i2c/smbus.h"
+#include <time.h>
 //#include <MCP342x.h>
 
 // include doesn't work well
 
-//how to know the types of the values?
+// how to know the types of the values?
 
 //
 
@@ -16,14 +16,14 @@ class BatteryMonitor{
 
 public:
     BatteryMonitor()  //default constructor to initialize the class
-    {  
+    {
         //***************I2C protocole*******************************
         i2c_adress = 0x69;
         bus = smbus.SMBus(1);
         channel_voltage = MCP342x(bus,i2c_adress,channel=0,resolution=18);
         channel_current = MCP342x(bus,i2c_adress,channel=1,resolution=18);
         //TIME SLEEP? -> only for rospy?
-        
+
         //**********convertion ratio taken from PSM datasheet**************
         psm_to_battery_voltage = 11.0;
         psm_to_battery_current_scale_factor =37.8788;
@@ -45,8 +45,8 @@ public:
     float get_PSM_current(){
 
         try {
-            system_current = ((channel_current.convert_and_read() 
-                            - psm_to_battery_current_offset) 
+            system_current = ((channel_current.convert_and_read()
+                            - psm_to_battery_current_offset)
                             * psm_to_battery_current_scale_factor);
 
             if (system_current_state != "Received") {
@@ -59,7 +59,7 @@ public:
             system_current_state = "Error";
             cerr << "Error: " << e.what() << endl;
         }
-        
+
         return system_current;
     }
 
@@ -68,7 +68,7 @@ public:
         try {
             system_voltage = (channel_voltage.convert_and_read()
                             * psm_to_battery_voltage);
-            
+
             if (system_voltage_state != "Received") {
                 system_voltage_state = "Received";
             }
@@ -111,8 +111,8 @@ private:
 
 
 try {
-    system_current = (channel_current.convert_and_read() 
-                    - psm_to_battery_current_offset) 
+    system_current = (channel_current.convert_and_read()
+                    - psm_to_battery_current_offset)
                     * psm_to_battery_current_scale_factor;
 
     if (system_current_state != "Received") {
