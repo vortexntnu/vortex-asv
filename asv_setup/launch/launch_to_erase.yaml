@@ -1,0 +1,10 @@
+launch:
+- node:
+    pkg: test_pkg
+    exec: test_node
+    name: parameter_manager_node
+    output: screen
+    param:
+    - from: /home/jade/ros2_ws/src/test_pkg/test_pkg/config/params.yaml
+    
+       

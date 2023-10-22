@@ -1,0 +1,9 @@
+/parameter_manager_node:
+  ros__parameters:
+    configuration_matrix: "[[ 0.70711,   0.70711,   0.70711,   0.70711], [ -0.70711,  0.70711,   -0.70711,  0.70711], [ 0.27738,   0.27738,  -0.27738,  -0.27738]]" #NED #Surge #Sway #Yaw 
+    asv_thruster_manager_input: "thrust/desired_forces"  # 3DOF thrust vector
+    asv_thruster_manager_output: "thrust/thruster_forces"
+    asv_thruster_manager_wrench: "thrust/wrench_input"
+    joy_node: "joystick/joy"
+
+
