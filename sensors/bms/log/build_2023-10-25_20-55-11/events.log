@@ -1,0 +1,122 @@
+[0.000000] (-) TimerEvent: {}
+[0.006312] (bms) JobQueued: {'identifier': 'bms', 'dependencies': OrderedDict()}
+[0.006883] (bms) JobStarted: {'identifier': 'bms'}
+[0.095552] (-) TimerEvent: {}
+[0.196938] (-) TimerEvent: {}
+[0.299114] (-) TimerEvent: {}
+[0.400638] (-) TimerEvent: {}
+[0.502341] (-) TimerEvent: {}
+[0.603817] (-) TimerEvent: {}
+[0.705781] (-) TimerEvent: {}
+[0.807279] (-) TimerEvent: {}
+[0.908819] (-) TimerEvent: {}
+[1.010349] (-) TimerEvent: {}
+[1.112425] (-) TimerEvent: {}
+[1.214479] (-) TimerEvent: {}
+[1.315941] (-) TimerEvent: {}
+[1.417427] (-) TimerEvent: {}
+[1.518897] (-) TimerEvent: {}
+[1.620249] (-) TimerEvent: {}
+[1.721127] (-) TimerEvent: {}
+[1.822820] (-) TimerEvent: {}
+[1.924288] (-) TimerEvent: {}
+[2.025820] (-) TimerEvent: {}
+[2.127900] (-) TimerEvent: {}
+[2.229241] (-) TimerEvent: {}
+[2.331324] (-) TimerEvent: {}
+[2.432817] (-) TimerEvent: {}
+[2.534541] (-) TimerEvent: {}
+[2.636616] (-) TimerEvent: {}
+[2.738017] (-) TimerEvent: {}
+[2.839471] (-) TimerEvent: {}
+[2.940848] (-) TimerEvent: {}
+[3.042352] (-) TimerEvent: {}
+[3.144320] (-) TimerEvent: {}
+[3.245881] (-) TimerEvent: {}
+[3.347400] (-) TimerEvent: {}
+[3.448949] (-) TimerEvent: {}
+[3.550534] (-) TimerEvent: {}
+[3.652036] (-) TimerEvent: {}
+[3.753587] (-) TimerEvent: {}
+[3.855053] (-) TimerEvent: {}
+[3.956532] (-) TimerEvent: {}
+[4.058035] (-) TimerEvent: {}
+[4.159376] (-) TimerEvent: {}
+[4.260143] (-) TimerEvent: {}
+[4.361428] (-) TimerEvent: {}
+[4.462799] (-) TimerEvent: {}
+[4.564264] (-) TimerEvent: {}
+[4.665778] (-) TimerEvent: {}
+[4.767214] (-) TimerEvent: {}
+[4.868641] (-) TimerEvent: {}
+[4.970136] (-) TimerEvent: {}
+[5.071680] (-) TimerEvent: {}
+[5.173366] (-) TimerEvent: {}
+[5.274877] (-) TimerEvent: {}
+[5.376307] (-) TimerEvent: {}
+[5.477619] (-) TimerEvent: {}
+[5.578940] (-) TimerEvent: {}
+[5.680480] (-) TimerEvent: {}
+[5.782102] (-) TimerEvent: {}
+[5.883583] (-) TimerEvent: {}
+[5.985653] (-) TimerEvent: {}
+[6.087762] (-) TimerEvent: {}
+[6.184607] (bms) Command: {'cmd': ['/usr/bin/python3', 'setup.py', 'egg_info', '--egg-base', 'build/bms', 'build', '--build-base', '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build', 'install', '--record', '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log', '--single-version-externally-managed'], 'cwd': '/home/vortex/david_test_ws/vortex-asv/sensors/bms', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'vortex', 'SSH_CLIENT': '10.0.0.131 35794 22', 'LC_TIME': 'nb_NO.UTF-8', 'XDG_SESSION_TYPE': 'tty', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'MOTD_SHOWN': 'pam', 'HOME': '/home/vortex', 'OLDPWD': '/home/vortex/david_test_ws', 'SSH_TTY': '/dev/pts/0', 'ROS_PYTHON_VERSION': '3', 'PS1': '${debian_chroot:+($debian_chroot)}\\[\\033[01;32m\\]\\u@\\h\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]\\[\\033[35m\\]$(parse_git_branch)\\[\\033[00m\\]\\$', 'LC_MONETARY': 'nb_NO.UTF-8', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1001/bus', '_colcon_cd_root': '/opt/ros/rolling/', 'COLCON_PREFIX_PATH': '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install', 'ROS_DISTRO': 'humble', 'LOGNAME': 'vortex', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'TERM': 'xterm-256color', 'XDG_SESSION_ID': '1', 'ROS_LOCALHOST_ONLY': '1', 'PATH': '/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'LC_ADDRESS': 'nb_NO.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1001', 'LANG': 'en_US.UTF-8', 'LC_TELEPHONE': 'nb_NO.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'ROS_DOMAIN_ID': '1', 'AMENT_PREFIX_PATH': '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms:/opt/ros/humble', 'SHELL': '/bin/bash', 'LC_NAME': 'nb_NO.UTF-8', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'LC_MEASUREMENT': 'nb_NO.UTF-8', 'LC_IDENTIFICATION': 'nb_NO.UTF-8', 'PWD': '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms', 'LC_ALL': 'en_US.UTF-8', 'SSH_CONNECTION': '10.0.0.131 35794 10.0.1.99 22', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/prefix_override:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'nb_NO.UTF-8', 'LC_PAPER': 'nb_NO.UTF-8', 'COLCON': '1'}, 'shell': False}
+[6.210154] (-) TimerEvent: {}
+[6.312905] (-) TimerEvent: {}
+[6.414287] (-) TimerEvent: {}
+[6.515568] (-) TimerEvent: {}
+[6.616907] (-) TimerEvent: {}
+[6.718275] (-) TimerEvent: {}
+[6.819586] (-) TimerEvent: {}
+[6.921088] (-) TimerEvent: {}
+[7.022470] (-) TimerEvent: {}
+[7.123828] (-) TimerEvent: {}
+[7.225085] (-) TimerEvent: {}
+[7.325937] (-) TimerEvent: {}
+[7.427215] (-) TimerEvent: {}
+[7.528528] (-) TimerEvent: {}
+[7.630514] (-) TimerEvent: {}
+[7.731851] (-) TimerEvent: {}
+[7.833200] (-) TimerEvent: {}
+[7.934716] (-) TimerEvent: {}
+[8.036218] (-) TimerEvent: {}
+[8.137867] (-) TimerEvent: {}
+[8.239798] (-) TimerEvent: {}
+[8.341124] (-) TimerEvent: {}
+[8.442626] (-) TimerEvent: {}
+[8.538987] (bms) StdoutLine: {'line': b'running egg_info\n'}
+[8.542893] (-) TimerEvent: {}
+[8.545100] (bms) StdoutLine: {'line': b'writing build/bms/bms.egg-info/PKG-INFO\n'}
+[8.547587] (bms) StdoutLine: {'line': b'writing dependency_links to build/bms/bms.egg-info/dependency_links.txt\n'}
+[8.549651] (bms) StdoutLine: {'line': b'writing entry points to build/bms/bms.egg-info/entry_points.txt\n'}
+[8.551384] (bms) StdoutLine: {'line': b'writing requirements to build/bms/bms.egg-info/requires.txt\n'}
+[8.553017] (bms) StdoutLine: {'line': b'writing top-level names to build/bms/bms.egg-info/top_level.txt\n'}
+[8.571741] (bms) StdoutLine: {'line': b"reading manifest file 'build/bms/bms.egg-info/SOURCES.txt'\n"}
+[8.582393] (bms) StdoutLine: {'line': b"writing manifest file 'build/bms/bms.egg-info/SOURCES.txt'\n"}
+[8.584769] (bms) StdoutLine: {'line': b'running build\n'}
+[8.586171] (bms) StdoutLine: {'line': b'running build_py\n'}
+[8.588101] (bms) StdoutLine: {'line': b'copying bms/freya_bms_node.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms\n'}
+[8.595028] (bms) StdoutLine: {'line': b'running install\n'}
+[8.596770] (bms) StderrLine: {'line': b'/usr/lib/python3/dist-packages/setuptools/command/install.py:34: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.\n'}
+[8.598155] (bms) StderrLine: {'line': b'  warnings.warn(\n'}
+[8.599696] (bms) StdoutLine: {'line': b'running install_lib\n'}
+[8.608477] (bms) StdoutLine: {'line': b'copying /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build/lib/bms/freya_bms_node.py -> /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms\n'}
+[8.617919] (bms) StdoutLine: {'line': b'byte-compiling /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms/freya_bms_node.py to freya_bms_node.cpython-310.pyc\n'}
+[8.628593] (bms) StdoutLine: {'line': b'running install_data\n'}
+[8.633699] (bms) StdoutLine: {'line': b'running install_egg_info\n'}
+[8.643181] (-) TimerEvent: {}
+[8.649654] (bms) StdoutLine: {'line': b"removing '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms-0.0.0-py3.10.egg-info' (and everything under it)\n"}
+[8.654514] (bms) StdoutLine: {'line': b'Copying build/bms/bms.egg-info to /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages/bms-0.0.0-py3.10.egg-info\n'}
+[8.672861] (bms) StdoutLine: {'line': b'running install_scripts\n'}
+[8.743555] (-) TimerEvent: {}
+[8.845479] (-) TimerEvent: {}
+[8.876887] (bms) StdoutLine: {'line': b'Installing bms_publisher script to /home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/bms\n'}
+[8.882018] (bms) StdoutLine: {'line': b"writing list of installed files to '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log'\n"}
+[8.945720] (-) TimerEvent: {}
+[9.048494] (-) TimerEvent: {}
+[9.086845] (bms) CommandEnded: {'returncode': 0}
+[9.148736] (-) TimerEvent: {}
+[9.250537] (bms) JobEnded: {'identifier': 'bms', 'rc': 0}
+[9.257418] (-) TimerEvent: {}
+[9.258166] (-) EventReactorShutdown: {}

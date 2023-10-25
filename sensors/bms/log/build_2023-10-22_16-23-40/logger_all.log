@@ -1,0 +1,92 @@
+[1.237s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[1.238s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=4, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0xffffae61b010>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0xffffaeeb06a0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0xffffaeeb06a0>>)
+[1.374s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[1.374s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[1.375s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[1.375s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[1.375s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[1.375s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[1.375s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/vortex/david_test_ws/vortex-asv/sensors/bms'
+[1.376s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[1.376s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[1.377s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[1.377s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[1.377s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[1.377s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[1.377s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[1.377s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[1.378s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[1.429s] DEBUG:colcon.colcon_core.package_identification:Package '.' with type 'ros.ament_python' and name 'bms'
+[1.430s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[1.430s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[1.430s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[1.430s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[1.430s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[1.522s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[1.522s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[1.533s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 1 installed packages in /home/vortex/david_test_ws/vortex-asv/sensors/bms/install
+[1.542s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 196 installed packages in /opt/ros/humble
+[1.546s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[1.728s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'cmake_args' from command line to 'None'
+[1.728s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'cmake_target' from command line to 'None'
+[1.728s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[1.728s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'cmake_clean_cache' from command line to 'False'
+[1.729s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'cmake_clean_first' from command line to 'False'
+[1.729s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'cmake_force_configure' from command line to 'False'
+[1.729s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'ament_cmake_args' from command line to 'None'
+[1.729s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'catkin_cmake_args' from command line to 'None'
+[1.729s] Level 5:colcon.colcon_core.verb:set package 'bms' build argument 'catkin_skip_building_tests' from command line to 'False'
+[1.729s] DEBUG:colcon.colcon_core.verb:Building package 'bms' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms', 'merge_install': False, 'path': '/home/vortex/david_test_ws/vortex-asv/sensors/bms', 'symlink_install': False, 'test_result_base': None}
+[1.732s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[1.744s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[1.745s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/vortex/david_test_ws/vortex-asv/sensors/bms' with build type 'ament_python'
+[1.746s] Level 1:colcon.colcon_core.shell:create_environment_hook('bms', 'ament_prefix_path')
+[1.764s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[1.765s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/hook/ament_prefix_path.ps1'
+[1.768s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/hook/ament_prefix_path.dsv'
+[1.770s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/hook/ament_prefix_path.sh'
+[1.777s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.777s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[2.798s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/vortex/david_test_ws/vortex-asv/sensors/bms'
+[2.803s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[2.804s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[4.247s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/vortex/david_test_ws/vortex-asv/sensors/bms': PS1=${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[35m\]$(parse_git_branch)\[\033[00m\]\$ PYTHONPATH=/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/prefix_override:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/bms build --build-base /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build install --record /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log --single-version-externally-managed
+[5.412s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/vortex/david_test_ws/vortex-asv/sensors/bms' returned '0': PS1=${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[35m\]$(parse_git_branch)\[\033[00m\]\$ PYTHONPATH=/home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/prefix_override:/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/bms build --build-base /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/build install --record /home/vortex/david_test_ws/vortex-asv/sensors/bms/build/bms/install.log --single-version-externally-managed
+[5.432s] Level 1:colcon.colcon_core.environment:checking '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms' for CMake module files
+[5.434s] Level 1:colcon.colcon_core.environment:checking '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms' for CMake config files
+[5.439s] Level 1:colcon.colcon_core.environment:checking '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib'
+[5.440s] Level 1:colcon.colcon_core.environment:checking '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/bin'
+[5.440s] Level 1:colcon.colcon_core.environment:checking '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/pkgconfig/bms.pc'
+[5.441s] Level 1:colcon.colcon_core.environment:checking '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/lib/python3.10/site-packages'
+[5.441s] Level 1:colcon.colcon_core.shell:create_environment_hook('bms', 'pythonpath')
+[5.446s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/hook/pythonpath.ps1'
+[5.448s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/hook/pythonpath.dsv'
+[5.450s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/hook/pythonpath.sh'
+[5.452s] Level 1:colcon.colcon_core.environment:checking '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/bin'
+[5.453s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(bms)
+[5.458s] INFO:colcon.colcon_core.shell:Creating package script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/package.ps1'
+[5.461s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/package.dsv'
+[5.464s] INFO:colcon.colcon_core.shell:Creating package script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/package.sh'
+[5.468s] INFO:colcon.colcon_core.shell:Creating package script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/package.bash'
+[5.471s] INFO:colcon.colcon_core.shell:Creating package script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/bms/package.zsh'
+[5.474s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/bms/share/colcon-core/packages/bms)
+[5.476s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[5.477s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[5.477s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[5.478s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[5.501s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[5.501s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[5.502s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[5.502s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[5.505s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.Notifications was not provided by any .service files
+[5.505s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[5.510s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/local_setup.ps1'
+[5.514s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/_local_setup_util_ps1.py'
+[5.521s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/setup.ps1'
+[5.526s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/local_setup.sh'
+[5.529s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/_local_setup_util_sh.py'
+[5.531s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/setup.sh'
+[5.537s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/local_setup.bash'
+[5.540s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/setup.bash'
+[5.545s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/local_setup.zsh'
+[5.547s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/vortex/david_test_ws/vortex-asv/sensors/bms/install/setup.zsh'

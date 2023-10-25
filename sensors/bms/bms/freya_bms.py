@@ -38,6 +38,8 @@ class BMS:
             returns pure BMS data string, or None if exception is thrown 
         change_usb_port(usb_port: str) -> None:
             changes the usb port for the BMS
+    
+    Note: Private members are denoted by _variable_name            
     """
 
     def __init__(self, usb_port: str = None) -> None:
@@ -49,27 +51,12 @@ class BMS:
 
             Returns:
                 None
-
-            Note: Private members are denoted by _variable_name            
         """     
         if usb_port:
             self._usb_port = usb_port
             self._command = ["jbdtool", "-t", f"serial:/dev/{self._usb_port}"]
         else:
-            print("Looking for USB devices...")
-            devices = subprocess.check_output(["ls", "/dev"], text=True).split("\n")
-            usb_devices = [device for device in devices if device[:6] == "ttyUSB"]
-
-            for i, device in enumerate(usb_devices):
-                self._usb_port = device
-                self._command = ["jbdtool", "-t", f"serial:/dev/{self._usb_port}"]
-                resp = self.get_bms_data()
-                if resp != "":
-                    print(f"Found device {self._usb_port}")
-                    break
-
-                if i == len(usb_devices) - 1:
-                    raise Exception("No USB device was found. Ensure that battery pack is connected to Raspberry Pi")
+            self.usb_port = BMS.find_usb_ports()[0]
 
         self._voltage = 0
         self._current = 0
@@ -91,11 +78,42 @@ class BMS:
         self._version = ""
         self._FET = ""
 
-    def get_bms_data(self) -> str | None:
+    @staticmethod
+    def find_usb_ports() -> list[str]:
+        """
+            Queries all usb ports with jbdtool to find connected bms
+
+            Parameters:
+
+            Returns:
+                All USB ports which respond to jbtool command
+        """
+        print("Looking for USB devices...")
+        bms_ports = []
+
+        devices = subprocess.check_output(["ls", "/dev"], text=True).split("\n")
+        usb_devices = [device for device in devices if device[:6] == "ttyUSB"]
+
+        for device in usb_devices:
+            usb_port = device
+            command = ["jbdtool", "-t", f"serial:/dev/{usb_port}"]
+            resp = BMS.get_bms_data(command)
+            if resp != "":
+                print(f"Found device {usb_port}")
+                bms_ports.append(usb_port)
+
+        if len(usb_devices) == 0:
+            raise Exception("No USB device was found. Ensure that battery pack is connected to Raspberry Pi")
+        
+        return usb_devices
+
+    @staticmethod
+    def get_bms_data(command: str) -> str | None:
         """
             Function for getting data from the BMS
 
             Parameters: 
+                command (str): The jbdtool command to run (use self.command)
 
             Returns: 
                 if the jbdtool call works, it returns the BMS data as a string, 
@@ -125,7 +143,7 @@ class BMS:
         """
 
         try: 
-            response = subprocess.run(self._command,
+            response = subprocess.run(command,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE,
                                   check=True)
@@ -174,7 +192,6 @@ class BMS:
         self._version = data[17][1]
         self._FET = data[18][1]
 
-
     def change_usb_port(self, usb_port: str) -> None:
         """
             Changes the usb port.
@@ -190,6 +207,10 @@ class BMS:
         self._command = ["jbdtool", "-t", f"serial:/dev/{usb_port}"]
 
 #region getters
+    @property
+    def command(self):
+        return self._command
+
     @property 
     def voltage(self):
         return self._voltage

@@ -23,7 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'bms_publihser = bms.freya_bms_node:main'
+            'bms_publisher = bms.freya_bms_node:main'
         ],
     },
 )
