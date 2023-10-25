@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 import ast
@@ -36,9 +37,10 @@ def StringInto2DArray(input_string):
 def main():
     rclpy.init()
     parameter_manager_node = ParameterManagerNode()
-    test = parameter_manager_node.asv_thruster_manager_output
+    test = parameter_manager_node.configuration_matrix
+    print(test)
     #rclpy.spin(joystick_interface)
-    #parameter_manager_node.destroy_node()
+    parameter_manager_node.destroy_node()
     rclpy.shutdown()
 
 
