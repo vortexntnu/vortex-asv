@@ -60,12 +60,14 @@ inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
 }
 
 /**
- * @brief Saturates the values of a given Eigen vector between a minimum and maximum value.
- * 
+ * @brief Saturates the values of a given Eigen vector between a minimum and
+ * maximum value.
+ *
  * @param vec The Eigen vector to be saturated.
  * @param min The minimum value to saturate the vector values to.
  * @param max The maximum value to saturate the vector values to.
- * @return True if all vector values are within the given range, false otherwise.
+ * @return True if all vector values are within the given range, false
+ * otherwise.
  */
 inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
   bool vector_in_range = true;
