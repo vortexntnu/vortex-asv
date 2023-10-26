@@ -1,8 +1,8 @@
 #ifndef VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
 #define VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
 
-#include "rclcpp/rclcpp.hpp"
 #include <eigen3/Eigen/Eigen>
+#include <rclcpp/rclcpp.hpp>
 #include <string>
 #include <vector>
 
@@ -13,8 +13,6 @@
  * @brief This file contains utility functions for the thruster allocator
  * module.
  */
-
-// Return true if M has any NaN or INF elements.
 
 /**
  * @brief Check if the matrix has any NaN or INF elements.
@@ -61,8 +59,14 @@ inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
   M_pinv = pseudoinverse;
 }
 
-// Saturate all elements of vector v to within [min, max].
-// Return true if all elements already are within the range.
+/**
+ * @brief Saturates the values of a given Eigen vector between a minimum and maximum value.
+ * 
+ * @param vec The Eigen vector to be saturated.
+ * @param min The minimum value to saturate the vector values to.
+ * @param max The maximum value to saturate the vector values to.
+ * @return True if all vector values are within the given range, false otherwise.
+ */
 inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
   bool vector_in_range = true;
   for (int i = 0; i < vec.size(); ++i) {
@@ -77,7 +81,6 @@ inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
   return vector_in_range;
 }
 
-// Copies vector elements into ThrusterForces message
 /**
  * @brief Converts an Eigen VectorXd to a vortex_msgs::msg::ThrusterForces
  * message.

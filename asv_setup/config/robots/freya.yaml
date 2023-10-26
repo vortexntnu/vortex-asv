@@ -35,11 +35,6 @@ propulsion:
       [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
        [ -0.70711,  0.70711,   -0.70711,  0.70711], # Sway
        [ 0.27738,   0.27738,  -0.27738,  -0.27738]] # Yaw
-    
-#    configuration_matrix: # NWD
-#      [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
-#       [ 0.70711,  -0.70711,   0.70711,  -0.70711], # Sway
-#       [ 0.32557,   0.32557,  -0.32557,  -0.32557]] # Yaw
 
     rate_of_change:
       max: 0 # Maximum rate of change in newton per second for a thruster
