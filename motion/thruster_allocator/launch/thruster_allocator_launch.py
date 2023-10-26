@@ -6,6 +6,6 @@ def generate_launch_description():
         Node(
             package='thruster_allocator',
             executable='thruster_allocator_node',
-            name='allocator'
+            name='thruster_allocator_node'
         )
     ])
