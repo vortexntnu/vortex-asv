@@ -7,8 +7,6 @@ endif()
 
 find_package(ament_cmake_python REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 
 ament_python_install_package(scripts)
 
@@ -22,5 +20,6 @@ install(PROGRAMS
   scripts/parameter_manager_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
 
 ament_package()

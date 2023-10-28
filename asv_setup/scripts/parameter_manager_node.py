@@ -37,9 +37,10 @@ def StringInto2DArray(input_string):
 def main():
     rclpy.init()
     parameter_manager_node = ParameterManagerNode()
-    test = parameter_manager_node.configuration_matrix
-    print(test)
-    #rclpy.spin(joystick_interface)
+    
+    #test = parameter_manager_node.configuration_matrix
+    #print(test)
+    
     parameter_manager_node.destroy_node()
     rclpy.shutdown()
 
