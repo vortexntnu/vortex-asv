@@ -1,12 +1,9 @@
 import rclpy
 from rclpy.node import Node
+import rclpy.logging
 from sensor_msgs.msg import BatteryState
-from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
+from diagnostic_msgs.msg import DiagnosticStatus, KeyValue, DiagnosticArray
 from bms.freya_bms import BMS
-
-
-#TODO: run the node on startup
-
 
 class FreyaBMSNode(Node):
     """
@@ -27,7 +24,8 @@ class FreyaBMSNode(Node):
                 None
         """
         super().__init__(f'freya_bms')
-        
+        rclpy.logging.initialize()
+
         if usb_ports:
             self._bms_systems = [BMS(usb_port=port) for port in usb_ports]
         else:
@@ -36,7 +34,7 @@ class FreyaBMSNode(Node):
         
         self._batterystate_publishers = [self.create_publisher(BatteryState, f'/internal/status/bms{i}', 10) for i in range(len(self._bms_systems))]
         
-        self._diagnostics_publishers = [self.create_publisher(DiagnosticStatus, f'/internal/status/bms_diagnostic{i}', 10) for i in range(len(self._bms_systems))]
+        self._diagnostics_publisher = self.create_publisher(DiagnosticArray, '/diagnostics', 10)
 
         self._timer = self.create_timer(2, self.publish_bms_data)
         
@@ -46,38 +44,45 @@ class FreyaBMSNode(Node):
             Publishes BMS data to ros2 topics.
         """
 
+        diagnostic_array = DiagnosticArray()
+
         for i, bms_system in enumerate(self._bms_systems):
             battery_msg = BatteryState()
-            diagnostics_msg = DiagnosticStatus()
+            diagnostic_status = DiagnosticStatus()
 
-            bms_system.parse_bms_data(bms_system.get_bms_data(bms_system.command))
+            res = bms_system.parse_bms_data(bms_system.get_bms_data(bms_system.command))
 
-            battery_msg.voltage = bms_system.voltage
-            battery_msg.current = bms_system.current
-            battery_msg.cell_temperature = bms_system.temps
-            battery_msg.percentage = bms_system.percent_capacity
+            if res:
+                battery_msg.voltage = bms_system.voltage
+                battery_msg.current = bms_system.current
+                battery_msg.cell_temperature = bms_system.temps
+                battery_msg.percentage = bms_system.percent_capacity
 
-            self._batterystate_publishers[i].publish(battery_msg)
+                self._batterystate_publishers[i].publish(battery_msg)
 
-            diagnostics_msg.name = f"Freya battery status {i}"
-        
-            if bms_system.percent_capacity < 1:
-                diagnostics_msg.level = DiagnosticStatus.ERROR
-            elif bms_system.percent_capacity < 20:
-                diagnostics_msg.level = DiagnosticStatus.WARN
+                diagnostic_status.name = f"Freya battery status {i}"
+            
+                if bms_system.percent_capacity * 100 < 1:
+                    diagnostic_status.level = DiagnosticStatus.ERROR
+                elif bms_system.percent_capacity * 100 < 20:
+                    diagnostic_status.level = DiagnosticStatus.WARN
+                else:
+                    diagnostic_status.level = DiagnosticStatus.OK
+
+                diagnostic_status.values.extend([
+                    create_key_value_pair("voltage", bms_system.voltage), 
+                    create_key_value_pair("current", bms_system.current), 
+                    create_key_value_pair("temps", bms_system.temps), 
+                    create_key_value_pair("percentage", bms_system.percent_capacity)])
+
+                diagnostic_status.message = "level indicates whether the battery \
+                level is above 20 (OK), below 20 (WARN), or below 1 (ERROR)"
+
+                diagnostic_array.status.append(diagnostic_status)
             else:
-                diagnostics_msg.level = DiagnosticStatus.OK
+                self.get_logger().warn(f"No data to be published. Battery {i} may not be connected")
 
-            diagnostics_msg.values.extend([
-                create_key_value_pair("voltage", bms_system.voltage), 
-                create_key_value_pair("current", bms_system.current), 
-                create_key_value_pair("temps", bms_system.temps), 
-                create_key_value_pair("percentage", bms_system.percent_capacity)])
-
-            diagnostics_msg.message = "level indicates whether the battery level is \
-            below 0 (ERROR), below 20 (WARN) or above 20 (OK)"
-
-            self._diagnostics_publishers[i].publish(diagnostics_msg)
+        self._diagnostics_publisher.publish(diagnostic_array)
 
 def create_key_value_pair(key: str, value) -> KeyValue:
     kv = KeyValue()

@@ -1,4 +1,7 @@
 import subprocess
+import rclpy.logging
+
+#TODO: use ros2 logging instead of python print
 
 class BMS:
     """ Class containing Freya's BMS system. 
@@ -58,6 +61,8 @@ class BMS:
         else:
             self.usb_port = BMS.find_usb_ports()[0]
 
+        self._logger = logger
+
         self._voltage = 0
         self._current = 0
         self._design_capacity = 0
@@ -105,7 +110,7 @@ class BMS:
         if len(usb_devices) == 0:
             raise Exception("No USB device was found. Ensure that battery pack is connected to Raspberry Pi")
         
-        return usb_devices
+        return bms_ports
 
     @staticmethod
     def get_bms_data(command: str) -> str | None:
@@ -144,31 +149,32 @@ class BMS:
 
         try: 
             response = subprocess.run(command,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE,
-                                  check=True)
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    check=True)
             
             return response.stdout.decode()
         except subprocess.CalledProcessError as e:
             print("An error occured when getting BMS data")
             print(f"Error: {e.stderr.decode()}")
-            print("Please check that USBs are connected to Raspberry Pi, and that the _usb_port variable is set correctly")
+            # print("Please check that USBs are connected to Raspberry Pi, and that the _usb_port variable is set correctly")
 
             return None
 
-    def parse_bms_data(self, bms_data: str) -> None:
+    def parse_bms_data(self, bms_data: str) -> bool:
         """
             Parses BMS data and updates class members accordingly
 
             Parameters:
                 bms_data (str): string containing result of the jbdtool command
 
-            Returns: None
+            Returns: 
+                Returns a bool indicating whether data was found or not
         """
         
         if bms_data == "":
             print("Warning: No data was found.")
-            return
+            return False
 
         data = [entry.split() for entry in bms_data.split("\n")][:-1]       # [:-1] is only there because there is a empty list at the end for some reason
 
@@ -191,6 +197,8 @@ class BMS:
         self._manufacture_date = data[16][1]
         self._version = data[17][1]
         self._FET = data[18][1]
+
+        return True
 
     def change_usb_port(self, usb_port: str) -> None:
         """
