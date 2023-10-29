@@ -1,8 +1,7 @@
 import smbus
-#import time
 from MCP342x import MCP342x
 
-class BatteryMonitor:
+class PowerSenseModule:
 
     def __init__(self):
 
@@ -14,11 +13,11 @@ class BatteryMonitor:
         self.bus = smbus.SMBus(1)
         self.channel_voltage = MCP342x(self.bus,
                                        self.i2c_adress,
-                                       channel=0,
+                                       channel=1,
                                        resolution=18)  # voltage
         self.channel_current = MCP342x(self.bus,
                                        self.i2c_adress,
-                                       channel=1,
+                                       channel=0,
                                        resolution=18)  # current   
         #time.sleep(1)
 
@@ -26,6 +25,7 @@ class BatteryMonitor:
         self.psm_to_battery_voltage = 11.0  # V/V
         self.psm_to_battery_current_scale_factor = 37.8788  # A/V
         self.psm_to_battery_current_offset = 0.330  # V  
+
 
     def get_voltage(self):
         # Sometimes an I/O timeout or error happens, it will run again when the error disappears
