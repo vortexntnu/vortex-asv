@@ -13,14 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='vincent',
-    maintainer_email='“vincent.rosenpflanzer@gmail.com”',
+    maintainer='vortex',
+    maintainer_email='rose.j.kapps@gmail.com',
     description='TODO: Package description',
-    license='Apache-2.0',
+    license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'temperature = temperature.temperature:main'
+            "temperature_publisher = temperature.temperature:main"
         ],
     },
 )

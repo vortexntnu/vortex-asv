@@ -4,8 +4,8 @@
   <name>temperature</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="“vincent.rosenpflanzer@gmail.com”">vincent</maintainer>
-  <license>Apache-2.0</license>
+  <maintainer email="rose.j.kapps@gmail.com">vortex</maintainer>
+  <license>TODO: License declaration</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
