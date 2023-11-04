@@ -1,6 +1,10 @@
 /parameter_manager_node:
   ros__parameters:
-    configuration_matrix: "[[ 0.70711,   0.70711,   0.70711,   0.70711], [ -0.70711,  0.70711,   -0.70711,  0.70711], [ 0.27738,   0.27738,  -0.27738,  -0.27738]]" #NED #Surge #Sway #Yaw 
+    configuration_matrix: [0.70711,   0.70711,   0.70711,   0.70711, -0.70711,  0.70711,   -0.70711,  0.70711, 0.27738,   0.27738,  -0.27738,  -0.27738] #NED #Surge #Sway #Yaw 
+    configuration_matrix_rows: 3
+    configuration_matrix_columns: 4
+    asv_thruster_min_thrust: -100
+    asv_thruster_min_thrust: 100
     asv_thruster_manager_input: "thrust/desired_forces"  # 3DOF thrust vector
     asv_thruster_manager_output: "thrust/thruster_forces"
     asv_thruster_manager_wrench: "thrust/wrench_input"

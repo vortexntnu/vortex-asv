@@ -14,6 +14,11 @@ class ParameterManagerNode(Node):
 
         #Declaration of parameters
         self.declare_parameter('configuration_matrix',"")
+        self.declare_parameter('configuration_matrix_rows', 0)
+        self.declare_parameter('configuration_matrix_columns', 0)
+        self.declare_parameter('asv_thruster_min_thrust', 0)
+        self.declare_parameter('asv_thruster_min_thrust', 0)
+   
         self.declare_parameter('asv_thruster_manager_output',"")
         self.declare_parameter('asv_thruster_manager_input',"")
         self.declare_parameter('asv_thruster_manager_wrench',"")
@@ -23,7 +28,7 @@ class ParameterManagerNode(Node):
         self.asv_thruster_manager_input = self.get_parameter('asv_thruster_manager_input').value
         self.asv_thruster_manager_wrench = self.get_parameter('asv_thruster_manager_wrench').value
 
-        self.configuration_matrix = StringInto2DArray(self.configuration_matrix)
+        # self.configuration_matrix = StringInto2DArray(self.configuration_matrix)
 
 
 def StringInto2DArray(input_string):
@@ -37,10 +42,10 @@ def StringInto2DArray(input_string):
 def main():
     rclpy.init()
     parameter_manager_node = ParameterManagerNode()
+    rclpy.spin(parameter_manager_node)
     
     #test = parameter_manager_node.configuration_matrix
     #print(test)
-    
     parameter_manager_node.destroy_node()
     rclpy.shutdown()
 
