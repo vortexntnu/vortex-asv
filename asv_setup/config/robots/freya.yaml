@@ -13,37 +13,38 @@
 #  |    |      |    |
 #  |=2↖=|==||==|=1↗=|
 #
+/**:
+  ros__parameters:
+    physical:
+      mass_kg: 0 
+      displacement_m3: 0
+      buoyancy: 0   # kg
+      center_of_mass: [0, 0, 0]        # mm (x,y,z)
+      center_of_buoyancy: [0, 0, 0]   # mm (x,y,z)
 
-physical:
-  mass_kg: 0 
-  displacement_m3: 0
-  buoyancy: 0   # kg
-  center_of_mass: [0, 0, 0]        # mm (x,y,z)
-  center_of_buoyancy: [0, 0, 0]   # mm (x,y,z)
 
+    propulsion:
+      dofs:
+        num: 3
+        which:
+          surge: true
+          sway:  true
+          yaw:   true
+      thrusters:
+        num: 4
+        configuration_matrix: #NED
+         "[[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
+          [ -0.70711,  0.70711,   -0.70711,  0.70711], # Sway
+          [ 0.27738,   0.27738,  -0.27738,  -0.27738]]" # Yaw
 
-propulsion:
-  dofs:
-    num: 3
-    which:
-      surge: true
-      sway:  true
-      yaw:   true
-  thrusters:
-    num: 4
-    configuration_matrix: #NED
-      [[ 0.70711,   0.70711,   0.70711,   0.70711], # Surge
-       [ -0.70711,  0.70711,   -0.70711,  0.70711], # Sway
-       [ 0.27738,   0.27738,  -0.27738,  -0.27738]] # Yaw
+        rate_of_change:
+          max: 0 # Maximum rate of change in newton per second for a thruster
+        thruster_to_pin_map: [1, 3, 2, 0] # I.e. if thruster_to_pin = [1, 3, 2, 0] then thruster 0 is pin 1 etc..
+        direction: [1,  1,  1, 1] # Disclose during thruster mapping
+        offset: [0, 0, 0, 0] # Disclose during thruster mapping
+      command:
+        wrench:
+          max:     [150.0, 150.0, 150.0, 150.0, 150.0, 150.0]
+          scaling: [ 1.0,  1.0,  1.0, 1.0, 1.0, 1.0]
 
-    rate_of_change:
-      max: 0 # Maximum rate of change in newton per second for a thruster
-    thruster_to_pin_map: [1, 3, 2, 0] # I.e. if thruster_to_pin = [1, 3, 2, 0] then thruster 0 is pin 1 etc..
-    direction: [1,  1,  1, 1] # Disclose during thruster mapping
-    offset: [0, 0, 0, 0] # Disclose during thruster mapping
-  command:
-    wrench:
-      max:     [150.0, 150.0, 150.0, 150.0, 150.0, 150.0]
-      scaling: [ 1.0,  1.0,  1.0, 1.0, 1.0, 1.0]
-
-computer: "pc-debug"
+    computer: "pc-debug"
