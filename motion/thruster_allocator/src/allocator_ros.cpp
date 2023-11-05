@@ -17,7 +17,8 @@ ThrusterAllocator::ThrusterAllocator()
   declare_parameter("propulsion.thrusters.min", -100);
   declare_parameter("propulsion.thrusters.max", 100);
   declare_parameter("propulsion.thrusters.direction", std::vector<int64_t>{0});
-  declare_parameter("propulsion.thrusters.configuration_matrix", std::vector<double>{0});
+  declare_parameter("propulsion.thrusters.configuration_matrix",
+                    std::vector<double>{0});
 
   num_dof_ = get_parameter("propulsion.dofs.num").as_int();
   num_thrusters_ = get_parameter("propulsion.thrusters.num").as_int();

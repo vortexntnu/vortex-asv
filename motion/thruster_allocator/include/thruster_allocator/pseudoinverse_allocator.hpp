@@ -1,6 +1,8 @@
 /**
  * @file pseudoinverse_allocator.hpp
- * @brief Contains the PseudoinverseAllocator class, which implements the unweighted pseudoinverse-based allocator described in e.g. Fossen 2011 Handbook of Marine Craft Hydrodynamics and Motion Control (chapter 12.3.2).
+ * @brief Contains the PseudoinverseAllocator class, which implements the
+ * unweighted pseudoinverse-based allocator described in e.g. Fossen 2011
+ * Handbook of Marine Craft Hydrodynamics and Motion Control (chapter 12.3.2).
  */
 
 #ifndef VORTEX_ALLOCATOR_PSEUDOINVERSE_ALLOCATOR_HPP
@@ -9,7 +11,8 @@
 #include <eigen3/Eigen/Eigen>
 
 /**
- * @brief The PseudoinverseAllocator class calculates the allocated thrust given the input torques using the pseudoinverse allocator.
+ * @brief The PseudoinverseAllocator class calculates the allocated thrust given
+ * the input torques using the pseudoinverse allocator.
  */
 class PseudoinverseAllocator {
 public:
@@ -21,7 +24,8 @@ public:
   explicit PseudoinverseAllocator(const Eigen::MatrixXd &T_pinv);
 
   /**
-   * @brief Calculates the allocated thrust given the input torques using the pseudoinverse allocator.
+   * @brief Calculates the allocated thrust given the input torques using the
+   * pseudoinverse allocator.
    *
    * @param tau The input torques as a vector.
    * @return The allocated thrust as a vector.
