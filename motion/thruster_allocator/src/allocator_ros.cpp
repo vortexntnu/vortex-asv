@@ -10,27 +10,35 @@ using namespace std::chrono_literals;
 
 ThrusterAllocator::ThrusterAllocator()
     : Node("thruster_allocator_node"),
-      pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) 
-{
-  //TEST
-  // std::vector<double> test = {0.70711, 0.70711, 0.70711, 0.70711, -0.70711, 0.70711, -0.70711, 0.70711, 0.27738, 0.27738, -0.27738, -0.27738};
+      pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
+  // TEST
+  //  std::vector<double> test = {0.70711, 0.70711, 0.70711, 0.70711, -0.70711,
+  //  0.70711, -0.70711, 0.70711, 0.27738, 0.27738, -0.27738, -0.27738};
 
   declare_parameter("propulsion.dofs.num", 3);
   declare_parameter("propulsion.thrusters.num", 4);
   declare_parameter("propulsion.thrusters.min", -100);
   declare_parameter("propulsion.thrusters.max", 100);
   declare_parameter("propulsion.thrusters.direction", std::vector<int64_t>{0});
-  declare_parameter("propulsion.thrusters.configuration_matrix", std::vector<double>{0});
+  declare_parameter("propulsion.thrusters.configuration_matrix",
+                    std::vector<double>{0});
 
   num_dof_ = get_parameter("propulsion.dofs.num").as_int();
   num_thrusters_ = get_parameter("propulsion.thrusters.num").as_int();
   min_thrust_ = get_parameter("propulsion.thrusters.min").as_int();
-  max_thrust_= get_parameter("propulsion.thrusters.max").as_int();
-  direction_ = get_parameter("propulsion.thrusters.direction").as_integer_array();
-  thrust_configuration = doubleArrayToEigenMatrix(get_parameter("propulsion.thrusters.configuration_matrix").as_double_array(), num_dof_, num_thrusters_);
-  
-  RCLCPP_INFO(get_logger(), printMatrix("Test thrust_configuration test from ", thrust_configuration).str().c_str());
-  
+  max_thrust_ = get_parameter("propulsion.thrusters.max").as_int();
+  direction_ =
+      get_parameter("propulsion.thrusters.direction").as_integer_array();
+  thrust_configuration = doubleArrayToEigenMatrix(
+      get_parameter("propulsion.thrusters.configuration_matrix")
+          .as_double_array(),
+      num_dof_, num_thrusters_);
+
+  RCLCPP_INFO(get_logger(), printMatrix("Test thrust_configuration test from ",
+                                        thrust_configuration)
+                                .str()
+                                .c_str());
+
   subscription_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
       std::bind(&ThrusterAllocator::wrench_callback, this,
