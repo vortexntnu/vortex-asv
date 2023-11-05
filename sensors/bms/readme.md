@@ -93,7 +93,7 @@ then run the following commands
 cd /etc/systemd/system
 ```
 ```
-sudo systemctl daemon-reload && sudo systemctl enable bms_startup.service && sudo systemctl start bms_startup.service
+sudo systemctl daemon-reload && sudo systemctl enable bms_startup.service
 ```
 To verify that the service is enabled, run
 ```
