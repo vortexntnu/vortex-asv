@@ -7,19 +7,21 @@ from bms.freya_bms import BMS
 
 class FreyaBMSNode(Node):
     """
-        Publishes Freya's BMS data to ROS.
+        Publishes Freya's BMS data to ROS2.
 
         Methods:
         ---------
-        publish_bms_data() -> None
-            publises BMS data from BMS system to ros2 node.
+        publish_bms_data(self) -> None
+            publises BMS data from BMS system to ROS2 node.
+        create_key_value_pair(key: str, value) -> KeyValue:
+            creates KeyValue object from supplied key and value
     """
     def __init__(self, usb_ports: list[str]=None) -> None:
         """
             Parameters:
-                usb_port(str): The USB port to look for BMS data from. If no port is
-                passed, the system automatically chooses the first port that gives
-                an output
+                usb_ports list[str]: The USB ports to look for BMS data from. If no ports are
+                passed, the system automatically queries ports and chooses those that respond 
+                to the jbdtool command.
             Returns: 
                 None
         """
@@ -29,7 +31,7 @@ class FreyaBMSNode(Node):
         if usb_ports:
             self._bms_systems = [BMS(usb_port=port) for port in usb_ports]
         else:
-            ports = BMS.find_usb_ports()
+            ports = BMS.find_usb_ports(self.get_logger())
             self._bms_systems = [BMS(usb_port=port) for port in ports]
         
         self._batterystate_publishers = [self.create_publisher(BatteryState, f'/internal/status/bms{i}', 10) for i in range(len(self._bms_systems))]
@@ -37,11 +39,16 @@ class FreyaBMSNode(Node):
         self._diagnostics_publisher = self.create_publisher(DiagnosticArray, '/diagnostics', 10)
 
         self._timer = self.create_timer(2, self.publish_bms_data)
-        
 
     def publish_bms_data(self) -> None:
         """
-            Publishes BMS data to ros2 topics.
+            Publishes BMS data to ROS2 topics.
+
+            Parameters: 
+                None
+
+            Returns:
+                None
         """
 
         diagnostic_array = DiagnosticArray()
@@ -50,9 +57,15 @@ class FreyaBMSNode(Node):
             battery_msg = BatteryState()
             diagnostic_status = DiagnosticStatus()
 
-            res = bms_system.parse_bms_data(bms_system.get_bms_data(bms_system.command))
+            resp = bms_system.parse_bms_data(
+                bms_system.get_bms_data(
+                    bms_system.command, 
+                    self.get_logger()
+                ), 
+                self.get_logger()
+            )
 
-            if res:
+            if resp:
                 battery_msg.voltage = bms_system.voltage
                 battery_msg.current = bms_system.current
                 battery_msg.cell_temperature = bms_system.temps
@@ -62,21 +75,20 @@ class FreyaBMSNode(Node):
 
                 diagnostic_status.name = f"Freya battery status {i}"
             
-                if bms_system.percent_capacity * 100 < 1:
+                if bms_system.percent_capacity < 0.01:
                     diagnostic_status.level = DiagnosticStatus.ERROR
-                elif bms_system.percent_capacity * 100 < 20:
+                elif bms_system.percent_capacity < 0.2:
                     diagnostic_status.level = DiagnosticStatus.WARN
                 else:
                     diagnostic_status.level = DiagnosticStatus.OK
 
                 diagnostic_status.values.extend([
-                    create_key_value_pair("voltage", bms_system.voltage), 
-                    create_key_value_pair("current", bms_system.current), 
-                    create_key_value_pair("temps", bms_system.temps), 
-                    create_key_value_pair("percentage", bms_system.percent_capacity)])
+                    FreyaBMSNode.create_key_value_pair("voltage", bms_system.voltage), 
+                    FreyaBMSNode.create_key_value_pair("current", bms_system.current), 
+                    FreyaBMSNode.create_key_value_pair("temps", bms_system.temps), 
+                    FreyaBMSNode.create_key_value_pair("percentage", bms_system.percent_capacity)])
 
-                diagnostic_status.message = "level indicates whether the battery \
-                level is above 20 (OK), below 20 (WARN), or below 1 (ERROR)"
+                diagnostic_status.message = "level indicates whether the battery level is above 20 (OK), below 20 (WARN), or below 1 (ERROR)"
 
                 diagnostic_array.status.append(diagnostic_status)
             else:
@@ -84,12 +96,23 @@ class FreyaBMSNode(Node):
 
         self._diagnostics_publisher.publish(diagnostic_array)
 
-def create_key_value_pair(key: str, value) -> KeyValue:
-    kv = KeyValue()
-    kv.key = str(key)
-    kv.value = str(value)
+    @staticmethod
+    def create_key_value_pair(key: str, value) -> KeyValue:
+        """
+            Creates a KeyValue() for ROS2 diagnostics
 
-    return kv
+            Parameters:
+                key (str): Key string
+                value: value
+
+            Returns:
+                A KeyValue object created from the 'key' and 'value' parameters
+        """
+        kv = KeyValue()
+        kv.key = str(key)
+        kv.value = str(value)
+
+        return kv
 
 def main(args=None):
     rclpy.init(args=args)

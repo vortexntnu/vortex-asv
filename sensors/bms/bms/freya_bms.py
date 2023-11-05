@@ -19,12 +19,12 @@ class BMS:
         design_capacity (float): Capacity of the BMS
         remaining_capacity (float): Remaining capacity of the BMS
         percent_capacity (float): Remaining capacity as a float from 0-1
-        cycle_count (int): idk
-        probes (int): idk
-        strings (int): idk
+        cycle_count (int): 
+        probes (int): 
+        strings (int): 
         temps (Tuple[float, float, float]): Temperatures of the cell arrays
         cells (Tuple[float, ...]): Voltages of individual cells (6 elements long)
-        balance (str): idk
+        balance (str): 
         cell_total (float): Sum of cell voltages
         cell_min (float): Smallest cell voltage
         cell_max (float): Largest cell voltage
@@ -33,15 +33,21 @@ class BMS:
         device_name (str): Device name
         manufacture_date (str): Date of manufacturing
         version (str): Version
-        FET (str): idk
+        FET (str): 
 
     Methods:
     --------
-        get_bms_data() -> str | None:
+        find_usb_ports(logger) -> list[str]:
+            returns a list of USB ports to check for BMS data on.
+        get_bms_data() -> str | None:   
             returns pure BMS data string, or None if exception is thrown 
-        change_usb_port(usb_port: str) -> None:
-            changes the usb port for the BMS
-    
+        parse_bms_data(self, bms_data: str, logger) -> bool:
+            parses bms_data and updates class members. Returns False if no data was sent in,
+            returns true otherwise.
+        change_usb_port(self, usb_port: str) -> None:
+            changes the usb port for the BMS.
+
+            
     Note: Private members are denoted by _variable_name            
     """
 
@@ -60,8 +66,6 @@ class BMS:
             self._command = ["jbdtool", "-t", f"serial:/dev/{self._usb_port}"]
         else:
             self.usb_port = BMS.find_usb_ports()[0]
-
-        self._logger = logger
 
         self._voltage = 0
         self._current = 0
@@ -84,16 +88,17 @@ class BMS:
         self._FET = ""
 
     @staticmethod
-    def find_usb_ports() -> list[str]:
+    def find_usb_ports(logger) -> list[str]:
         """
             Queries all usb ports with jbdtool to find connected bms
 
             Parameters:
-
+                logger: ROS2 logger object for logging info
+            
             Returns:
                 All USB ports which respond to jbtool command
         """
-        print("Looking for USB devices...")
+        logger.info("Looking for USB devices...")
         bms_ports = []
 
         devices = subprocess.check_output(["ls", "/dev"], text=True).split("\n")
@@ -102,9 +107,9 @@ class BMS:
         for device in usb_devices:
             usb_port = device
             command = ["jbdtool", "-t", f"serial:/dev/{usb_port}"]
-            resp = BMS.get_bms_data(command)
+            resp = BMS.get_bms_data(command, logger)
             if resp != "":
-                print(f"Found device {usb_port}")
+                logger.info(f"Found device {usb_port}")
                 bms_ports.append(usb_port)
 
         if len(usb_devices) == 0:
@@ -113,13 +118,14 @@ class BMS:
         return bms_ports
 
     @staticmethod
-    def get_bms_data(command: str) -> str | None:
+    def get_bms_data(command: str, logger) -> str | None:
         """
             Function for getting data from the BMS
 
             Parameters: 
                 command (str): The jbdtool command to run (use self.command)
-
+                logger: ROS2 logger object for logging info
+                
             Returns: 
                 if the jbdtool call works, it returns the BMS data as a string, 
                 otherwise it prints the error and returns None
@@ -155,25 +161,25 @@ class BMS:
             
             return response.stdout.decode()
         except subprocess.CalledProcessError as e:
-            print("An error occured when getting BMS data")
-            print(f"Error: {e.stderr.decode()}")
-            # print("Please check that USBs are connected to Raspberry Pi, and that the _usb_port variable is set correctly")
+            logger.info("An error occured when getting BMS data")
+            logger.error(f"Error: {e.stderr.decode()}")
 
             return None
 
-    def parse_bms_data(self, bms_data: str) -> bool:
+    def parse_bms_data(self, bms_data: str, logger) -> bool:
         """
             Parses BMS data and updates class members accordingly
 
             Parameters:
                 bms_data (str): string containing result of the jbdtool command
-
+                logger: ROS2 logger object for logging info
+                
             Returns: 
                 Returns a bool indicating whether data was found or not
         """
         
         if bms_data == "":
-            print("Warning: No data was found.")
+            logger.warn("Warning: No data was found.")
             return False
 
         data = [entry.split() for entry in bms_data.split("\n")][:-1]       # [:-1] is only there because there is a empty list at the end for some reason
