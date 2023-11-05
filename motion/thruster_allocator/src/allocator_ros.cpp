@@ -12,9 +12,6 @@ ThrusterAllocator::ThrusterAllocator()
     : Node("thruster_allocator_node"),
       pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) 
 {
-  //TEST
-  // std::vector<double> test = {0.70711, 0.70711, 0.70711, 0.70711, -0.70711, 0.70711, -0.70711, 0.70711, 0.27738, 0.27738, -0.27738, -0.27738};
-
   declare_parameter("propulsion.dofs.num", 3);
   declare_parameter("propulsion.thrusters.num", 4);
   declare_parameter("propulsion.thrusters.min", -100);
@@ -28,8 +25,6 @@ ThrusterAllocator::ThrusterAllocator()
   max_thrust_= get_parameter("propulsion.thrusters.max").as_int();
   direction_ = get_parameter("propulsion.thrusters.direction").as_integer_array();
   thrust_configuration = doubleArrayToEigenMatrix(get_parameter("propulsion.thrusters.configuration_matrix").as_double_array(), num_dof_, num_thrusters_);
-  
-  RCLCPP_INFO(get_logger(), printMatrix("Test thrust_configuration test from ", thrust_configuration).str().c_str());
   
   subscription_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
@@ -66,9 +61,7 @@ void ThrusterAllocator::timer_callback() {
 
   vortex_msgs::msg::ThrusterForces msg_out;
   arrayEigenToMsg(thruster_forces, msg_out);
-  for (int i = 0; i < num_thrusters_; i++) {
-    msg_out.thrust[i] *= direction_[i];
-  }
+  std::transform(msg_out.thrust.begin(), msg_out.thrust.end(), direction_.begin(), msg_out.thrust.begin(), std::multiplies<>());
   publisher_->publish(msg_out);
 }
 
@@ -88,9 +81,9 @@ bool ThrusterAllocator::healthyWrench(const Eigen::VectorXd &v) const {
   if (isInvalidMatrix(v))
     return false;
 
-  for (unsigned i = 0; i < v.size(); ++i)
-    if (std::abs(v[i]) > max_thrust_)
-      return false;
+  bool within_max_thrust = std::none_of(v.begin(), v.end(), [this](double val) {
+    return std::abs(val) > max_thrust_;
+  });
 
-  return true;
+  return within_max_thrust;
 }

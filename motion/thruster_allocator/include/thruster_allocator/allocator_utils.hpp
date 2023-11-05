@@ -70,16 +70,16 @@ inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
  * otherwise.
  */
 inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
-  bool vector_in_range = true;
-  for (int i = 0; i < vec.size(); ++i) {
-    if ((vec)(i) > max) {
-      (vec)(i) = max;
-      vector_in_range = false;
-    } else if ((vec)(i) < min) {
-      (vec)(i) = min;
-      vector_in_range = false;
-    }
-  }
+    bool vector_in_range = std::all_of(vec.begin(), vec.end(), [&](double& val) {
+    if (val > max) {
+        val = max;
+        return false;
+    } else if (val < min) {
+        val = min;
+        return false;
+    } 
+    return true;
+  });
   return vector_in_range;
 }
 
@@ -95,22 +95,20 @@ inline void arrayEigenToMsg(const Eigen::VectorXd &u,
                             vortex_msgs::msg::ThrusterForces &msg) {
   int r = u.size();
   std::vector<double> u_vec(r);
-  for (int i = 0; i < r; ++i)
-    u_vec[i] = u(i);
+  std::copy_n(u.begin(), r, u_vec.begin());
   msg.thrust = u_vec;
 }
 
+/**
+ * @brief Converts a 1D array of doubles to a 2D Eigen matrix.
+ * 
+ * @param matrix The 1D array of doubles to be converted.
+ * @param rows The number of rows in the resulting Eigen matrix.
+ * @param cols The number of columns in the resulting Eigen matrix.
+ * @return The resulting Eigen matrix.
+ */
 inline Eigen::MatrixXd doubleArrayToEigenMatrix(const std::vector<double> &matrix, int rows, int cols) {
-
-    Eigen::MatrixXd result(rows, cols);
-
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            result(i, j) = matrix[i * cols + j];
-        }
-    }
-
-    return result;
+    return Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(matrix.data(), rows, cols);
 }
 
 #endif // VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
