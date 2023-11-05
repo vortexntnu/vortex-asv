@@ -30,16 +30,7 @@ public:
   void timer_callback();
 
 private:
-  // Hardcoded thruster config matrix for T_pinv
-  // clang-format off
-  Eigen::MatrixXd thrust_configuration =
-      (Eigen::MatrixXd(3, 4) << 
-      0.70711, 0.70711, 0.70711, 0.70711, 
-      -0.70711, 0.70711, -0.70711, 0.70711, 
-      0.27738, 0.27738, -0.27738, -0.27738)
-          .finished();
-  // clang-format on
-
+  Eigen::MatrixXd thrust_configuration;
   /**
    * @brief Callback function for the wrench input subscription. Extracts the
    * surge, sway and yaw values from the received wrench msg
@@ -59,11 +50,11 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   size_t count_;
   int num_dof_;
-  int num_thrusters_ = 4;
-  int min_thrust_ = -100;
-  int max_thrust_ = 100;
+  int num_thrusters_;
+  int min_thrust_;
+  int max_thrust_;
   Eigen::Vector3d body_frame_forces_;
-  std::vector<int> direction_ = {1, 1, 1, 1};
+  std::vector<int64_t> direction_;
   PseudoinverseAllocator pseudoinverse_allocator_;
 };
 
