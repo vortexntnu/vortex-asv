@@ -19,7 +19,7 @@ class PowerSenseModule:
                                        self.i2c_adress,
                                        channel=0,
                                        resolution=18)  # current   
-        #time.sleep(1)
+    
 
         # Convertion ratios taken from PSM datasheet at: https://bluerobotics.com/store/comm-control-power/control/psm-asm-r2-rp/
         self.psm_to_battery_voltage = 11.0  # V/V
