@@ -93,7 +93,13 @@ then run the following commands
 cd /etc/systemd/system
 ```
 ```
-sudo systemctl daemon-reload && sudo systemctl enable bms_startup.service
+sudo systemctl daemon-reload && sudo systemctl enable bms_startup.service && sudo systemctl start bms_startup.service
 ```
+To verify that the service is enabled, run
+```
+systemctl list-unit-files | grep enabled
+```
+The file will now run automatically on startup the next time the system starts.
 
 If this fails, try checking if systemd is installed.
+
