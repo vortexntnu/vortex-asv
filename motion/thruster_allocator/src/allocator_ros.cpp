@@ -10,8 +10,7 @@ using namespace std::chrono_literals;
 
 ThrusterAllocator::ThrusterAllocator()
     : Node("thruster_allocator_node"),
-      pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) 
-{
+      pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
   declare_parameter("propulsion.dofs.num", 3);
   declare_parameter("propulsion.thrusters.num", 4);
   declare_parameter("propulsion.thrusters.min", -100);
@@ -23,10 +22,14 @@ ThrusterAllocator::ThrusterAllocator()
   num_dof_ = get_parameter("propulsion.dofs.num").as_int();
   num_thrusters_ = get_parameter("propulsion.thrusters.num").as_int();
   min_thrust_ = get_parameter("propulsion.thrusters.min").as_int();
-  max_thrust_= get_parameter("propulsion.thrusters.max").as_int();
-  direction_ = get_parameter("propulsion.thrusters.direction").as_integer_array();
-  thrust_configuration = doubleArrayToEigenMatrix(get_parameter("propulsion.thrusters.configuration_matrix").as_double_array(), num_dof_, num_thrusters_);
-  
+  max_thrust_ = get_parameter("propulsion.thrusters.max").as_int();
+  direction_ =
+      get_parameter("propulsion.thrusters.direction").as_integer_array();
+  thrust_configuration = doubleArrayToEigenMatrix(
+      get_parameter("propulsion.thrusters.configuration_matrix")
+          .as_double_array(),
+      num_dof_, num_thrusters_);
+
   subscription_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
       std::bind(&ThrusterAllocator::wrench_callback, this,
@@ -62,7 +65,9 @@ void ThrusterAllocator::timer_callback() {
 
   vortex_msgs::msg::ThrusterForces msg_out;
   arrayEigenToMsg(thruster_forces, msg_out);
-  std::transform(msg_out.thrust.begin(), msg_out.thrust.end(), direction_.begin(), msg_out.thrust.begin(), std::multiplies<>());
+  std::transform(msg_out.thrust.begin(), msg_out.thrust.end(),
+                 direction_.begin(), msg_out.thrust.begin(),
+                 std::multiplies<>());
   publisher_->publish(msg_out);
 }
 
