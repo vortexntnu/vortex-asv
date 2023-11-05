@@ -100,4 +100,17 @@ inline void arrayEigenToMsg(const Eigen::VectorXd &u,
   msg.thrust = u_vec;
 }
 
+inline Eigen::MatrixXd doubleArrayToEigenMatrix(const std::vector<double> &matrix, int rows, int cols) {
+
+    Eigen::MatrixXd result(rows, cols);
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            result(i, j) = matrix[i * cols + j];
+        }
+    }
+
+    return result;
+}
+
 #endif // VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
