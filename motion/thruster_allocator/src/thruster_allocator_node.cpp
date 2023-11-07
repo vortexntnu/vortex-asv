@@ -1,5 +1,5 @@
-#include <thruster_allocator/allocator_ros.hpp>
-#include <thruster_allocator/allocator_utils.hpp>
+#include "thruster_allocator/allocator_ros.hpp"
+#include "thruster_allocator/allocator_utils.hpp"
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);

@@ -10,8 +10,8 @@
 
 #include <eigen3/Eigen/Eigen>
 #include <rclcpp/rclcpp.hpp>
-#include <thruster_allocator/allocator_utils.hpp>
-#include <thruster_allocator/pseudoinverse_allocator.hpp>
+#include "thruster_allocator/allocator_utils.hpp"
+#include "thruster_allocator/pseudoinverse_allocator.hpp"
 
 #include <geometry_msgs/msg/wrench.hpp>
 #include <vortex_msgs/msg/thruster_forces.hpp>

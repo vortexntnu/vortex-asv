@@ -1,6 +1,6 @@
-#include <thruster_allocator/allocator_ros.hpp>
-#include <thruster_allocator/allocator_utils.hpp>
-#include <thruster_allocator/pseudoinverse_allocator.hpp>
+#include "thruster_allocator/allocator_ros.hpp"
+#include "thruster_allocator/allocator_utils.hpp"
+#include "thruster_allocator/pseudoinverse_allocator.hpp"
 #include <vortex_msgs/msg/thruster_forces.hpp>
 
 #include <chrono>
