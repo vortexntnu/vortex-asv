@@ -12,6 +12,12 @@ find_package(geometry_msgs REQUIRED)
 
 ament_python_install_package(${PROJECT_NAME})
 
+# Install launch files.
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
 install(PROGRAMS
   joystick_interface/joystick_interface.py
   DESTINATION lib/${PROJECT_NAME}
@@ -20,7 +26,7 @@ install(PROGRAMS
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
   set(_pytest_tests
-    joystick_interface/test/test_joystick_interface.py
+    test/test_joystick_interface.py
   )
   foreach(_test_path ${_pytest_tests})
     get_filename_component(_test_name ${_test_path} NAME_WE)
