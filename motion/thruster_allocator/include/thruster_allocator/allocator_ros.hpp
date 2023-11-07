@@ -1,3 +1,10 @@
+/**
+ * @file allocator_ros.hpp
+ * @brief ThrusterAllocator class, which
+ * allocates thrust to the ASV's thrusters based on the desired body frame
+ * forces.
+ */
+
 #ifndef VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
 #define VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
 
@@ -9,12 +16,6 @@
 #include <geometry_msgs/msg/wrench.hpp>
 #include <vortex_msgs/msg/thruster_forces.hpp>
 
-/**
- * @file allocator_ros.hpp
- * @brief ThrusterAllocator class, which
- * allocates thrust to the ASV's thrusters based on the desired body frame
- * forces.
- */
 using namespace std::chrono_literals;
 
 class ThrusterAllocator : public rclcpp::Node {
