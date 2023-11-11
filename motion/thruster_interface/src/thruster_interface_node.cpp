@@ -47,7 +47,8 @@ void ThrusterInterfaceROS::thrust_callback(
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   auto thruster_interface_node = std::make_shared<ThrusterInterfaceROS>();
-  RCLCPP_INFO(thruster_interface_node->get_logger(), "Starting thruster_interface_node");
+  RCLCPP_INFO(thruster_interface_node->get_logger(),
+              "Starting thruster_interface_node");
   rclcpp::spin(thruster_interface_node);
   rclcpp::shutdown();
   return 0;
