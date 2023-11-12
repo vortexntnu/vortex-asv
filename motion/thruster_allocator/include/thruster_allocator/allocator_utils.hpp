@@ -70,17 +70,15 @@ inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
  * otherwise.
  */
 inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
-  bool vector_in_range = std::all_of(vec.begin(), vec.end(), [&](double &val) {
-    if (val > max) {
-      val = max;
-      return false;
-    } else if (val < min) {
-      val = min;
-      return false;
-    }
-    return true;
+  bool all_values_in_range =
+      std::all_of(vec.begin(), vec.end(),
+                  [min, max](double val) { return val >= min && val <= max; });
+
+  std::transform(vec.begin(), vec.end(), vec.begin(), [min, max](double val) {
+    return std::min(std::max(val, min), max);
   });
-  return vector_in_range;
+
+  return all_values_in_range;
 }
 
 /**
