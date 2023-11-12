@@ -30,7 +30,7 @@ ament_target_dependencies(${PROJECT_NAME}_node
   geometry_msgs 
   vortex_msgs
   Eigen3
-  )
+)
 
 install(
   DIRECTORY include/
@@ -46,5 +46,10 @@ install(DIRECTORY
   launch
   DESTINATION share/${PROJECT_NAME}/
 )
+
+find_package(GTest REQUIRED)
+include(GoogleTest)
+enable_testing()
+add_subdirectory(test)
 
 ament_package()
