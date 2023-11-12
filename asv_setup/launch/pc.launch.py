@@ -19,8 +19,8 @@ def generate_launch_description():
         name='joystick_driver',
         output='screen',
         parameters=[
-            {'_deadzone': 0.15},
-            {'_autorepeat_rate': 100},
+            {'deadzone': 0.15},
+            {'autorepeat_rate': 100.0},
         ],
         remappings=[
             ('/joy', '/joystick/joy'),

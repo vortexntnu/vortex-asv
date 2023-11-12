@@ -10,16 +10,16 @@ find_package(rclpy REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-ament_python_install_package(${PROJECT_NAME})
+ament_python_install_package(scripts)
 
-# Install launch files.
 install(DIRECTORY
   launch
+  config
   DESTINATION share/${PROJECT_NAME}
 )
 
 install(PROGRAMS
-  joystick_interface/joystick_interface.py
+  scripts/joystick_interface.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
