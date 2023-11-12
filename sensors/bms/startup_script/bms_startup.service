@@ -1,0 +1,23 @@
+[Unit]
+Description=launch ros2 bms node
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c 'source /opt/ros/humble/setup.bash; source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash; source /usr/share/colcon_cd/function/colcon_cd.sh colcon build; source /home/vortex/david_test_ws/install/setup.bash; ros2 launch bms bms_launch.py; sleep 60'
+RemainAfterExit=yes
+WorkingDirectory=/home/vortex/david_test_ws
+StandardOutput=journal+console
+
+
+Environment="HOME=root"
+Environment="ROS_DOMAIN_ID=1"
+Environment="ROS_LOCALHOST_ONLY=1"
+Environment="_colcon_cd_root=/top/ros/rolling/"
+
+User=vortex
+
+Restart=no
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
