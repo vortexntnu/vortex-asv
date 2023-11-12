@@ -46,17 +46,16 @@ inline std::stringstream printMatrix(std::string name,
  * @brief Calculates the right pseudoinverse of the given matrix.
  *
  * @param M The matrix to calculate the pseudoinverse of.
- * @param M_pinv The resulting pseudoinverse matrix.
  * @throws char* if the pseudoinverse is invalid.
+ * @return The pseudoinverse of the given matrix.
  */
-inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
-                                        Eigen::MatrixXd &M_pinv) {
-  Eigen::MatrixXd pseudoinverse = M.transpose() * (M * M.transpose()).inverse();
+inline Eigen::MatrixXd calculateRightPseudoinverse(const Eigen::MatrixXd &T) {
+  Eigen::MatrixXd pseudoinverse = T.transpose() * (T * T.transpose()).inverse();
   // pseudoinverse.completeOrthogonalDecomposition().pseudoInverse();
   if (isInvalidMatrix(pseudoinverse)) {
     throw std::runtime_error("Invalid Psuedoinverse Calculated");
   }
-  M_pinv = pseudoinverse;
+  return pseudoinverse;
 }
 
 /**
