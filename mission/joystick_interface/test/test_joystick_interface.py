@@ -1,5 +1,5 @@
 from joystick_interface.joystick_interface import JoystickInterface
-from joystick_interface.joystick_interface import states
+from joystick_interface.joystick_interface import States
 import rclpy
 from sensor_msgs.msg import Joy
 from sensor_msgs.msg import Joy
@@ -41,8 +41,8 @@ class TestJoystickInterface:
         joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
         joy_msg.buttons = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         wrench_msg = JoystickInterface().joystick_cb(joy_msg)
-        assert wrench_msg.force.x == -100.0
-        assert wrench_msg.force.y == -100.0
+        assert wrench_msg.force.x == -50.0
+        assert wrench_msg.force.y == -50.0
         assert wrench_msg.torque.z == 0.0
         rclpy.shutdown()
 
@@ -50,7 +50,7 @@ class TestJoystickInterface:
     def test_killswitch_button(self):
         rclpy.init()
         joystick = JoystickInterface()
-        joystick.state = states.XBOX_MODE
+        joystick.state_ = States.XBOX_MODE
         joy_msg = Joy()
         joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
         joy_msg.buttons = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -64,12 +64,12 @@ class TestJoystickInterface:
     def test_moving_in_of_xbox_mode(self):
         rclpy.init()
         joystick = JoystickInterface()
-        joystick.state = states.XBOX_MODE
+        joystick.state_ = States.XBOX_MODE
         joy_msg = Joy()
         joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
         joy_msg.buttons = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         wrench_msg = joystick.joystick_cb(joy_msg)
-        assert wrench_msg.force.x == -100.0
-        assert wrench_msg.force.y == -100.0
+        assert wrench_msg.force.x == -50.0
+        assert wrench_msg.force.y == -50.0
         assert wrench_msg.torque.z == 0.0
         rclpy.shutdown()
