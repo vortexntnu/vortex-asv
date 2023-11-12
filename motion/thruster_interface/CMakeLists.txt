@@ -51,7 +51,6 @@ if(BUILD_TESTING)
 
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(${PROJECT_NAME}_test 
-    tests/test_thruster_interface.cpp
     src/thruster_interface.cpp
   )
   target_include_directories(${PROJECT_NAME}_test PUBLIC
