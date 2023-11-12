@@ -41,8 +41,9 @@ ThrusterAllocator::ThrusterAllocator()
   timer_ = this->create_wall_timer(
       100ms, std::bind(&ThrusterAllocator::timer_callback, this));
 
-  pseudoinverse_allocator_.T_pinv = calculateRightPseudoinverse(thrust_configuration);
-  
+  pseudoinverse_allocator_.T_pinv =
+      calculateRightPseudoinverse(thrust_configuration);
+
   body_frame_forces_.setZero();
 }
 
