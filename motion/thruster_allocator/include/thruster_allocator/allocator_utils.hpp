@@ -46,17 +46,16 @@ inline std::stringstream printMatrix(std::string name,
  * @brief Calculates the right pseudoinverse of the given matrix.
  *
  * @param M The matrix to calculate the pseudoinverse of.
- * @param M_pinv The resulting pseudoinverse matrix.
  * @throws char* if the pseudoinverse is invalid.
+ * @return The pseudoinverse of the given matrix.
  */
-inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
-                                        Eigen::MatrixXd &M_pinv) {
-  Eigen::MatrixXd pseudoinverse = M.transpose() * (M * M.transpose()).inverse();
+inline Eigen::MatrixXd calculateRightPseudoinverse(const Eigen::MatrixXd &T) {
+  Eigen::MatrixXd pseudoinverse = T.transpose() * (T * T.transpose()).inverse();
   // pseudoinverse.completeOrthogonalDecomposition().pseudoInverse();
   if (isInvalidMatrix(pseudoinverse)) {
     throw std::runtime_error("Invalid Psuedoinverse Calculated");
   }
-  M_pinv = pseudoinverse;
+  return pseudoinverse;
 }
 
 /**
@@ -70,17 +69,15 @@ inline void calculateRightPseudoinverse(const Eigen::MatrixXd &M,
  * otherwise.
  */
 inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
-  bool vector_in_range = std::all_of(vec.begin(), vec.end(), [&](double &val) {
-    if (val > max) {
-      val = max;
-      return false;
-    } else if (val < min) {
-      val = min;
-      return false;
-    }
-    return true;
+  bool all_values_in_range =
+      std::all_of(vec.begin(), vec.end(),
+                  [min, max](double val) { return val >= min && val <= max; });
+
+  std::transform(vec.begin(), vec.end(), vec.begin(), [min, max](double val) {
+    return std::min(std::max(val, min), max);
   });
-  return vector_in_range;
+
+  return all_values_in_range;
 }
 
 /**
