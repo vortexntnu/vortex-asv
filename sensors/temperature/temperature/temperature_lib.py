@@ -1,48 +1,32 @@
 import smbus
 import time
-#from MCP342x import MCP342x
+import struct
 
 class TemperatureModule:
-
     def __init__(self):
-
-        # Parameters
         # to read temperature from arduino through I2C
-        self.i2c_address = 0x08  
+        self.i2c_address = 0x22  
 
         # init of I2C bus communication
-        self.bus = smbus.SMBus(1) #was 1 before
-          
-        #time.sleep(1)
+        self.bus = smbus.SMBus(1)
+        time.sleep(1)
 
+    def get_data(self):
+        try:
+            # Define the number of floats and the corresponding byte length
+            num_floats = 6
+            byte_length = num_floats * 4  # Each float is 4 bytes
 
-    def get_temperature(self):
-        # Sometimes an I/O timeout or error happens, it will run again when the error disappears
-        try:  
-            #system_temperature = self.bus.read_byte_data(self.i2c_adress, 1)
-            #print(str(self.bus.read_byte_data(self.i2c_adress, 1)))
-            #system_temperature = "here is the temperature"
-            #system_temperature = str(self.bus.read_byte_data(self.i2c_adress, 1))
+            # Read a block of bytes from the I2C device
+            data = self.bus.read_i2c_block_data(self.i2c_address, 0, byte_length)
 
+            # Convert the byte list to a list of floats
+            floats = struct.unpack('<' + 'f' * num_floats, bytes(data[:byte_length]))
 
-            #for i in range(100):
-             #   data_received = self.bus.read_i2c_block_data(self.i2c_address, i, 16)
-              #  print(f"Data received from register {i}: {data_received}")
-
-
-            data_received = self.bus.read_i2c_block_data(self.i2c_address, 0, 11)  # Read 16 bytes from address 0
-            
-            #read_i2c_block_data(i2c_addr, register, length, force=None) --> what register??
-
-            print(data_received)
-
-            string_received = ''.join(chr(i) for i in data_received).strip('\x00')  
-
-            return string_received
-
-        except IOError:
-            return
-        
+            return floats
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
 
     def shutdown(self):
         self.bus.close()
