@@ -10,17 +10,23 @@ find_package(rclpy REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-ament_python_install_package(${PROJECT_NAME})
+ament_python_install_package(scripts)
+
+install(DIRECTORY
+  launch
+  config
+  DESTINATION share/${PROJECT_NAME}
+)
 
 install(PROGRAMS
-  joystick_interface/joystick_interface.py
+  scripts/joystick_interface.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
   set(_pytest_tests
-    joystick_interface/test/test_joystick_interface.py
+    test/test_joystick_interface.py
   )
   foreach(_test_path ${_pytest_tests})
     get_filename_component(_test_name ${_test_path} NAME_WE)

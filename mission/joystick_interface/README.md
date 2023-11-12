@@ -1,2 +1,2 @@
-In the launch files we need to make it able to find the yaml files without having an explicit path such as this: "src/vortex-asv/mission/joystick_interface/launch/joystick_interface_launch.yaml" 
-Perhaps change to python launch
+## Joystick interface
+A joystick interface for manual control of ASV Freya. A ROS2 node that subscribes on inputs from the XBOX controller and publishes the according wrench message to be used in Thruster Allocation.
