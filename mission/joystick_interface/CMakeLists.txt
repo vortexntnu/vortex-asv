@@ -10,7 +10,6 @@ find_package(rclpy REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-#ament_python_install_package(${PROJECT_NAME})
 ament_python_install_package(scripts)
 
 install(DIRECTORY

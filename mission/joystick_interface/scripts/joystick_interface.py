@@ -84,7 +84,7 @@ class JoystickInterface(Node):
         Does a linear conversion from the right trigger input range of (1 to -1) to (1 to 2)
 
         Args:
-            rt_input (float): The input value of the right trigger, ranging from -1 to 1.
+            rt_input: The input value of the right trigger, ranging from -1 to 1.
 
         Returns:
             float: The output value, ranging from 1 to 2.
@@ -97,7 +97,7 @@ class JoystickInterface(Node):
         Does a linear conversion from the left trigger input range of (1 to -1) to (1 to 0.5)
 
         Args:
-            lt_input (float): The input value of the left trigger, ranging from -1 to 1.
+            lt_input: The input value of the left trigger, ranging from -1 to 1.
 
         Returns:
             float: The output value, ranging from 1 to 2.
@@ -110,9 +110,9 @@ class JoystickInterface(Node):
             Creates a 2D wrench message with the given x, y, and yaw values.
 
             Args:
-                x (float): The x component of the force vector.
-                y (float): The y component of the force vector.
-                yaw (float): The z component of the torque vector.
+                x: The x component of the force vector.
+                y: The y component of the force vector.
+                yaw: The z component of the torque vector.
 
             Returns:
                 Wrench: A 2D wrench message with the given values.
@@ -128,7 +128,7 @@ class JoystickInterface(Node):
             Publishes a Wrench message to the wrench_publisher_ topic.
 
             Args:
-                wrench (Wrench): The Wrench message to be published.
+                wrench: The Wrench message to be published.
             """
             self.wrench_publisher_.publish(wrench)
 
@@ -149,7 +149,7 @@ class JoystickInterface(Node):
         self.operational_mode_signal_publisher_.publish(Bool(data=False))
         self.state_ = States.AUTONOMOUS_MODE
 
-    def joystick_cb(self, msg : Joy):
+    def joystick_cb(self, msg : Joy) -> Wrench:
         """
         Callback function that receives joy messages and converts them into
         wrench messages to be sent to the thruster allocation node. 
