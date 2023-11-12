@@ -14,7 +14,8 @@ class FreyaBMSNode(Node):
         publish_bms_data(self) -> None
             publises BMS data from BMS system to ROS2 node.
         create_key_value_pair(key: str, value) -> KeyValue:
-            creates KeyValue object from supplied key and value
+            creates KeyValue object from supplied key and value. The KeyValue object is 
+            needed for publishing to /diagnostics topic.
     """
     def __init__(self, usb_ports: list[str]=None) -> None:
         """
