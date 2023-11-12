@@ -5,6 +5,6 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='bms',
-            executable='bms_publisher'
+            executable='freya_bms_publisher_node'
         )
     ])

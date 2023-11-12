@@ -4,7 +4,7 @@
 
 This package contains a script for collecting BMS 
 data, as well as a ROS node for publishing that 
-data.
+data. The system is documented at [wiki page](https://vortex.a2hosted.com/index.php/Freya_BMS).
 
 ## ROS2
 
@@ -84,7 +84,10 @@ create_key_value_pair(key: str, value) -> KeyValue:
 
 ## Startup service
 
-This package also contains a .service script for running the node on startup. To enable this, just run (from this directory)
+Note: The .service file may need to be edited in order to source the setup.bash file 
+from the correct workspace.
+
+This package also contains a .service file for running the node on startup. To enable this, just run (from this directory)
 ```
 sudo cp startup_script/bms_startup.service /etc/systemd/system/bms_startup.service
 ```

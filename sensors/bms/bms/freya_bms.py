@@ -1,8 +1,6 @@
 import subprocess
 import rclpy.logging
 
-#TODO: use ros2 logging instead of python print
-
 class BMS:
     """ Class containing Freya's BMS system. 
 
