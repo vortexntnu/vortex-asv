@@ -51,7 +51,7 @@ float ThrusterInterface::interpolate(float force) {
 
   int pwm_signal = std::round(
       pwm1 + ((force - force1) * (pwm2 - pwm1)) / (force2 - force1) + 0.5);
-      
+
   return pwm_signal;
 }
 
