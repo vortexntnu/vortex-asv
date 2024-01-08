@@ -4,7 +4,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    trushter_allocator_node = Node(
+    thruster_allocator_node = Node(
             package='thruster_allocator',
             executable='thruster_allocator_node',
             name='thruster_allocator_node',
@@ -12,5 +12,5 @@ def generate_launch_description():
             output='screen',
         )
     return LaunchDescription([
-        trushter_allocator_node
+        thruster_allocator_node
     ])
