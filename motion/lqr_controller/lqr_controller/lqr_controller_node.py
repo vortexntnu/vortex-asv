@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from lqr_controller import LQRController
 
 class LQRControllerNode(Node):
     def __init__(self):
@@ -24,6 +25,9 @@ class LQRControllerNode(Node):
         self.get_logger().info(f"D: {D}")
         self.get_logger().info(f"Q: {Q}")
         self.get_logger().info(f"R: {R}")
+
+        lqr_controller = LQRController(m, D, Q, R)
+        lqr_controller.run_ivan_sim()
 
         self.get_logger().info("lqr_controller_node started")
 
