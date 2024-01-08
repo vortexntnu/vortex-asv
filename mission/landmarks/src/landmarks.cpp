@@ -37,7 +37,11 @@ LandmarksNode::LandmarksNode() : Node("landmarks_node") {
         for (int i = 0; i < storedLandmarks_.size(); i++) {
           if (storedLandmarks_[i].id == landmark.id &&
               storedLandmarks_[i].namespace == landmark.namespace) {
+
+            updateGrid(storedLandmarks_[i],0)
             storedLandmarks_.erase(storedLandmarks_.begin() + i);
+                
+        }
           }
         }
       } else if (landmark.action == 1) {
@@ -47,6 +51,8 @@ LandmarksNode::LandmarksNode() : Node("landmarks_node") {
           if (incomingLandmark.namespace == storedLandmark->namespace &&
               incomingLandmark.id == storedLandmark->id) {
             // Update existing landmark if namespace and id match
+            updateGrid(storedLandmark,0)
+            updateGrid(incomingLandmark,1)
             storedLandmark = incomingLandmark;
             landmarkUpdated = true;
             break;
@@ -56,6 +62,7 @@ LandmarksNode::LandmarksNode() : Node("landmarks_node") {
         if (!landmarkUpdated && incomingLandmark.action == 1) {
           // If no match is found and action is 1, add the new landmark
           storedLandmarks_.push_back(incomingLandmark);
+          updateGrid(incomingLandmark,1)
         }
       }
     //   publish after each landmark is updated or after the callback is done? Or just timer based?
@@ -82,7 +89,11 @@ LandmarksNode::LandmarksNode() : Node("landmarks_node") {
       // Initialize the data array
       grid.data.resize(grid_width * grid_height,
                        0); // Initialize unoccupied grid
+      return grid;
+        }
 
+
+      void LandmarksNode::updateGrid(vortex_msgs::msg::Landmark landmark, uint8 number ){
       // Update the data array based on landmark poses
       for (const auto &landmark : landmarks) {
         int x = landmark.pose.position.x / grid.info.resolution;
@@ -90,11 +101,10 @@ LandmarksNode::LandmarksNode() : Node("landmarks_node") {
 
         // Check bounds
         if (x >= 0 && x < grid_width && y >= 0 && y < grid_height) {
-          grid.data[x + y * grid.info.width] = 1;
+          grid.data[x + y * grid.info.width] = number;
         }
       }
-      return grid;
-    }
+    
   }
 
 

@@ -11,7 +11,7 @@ namespace landmarks {
 
 class LandmarksNode : public rclcpp::Node {
 public:
-    LandmarksNode();
+    LandmarksNode(){};
 
     ~LandmarksNode() {};
 
@@ -24,7 +24,8 @@ protected:
     nav_msgs::msg::OccupancyGrid createGrid(std::vector<vortex_msgs::msg::Landmark> landmarks);
     nav_msgs::msg::OccupancyGrid grid_;
     // maybe use timer based publishing?
-    void publishLandmarks();
+    // void publishLandmarks();
+    void updateGrid(vortex_msgs::msg::Landmark landmark,uint8 number);
 };
 
 }  // namespace landmarks
