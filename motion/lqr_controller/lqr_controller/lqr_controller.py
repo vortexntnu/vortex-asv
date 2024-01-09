@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import solve_continuous_are
-from asv_model import ASV
+from lqr_controller.asv_model import ASV
 
 def ssa(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
@@ -26,7 +26,7 @@ class LQRController:
 
         self.Q = np.diag(Q)
         self.R = np.diag(R)
-        self.P = solve_continuous_are(self.A(), self.B(), self.Q, self.R)
+        self.P = solve_continuous_are(self.A, self.B, self.Q, self.R)
         self.K_LQR = np.dot(np.dot(np.linalg.inv(self.R), self.B.T), self.P)
         self.K_r = np.linalg.inv(C@np.linalg.inv(self.B @ self.K_LQR - self.A) @ self.B)
 
@@ -67,7 +67,7 @@ class LQRController:
         plt.legend()
 
         plt.subplot(3, 1, 2)
-        for j in range(B.shape[1]):
+        for j in range(self.B.shape[1]):
             plt.plot(time, u_history[:, j], label=f'Control Input (u_{j+1})')
         plt.xlabel('Time')
         plt.ylabel('Control Input Value')

@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from lqr_controller import LQRController
+from lqr_controller.lqr_controller import LQRController
 
 class LQRControllerNode(Node):
     def __init__(self):
