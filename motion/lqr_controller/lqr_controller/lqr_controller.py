@@ -12,8 +12,8 @@ def calculate_control_input(x, x_ref, K_LQR, K_r):
 
 class LQRController:
 
-    def __init__(self, m, D, Q, R):
-        self.heading_ref = 50*np.pi/180 # magic init number!!!
+    def __init__(self, m: float, D: list[float], Q: list[float], R: list[float]):
+        self.heading_ref = 30*np.pi/180 # magic init number!!!
 
         self.M = np.diag([m, m, m])
         self.M_inv = np.linalg.inv(self.M)
@@ -30,9 +30,38 @@ class LQRController:
         self.K_LQR = np.dot(np.dot(np.linalg.inv(self.R), self.B.T), self.P)
         self.K_r = np.linalg.inv(C@np.linalg.inv(self.B @ self.K_LQR - self.A) @ self.B)
 
+        ## Magic init Path parameters parameters
+        self.set_path([0, 0], [20, 20])
+        self.calculate_R_Pi_p()
+
+    def set_path(self, p0: list[float], p1: list[float]):
+        self.p0 = np.array(p0)
+        self.p1 = np.array(p1)
+
+    def calculate_R_Pi_p(self):
+        self.Pi_p = np.arctan2(self.p1[1]-self.p0[1], self.p1[0]-self.p0[0])
+        self.R_Pi_p = np.array(
+            [[np.cos(self.Pi_p), -np.sin(self.Pi_p)],
+            [np.sin(self.Pi_p), np.cos(self.Pi_p)]]
+        )
+    
+    def calculate_LOS_x_ref(self, x: np.ndarray, look_ahead: float) -> np.ndarray:
+        """
+        generate reference at the look-ahead distance
+        """
+        p_asv = np.array([x[0], x[1]])
+        errors = self.R_Pi_p.T @ (p_asv - self.p0)
+        along_track_error = errors[0]
+        p_los_world = self.R_Pi_p @ np.array([along_track_error + look_ahead, 0]) + self.p0
+
+        x_ref = np.array([p_los_world[0], p_los_world[1], self.heading_ref])
+        return x_ref
+
     def run_ivan_sim(self):
-        x_init = np.array([-10, -10, 40*np.pi/180, 0, 0, 0])
+        x_init = np.array([10, -20, 40*np.pi/180, 0, 0, 0])
         x_ref = np.array([0, 0, self.heading_ref])
+
+        look_ahead = 5 # Look ahead distance
 
         T = 69.0        # Total simulation time
         dt = 0.01       # Time step
@@ -44,11 +73,22 @@ class LQRController:
         u_history = np.zeros((num_steps+1, self.B.shape[1]))
         x_ref_history = np.zeros((num_steps+1, np.shape(x_ref)[0]))
 
+        cross_track_error_history = np.zeros(num_steps+1)
+
         # Simulation loop
         x = x_init # Initial state
         for i in range(num_steps+1):
             #x_ref[i] = reference_function_const(i * dt)  # Update the reference at each time step
-            x_ref_history[i, :] = x_ref  # Update the reference at each time step
+            # x_ref_history[i, :] = x_ref  # Update the reference at each time step
+            
+            # generate reference at the look-ahead distance
+            p_asv = np.array([x[0], x[1]])
+            errors = self.R_Pi_p.T @ (p_asv - self.p0)
+            along_track_error = errors[0]
+            p_los_world = self.R_Pi_p @ np.array([along_track_error + look_ahead, 0]) + self.p0
+
+            x_ref[:2] = p_los_world # Update the position reference at each time step
+            x_ref_history[i, :] = x_ref
             
             u = calculate_control_input(x, x_ref, self.K_LQR, self.K_r)  # Calculate control input 'u' at each time step
             x = self.asv.RK4_integration_step(x, u, dt)
@@ -75,11 +115,18 @@ class LQRController:
 
         plt.subplot(3, 1, 3)
         plt.scatter(x_history[:,0], x_history[:,1], label=f'Position')
-        plt.xlabel('Time')
-        plt.ylabel('Control Input Value')
+        plt.plot([self.p0[0], self.p1[0]], [self.p0[1], self.p1[1]], 'r-', label='Path')
+        plt.xlabel('x')
+        plt.ylabel('y')
         plt.legend()
 
         plt.tight_layout()
+        plt.show()
+        plt.figure(1)
+        plt.plot(time, cross_track_error_history, label="cross track error")
+        plt.axis("equal")
+        plt.plot(time, np.zeros_like(time))
+        plt.legend()
         plt.show()
 
 
