@@ -6,10 +6,6 @@ from lqr_controller.asv_model import ASV
 def ssa(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
-def calculate_control_input(x, x_ref, K_LQR, K_r):
-    u = -K_LQR @ x + K_r @ x_ref
-    return u
-
 class LQRController:
 
     def __init__(self, m: float, D: list[float], Q: list[float], R: list[float]):
@@ -20,7 +16,9 @@ class LQRController:
         self.D = np.diag(D)
 
         self.asv = ASV(self.M, self.D)
-        self.A, self.B = self.asv.linearize_model(self.heading_ref)
+
+        self.linearize_model(self.heading_ref)
+
         C = np.zeros((3,6))
         C[:3, :3] = np.eye(3)
 
@@ -30,33 +28,13 @@ class LQRController:
         self.K_LQR = np.dot(np.dot(np.linalg.inv(self.R), self.B.T), self.P)
         self.K_r = np.linalg.inv(C@np.linalg.inv(self.B @ self.K_LQR - self.A) @ self.B)
 
-        ## Magic init Path parameters parameters
-        self.set_path([0, 0], [20, 20])
-        self.calculate_R_Pi_p()
+    def linearize_model(self, heading: float):
+        self.A, self.B = self.asv.linearize_model(heading)
 
-    def set_path(self, p0: list[float], p1: list[float]):
-        self.p0 = np.array(p0)
-        self.p1 = np.array(p1)
-
-    def calculate_R_Pi_p(self):
-        self.Pi_p = np.arctan2(self.p1[1]-self.p0[1], self.p1[0]-self.p0[0])
-        self.R_Pi_p = np.array(
-            [[np.cos(self.Pi_p), -np.sin(self.Pi_p)],
-            [np.sin(self.Pi_p), np.cos(self.Pi_p)]]
-        )
+    def calculate_control_input(x, x_ref, K_LQR, K_r):
+        u = -K_LQR @ x + K_r @ x_ref
+        return u
     
-    def calculate_LOS_x_ref(self, x: np.ndarray, look_ahead: float) -> np.ndarray:
-        """
-        generate reference at the look-ahead distance
-        """
-        p_asv = np.array([x[0], x[1]])
-        errors = self.R_Pi_p.T @ (p_asv - self.p0)
-        along_track_error = errors[0]
-        p_los_world = self.R_Pi_p @ np.array([along_track_error + look_ahead, 0]) + self.p0
-
-        x_ref = np.array([p_los_world[0], p_los_world[1], self.heading_ref])
-        return x_ref
-
     def run_ivan_sim(self):
         x_init = np.array([10, -20, 40*np.pi/180, 0, 0, 0])
         x_ref = np.array([0, 0, self.heading_ref])
@@ -90,7 +68,7 @@ class LQRController:
             x_ref[:2] = p_los_world # Update the position reference at each time step
             x_ref_history[i, :] = x_ref
             
-            u = calculate_control_input(x, x_ref, self.K_LQR, self.K_r)  # Calculate control input 'u' at each time step
+            u = self.calculate_control_input(x, x_ref, self.K_LQR, self.K_r)  # Calculate control input 'u' at each time step
             x = self.asv.RK4_integration_step(x, u, dt)
 
             x_history[i] = x  # Store state history
