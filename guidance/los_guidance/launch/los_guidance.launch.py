@@ -8,7 +8,7 @@ def generate_launch_description():
             package='los_guidance',
             executable='los_guidance_node',
             name='los_guidance_node',
-            parameters=[],
+            parameters=[os.path.join(get_package_share_directory('los_guidance'),'config','los_guidance_config.yaml')],
             output='screen',
         )
     return LaunchDescription([
