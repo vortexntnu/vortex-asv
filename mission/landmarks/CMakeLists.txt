@@ -21,13 +21,16 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(vortex_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(rclcpp_components REQUIRED)
 
 include_directories(include)
 
 # Create an executable
 add_executable(landmarks_node 
     src/landmarks.cpp
-    src/landmarks_main.cpp)
+    src/landmarks_main.cpp
+    src/grid_visualization.cpp)
 
 target_link_libraries( ${PROJECT_NAME}_node
     pcl_common)
@@ -36,7 +39,9 @@ ament_target_dependencies(landmarks_node
     rclcpp
     std_msgs
     vortex_msgs
-    nav_msgs)
+    nav_msgs
+    rclcpp_action
+    rclcpp_components)
 
     install(TARGETS ${PROJECT_NAME}_node
     DESTINATION lib/${PROJECT_NAME}

@@ -5,9 +5,15 @@
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <vortex_msgs/msg/landmark.hpp>
 #include <vortex_msgs/msg/landmark_array.hpp>
-#include <vector>  
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
+#include <landmarks/grid_visualization.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <vortex_msgs/action/filtered_landmarks.hpp>
+#include "rclcpp_components/register_node_macro.hpp"
+#include <vortex_msgs/msg/odometry_array.hpp>
+#include <thread>
+
 
 namespace landmarks {
 
@@ -23,16 +29,16 @@ protected:
     rclcpp::Publisher<vortex_msgs::msg::LandmarkArray>::SharedPtr landmarkPublisher_;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr gridPublisher_;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr posePublisher_;
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twistPublisher_;
     std::shared_ptr<vortex_msgs::msg::LandmarkArray> storedLandmarks_;
-    nav_msgs::msg::OccupancyGrid createGrid(vortex_msgs::msg::LandmarkArray landmarks);
-    nav_msgs::msg::OccupancyGrid grid_;
-    // maybe use timer based publishing?
-    // void publishLandmarks();
-    void updateGrid(vortex_msgs::msg::Landmark landmark,int number);
-    geometry_msgs::msg::PoseArray poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks);
-    void twistCreater(vortex_msgs::msg::LandmarkArray landmarks);
-    
+    std::shared_ptr<grid_visualization::GridVisualization> gridVisualization_;
+
+    rclcpp_action::Server<vortex_msgs::action::FilteredLandmarks>::SharedPtr action_server_;
+    rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const vortex_msgs::action::FilteredLandmarks::Goal> goal);
+    rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>> goal_handle);
+    void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>> goal_handle);
+    void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>> goal_handle);
+   
+   
 };
 
 }  // namespace landmarks
