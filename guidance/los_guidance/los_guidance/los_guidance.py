@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 class LOSGuidance:
     def __init__(self, p0: list[float], p1: list[float]):
         self.set_path(p0, p1)
+        self.heading_ref = 30*np.pi/180 # magic init number!!!
 
     def set_path(self, p0: list[float], p1: list[float]):
         self.p0 = np.array(p0)

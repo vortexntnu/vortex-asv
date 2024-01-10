@@ -28,19 +28,21 @@ class LOSGuidanceNode(Node):
         self.los_guidance = LOSGuidance(p0, p1)
         
 
-        self.guidance_publisher_ = self.create_publisher(Odometry, "/sensor/seapath/odometry/ned", 1)
-        self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odometry/ned", self.state_callback, 1)
+        self.guidance_publisher_ = self.create_publisher(Odometry, "controller/lqr/reference", 1)
+        self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odometry/ned", self.state_cb, 1)
 
         self.get_logger().info("los_guidance_node started")
     
-    def state_callback(self, msg):
+    def state_cb(self, msg):
         self.get_logger().info("state_callback")
+
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
         orientation_q = msg.pose.pose.orientation
         orientation_list = [
-            orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w
+            orientation_q.w, orientation_q.x, orientation_q.y, orientation_q.z
         ]
+
         # Convert quaternion to Euler angles
         (roll, pitch, yaw) = quat2euler(orientation_list)
 
@@ -58,10 +60,10 @@ class LOSGuidanceNode(Node):
         odometry_msg.pose.pose.position.x = x_ref[0]
         odometry_msg.pose.pose.position.y = x_ref[1]
         odometry_msg.pose.pose.position.z = 0.0
-        odometry_msg.pose.pose.orientation.x = orientation_list_ref[0]
-        odometry_msg.pose.pose.orientation.y = orientation_list_ref[1]
-        odometry_msg.pose.pose.orientation.z = orientation_list_ref[2]
-        odometry_msg.pose.pose.orientation.w = orientation_list_ref[3]
+        odometry_msg.pose.pose.orientation.w = orientation_list_ref[0]
+        odometry_msg.pose.pose.orientation.x = orientation_list_ref[1]
+        odometry_msg.pose.pose.orientation.y = orientation_list_ref[2]
+        odometry_msg.pose.pose.orientation.z = orientation_list_ref[3]
         
         self.guidance_publisher_.publish(odometry_msg)
 
