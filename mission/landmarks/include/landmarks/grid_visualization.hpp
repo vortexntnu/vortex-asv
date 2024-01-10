@@ -1,28 +1,23 @@
 #ifndef GRID_VISUALIZATION_HPP
 #define GRID_VISUALIZATION_HPP
 
-#include <rclcpp/rclcpp.hpp>
-#include <nav_msgs/msg/occupancy_grid.hpp>
-#include <vortex_msgs/msg/landmark_array.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <vortex_msgs/msg/landmark_array.hpp>
 
 namespace grid_visualization {
 
-class GridVisualization  {
+class GridVisualization {
 public:
-    explicit GridVisualization();
+  explicit GridVisualization();
 
-    ~GridVisualization() {};
+  ~GridVisualization(){};
 
-
-
-    geometry_msgs::msg::PoseArray poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks);
-
-
-
-
+  geometry_msgs::msg::PoseArray
+  poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks);
 };
 
-}  // namespace GRID_VISUALIZATION
+} // namespace grid_visualization
 
 #endif // GRID_VISUALIZATION_HPP

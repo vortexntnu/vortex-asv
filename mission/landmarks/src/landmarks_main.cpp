@@ -1,14 +1,14 @@
-#include <rclcpp/rclcpp.hpp>
 #include "landmarks/landmarks.hpp"
+#include <rclcpp/rclcpp.hpp>
 
-int main(int argc, char** argv) {
-    rclcpp::init(argc, argv);
+int main(int argc, char **argv) {
+  rclcpp::init(argc, argv);
 
-    auto node = std::make_shared<landmarks::LandmarksNode>();
+  auto node = std::make_shared<landmarks::LandmarksNode>();
 
-    rclcpp::spin(node);
+  rclcpp::spin(node);
 
-    rclcpp::shutdown();
+  rclcpp::shutdown();
 
-    return 0;
+  return 0;
 }
