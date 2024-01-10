@@ -55,7 +55,6 @@ private:
   int min_thrust_;
   int max_thrust_;
   Eigen::Vector3d body_frame_forces_;
-  std::vector<int64_t> direction_;
   PseudoinverseAllocator pseudoinverse_allocator_;
 };
 
