@@ -29,9 +29,10 @@ public:
         this->create_subscription<vortex_msgs::msg::ThrusterForces>(
             "thrust/thruster_forces", 10,
             std::bind(&ThrusterInterfaceROS::thrust_callback, this, _1));
-    declare_parameter(thruster_to_pin_map_, {1, 3, 2, 0});
-    declare_parameter(thruster_direction_map_, {1, 1, 1, -1});
-    declare_parameter(pwm_offsets_, {100, 100, 100, 100});
+
+    declare_parameter(thruster_to_pin_map_, std::vector<int64_t>{0});
+    declare_parameter(thruster_direction_map_, std::vector<int64_t>{0});
+    declare_parameter(pwm_offsets_, std::vector<int64_t>{0});
     thruster_to_pin_map_ =
         get_parameter("propulsion.thrusters.thruster_to_pin_map")
             .as_integer_array();
@@ -40,6 +41,7 @@ public:
             .as_integer_array();
     pwm_offsets_ =
         get_parameter("propulsion.thrusters.pwm_offsets").as_integer_array();
+    
   }
 
   void thrust_callback(const vortex_msgs::msg::ThrusterForces::SharedPtr msg);
