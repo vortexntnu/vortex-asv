@@ -44,6 +44,7 @@
         thruster_to_pin_map: [1, 3, 2, 0] # I.e. if thruster_to_pin = [1, 3, 2, 0] then thruster 0 is pin 1 etc..
         direction: [1, 1, 1, 1] # Disclose during thruster mapping
         offset: [0, 0, 0, 0] # Disclose during thruster mapping
+        pwm_offsets: {100, 100, 100, 100}
       command:
         wrench:
           max:     [150.0, 150.0, 150.0, 150.0, 150.0, 150.0]

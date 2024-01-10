@@ -8,7 +8,7 @@ def generate_launch_description():
             package='thruster_interface',
             executable='thruster_interface_node',
             name='thruster_interface_node',
-            parameters=[],
+            parameters=[os.path.join(get_package_share_directory('asv_setup'),'config','robots','freya.yaml')],
             output='screen',
         )
     return LaunchDescription([
