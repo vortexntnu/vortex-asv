@@ -14,12 +14,7 @@ public:
 
     ~GridVisualization() {};
 
-    /**
-     * @brief Creates an occupancy grid.
-     * 
-     * @return The created occupancy grid.
-     */
-    nav_msgs::msg::OccupancyGrid createGrid(const vortex_msgs::msg::LandmarkArray &landmarkArray);
+
 
     geometry_msgs::msg::PoseArray poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks);
 
