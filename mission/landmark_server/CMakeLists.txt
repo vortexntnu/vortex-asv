@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(landmarks)
+project(landmark_server)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -30,15 +30,14 @@ find_package(tf2_geometry_msgs REQUIRED)
 include_directories(include)
 
 # Create an executable
-add_executable(landmarks_node 
-    src/landmarks.cpp
-    src/landmarks_main.cpp
-    src/grid_visualization.cpp)
+add_executable(landmark_server_node 
+    src/landmark_server.cpp
+    src/landmark_server_main.cpp)
 
 target_link_libraries( ${PROJECT_NAME}_node
     pcl_common)
 
-ament_target_dependencies(landmarks_node
+ament_target_dependencies(landmark_server_node
     rclcpp
     std_msgs
     vortex_msgs
