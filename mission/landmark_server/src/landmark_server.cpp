@@ -24,8 +24,8 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
   landmarkPublisher_ =
       this->create_publisher<LandmarkArray>("landmarks_out", qos);
 
-  posePublisher_ =
-      this->create_publisher<geometry_msgs::msg::PoseArray>("landmark_poses_out", qos);
+  posePublisher_ = this->create_publisher<geometry_msgs::msg::PoseArray>(
+      "landmark_poses_out", qos);
 
   action_server_ = rclcpp_action::create_server<Action>(
       this, "landmark_filter",
@@ -77,8 +77,8 @@ void LandmarkServerNode::landmarksRecievedCallback(
   posePublisher_->publish(poseArrayCreater(*storedLandmarks_));
 }
 
-geometry_msgs::msg::PoseArray
-LandmarkServerNode::poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks) {
+geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
+    vortex_msgs::msg::LandmarkArray landmarks) {
   geometry_msgs::msg::PoseArray poseArray;
   poseArray.header.frame_id = "os_lidar";
   for (const auto &landmark : landmarks.landmarks) {
@@ -88,7 +88,6 @@ LandmarkServerNode::poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks) 
   }
   return poseArray;
 }
-
 
 rclcpp_action::GoalResponse LandmarkServerNode::handle_goal(
     const rclcpp_action::GoalUUID &uuid,
@@ -195,40 +194,42 @@ void LandmarkServerNode::execute(
 }
 
 void LandmarkServerNode::requestLogger(
-      const std::shared_ptr<
-          rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
-          goal_handle, const double distance) {
-    const auto goal = goal_handle->get_goal();
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
+        goal_handle,
+    const double distance) {
+  const auto goal = goal_handle->get_goal();
 
-    if (distance == 0.0 && goal->landmark_types.empty()) {
-      RCLCPP_INFO(this->get_logger(), "Received request to return all landmarks");
-    } else if (goal->landmark_types.empty()) {
-      RCLCPP_INFO(this->get_logger(),
-                  "Received request to return all landmarks within distance %f",
-                  distance);
-    } else {
-      // Log the request to return landmarks by type filter
-      std::string types_log =
-          "Received request to return landmarks by type filter: [";
+  if (distance == 0.0 && goal->landmark_types.empty()) {
+    RCLCPP_INFO(this->get_logger(), "Received request to return all landmarks");
+  } else if (goal->landmark_types.empty()) {
+    RCLCPP_INFO(this->get_logger(),
+                "Received request to return all landmarks within distance %f",
+                distance);
+  } else {
+    // Log the request to return landmarks by type filter
+    std::string types_log =
+        "Received request to return landmarks by type filter: [";
 
-      for (const auto &type : goal->landmark_types) {
-        types_log += type + ", ";
-      }
-
-      // Remove the trailing comma and space
-      if (!goal->landmark_types.empty()) {
-        types_log = types_log.substr(0, types_log.size() - 2);
-      }
-
-      types_log += "]";
-
-      RCLCPP_INFO(this->get_logger(), types_log.c_str());
-    }
+    for (const auto &type : goal->landmark_types) {
+      types_log += type + ", ";
     }
 
-double LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Pose &pose,
-                                        std::string target_frame,
-                                        std::string source_frame) {
+    // Remove the trailing comma and space
+    if (!goal->landmark_types.empty()) {
+      types_log = types_log.substr(0, types_log.size() - 2);
+    }
+
+    types_log += "]";
+
+    RCLCPP_INFO(this->get_logger(), types_log.c_str());
+  }
+}
+
+double
+LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Pose &pose,
+                                      std::string target_frame,
+                                      std::string source_frame) {
   // Create a transform buffer
   tf2::BufferCore tf_buffer;
 
@@ -255,6 +256,6 @@ double LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Pose &pos
   double dz = transformed_pose.position.z;
 
   return std::sqrt(dx * dx + dy * dy + dz * dz);
-  }
+}
 
 } // namespace landmark_server

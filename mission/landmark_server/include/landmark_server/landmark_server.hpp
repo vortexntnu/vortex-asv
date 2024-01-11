@@ -4,7 +4,6 @@
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/transform_stamped.h>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <geometry_msgs/msg/pose_array.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <tf2/buffer_core.h>
@@ -14,8 +13,6 @@
 #include <vortex_msgs/msg/landmark.hpp>
 #include <vortex_msgs/msg/landmark_array.hpp>
 #include <vortex_msgs/msg/odometry_array.hpp>
-#include <tf2/buffer_core.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace landmark_server {
 
@@ -24,9 +21,9 @@ namespace landmark_server {
  * @brief A class representing a node for handling landmarks in a ROS 2 system.
  *
  * This class inherits from rclcpp::Node and provides functionality for
- * receiving landmark array messages, publishing the poses of the landmarks, handling
- * filtered landmarks using an action server, and calculating the distance
- * between the poses and the drone.
+ * receiving landmark array messages, publishing the poses of the landmarks,
+ * handling filtered landmarks using an action server, and calculating the
+ * distance between the poses and the drone.
  */
 class LandmarkServerNode : public rclcpp::Node {
 public:
@@ -63,7 +60,7 @@ protected:
       const vortex_msgs::msg::LandmarkArray::SharedPtr msg);
 
   /**
-   * @brief A shared pointer to a publisher for the LandmarkArray message type. 
+   * @brief A shared pointer to a publisher for the LandmarkArray message type.
    * Publishes all landmarks currently stored in the server.
    */
   rclcpp::Publisher<vortex_msgs::msg::LandmarkArray>::SharedPtr
@@ -81,13 +78,12 @@ protected:
    */
   std::shared_ptr<vortex_msgs::msg::LandmarkArray> storedLandmarks_;
 
-   /**
+  /**
    * @brief A shared pointer to an rclcpp_action server for handling filtered
    * landmarks.
    */
-   rclcpp_action::Server<vortex_msgs::action::FilteredLandmarks>::SharedPtr
+  rclcpp_action::Server<vortex_msgs::action::FilteredLandmarks>::SharedPtr
       action_server_;
-
 
   /**
    * @brief Handles the goal request for the `handle_goal` function.
@@ -147,21 +143,20 @@ protected:
    * @return The distance between the landmark and the drone.
    */
   double calculateDistance(const geometry_msgs::msg::Pose &pose,
-                        std::string target_frame, std::string source_frame);
+                           std::string target_frame, std::string source_frame);
 
-    /**
-     * @brief Logs messages based on request.
-     *
-     * This function is responsible for logging messages based on the request
-     *
-     * @param goal_handle A shared pointer to the goal handle.
-     * @param distance The distance parameter.
-     */
-    void requestLogger(
-      const std::shared_ptr<
-          rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
-          goal_handle, const double distance);
-
+  /**
+   * @brief Logs messages based on request.
+   *
+   * This function is responsible for logging messages based on the request
+   *
+   * @param goal_handle A shared pointer to the goal handle.
+   * @param distance The distance parameter.
+   */
+  void requestLogger(const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+                         vortex_msgs::action::FilteredLandmarks>>
+                         goal_handle,
+                     const double distance);
 
   /**
    * @brief Creates a pose array from a landmark array.
@@ -170,9 +165,7 @@ protected:
    */
   geometry_msgs::msg::PoseArray
   poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks);
-
- 
-  };
+};
 
 } // namespace landmark_server
 
