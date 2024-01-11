@@ -37,7 +37,8 @@ class LQRControllerNode(Node):
         self.lqr_controller = LQRController(m, D, Q, R)
         #self.lqr_controller.run_ivan_sim()
 
-        self.x_ref = [0, 0, 0, 0, 0, 0]
+        # Using x, y, yaw as reference (1x3)
+        self.x_ref = [0, 0, 0]
 
         self.get_logger().info("lqr_controller_node started")
 
@@ -60,7 +61,7 @@ class LQRControllerNode(Node):
         return state
     
     def guidance_cb(self, msg):
-        self.x_ref = self.odometrymsg_to_state(msg)
+        self.x_ref = self.odometrymsg_to_state(msg)[:3]
 
     def state_cb(self, msg):
 
