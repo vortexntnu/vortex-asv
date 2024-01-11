@@ -32,6 +32,10 @@ class LQRController:
         self.A, self.B = self.asv.linearize_model(heading)
 
     def calculate_control_input(self, x, x_ref, K_LQR, K_r):
+        # print("x:", x)
+        # print("x_ref:", x)
+        # print("K_LQR:", K_LQR)
+        # print("K_r:", K_r)
         u = -K_LQR @ x + K_r @ x_ref
         return u
     
