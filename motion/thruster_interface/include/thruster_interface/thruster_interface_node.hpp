@@ -18,9 +18,9 @@ private:
   rclcpp::Subscription<vortex_msgs::msg::ThrusterForces>::SharedPtr
       thruster_forces_sub_;
   rclcpp::Publisher<vortex_msgs::msg::Pwm>::SharedPtr pwm_pub_;
-  std::vector<int> thruster_to_pin_map_;
-  std::vector<int> thruster_direction_map_;
-  std::vector<int> pwm_offsets_;
+  std::vector<int64_t> thruster_to_pin_map_;
+  std::vector<int64_t> thruster_direction_map_;
+  std::vector<int64_t> pwm_offsets_;
 
 public:
   ThrusterInterfaceROS() : Node("thruster_interface") {
@@ -30,9 +30,9 @@ public:
             "thrust/thruster_forces", 10,
             std::bind(&ThrusterInterfaceROS::thrust_callback, this, _1));
 
-    declare_parameter(thruster_to_pin_map_, std::vector<int64_t>{0});
-    declare_parameter(thruster_direction_map_, std::vector<int64_t>{0});
-    declare_parameter(pwm_offsets_, std::vector<int64_t>{0});
+    declare_parameter("thruster_to_pin_map_", std::vector<int64_t>{0});
+    declare_parameter("thruster_direction_map_", std::vector<int64_t>{0});
+    declare_parameter("pwm_offsets_", std::vector<int64_t>{0});
     thruster_to_pin_map_ =
         get_parameter("propulsion.thrusters.thruster_to_pin_map")
             .as_integer_array();
