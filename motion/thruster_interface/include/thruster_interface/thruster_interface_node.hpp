@@ -41,7 +41,6 @@ public:
             .as_integer_array();
     pwm_offsets_ =
         get_parameter("propulsion.thrusters.pwm_offsets").as_integer_array();
-    
   }
 
   void thrust_callback(const vortex_msgs::msg::ThrusterForces::SharedPtr msg);
