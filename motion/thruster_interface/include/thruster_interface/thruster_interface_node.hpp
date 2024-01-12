@@ -30,9 +30,9 @@ public:
             "thrust/thruster_forces", 10,
             std::bind(&ThrusterInterfaceROS::thrust_callback, this, _1));
 
-    declare_parameter("thruster_to_pin_map_", std::vector<int64_t>{0});
-    declare_parameter("thruster_direction_map_", std::vector<int64_t>{0});
-    declare_parameter("pwm_offsets_", std::vector<int64_t>{0});
+    declare_parameter("thruster_to_pin_map_", std::vector<int64_t>{1, 3, 2, 0});
+    declare_parameter("thruster_direction_map_", std::vector<int64_t>{1, 1, 1, -1});
+    declare_parameter("pwm_offsets_", std::vector<int64_t>{100, 100, 100, 100});
     thruster_to_pin_map_ =
         get_parameter("propulsion.thrusters.thruster_to_pin_map")
             .as_integer_array();
