@@ -1,0 +1,1 @@
+This folder is for recording all data from the ros topics and nodes. 
