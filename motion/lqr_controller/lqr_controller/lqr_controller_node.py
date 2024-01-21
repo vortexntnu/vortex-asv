@@ -39,6 +39,7 @@ class LQRControllerNode(Node):
 
         # Using x, y, yaw as reference (1x3)
         self.x_ref = [0, 0, 0]
+        self.state = [0, 0, 0, 0, 0, 0]
 
         self.get_logger().info("lqr_controller_node started")
 
@@ -63,14 +64,17 @@ class LQRControllerNode(Node):
     def guidance_cb(self, msg):
         self.x_ref = self.odometrymsg_to_state(msg)[:3]
 
+        wrench = self.run_lqr_to_wrench()
+        
+        # Publish thrust/wrench_input
+        self.wrench_publisher_.publish(wrench)
+
     def state_cb(self, msg):
-
-        state = self.odometrymsg_to_state(msg)
-
-        self.lqr_controller.linearize_model(state[2])
-
-        # Run LQR 
-        u = self.lqr_controller.calculate_control_input(state, self.x_ref, self.lqr_controller.K_LQR, self.lqr_controller.K_r)
+        self.state = self.odometrymsg_to_state(msg)
+    
+    def run_lqr_to_wrench(self):
+        self.lqr_controller.linearize_model(self.state[2])
+        u = self.lqr_controller.calculate_control_input(self.state, self.x_ref, self.lqr_controller.K_LQR, self.lqr_controller.K_r)
 
         wrench = Wrench()
         wrench.force.x  = u[0]
@@ -80,8 +84,7 @@ class LQRControllerNode(Node):
         wrench.torque.y = 0.0
         wrench.torque.z = u[2]
 
-        # Publish thrust/wrench_input
-        self.wrench_publisher_.publish(wrench)
+        return wrench
 
 
 def main(args=None):

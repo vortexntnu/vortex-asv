@@ -8,6 +8,15 @@
   <license>MIT</license>
 
   <depend>lqr_controller</depend>
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>transforms3d</depend>
+  <depend>numpy</depend>
+  <depend>matplotlib</depend>
+  <depend>scipy</depend>
+
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

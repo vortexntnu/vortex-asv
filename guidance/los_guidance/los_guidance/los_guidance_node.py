@@ -14,16 +14,16 @@ class LOSGuidanceNode(Node):
             parameters=[
                 ('los_guidance.p0', [0.0, 0.0]),
                 ('los_guidance.p1', [0.0, 0.0]),
-                ('los_guidance.look_ahead', 0.0)
+                ('los_guidance.look_ahead_distance', 0.0)
             ])
         
         p0 = self.get_parameter('los_guidance.p0').get_parameter_value().double_array_value
         p1 = self.get_parameter('los_guidance.p1').get_parameter_value().double_array_value
-        self.look_ahead = self.get_parameter('los_guidance.look_ahead').get_parameter_value().double_value
+        self.look_ahead = self.get_parameter('los_guidance.look_ahead_distance').get_parameter_value().double_value
         
         self.get_logger().info(f"p0: {p0}")
         self.get_logger().info(f"p1: {p1}")
-        self.get_logger().info(f"look_ahead: {self.look_ahead}")
+        self.get_logger().info(f"look_ahead_distance: {self.look_ahead}")
 
         self.los_guidance = LOSGuidance(p0, p1)
         
@@ -34,7 +34,7 @@ class LOSGuidanceNode(Node):
         self.get_logger().info("los_guidance_node started")
     
     def state_cb(self, msg):
-        self.get_logger().info("state_callback")
+        # self.get_logger().info("state_callback")
 
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
