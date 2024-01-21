@@ -46,10 +46,13 @@ void LandmarkServerNode::landmarksRecievedCallback(
     RCLCPP_WARN(this->get_logger(), "Received empty landmark array");
     return;
   }
-  const auto& pose = msg->landmarks[0].odom.pose.pose;
-RCLCPP_INFO(this->get_logger(), "First landmark pose: Position: [%f, %f, %f], Orientation: [%f, %f, %f, %f]",
-            pose.position.x, pose.position.y, pose.position.z,
-            pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+  const auto &pose = msg->landmarks[0].odom.pose.pose;
+  RCLCPP_INFO(this->get_logger(),
+              "First landmark pose: Position: [%f, %f, %f], Orientation: [%f, "
+              "%f, %f, %f]",
+              pose.position.x, pose.position.y, pose.position.z,
+              pose.orientation.x, pose.orientation.y, pose.orientation.z,
+              pose.orientation.w);
   for (const auto &landmark : msg->landmarks) {
     // RCLCPP_INFO(this->get_logger(), "Landmarks received");
 
@@ -87,7 +90,6 @@ RCLCPP_INFO(this->get_logger(), "First landmark pose: Position: [%f, %f, %f], Or
   landmarkPublisher_->publish(*storedLandmarks_);
   posePublisher_->publish(poseArrayCreater(*storedLandmarks_));
   RCLCPP_INFO(this->get_logger(), "Landmarks published");
-
 }
 
 geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
