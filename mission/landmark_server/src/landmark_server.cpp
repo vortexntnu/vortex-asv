@@ -43,10 +43,15 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
 void LandmarkServerNode::landmarksRecievedCallback(
     const LandmarkArray::SharedPtr msg) {
   if (msg->landmarks.empty()) {
+    RCLCPP_WARN(this->get_logger(), "Received empty landmark array");
     return;
   }
+  const auto& pose = msg->landmarks[0].odom.pose.pose;
+RCLCPP_INFO(this->get_logger(), "First landmark pose: Position: [%f, %f, %f], Orientation: [%f, %f, %f, %f]",
+            pose.position.x, pose.position.y, pose.position.z,
+            pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
   for (const auto &landmark : msg->landmarks) {
-    RCLCPP_INFO(this->get_logger(), "Landmarks received");
+    // RCLCPP_INFO(this->get_logger(), "Landmarks received");
 
     if (landmark.action == 0) {
       // Remove landmarks with matching id and landmark_type
@@ -81,10 +86,13 @@ void LandmarkServerNode::landmarksRecievedCallback(
   // Publish the landmarks
   landmarkPublisher_->publish(*storedLandmarks_);
   posePublisher_->publish(poseArrayCreater(*storedLandmarks_));
+  RCLCPP_INFO(this->get_logger(), "Landmarks published");
+
 }
 
 geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
     vortex_msgs::msg::LandmarkArray landmarks) {
+
   geometry_msgs::msg::PoseArray poseArray;
   // sets the header for the array to equal the header of the first landmark
   poseArray.header.frame_id = landmarks.landmarks[0].odom.header.frame_id;
