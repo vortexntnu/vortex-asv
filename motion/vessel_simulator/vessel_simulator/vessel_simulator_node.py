@@ -23,16 +23,16 @@ class VesselVisualizerNode(Node):
         self.state_publisher_ = self.create_publisher(Odometry, "/sensor/seapath/odometry/ned", 1)
         
         self.state = np.array([10, -20, 40*np.pi/180, 0, 0, 0])
-        self.x_ref = np.array([0, 0, 40*np.pi/180]) # Note to self: make x_ref have 6 states
+        self.x_ref = np.array([0, 0, 50*np.pi/180]) # Note to self: make x_ref have 6 states
 
-        self.cb_count = 0
+        self.num_steps_simulated = 0
 
         m = 50.0
         self.M = np.diag([m, m, m])
         self.M_inv = np.linalg.inv(self.M)
         self.D = np.diag([10.0, 10.0, 5.0])
         
-        self.T = 69.0
+        self.T = 20.0
         self.dt = 0.01
         self.num_steps = int(self.T / self.dt)
 
@@ -45,8 +45,8 @@ class VesselVisualizerNode(Node):
         self.get_logger().info("len(self.x_history): " + str(len(self.x_history)) + "self.num_steps" + str(self.num_steps))
 
         # Send x_init
-        self.get_logger().info("Simulation starting in 3 seconds...")
-        time.sleep(3)
+        self.get_logger().info("Simulation starting in 1 second...")
+        time.sleep(1)
 
         self.get_logger().info("""\
 
@@ -56,16 +56,12 @@ class VesselVisualizerNode(Node):
                                   ,"  ## |   ಠ ಠ. 
                                 ," ##   ,-\__    `.
                               ,"       /     `--._;)
-                            ,"     ## /
+                            ,"     ## /           U
                           ,"   ##    /
 
-                Waiting for simulation to finish...:)
+                Waiting for simulation to finish...""" + str(self.T) + """ secs approximated waiting time :)
                     """)
         self.state_publisher_.publish(self.state_to_odometrymsg(self.state))
-
-        # while(self.cb_count < self.num_steps): 
-        #     self.get_logger().info(str(self.cb_count) + " lol xD") # heh DO NOT REMOVE
-        
 
     def odometrymsg_to_state(self, msg):
         x = msg.pose.pose.position.x
@@ -87,7 +83,6 @@ class VesselVisualizerNode(Node):
     
     def guidance_cb(self, msg):
         self.x_ref = self.odometrymsg_to_state(msg)[:3]
-        self.x_ref_history[self.cb_count, : ] = self.x_ref
     
     def state_to_odometrymsg(self, state):
         orientation_list_next = euler2quat(0, 0, state[2])
@@ -106,8 +101,14 @@ class VesselVisualizerNode(Node):
     def wrench_input_cb(self, msg):
         u = np.array([msg.force.x, msg.force.y, msg.torque.z])
         x_next = self.RK4_integration_step(self.state, u, self.dt)
-        self.x_history[self.cb_count] = x_next
-        self.u_history[self.cb_count] = u
+        self.x_history[self.num_steps_simulated] = x_next
+        self.x_ref_history[self.num_steps_simulated, : ] = self.x_ref
+        self.u_history[self.num_steps_simulated] = u
+        print(f"self.x_ref_history[{self.num_steps_simulated}]: {self.x_ref_history[self.num_steps_simulated]}")
+
+        if (self.num_steps_simulated >= self.num_steps):
+            self.plot_history()
+            return
 
         odometry_msg = self.state_to_odometrymsg(x_next)
 
@@ -115,13 +116,9 @@ class VesselVisualizerNode(Node):
         self.state = x_next
 
         self.state_publisher_.publish(odometry_msg)
-        self.cb_count += 1
+        self.num_steps_simulated += 1
 
         # self.get_logger().info(str(self.cb_count) + " lol xD") # heh DO NOT REMOVE
-
-        if (self.cb_count == self.num_steps):
-            self.plot_history()
- 
 
     def state_dot(self, state: np.ndarray, tau_actuation: np.ndarray, V_current: np.ndarray = np.zeros(2)) -> np.ndarray:
         """
@@ -164,6 +161,10 @@ class VesselVisualizerNode(Node):
         # self.get_logger().info(str(self.x_history[:,0]))
         # print(self.x_history[:,0])
         # print(self.x_history[:,1])
+
+        # Save the array to a text file
+        # file_path = '/home/martin/x_ref_hist.txt' #  martin stays
+        # np.savetxt(file_path, self.x_ref_history, fmt='%4f', delimiter=',')
 
         plt.figure(figsize=(12, 8))
         plt.subplot(3, 1, 1)
