@@ -167,8 +167,8 @@ void LandmarkServerNode::execute(
     vortex_msgs::msg::OdometryArray filteredLandmarksOdoms =
         filterLandmarks(goal_handle);
     if (filteredLandmarksOdoms.odoms.empty()) {
-    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
-      "No landmarks found matching the request");
+      RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                                  "No landmarks found matching the request");
     }
 
     feedback->feedback = filteredLandmarksOdoms;
@@ -188,11 +188,11 @@ vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
     const std::shared_ptr<
         rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
         goal_handle) {
-          const auto goal = goal_handle->get_goal();
+  const auto goal = goal_handle->get_goal();
   _Float32 distance = goal->distance;
   vortex_msgs::msg::OdometryArray filteredLandmarksOdoms;
 
-  for (const auto &landmark :storedLandmarks_->landmarks) {
+  for (const auto &landmark : storedLandmarks_->landmarks) {
 
     if (goal->landmark_types.empty() && distance == 0.0) {
       filteredLandmarksOdoms.odoms.push_back(landmark.odom);
@@ -278,9 +278,10 @@ LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Point &point,
     return sqrt(x * x + y * y + z * z);
 
   } catch (tf2::TransformException &ex) {
-   RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
-      "Could not transform landmark position: " << ex.what());
-}
+    RCLCPP_WARN_STREAM_THROTTLE(
+        this->get_logger(), *this->get_clock(), 5000,
+        "Could not transform landmark position: " << ex.what());
+  }
 
   return 1000000;
 }

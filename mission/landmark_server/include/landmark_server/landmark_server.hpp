@@ -17,7 +17,6 @@
 #include <tf2/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-
 namespace landmark_server {
 
 /**
@@ -25,9 +24,9 @@ namespace landmark_server {
  * @brief A class representing a node for handling landmarks in a ROS 2 system.
  *
  * This class inherits from rclcpp::Node and provides functionality for
- * receiving landmark array messages, publishing the poses of the landmarks, handling
- * filtered landmarks using an action server, and calculating the distance
- * between the poses and the drone.
+ * receiving landmark array messages, publishing the poses of the landmarks,
+ * handling filtered landmarks using an action server, and calculating the
+ * distance between the poses and the drone.
  */
 class LandmarkServerNode : public rclcpp::Node {
 public:
@@ -64,7 +63,7 @@ protected:
       const vortex_msgs::msg::LandmarkArray::SharedPtr msg);
 
   /**
-   * @brief A shared pointer to a publisher for the LandmarkArray message type. 
+   * @brief A shared pointer to a publisher for the LandmarkArray message type.
    * Publishes all landmarks currently stored in the server.
    */
   rclcpp::Publisher<vortex_msgs::msg::LandmarkArray>::SharedPtr
@@ -82,11 +81,11 @@ protected:
    */
   std::shared_ptr<vortex_msgs::msg::LandmarkArray> storedLandmarks_;
 
-   /**
+  /**
    * @brief A shared pointer to an rclcpp_action server for handling filtered
    * landmarks.
    */
-   rclcpp_action::Server<vortex_msgs::action::FilteredLandmarks>::SharedPtr
+  rclcpp_action::Server<vortex_msgs::action::FilteredLandmarks>::SharedPtr
       action_server_;
 
   /**
@@ -146,19 +145,17 @@ protected:
    * @param source_frame The frame where the data originated
    * @return The distance between the landmark and the drone.
    */
-  
 
-    /**
-     * @brief Logs messages based on request.
-     *
-     * This function is responsible for logging messages based on the request
-     *
-     * @param goal_handle A shared pointer to the goal handle.
-     */
-    void requestLogger(const std::shared_ptr<
-          rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
-          goal_handle);
-
+  /**
+   * @brief Logs messages based on request.
+   *
+   * This function is responsible for logging messages based on the request
+   *
+   * @param goal_handle A shared pointer to the goal handle.
+   */
+  void requestLogger(const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+                         vortex_msgs::action::FilteredLandmarks>>
+                         goal_handle);
 
   /**
    * Calculates the distance between a landmark and the drone.
@@ -167,8 +164,8 @@ protected:
    * @param header The header to calculate the distance to.
    * @return The distance between the landmark and the drone.
    */
-   double calculateDistance(const geometry_msgs::msg::Point &point, const std_msgs::msg::Header &header);
-
+  double calculateDistance(const geometry_msgs::msg::Point &point,
+                           const std_msgs::msg::Header &header);
 
   /**
    * @brief Creates a pose array from a landmark array.
@@ -178,23 +175,15 @@ protected:
   geometry_msgs::msg::PoseArray
   poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks);
 
-       // Declare tf_buffer_ and tf_listener_ as class members
+  // Declare tf_buffer_ and tf_listener_ as class members
   std::shared_ptr<tf2_ros::Buffer> tf2_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf2_listener_;
 
-  vortex_msgs::msg::OdometryArray filterLandmarks(const std::shared_ptr<
-        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
-        goal_handle);
-
-
-
-
-    
-
-
-
- 
-  };
+  vortex_msgs::msg::OdometryArray
+  filterLandmarks(const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+                      vortex_msgs::action::FilteredLandmarks>>
+                      goal_handle);
+};
 
 } // namespace landmark_server
 
