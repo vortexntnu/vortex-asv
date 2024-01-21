@@ -17,16 +17,22 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
 
   storedLandmarks_ = std::make_shared<LandmarkArray>();
 
-  subscription_ = this->create_subscription<LandmarkArray>(
-      "landmarks_in", qos,
+  landmark_sub_ = this->create_subscription<LandmarkArray>(
+      "target_tracking/landmarks", qos,
       std::bind(&LandmarkServerNode::landmarksRecievedCallback, this, _1));
 
   landmarkPublisher_ =
       this->create_publisher<LandmarkArray>("landmarks_out", qos);
 
-  posePublisher_ =
-      this->create_publisher<geometry_msgs::msg::PoseArray>("landmark_poses_out", qos);
+  posePublisher_ = this->create_publisher<geometry_msgs::msg::PoseArray>(
+      "landmark_poses_out", qos);
 
+  tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+  tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_);
+
+  declare_parameter<std::string>("target_frame", "base_link");
+
+  // Create the act.
   action_server_ = rclcpp_action::create_server<Action>(
       this, "landmark_filter",
       std::bind(&LandmarkServerNode::handle_goal, this, _1, _2),
@@ -77,10 +83,14 @@ void LandmarkServerNode::landmarksRecievedCallback(
   posePublisher_->publish(poseArrayCreater(*storedLandmarks_));
 }
 
-geometry_msgs::msg::PoseArray
-LandmarkServerNode::poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks) {
+geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
+    vortex_msgs::msg::LandmarkArray landmarks) {
   geometry_msgs::msg::PoseArray poseArray;
-  poseArray.header.frame_id = "os_lidar";
+  // sets the header for the array to equal the header of the first landmark
+  poseArray.header.frame_id = landmarks.landmarks[0].odom.header.frame_id;
+  // Timestamps for stored landmarks may vary so use current time for
+  // visualization
+  poseArray.header.stamp = rclcpp::Clock().now();
   for (const auto &landmark : landmarks.landmarks) {
     // Convert landmark to pose here...
     geometry_msgs::msg::Pose gridPose;
@@ -88,7 +98,6 @@ LandmarkServerNode::poseArrayCreater(vortex_msgs::msg::LandmarkArray landmarks) 
   }
   return poseArray;
 }
-
 
 rclcpp_action::GoalResponse LandmarkServerNode::handle_goal(
     const rclcpp_action::GoalUUID &uuid,
@@ -117,6 +126,7 @@ void LandmarkServerNode::handle_accepted(
     const std::shared_ptr<
         rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
         goal_handle) {
+
   // This needs to return quickly to avoid blocking the executor, so spin up a
   // new thread
   std::thread{std::bind(&LandmarkServerNode::execute, this, _1), goal_handle}
@@ -127,134 +137,152 @@ void LandmarkServerNode::execute(
     const std::shared_ptr<
         rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
         goal_handle) {
-  rclcpp::Rate loop_rate(1);
   const auto goal = goal_handle->get_goal();
   auto feedback = std::make_shared<Action::Feedback>();
-
-  // frame_id from request
-  std::string request_frame_id = goal->frame_id;
-  _Float32 distance = goal->distance;
+  auto result = std::make_shared<Action::Result>();
 
   // Log the request
-  requestLogger(goal_handle, distance);
+  requestLogger(goal_handle);
+
+  // Create a timer to control the publishing rate at 10 Hz
+  rclcpp::Rate rate(10); // 10 Hz
 
   // Filter the StoredLandmarks by landmark_types in the action request
   while (rclcpp::ok()) {
     // Check if there is a cancel request
     if (goal_handle->is_canceling()) {
+      result->result = 2;
+      goal_handle->succeed(result);
       RCLCPP_INFO(this->get_logger(), "Goal canceled by client");
       return;
     }
 
     if (storedLandmarks_->landmarks.empty()) {
-      RCLCPP_INFO(this->get_logger(), "Waiting for landmarks to be detected");
-      loop_rate.sleep();
+      RCLCPP_INFO_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                                  "Waiting for landmarks to be detected");
+      rate.sleep();
       continue;
     }
 
-    vortex_msgs::msg::OdometryArray filteredLandmarksOdoms;
-
-    if (goal->landmark_types.empty()) {
-      // Filter only by distance when landmark_types is empty
-      for (const auto &landmark : storedLandmarks_->landmarks) {
-        if (distance == 0.0 ||
-            calculateDistance(landmark.odom.pose.pose,
-                              landmark.odom.header.frame_id,
-                              request_frame_id) <= distance) {
-          filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-        }
-      }
-    } else {
-      // Filter by both landmark_types and distance
-      for (const auto &string : goal->landmark_types) {
-        for (const auto &landmark : storedLandmarks_->landmarks) {
-          if ((distance == 0.0 && landmark.landmark_type == string) ||
-              (landmark.landmark_type == string &&
-               calculateDistance(landmark.odom.pose.pose,
-                                 landmark.odom.header.frame_id,
-                                 request_frame_id) <= distance)) {
-            filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-          }
-        }
-      }
-    }
-
+    vortex_msgs::msg::OdometryArray filteredLandmarksOdoms =
+        filterLandmarks(goal_handle);
     if (filteredLandmarksOdoms.odoms.empty()) {
-      RCLCPP_INFO(this->get_logger(),
-                  "No landmarks found within distance after applying filter");
+    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+      "No landmarks found matching the request");
     }
 
     feedback->feedback = filteredLandmarksOdoms;
 
     // Publish the odometryArray as feedback
     goal_handle->publish_feedback(feedback);
-    RCLCPP_INFO(this->get_logger(), "Publishing feedback");
-    // adjust sleep timer based on needs or implement chrono timer
-    loop_rate.sleep();
+    // RCLCPP_INFO_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+    // "Publishing feedback!");
+    rate.sleep();
   }
+  RCLCPP_INFO(this->get_logger(), "Connection error, stopping action");
+  result->result = 3;
+  goal_handle->succeed(result);
+}
+
+vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
+        goal_handle) {
+          const auto goal = goal_handle->get_goal();
+  _Float32 distance = goal->distance;
+  vortex_msgs::msg::OdometryArray filteredLandmarksOdoms;
+
+  for (const auto &landmark :storedLandmarks_->landmarks) {
+
+    if (goal->landmark_types.empty() && distance == 0.0) {
+      filteredLandmarksOdoms.odoms.push_back(landmark.odom);
+    } else if (goal->landmark_types.empty()) {
+
+      if (calculateDistance(landmark.odom.pose.pose.position,
+                            landmark.odom.header) <= distance) {
+        filteredLandmarksOdoms.odoms.push_back(landmark.odom);
+      }
+    } else if (distance == 0.0) {
+      for (const auto &type : goal->landmark_types) {
+        if (landmark.landmark_type == type) {
+          filteredLandmarksOdoms.odoms.push_back(landmark.odom);
+        }
+      }
+    } else {
+      for (const auto &type : goal->landmark_types) {
+        if (landmark.landmark_type == type &&
+            calculateDistance(landmark.odom.pose.pose.position,
+                              landmark.odom.header) <= distance) {
+          filteredLandmarksOdoms.odoms.push_back(landmark.odom);
+        }
+      }
+    }
+  }
+  return filteredLandmarksOdoms;
 }
 
 void LandmarkServerNode::requestLogger(
-      const std::shared_ptr<
-          rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
-          goal_handle, const double distance) {
-    const auto goal = goal_handle->get_goal();
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
+        goal_handle) {
+  const auto goal = goal_handle->get_goal();
+  double distance = goal->distance;
 
-    if (distance == 0.0 && goal->landmark_types.empty()) {
-      RCLCPP_INFO(this->get_logger(), "Received request to return all landmarks");
-    } else if (goal->landmark_types.empty()) {
-      RCLCPP_INFO(this->get_logger(),
-                  "Received request to return all landmarks within distance %f",
-                  distance);
-    } else {
-      // Log the request to return landmarks by type filter
-      std::string types_log =
-          "Received request to return landmarks by type filter: [";
+  if (distance == 0.0 && goal->landmark_types.empty()) {
+    RCLCPP_INFO(this->get_logger(), "Received request to return all landmarks");
+  } else if (goal->landmark_types.empty()) {
+    RCLCPP_INFO(this->get_logger(),
+                "Received request to return all landmarks within distance %f",
+                distance);
+  } else {
+    // Log the request to return landmarks by type filter
+    std::string types_log =
+        "Received request to return landmarks by type filter: [";
 
-      for (const auto &type : goal->landmark_types) {
-        types_log += type + ", ";
-      }
-
-      // Remove the trailing comma and space
-      if (!goal->landmark_types.empty()) {
-        types_log = types_log.substr(0, types_log.size() - 2);
-      }
-
-      types_log += "]";
-
-      RCLCPP_INFO(this->get_logger(), types_log.c_str());
-    }
+    for (const auto &type : goal->landmark_types) {
+      types_log += type + ", ";
     }
 
-double LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Pose &pose,
-                                        std::string target_frame,
-                                        std::string source_frame) {
-  // Create a transform buffer
-  tf2::BufferCore tf_buffer;
+    // Remove the trailing comma and space
+    if (!goal->landmark_types.empty()) {
+      types_log = types_log.substr(0, types_log.size() - 2);
+    }
 
-  // Create a transform stamped message
-  geometry_msgs::msg::TransformStamped transform_stamped;
+    types_log += "]";
+
+    RCLCPP_INFO(this->get_logger(), types_log.c_str());
+  }
+}
+
+double
+LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Point &point,
+                                      const std_msgs::msg::Header &header) {
+  std::string target_frame = get_parameter("target_frame").as_string();
+  // Transform the pose of the landmark in world_frame to pose in frame
+  // specified by landmark_pose_frame parameter
 
   try {
-    // Lookup the transform from the input frame_id to the robot's frame_id
-    transform_stamped = tf_buffer.lookupTransform(target_frame, source_frame,
-                                                  tf2::TimePointZero);
+    // Lookup the transformation
+    geometry_msgs::msg::TransformStamped transform_stamped =
+        tf2_buffer_->lookupTransform("base_link", header.frame_id, header.stamp,
+                                     rclcpp::Duration(1, 0));
+
+    // Transform the point cloud
+    geometry_msgs::msg::Point transformed_point;
+    tf2::doTransform(point, transformed_point, transform_stamped);
+    // Calculate the distance between the drone and the landmark
+    double x = transformed_point.x;
+    double y = transformed_point.y;
+    double z = transformed_point.z;
+
+    return sqrt(x * x + y * y + z * z);
+
   } catch (tf2::TransformException &ex) {
-    RCLCPP_ERROR(this->get_logger(), "Failed to lookup transform: %s",
-                 ex.what());
-    return 0.0; // Return 0.0 or handle the error accordingly
-  }
+   RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+      "Could not transform landmark position: " << ex.what());
+}
 
-  // Transform the pose to the robot's frame of reference
-  geometry_msgs::msg::Pose transformed_pose;
-  tf2::doTransform(pose, transformed_pose, transform_stamped);
-
-  // Calculate the distance between the transformed pose and the robot's pose
-  double dx = transformed_pose.position.x;
-  double dy = transformed_pose.position.y;
-  double dz = transformed_pose.position.z;
-
-  return std::sqrt(dx * dx + dy * dy + dz * dz);
-  }
+  return 1000000;
+}
 
 } // namespace landmark_server

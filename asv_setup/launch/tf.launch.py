@@ -57,6 +57,21 @@ def generate_launch_description():
                    '--child-frame-id' , 'zed2i_camera_center'],
     )
 
+    # base_link (NED) to seapath_frame_pose (NED?) tf.
+    tf_base_link_ned_to_seapath_frame_pose = Node(
+        package='tf2_ros',
+        name='base_link_ned_to_seapath_frame_pose',
+        executable='static_transform_publisher',
+        arguments=['--x'              , '0',
+                   '--y'              , '0',
+                   '--z'              , '0',
+                   '--roll'           , '0',
+                   '--pitch'          , '0',
+                   '--yaw'            , '0',
+                   '--frame-id'       , 'base_link',
+                   '--child-frame-id' , 'seapath_frame_pose'],
+    )
+
     return LaunchDescription([
         tf_base_link_ned_to_base_link_seu,
         tf_base_link_to_lidar,
