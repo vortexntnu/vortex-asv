@@ -90,15 +90,3 @@ class ASV():
 
         return A, B
     
-    def RK4_integration_step(self, x: np.ndarray, u: np.ndarray, dt: float) -> np.ndarray:
-        
-        # integration scheme for simulation, implements the Runge-Kutta 4 integrator
-
-        k1 = self.state_dot(x,         u)
-        k2 = self.state_dot(x+dt/2*k1, u)
-        k3 = self.state_dot(x+dt/2*k2, u)
-        k4 = self.state_dot(x+dt*k3,   u)
-        
-        x_next = x + dt/6*(k1+2*k2+2*k3+k4)
-
-        return x_next
