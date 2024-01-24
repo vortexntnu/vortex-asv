@@ -104,7 +104,7 @@ class VesselVisualizerNode(Node):
         self.x_history[self.num_steps_simulated] = x_next
         self.x_ref_history[self.num_steps_simulated, : ] = self.x_ref
         self.u_history[self.num_steps_simulated] = u
-        print(f"self.x_ref_history[{self.num_steps_simulated}]: {self.x_ref_history[self.num_steps_simulated]}")
+        # print(f"self.x_ref_history[{self.num_steps_simulated}]: {self.x_ref_history[self.num_steps_simulated]}")
 
         if (self.num_steps_simulated >= self.num_steps):
             self.plot_history()
