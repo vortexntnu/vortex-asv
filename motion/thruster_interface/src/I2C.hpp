@@ -1,10 +1,9 @@
-#include <linux/i2c-dev.h>
-#include <iostream>
 #include <fcntl.h>
+#include <iostream>
+#include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <vector>
-
 
 void send_status(int8_t status, int file);
 std::vector<uint8_t> pwm_to_bytes(std::vector<uint16_t> pwm_values);
