@@ -3,6 +3,7 @@ import numpy as np
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler, euler2quat
+from geometry_msgs.msg import Point
 from los_guidance.los_guidance import LOSGuidance
 
 class LOSGuidanceNode(Node):
@@ -20,16 +21,18 @@ class LOSGuidanceNode(Node):
         p0 = self.get_parameter('los_guidance.p0').get_parameter_value().double_array_value
         p1 = self.get_parameter('los_guidance.p1').get_parameter_value().double_array_value
         self.look_ahead = self.get_parameter('los_guidance.look_ahead_distance').get_parameter_value().double_value
+
+        self.p_next = np.array([10000.0, 10000.0])
         
         self.get_logger().info(f"p0: {p0}")
         self.get_logger().info(f"p1: {p1}")
         self.get_logger().info(f"look_ahead_distance: {self.look_ahead}")
 
-        self.los_guidance = LOSGuidance(p0, p1)
-        
+        self.los_guidance = LOSGuidance(p0, p1, self.p_next)
 
         self.guidance_publisher_ = self.create_publisher(Odometry, "controller/lqr/reference", 1)
         self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odometry/ned", self.state_cb, 1)
+        self.point_subscriber_ = self.create_subscription(Point, "los/point", self.point_cb, 1)
 
         self.get_logger().info("los_guidance_node started")
     
@@ -66,6 +69,11 @@ class LOSGuidanceNode(Node):
         odometry_msg.pose.pose.orientation.z = orientation_list_ref[3]
         
         self.guidance_publisher_.publish(odometry_msg)
+
+        #rate = rclpy.Rate(100)
+
+    def point_cb(self, msg):
+        self.p_next.append(np.array([msg.x, msg.y]))
 
 
 def main(args=None):

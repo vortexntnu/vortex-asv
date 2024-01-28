@@ -26,6 +26,7 @@ class VesselVisualizerNode(Node):
         self.x_ref = np.array([0, 0, 50*np.pi/180]) # Note to self: make x_ref have 6 states
 
         self.num_steps_simulated = 0
+    
 
         m = 50.0
         self.M = np.diag([m, m, m])
@@ -59,7 +60,7 @@ class VesselVisualizerNode(Node):
                             ,"     ## /           U
                           ,"   ##    /
 
-                Waiting for simulation to finish...""" + str(self.T) + """ secs approximated waiting time :)
+                Waiting for simulation to finish...""" + str(self.T) + """ secs approximated waiting time on Martin's Thinkpad, will probably go faster for everybody else :)
                     """)
         self.state_publisher_.publish(self.state_to_odometrymsg(self.state))
 
@@ -100,11 +101,14 @@ class VesselVisualizerNode(Node):
 
     def wrench_input_cb(self, msg):
         u = np.array([msg.force.x, msg.force.y, msg.torque.z])
+
         x_next = self.RK4_integration_step(self.state, u, self.dt)
+
         self.x_history[self.num_steps_simulated] = x_next
         self.x_ref_history[self.num_steps_simulated, : ] = self.x_ref
         self.u_history[self.num_steps_simulated] = u
-        # print(f"self.x_ref_history[{self.num_steps_simulated}]: {self.x_ref_history[self.num_steps_simulated]}")
+
+        print(f"self.x_ref_history[{self.num_steps_simulated}]: {self.x_ref_history[self.num_steps_simulated]}")
 
         if (self.num_steps_simulated >= self.num_steps):
             self.plot_history()
@@ -118,7 +122,7 @@ class VesselVisualizerNode(Node):
         self.state_publisher_.publish(odometry_msg)
         self.num_steps_simulated += 1
 
-        self.get_logger().info(str(self.num_steps_simulated) + " lol xD") # heh DO NOT REMOVE
+        #self.get_logger().info(str(self.num_steps_simulated) + " lol xD") # heh DO NOT REMOVE
 
     def state_dot(self, state: np.ndarray, tau_actuation: np.ndarray, V_current: np.ndarray = np.zeros(2)) -> np.ndarray:
         """
@@ -186,18 +190,18 @@ class VesselVisualizerNode(Node):
         plt.scatter(self.x_history[:, 0], self.x_history[:, 1], label='Position', s=5)
 
         p0 = [0.0, 0.0]
-        p1 = [20.0, 20.0]
-        p2 = [50.0, -40.0]
-        p3 = [20.0, -80.0]
+        p1 = [40.0, 40.0]
+        p2 = [90.0, -20.0]
+        p3 = [120.0, 50.0]
         p4 = [120.0, -60.0]
         p5 = [160, 0.0]
         p6 = [60.0, 60.0]
         plt.plot([p0[0], p1[0]], [p0[1], p1[1]], 'r-', label='Path')
         plt.plot([p1[0], p2[0]], [p1[1], p2[1]], 'g-', label='Path')
         plt.plot([p2[0], p3[0]], [p2[1], p3[1]], 'b-', label='Path')
-        plt.plot([p3[0], p4[0]], [p3[1], p4[1]], 'y-', label='Path')
-        plt.plot([p4[0], p5[0]], [p4[1], p5[1]], 'm-', label='Path')
-        plt.plot([p5[0], p6[0]], [p5[1], p6[1]], 'c-', label='Path')
+        # plt.plot([p3[0], p4[0]], [p3[1], p4[1]], 'y-', label='Path')
+        # plt.plot([p4[0], p5[0]], [p4[1], p5[1]], 'm-', label='Path')
+        # plt.plot([p5[0], p6[0]], [p5[1], p6[1]], 'c-', label='Path')
 
         plt.xlabel('x')
         plt.ylabel('y')
