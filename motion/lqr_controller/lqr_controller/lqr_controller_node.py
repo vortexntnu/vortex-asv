@@ -64,13 +64,14 @@ class LQRControllerNode(Node):
     def guidance_cb(self, msg):
         self.x_ref = self.odometrymsg_to_state(msg)[:3]
 
-        wrench = self.run_lqr_to_wrench()
-        
-        # Publish thrust/wrench_input
-        self.wrench_publisher_.publish(wrench)
+        #wrench = self.run_lqr_to_wrench()
+        #self.wrench_publisher_.publish(wrench)
 
     def state_cb(self, msg):
         self.state = self.odometrymsg_to_state(msg)
+
+        wrench = self.run_lqr_to_wrench()
+        self.wrench_publisher_.publish(wrench)
     
     def run_lqr_to_wrench(self):
         self.lqr_controller.linearize_model(self.state[2])

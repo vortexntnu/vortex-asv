@@ -1,11 +1,12 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 class LOSGuidance:
-    def __init__(self, p0: list[float], p1: list[float]):
+    def __init__(self, p0: list[float], p1: list[float], p_next: list[float]):
         self.set_path(p0, p1)
         self.heading_ref = 50*np.pi/180 # magic init number!!!
+        self.p_next = [np.array([40, 40]), np.array([90.0, -20.0]), np.array([120.0, 50.0])]#, np.array([160, 0.0]), np.array([60.0, 60.0])]
         self.p_next = [np.array([50, -40]), np.array([20.0, -80.0]), np.array([120.0, -60.0]), np.array([160, 0.0]), np.array([60.0, 60.0])]
+        self.acceptance_radius = 0.5
 
     def set_path(self, p0: list[float], p1: list[float]):
         self.p0 = np.array(p0)
@@ -23,7 +24,7 @@ class LOSGuidance:
     
     def switch_path(self):
         self.p0, self.p1 = self.p1, self.p_next[0]
-    
+        
     def calculate_LOS_x_ref(self, x: np.ndarray, look_ahead: float) -> np.ndarray:
         self.set_path(self.p0, self.p1)
         self.calculate_R_Pi_p()
@@ -31,8 +32,8 @@ class LOSGuidance:
         errors = self.R_Pi_p.T @ (p_asv - self.p0)
         along_track_error = errors[0]
         
-        # Switch points to next pair if crossed orthogonal line
-        if (along_track_error > self.calculate_distance(self.p0, self.p1)):
+        # Switch points to next pair if crossed orthogonal line or entered circle of acceptance
+        if ((along_track_error > 0.8*self.calculate_distance(self.p0, self.p1))):
             self.switch_path()
             self.calculate_R_Pi_p()
             errors = self.R_Pi_p.T @ (p_asv - self.p0)

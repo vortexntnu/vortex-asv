@@ -70,23 +70,3 @@ class ASV():
         return x_dot
 
     
-    def linearize_model(self, heading: float) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Get a linearization about some heading
-        """
-        J = np.array(
-            [[np.cos(heading), -np.sin(heading), 0],
-            [np.sin(heading), np.cos(heading), 0],
-            [0, 0, 1]]
-        )
-
-        A = np.zeros((6,6))
-
-        A[:3,3:] = J
-        A[3:, 3:] = - self.M_inv @ self.D
-
-        B = np.zeros((6,3))
-        B[3:,:] = self.M_inv
-
-        return A, B
-    
