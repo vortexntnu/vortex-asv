@@ -35,7 +35,6 @@ class LQRControllerNode(Node):
         self.get_logger().info(f"R: {R}")
 
         self.lqr_controller = LQRController(m, D, Q, R)
-        #self.lqr_controller.run_ivan_sim()
 
         # Using x, y, yaw as reference (1x3)
         self.x_ref = [0, 0, 0]
