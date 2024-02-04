@@ -73,7 +73,7 @@ class LOSGuidanceNode(Node):
         #rate = rclpy.Rate(100)
 
     def point_cb(self, msg):
-        self.p_next.append(np.array([msg.x, msg.y]))
+        self.p_next.append(np.array([msg.x, msg.y])) # TODO: append does not exist for np.arrays
 
 
 def main(args=None):
