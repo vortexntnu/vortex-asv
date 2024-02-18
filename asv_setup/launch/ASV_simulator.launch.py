@@ -27,18 +27,11 @@ def generate_launch_description():
         )
     )
 
-    # Foxglove bridge launch
-    # Download using: $ sudo apt install ros-$ROS_DISTRO-foxglove-bridge
-    foxglove_bridge_launch = IncludeLaunchDescription(
-        XMLLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('foxglove_bridge'), 'launch/foxglove_bridge_launch.xml')
-        )
-    )
+    print("Make sure Foxglove bridge is installed and running before launching the ASV simulator. See Vortex wiki page for info.")
 
     # Return launch description
     return LaunchDescription([
         lqr_controller_launch,
         los_guidance_launch,
         vessel_simulator_launch,
-        foxglove_bridge_launch
     ])
