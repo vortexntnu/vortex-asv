@@ -3,6 +3,7 @@ import numpy as np
 from rclpy.node import Node
 import matplotlib.pyplot as plt
 from hybridpath_controller.hybridpath import HybridPathGenerator, HybridPathSignals
+from hybridpath_controller.adaptive_backstep import AdaptiveBackstep
 
 class HybridPathControllerNode(Node):
     def __init__(self):
@@ -10,184 +11,142 @@ class HybridPathControllerNode(Node):
         
         self.get_logger().info("hybridpath_controller_node started")
 
-def calc_ps(s, generator):
-    signals = HybridPathSignals(generator.Path, s)
-    p_der = signals.pd_der
-    ps = np.sqrt(p_der[0][0]**2 + p_der[0][1]**2)
-    return ps
 
-def s2pos(s, generator):
-    signals = HybridPathSignals(generator.Path, s)
-    pos = signals.pd
-    return pos
-
-
-def calculate_headings(init_heading, pos):
-    headings = [init_heading]
-    x_pos = pos[:,0]
-    y_pos = pos[:,1]
-    for i in range(len(x_pos) - 1):
-        psi_0 = headings[i]
-        dx = x_pos[i+1] - x_pos[i]
-        dy = y_pos[i+1] - y_pos[i]
-        heading = np.arctan2(dy, dx)
-        psi_1 = heading
-        psi_vec = np.array([psi_0, psi_1])
-        psi_vec = np.unwrap(psi_vec, period = 2*np.pi)
-        headings.append(psi_vec[1])
-        
-    return headings
-
-def main(args=None):
-    u_des = 1.5
-    dt = 0.1
-    t_tot = 120
-    time = np.arange(0, t_tot, dt)
-    s_val = np.zeros(len(time))
-    s_dot_val = np.zeros(len(time))
-    s = 0 # Initial value
-
-    pos = np.array([[10, 0],
-        [10, 10],
-        [0, 20],
-        [30, 30],
-        [40,0],
-        [0,-10],
-        [0, 0],
-        [10, 0]])
-
-    # Simple Pos
-    # pos = np.array([[-20, 0],
-    #                 [3, 0],
-    #                 [10, 5],
-    #                 [15, 4],
-    #                 [20, 0],
-    #                 [35, 0]])
-
-    #s = 0.5  # Path parameter
-    lambda_val = 0.6  # Curvature constant
-    r = 1  # Differentiability order
-    PlotHandle = 1
-    generator = HybridPathGenerator(pos, r, lambda_val, PlotHandle)
-    # path = generator.Path
-    # num_subpaths = path['NumSubpaths']
-    
-
-    for i,t in enumerate(time[:-1]):
-        ps = calc_ps(s, generator)
-        s_dot = u_des/ps
-        s += s_dot*dt
-        s_val[i+1] = s
-        s_dot_val[i] = s_dot
-
-    pos_arr = np.array([s2pos(s, generator) for s in s_val])
-    headings = calculate_headings(0, pos_arr)
-
-    eta_ref = np.zeros((3, len(time)))
-    x_d = pos_arr[:,0]
-    y_d = pos_arr[:,1]
-    psi_d = headings
-    eta_ref = np.array([x_d, y_d, psi_d])
-
-    # Alternative reference path
-    # r = 50
-    # omega = 0.01
-    # x_d = r*np.cos(omega*time)
-    # y_d = r*np.sin(omega*time)
-    # psi_d = np.arctan2(np.diff(y_d, prepend=y_d[0]), np.diff(x_d, prepend=x_d[0]))
-    # eta_ref = np.array([x_d, y_d, psi_d])
-
-    # Vessel parameters
-    M = np.diag([50, 50, 50])
-    D = np.diag([10, 10, 5])
-    K1 = np.diag([1, 1, 2.5])
-    K2 = np.diag([1, 1, 2.5])
-
-    # Initial states
-    eta = np.zeros((3, len(eta_ref[0])))
-    eta[:,0] = eta_ref[:,0]
-    nu = np.zeros((3, len(eta[0])))
-
-    n = len(eta[0])
-
-    def Rot(psi):
-        R = np.array([[np.cos(psi), -np.sin(psi), 0],
-                    [np.sin(psi), np.cos(psi), 0],
-                    [0, 0, 1]])
-        R_T = np.transpose(R)
-        return R, R_T
-
-    e = np.zeros((3, n))
-    # Simulation loop
-    for i in range(1, n):
-        e[0, i] = eta[0, i-1] - x_d[i]
-        e[1, i] = eta[1, i-1] - y_d[i]
-        e[2, i] = eta[2, i-1] - psi_d[i]
-
-        R, R_T = Rot(eta[2,i-1])
-        e_body = R_T @ e[:,i]
-
-        nu_d = -K1 @ e_body
-
-        tau = M.dot(-K2.dot(e_body) - D.dot(nu[:,i-1] - nu_d))
-
-        # Calculate next simulation steps
-
-        nu_dot = np.linalg.inv(M).dot(tau - D.dot(nu[:,i-1]))
-
-        nu[:,i] = nu[:,i-1] + nu_dot*dt
-
-        eta_dot = R @ nu[:,i]
-
-        eta[:,i] = eta[:,i-1] + eta_dot*dt
-        
-    # for i in range(1, n):
-    #     e = eta_ref[:,i] - eta[:,i-1]
-    #     psi = eta[2,i-1]
-    #     R, R_T = Rot(psi)
-    #     nu_d = -K1 @ R_T @ e
-
-    #     # Control law
-    #     tau = M @ (-K2 @ e) - D @ (nu[:,i-1] - nu_d)
-
-    #     # Vessel dynamics
-    #     nu_dot = np.linalg.inv(M) @ (tau - D @ nu[:,i-1])
-    #     nu[:,i] = nu[:,i-1] + nu_dot*dt
-    
-    #     # Update position and orientation
-    #     eta_dot = R @ nu[:,i]
-    #     eta[:,i] = eta[:,i-1] + eta_dot*dt
-
+def plotAdaptiveBackstep(eta_d, eta, time, tau, nu):
     plt.figure()
-    plt.plot(eta[1,:], eta[0,:], label = 'Vessel trajectory')
-    plt.plot(eta_ref[1,:], eta_ref[0,:],'--', label = 'Reference trajectory')
-    # Plot heading arrows using quiver
-    for i in range(0, len(eta_ref[0])-1, 20):
-        plt.quiver(eta[1,i], eta[0,i], np.sin(eta[2,i+1]), np.cos(eta[2,i+1]), scale=0.3, scale_units='xy', angles='xy')
-    plt.legend()
-    plt.grid()
+    plt.plot(eta_d[1,:], eta_d[0,:], label='Reference path', zorder = 0)
+    plt.plot(eta[1,:], eta[0,:], label='Actual path', zorder = 1)
+    for i in range(0, len(eta_d[2]), 100):
+        plt.quiver(eta[1,i], eta[0,i], np.sin(eta[2,i]), np.cos(eta[2,i]), zorder = 2)
+    plt.title('Actual path vs reference path')
     plt.xlabel('y [m]')
     plt.ylabel('x [m]')
-    plt.axis('equal')
+    plt.gca().set_axisbelow(True)
+    plt.grid()
+    plt.legend()
 
     plt.figure()
-    plt.plot(time, eta[2,:], label = 'Heading')
-    plt.plot(time, eta_ref[2,:], '--', label = 'Reference heading')
-    plt.legend()
+    plt.plot(time, eta[0,:], label='Actual x')
+    plt.plot(time, eta_d[0,:], label='Reference x')
+    plt.plot(time, eta[1,:], label='Actual y')
+    plt.plot(time, eta_d[1,:], label='Reference y')
+    plt.title('Actual position vs reference position')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Position [m]')
+    plt.gca().set_axisbelow(True)
     plt.grid()
+    plt.legend()
+
+    plt.figure()
+    plt.plot(time, eta[2,:], label='Actual heading')
+    plt.plot(time, eta_d[2,:], label='Reference heading')
+    plt.title('Actual heading vs reference heading')
     plt.xlabel('Time [s]')
     plt.ylabel('Heading [rad]')
+    plt.gca().set_axisbelow(True)
+    plt.grid()
+    plt.legend()
 
     plt.figure()
-    plt.plot(time, nu[0,:], label = 'Surge velocity')
-    plt.plot(time, nu[1,:], label = 'Sway velocity')
-
-    plt.legend()
-    plt.grid()
+    plt.plot(time, nu[0,:], label='Surge velocity')
+    plt.plot(time, nu[1,:], label='Sway velocity')
+    plt.title('velocity')
     plt.xlabel('Time [s]')
     plt.ylabel('Velocity [m/s]')
+    plt.gca().set_axisbelow(True)
+    plt.grid()
+    plt.legend()
+
+    plt.figure()
+    plt.plot(time, tau[0,:], label='Surge force')
+    plt.plot(time, tau[1,:], label='Sway force')
+    plt.title('Force')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Force [N]')
+    plt.gca().set_axisbelow(True)
+    plt.grid()
+    plt.legend()
 
     plt.show()
+
+def main(args=None):
+    # Waypoints
+    pos = np.array([[10, 0],
+            [10, 10],
+            [0, 20],
+            [30, 30],
+            [40,0],
+            [0,-10],
+            [0, 0],
+            [10, 0]])
+
+    pos2 = np.array([[10, 0], [20, 10], [30, 20], [50, 20],[50, 80], [-20, 80]])
+
+    lambda_val = 0.6  # Curvature constant
+    r = 2  # Differentiability order
+    generator = HybridPathGenerator(pos, r, lambda_val, 1)
+    path = generator.Path
+    N = path['NumSubpaths']
+    T = 200
+    dt = 0.05
+    time = np.arange(0, T, dt)
+
+    # Initial vectors
+    u_0 = 0 # Initial speed
+    eta_d = np.zeros((3, len(time)))
+    eta = np.zeros((3, len(time)))
+    eta_d[:,0] = np.array([pos[0,0], pos[0,1], np.pi/2])
+    eta[:,0] = np.array([pos[0,0], pos[0,1], np.pi/2])
+    nu = np.zeros((3, len(time)))
+    tau = np.zeros((3, len(time)))
+    AB = AdaptiveBackstep()
+    s = 0
+    sig = HybridPathSignals(path, s)
+
+    # Simulation loop
+    for i in range(1,len(time)):
+        time_to_max_speed = 10
+        if time[i] < time_to_max_speed:
+            u_desired = 1/10 * time[i]
+        else:
+            u_desired = 1 # Desired speed
+        v_ref, v_ref_s = sig.calc_vs(u_desired)
+        s += v_ref * dt
+        sig = HybridPathSignals(path, s)
+        pd = sig.pd # Reference position
+        psi_d = sig.psi # Reference heading
+        eta_d[:,i] = np.array([pd[0], pd[1], psi_d])
+        psi0 = eta_d[2,i-1]
+        psi1 = eta_d[2,i]
+        psi_vec = np.array([psi0, psi1])
+        psi_vec = np.unwrap(psi_vec, period=2*np.pi)
+        eta_d[2,i] = psi_vec[1]
+
+        # Variables needed for tau
+        #w = 0
+        v_ref_t = 0 # Constant speed
+        eta_d_s = np.array([sig.pd_der[0][0], sig.pd_der[0][1], sig.psi_der])
+        eta_d_ss = np.array([sig.pd_der[1][0], sig.pd_der[1][1], sig.psi_dder])
+        R, R_trsp = AB.R(eta[2,i-1])
+        eta_error = eta[:,i-1] - eta_d[:,i]
+        my = 0.5
+        w = my * (eta_d_s @ R @ (R_trsp @ eta_error)) / (np.linalg.norm(eta_d_s)**2)
+
+        tau[:,i] = AB.control_law(eta[:,i-1], nu[:,i-1], w, v_ref, v_ref_t, v_ref_s, eta_d[:,i], eta_d_s, eta_d_ss)
+        
+        # Step in nu and eta
+        nu_dot = np.linalg.inv(AB.M) @ tau[:, i] - np.linalg.inv(AB.M) @ AB.D @ nu[:,i-1]
+        nu[:,i] = nu[:,i-1] + nu_dot * dt
+        eta_dot = R @ nu[:,i]
+        eta[:,i] = eta[:,i-1] + eta_dot * dt
+
+        psi0 = eta[2,i-1]
+        psi1 = eta[2,i]
+        psi_vec = np.array([psi0, psi1])
+        psi_vec = np.unwrap(psi_vec, period=2*np.pi)
+        eta[2,i] = psi_vec[1]
+
+    plotAdaptiveBackstep(eta_d, eta, time, tau, nu)
 
     rclpy.init(args=args)
     node = HybridPathControllerNode()
