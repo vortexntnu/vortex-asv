@@ -10,7 +10,7 @@ find_package(rclpy REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-ament_python_install_package(scripts)
+ament_python_install_package(joystick_interface)
 
 install(DIRECTORY
   launch
@@ -19,7 +19,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-  scripts/joystick_interface.py
+${PROJECT_NAME}/joystick_interface.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

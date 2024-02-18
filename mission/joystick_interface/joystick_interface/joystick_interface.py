@@ -4,6 +4,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Wrench
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool
+from std_msgs.msg import String
 
 
 class States:
@@ -66,14 +67,14 @@ class JoystickInterface(Node):
         self.software_killswitch_signal_publisher_ = self.create_publisher(
             Bool, "softWareKillSwitch", 10)
         self.software_killswitch_signal_publisher_.publish(
-            Bool(data=False))  #Killswitch is not active
+            Bool(data=True))  #Killswitch is not active
 
         #Operational mode publisher
         self.operational_mode_signal_publisher_ = self.create_publisher(
-            Bool, "softWareOperationMode", 10)
+            String, "softWareOperationMode", 10)
         
         # Signal that we are not in autonomous mode
-        self.operational_mode_signal_publisher_.publish(Bool(data=True))
+        self.operational_mode_signal_publisher_.publish(String(data="XBOX"))
 
         #Controller publisher
         self.enable_controller_publisher_ = self.create_publisher(
@@ -106,38 +107,29 @@ class JoystickInterface(Node):
         return ouput_value
 
     def create_2d_wrench_message(self, x: float, y: float, yaw: float) -> Wrench:
-            """
-            Creates a 2D wrench message with the given x, y, and yaw values.
+        """
+        Creates a 2D wrench message with the given x, y, and yaw values.
 
-            Args:
-                x: The x component of the force vector.
-                y: The y component of the force vector.
-                yaw: The z component of the torque vector.
+        Args:
+            x: The x component of the force vector.
+            y: The y component of the force vector.
+            yaw: The z component of the torque vector.
 
-            Returns:
-                Wrench: A 2D wrench message with the given values.
-            """
-            wrench_msg = Wrench()
-            wrench_msg.force.x = x
-            wrench_msg.force.y = y
-            wrench_msg.torque.z = yaw
-            return wrench_msg
-
-    def publish_wrench_message(self, wrench: Wrench):
-            """
-            Publishes a Wrench message to the wrench_publisher_ topic.
-
-            Args:
-                wrench: The Wrench message to be published.
-            """
-            self.wrench_publisher_.publish(wrench)
+        Returns:
+            Wrench: A 2D wrench message with the given values.
+        """
+        wrench_msg = Wrench()
+        wrench_msg.force.x = x
+        wrench_msg.force.y = y
+        wrench_msg.torque.z = yaw
+        return wrench_msg
 
     def transition_to_xbox_mode(self):
         """
         Turns off the controller and signals that the operational mode has switched to Xbox mode.
         """
         self.enable_controller_publisher_.publish(Bool(data=False))
-        self.operational_mode_signal_publisher_.publish(Bool(data=True))
+        self.operational_mode_signal_publisher_.publish(String(data="XBOX"))
         self.state_ = States.XBOX_MODE
 
     def transition_to_autonomous_mode(self):
@@ -145,8 +137,8 @@ class JoystickInterface(Node):
         Publishes a zero force wrench message and signals that the system is turning on autonomous mode.
         """
         wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
-        self.publish_wrench_message(wrench_msg)
-        self.operational_mode_signal_publisher_.publish(Bool(data=False))
+        self.wrench_publisher_.publish(wrench_msg)
+        self.operational_mode_signal_publisher_.publish(String(data="autonomous mode"))
         self.state_ = States.AUTONOMOUS_MODE
 
     def joystick_cb(self, msg : Joy) -> Wrench:
@@ -183,9 +175,9 @@ class JoystickInterface(Node):
 
         surge = axes[
             "vertical_axis_left_stick"] * self.joystick_surge_scaling_ * left_trigger * right_trigger
-        sway = axes[
+        sway = -axes[
             "horizontal_axis_left_stick"] * self.joystick_sway_scaling_ * left_trigger * right_trigger
-        yaw = axes[
+        yaw  = -axes[
             "horizontal_axis_right_stick"] * self.joystick_yaw_scaling_ * left_trigger * right_trigger
 
         # Debounce for the buttons
@@ -199,30 +191,32 @@ class JoystickInterface(Node):
             self.last_button_press_time_ = current_time
 
         # Toggle ks on and off
-        if self.state_ == States.NO_GO and software_killswitch_button:
-            # signal that killswitch is not blocking
-            self.software_killswitch_signal_publisher_.publish(Bool(data=True))
-            self.transition_to_xbox_mode()
-            return
-
         if software_killswitch_button:
-            self.get_logger().info("SW killswitch", throttle_duration_sec=1)
-            # signal that killswitch is blocking
-            self.software_killswitch_signal_publisher_.publish(Bool(data=False))
-            # Turn off controller in sw killswitch
-            self.enable_controller_publisher_.publish(Bool(data=False))
-            # Publish a zero wrench message when sw killing
-            wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
-            self.publish_wrench_message(wrench_msg)
-            self.state_ = States.NO_GO
-            return wrench_msg
+            if self.state_ == States.NO_GO:
+                # signal that killswitch is not blocking
+                self.software_killswitch_signal_publisher_.publish(
+                    Bool(data=False))
+                self.transition_to_xbox_mode()
+                return
+
+            else:
+                self.get_logger().info("SW killswitch", throttle_duration_sec=1)
+                # signal that killswitch is blocking
+                self.software_killswitch_signal_publisher_.publish(Bool(data=True))
+                # Turn off controller in sw killswitch
+                self.enable_controller_publisher_.publish(Bool(data=False))
+                # Publish a zero wrench message when sw killing
+                wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
+                self.wrench_publisher_.publish(wrench_msg)
+                self.state_ = States.NO_GO
+                return wrench_msg
 
         #Msg published from joystick_interface to thrust allocation
         wrench_msg = self.create_2d_wrench_message(surge, sway, yaw)
 
         if self.state_ == States.XBOX_MODE:
             self.get_logger().info("XBOX mode", throttle_duration_sec=1)
-            self.publish_wrench_message(wrench_msg)
+            self.wrench_publisher_.publish(wrench_msg)
 
             if software_control_mode_button:
                 self.transition_to_autonomous_mode()
