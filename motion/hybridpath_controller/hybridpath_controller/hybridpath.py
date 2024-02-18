@@ -122,7 +122,7 @@ class HybridPathGenerator:
                     plt.plot(Y,X,'b', linewidth = 1.25, label = 'ASV Reference Path')
                 else:
                     plt.plot(Y,X,'b', linewidth = 1.25)
-
+            
             plt.plot(self.WP[:, 1], self.WP[:, 0], 'r*', linewidth = 1.5, label = 'Waypoints')
             plt.xlabel('y')
             plt.ylabel('x')
@@ -133,7 +133,7 @@ class HybridPathGenerator:
             plt.grid()
             plt.legend()
             plt.title('Path')
-            #plt.show()
+            plt.show()
 
             
 class HybridPathSignals:
@@ -144,8 +144,9 @@ class HybridPathSignals:
         self.pd = None
         self.pd_der = []
         self.pd, self.pd_der = self.get_signals()
+        self.psi, self.psi_der, self.psi_dder = self.get_heading()
         
-
+    
     def _clamp_s(self, s, num_subpaths):
         """
         Ensure s is within the valid range.
@@ -182,6 +183,18 @@ class HybridPathSignals:
             self.pd_der.append([xd_der, yd_der])
 
         return self.pd, self.pd_der
+    
+    def get_heading(self):
+        psi = np.arctan2(self.pd_der[0][1], self.pd_der[0][0])
+        psi_der = (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[0][1] * self.pd_der[1][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2)
+        psi_dder = (self.pd_der[0][0] * self.pd_der[2][1] - self.pd_der[0][1] * self.pd_der[2][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2) - 2 * (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[1][0] * self.pd_der[0][1]) * (self.pd_der[0][0] * self.pd_der[1][0] - self.pd_der[1][1] * self.pd_der[0][1]) / ((self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**2)
+        return psi, psi_der, psi_dder
+    
+    def calc_vs(self, u_d):
+        #vs = u_d/np.sqrt(self.pd_der[0][0]**2 + self.pd_der[0][1]**2)
+        vs = u_d / np.linalg.norm(self.pd_der[0])
+        vs_s = -u_d * (np.array(self.pd_der[0]) @ np.array(self.pd_der[1])) / (np.sqrt(self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**3)
+        return vs, vs_s
 
 
 if __name__ == '__main__':
