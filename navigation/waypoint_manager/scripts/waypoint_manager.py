@@ -3,19 +3,14 @@ import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
 
-from vortex_msgs.msg import (
-    LosPathFollowingAction,
-    LosPathFollowingGoal,
-    LosPathFollowingResult,
-    LosPathFollowingFeedback,
-)
+from vortex_msgs.action import LosPathFollowing
 
-from vortex_msgs.srv import Waypoint, WaypointRequest, WaypointResponse 
+from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point
 
 
-class WaypointManager:
+class WaypointManager(Node):
     """
     Nodes created:
         WaypointManager
@@ -29,7 +24,7 @@ class WaypointManager:
         self.waypoint_list = []
 
         ## Action client
-        self.action_client = ActionClient(LosPathFollowingAction, 'guidance/los_action_server')
+        self.action_client = ActionClient(LosPathFollowing, 'guidance/los_action_server')
         while not self.action_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Action server not available, waiting again...')
 
@@ -50,7 +45,7 @@ class WaypointManager:
         self.path.poses.append(newpose)
         self.path_pub.publish(self.path)
 
-        return WaypointResponse(True)
+        return Waypoint.Response(True)
     
     def remove_waypoint_from_list(self, req):
         self.waypoint_list.remove(req)
@@ -64,7 +59,7 @@ class WaypointManager:
         index_waypoint_k = 0
         while rclpy.ok():
             if len(self.waypoint_list) >= 2 and index_waypoint_k < len(self.waypoint_list) - 1:
-                goal = LosPathFollowingGoal()
+                goal = LosPathFollowing.Goal()
                 self.get_logger().info("define goal to send to los_guidance_node")
 
                 goal.waypoints[0].x = self.waypoint_list[self.index_waypoint_k][0]
