@@ -7,39 +7,7 @@ import shutil
 
 class ROSMonitor:
     def __init__(self):
-        # timestamp variable is a string that represents the current date and time in the format 'YYYY-MM-DD HH:MM:SS'
-        timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')    
-        self.bag_file = 'rosdata_' + timestamp + '.bag'
-        self.topics = [                                                  #indicate there all the topics you want to record
-                    '/joy',                               
-                    '/joystick/joy',
-                    '/asv/power_sense_module/current',
-                    '/asv/power_sense_module/voltage',
-                    '/thrust/wrench_input',
-                    '/softWareKillSwitch',
-                    '/softWareOperationMode',
-                    '/controller/lqr/enable',
-                    '/thrust/thruster_forces',
-                    '/pwm',
-                    '/internal/status/bms0',
-                    '/internal/status/bms1',
-                    '/diagnostics',
-                    '/asv/temperature/ESC1',
-                    '/asv/temperature/ESC2',
-                    '/asv/temperature/ESC3',
-                    '/asv/temperature/ESC4',
-                    '/asv/temperature/ambient1',
-                    '/asv/temperature/ambient2',
-                    '/tf',
-                    '/tf_static'
-                    ]
-
-    def monitor_nodes_and_topics(self):
-
-        # Record bag data  -> then to see the data we just recorded we use the command "ros2 bag play <bag_file>"
-        subprocess.run(['ros2', 'bag', 'record', '-o', self.bag_file] + self.topics, text=True)
-        #the name of the bagfile is the date and hour in the format 'rosdata_YYYY-MM-DD_HH:MM:SS.bag'
-
+       print("Initialisation faite!")
 
 
     def delete_old_bags(self, days=1, max_size_kb=300):         #adjust the max size before you start deleting old files (1 000 000 kb = 1 000 mb = 1 gb)
@@ -116,11 +84,18 @@ class ROSMonitor:
         directory_path = os.path.join('.', directory)
         total_size = sum(os.path.getsize(os.path.join(directory_path, file)) for file in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, file)))
         return total_size
-
+        
 
 if __name__ == '__main__':
     monitor = ROSMonitor()
-    monitor.delete_old_bags()  #first we delete the old bags and verify if we have enough place 
-    monitor.monitor_nodes_and_topics()  #then we record what the topics are publishing 
+    monitor.delete_old_bags()
+
+
+
+
+
+
+
+
 
 

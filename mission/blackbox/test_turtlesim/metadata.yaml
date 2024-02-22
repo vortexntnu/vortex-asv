@@ -1,0 +1,43 @@
+rosbag2_bagfile_information:
+  version: 8
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 48607012538
+  starting_time:
+    nanoseconds_since_epoch: 1706193036593936811
+  message_count: 5603
+  topics_with_message_count:
+    - topic_metadata:
+        name: /turtle1/cmd_vel
+        type: geometry_msgs/msg/Twist
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+        type_description_hash: RIHS01_9c45bf16fe0983d80e3cfe750d6835843d265a9a6c46bd2e609fcddde6fb8d2a
+      message_count: 99
+    - topic_metadata:
+        name: /turtle1/pose
+        type: turtlesim/msg/Pose
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+        type_description_hash: RIHS01_739beba26bcba6920404ba722b7b8321348512f92ea5be235c47251940dd8aa9
+      message_count: 2752
+    - topic_metadata:
+        name: /turtle1/color_sensor
+        type: turtlesim/msg/Color
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+        type_description_hash: RIHS01_74492579ec0d734707aede0e742ab76c55ac50d3ff917381e5163624cb657fe5
+      message_count: 2752
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - rosdata_2024-01-25 15:30:29.bag_0.mcap
+  files:
+    - path: rosdata_2024-01-25 15:30:29.bag_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1706193036593936811
+      duration:
+        nanoseconds: 48607012538
+      message_count: 5603
+  custom_data: ~
+  ros_distro: rolling
