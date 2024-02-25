@@ -1,15 +1,14 @@
-#include <linux/i2c-dev.h>
-#include <iostream>
+#include <cmath>
+#include <cstring> // Include for memcpy
 #include <fcntl.h>
+#include <fstream>
+#include <iostream>
+#include <linux/i2c-dev.h>
+#include <map>
+#include <sstream>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <vector>
-#include <cstring> // Include for memcpy
-#include <fstream>
-#include <sstream>
-#include <map>
-#include <cmath>
-
 
 using namespace std;
 
