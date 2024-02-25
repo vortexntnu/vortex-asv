@@ -2,7 +2,7 @@ import os
 from glob import glob
 from setuptools import find_packages, setup
 
-package_name = 'vessel_simulator'
+package_name = 'hybridpath_guidance'
 
 setup(
     name=package_name,
@@ -20,11 +20,11 @@ setup(
     maintainer='vortex',
     maintainer_email='vortex.git@vortexntnu.no',
     description='TODO: Package description',
-    license='MIT',
+    license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'vessel_simulator_node = vessel_simulator.vessel_simulator_node:main'
+            'hybridpath_guidance_node = hybridpath_guidance.hybridpath_guidance_node:main'
         ],
     },
 )
