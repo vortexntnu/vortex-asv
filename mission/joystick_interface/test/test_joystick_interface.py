@@ -41,8 +41,10 @@ class TestJoystickInterface:
         joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
         joy_msg.buttons = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         wrench_msg = JoystickInterface().joystick_cb(joy_msg)
-        assert wrench_msg.force.x == -50.0
-        assert wrench_msg.force.y == -50.0
+        assert wrench_msg.force.x == -1.0 * JoystickInterface(
+        ).joystick_surge_scaling_
+        assert wrench_msg.force.y ==  1.0 * JoystickInterface(
+        ).joystick_sway_scaling_
         assert wrench_msg.torque.z == 0.0
         rclpy.shutdown()
 
@@ -69,7 +71,9 @@ class TestJoystickInterface:
         joy_msg.axes = [-1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
         joy_msg.buttons = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         wrench_msg = joystick.joystick_cb(joy_msg)
-        assert wrench_msg.force.x == -50.0
-        assert wrench_msg.force.y == -50.0
+        assert wrench_msg.force.x == -1.0 * JoystickInterface(
+        ).joystick_surge_scaling_
+        assert wrench_msg.force.y ==  1.0 * JoystickInterface(
+        ).joystick_sway_scaling_
         assert wrench_msg.torque.z == 0.0
         rclpy.shutdown()
