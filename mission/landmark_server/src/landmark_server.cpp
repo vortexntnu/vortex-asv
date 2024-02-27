@@ -43,16 +43,11 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
 void LandmarkServerNode::landmarksRecievedCallback(
     const LandmarkArray::SharedPtr msg) {
   if (msg->landmarks.empty()) {
-    RCLCPP_WARN(this->get_logger(), "Received empty landmark array");
+    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000, 
+    "Received empty landmark array");
     return;
   }
   const auto &pose = msg->landmarks[0].odom.pose.pose;
-  RCLCPP_INFO(this->get_logger(),
-              "First landmark pose: Position: [%f, %f, %f], Orientation: [%f, "
-              "%f, %f, %f]",
-              pose.position.x, pose.position.y, pose.position.z,
-              pose.orientation.x, pose.orientation.y, pose.orientation.z,
-              pose.orientation.w);
   for (const auto &landmark : msg->landmarks) {
     // RCLCPP_INFO(this->get_logger(), "Landmarks received");
 
@@ -89,7 +84,6 @@ void LandmarkServerNode::landmarksRecievedCallback(
   // Publish the landmarks
   landmarkPublisher_->publish(*storedLandmarks_);
   posePublisher_->publish(poseArrayCreater(*storedLandmarks_));
-  RCLCPP_INFO(this->get_logger(), "Landmarks published");
 }
 
 geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
@@ -115,8 +109,8 @@ rclcpp_action::GoalResponse LandmarkServerNode::handle_goal(
   RCLCPP_INFO(this->get_logger(), "Received request");
   (void)uuid;
   if (goal->distance < 0.0) {
-    RCLCPP_ERROR(this->get_logger(),
-                 "Distance must be non-negative, aborting goal");
+    RCLCPP_ERROR(this->get_logger(), 
+    "Distance must be non-negative, aborting goal");
 
     return rclcpp_action::GoalResponse::REJECT;
   }
@@ -189,7 +183,7 @@ void LandmarkServerNode::execute(
     // "Publishing feedback!");
     rate.sleep();
   }
-  RCLCPP_INFO(this->get_logger(), "Connection error, stopping action");
+  RCLCPP_WARN(this->get_logger(), "Connection error, stopping action");
   result->result = 3;
   goal_handle->succeed(result);
 }
@@ -290,10 +284,11 @@ LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Point &point,
   } catch (tf2::TransformException &ex) {
     RCLCPP_WARN_STREAM_THROTTLE(
         this->get_logger(), *this->get_clock(), 5000,
-        "Could not transform landmark position: " << ex.what());
+        "Could not transform landmark position: " << ex.what() << 
+        "\nIgnoring distance filter");
   }
 
-  return 1000000;
+  return 0.0;
 }
 
 } // namespace landmark_server
