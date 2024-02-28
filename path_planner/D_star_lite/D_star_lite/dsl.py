@@ -51,6 +51,7 @@ class DStarLite:
         self.detected_obstacles_xy = np.empty((0, 2))
         self.xy = np.empty((0, 2))
         self.initialized = False
+        self.WP = []
 
     def create_grid(self, val: float):
         return np.full((self.x_max, self.y_max), val)
@@ -125,6 +126,28 @@ class DStarLite:
             self.U.append((u, self.calculate_key(u)))
             self.U.sort(key=lambda x: x[1])
 
+    def get_direction(self, node1: Node, node2: Node):
+        dx = node2.x - node1.x
+        dx = dx/abs(dx) if dx != 0 else 0
+        dy = node2.y - node1.y
+        dy = dy/abs(dy) if dy != 0 else 0
+        return dx, dy
+    
+    def detect_and_update_waypoints(self, current_point, next_point):
+        if not self.WP:  # If the waypoint list is empty
+            self.WP.append(current_point)
+        else:
+            # Get the last waypoint
+            last_wp = self.WP[-1]
+            # Determine directions
+            last_direction = self.get_direction(last_wp, current_point)
+            current_direction = self.get_direction(current_point, next_point)
+            
+            # If there's a change in direction, add the current point to waypoints
+            if current_direction != last_direction:
+                #print("Change in direction detected")
+                self.WP.append(current_point)
+
     def compare_keys(self, key_pair1: tuple[float, float], key_pair2: tuple[float, float]):
         return key_pair1[0] < key_pair2[0] or (key_pair1[0] == key_pair2[0] and key_pair1[1] < key_pair2[1])
     
@@ -170,11 +193,22 @@ class DStarLite:
     def compute_current_path(self):
         path = list()
         current_point = Node(self.start.x, self.start.y)
+        last_point = None
+
         while not compare_coordinates(current_point, self.goal):
+            if last_point is not None:
+                self.detect_and_update_waypoints(last_point, current_point)
             path.append(current_point)
+            last_point = current_point
             current_point = min(self.succ(current_point), key = lambda sprime: self.c(current_point, sprime) + self.g[sprime.x][sprime.y])
         path.append(self.goal)
         return path
+    
+    def get_WP(self):
+        WP_list = []
+        for wp in self.WP:
+            WP_list.append([wp.x + self.x_min_world, wp.y + self.y_min_world])
+        return WP_list
     
     def main(self, start: Node, goal: Node): #, spoofed_ox: list, spoofed_oy: list):
         #self.spoofed_obstacles = [[Node(x - self.x_min_world, y - self.y_min_world) for x, y in zip(rowx, rowy)] for rowx, rowy in zip(spoofed_ox, spoofed_oy)]
@@ -221,12 +255,15 @@ def main():
     path = dstarlite.compute_current_path()
     pathx = [node.x + dstarlite.x_min_world for node in path]
     pathy = [node.y + dstarlite.y_min_world for node in path]
+    WP = dstarlite.get_WP()
     
     # Plotting
     plt.plot(ox, oy, ".k")
     plt.plot(sx, sy, "og")
     plt.plot(gx, gy, "xb")
     plt.plot(pathx, pathy, "-r")
+    for wp in WP:
+        plt.plot(wp[0], wp[1], "or")
     plt.grid(True)
     plt.axis("equal")
     plt.show()
