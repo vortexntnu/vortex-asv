@@ -5,12 +5,20 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+list(APPEND CMAKE_PREFIX_PATH "/ros2_ws/install")
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(vortex_msgs REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+
+
+#find vortex_msgs package 
+find_package(vortex_msgs REQUIRED)
+if (NOT vortex_msgs_FOUND)
+  message(FATAL_ERROR "vortex_msgs ppacket not found")
+endif()
 
 ament_python_install_package(scripts)
 

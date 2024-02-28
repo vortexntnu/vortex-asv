@@ -19,12 +19,12 @@ class WaypointManager(Node):
     """
 
     def __init__(self):
-        super().init("WaypointManager")
+        super().__init("WaypointManager")
 
         self.waypoint_list = []
 
         ## Action client
-        self.action_client = ActionClient(LosPathFollowing, 'guidance/los_action_server')
+        self.action_client = ActionClient(LosPathFollowing, 'LosPathFollowing')
         while not self.action_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Action server not available, waiting again...')
 
