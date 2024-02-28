@@ -3,15 +3,14 @@ import matplotlib.pyplot as plt
 from hybridpath_controller.hybridpath import HybridPathGenerator, HybridPathSignals
 
 class AdaptiveBackstep:
-    def __init__(self):
-        self.init_system()
+    def __init__(self, kappa):
+        self.init_system(kappa)
 
-    def init_system(self):
+    def init_system(self, kappa):
 
         I = np.eye(3)
 
         K_1 = np.diag([10, 10, 10])
-        kappa = 0.5
         self.K_1_tilde = K_1 + kappa*I
         self.K_2 = np.diag([60, 60, 30])
         self.tau_max = np.array([41.0, 50.0, 55.0]) # Må tilpasses thrusterne
@@ -56,9 +55,6 @@ class AdaptiveBackstep:
                 tau[0] = np.sign(tau[0]) * np.absolute(self.tau_max[2] / tau[2]) * np.absolute(tau[0])
                 tau[2] = np.sign(tau[2]) * self.tau_max[2]
         return tau
-    
-    def step(self, eta, nu, tau):
-        pass
 
     def calculate_coriolis_matrix(self, nu):
         # u = nu[0]
