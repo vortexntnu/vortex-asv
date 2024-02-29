@@ -1,31 +1,34 @@
-#pragma once
 
-#include <chrono>
-#include <cmath>
-#include <cstdint>
-#include <fcntl.h>
-#include <fstream>
-#include <iostream>
 #include <linux/i2c-dev.h>
-#include <map>
-#include <sstream>
-#include <string>
+#include <iostream>
+#include <fcntl.h>
 #include <sys/ioctl.h>
-#include <thread>
 #include <unistd.h>
 #include <vector>
+#include <cstring> // Include for memcpy
+#include <fstream>
+#include <sstream>
+#include <map>
+#include <cmath>
 
-class ThrusterInterface {
-private:
-  std::map<double, double> pwm_table;
-  const int I2C_BUS = 1;
-  const int I2C_ADDRESS = 0x21;
-  const char *I2C_DEVICE = "/dev/i2c-1";
 
-  std::vector<uint8_t> pwm_to_bytes(const std::vector<int> &pwm_values);
+using namespace std;
 
-public:
-  ThrusterInterface(std::string mapping_file);
-  void publish_thrust_to_escs(std::vector<double> forces);
-  float interpolate(float force);
-};
+
+
+//--------------------------INITIALISATION--------------------------
+void init(int &file);
+
+//--------------------------SENDING--------------------------
+void send_status(int8_t status, int file);
+std::vector<uint8_t> pwm_to_bytes(std::vector<uint16_t> pwm_values);
+void send_pwm(std::vector<uint16_t> pwm_values, int file);
+
+//--------------------------RECEIVING--------------------------
+std::vector<float> readFloatsFromI2C(int file);
+uint8_t read_hardware_statusFromI2C(int file);
+
+//--------------------------INTERPOLATION--------------------------
+void get_pwm_table();
+uint16_t interpolate(float force);
+std::vector<uint16_t> interpolate_all(std::vector<float> &force_values);
