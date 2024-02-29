@@ -1,0 +1,15 @@
+[Unit]
+Description=Launch recording of ROS 2 data
+After=network.target
+
+[Service]
+# Use the wrapper script for ExecStart
+ExecStart=/bin/bash <path-to-home-directory>/<your-worskpace-name>/src/vortex-asv/mission/blackbox/blackbox.sh
+WorkingDirectory=/home/vortex/
+StandardOutput=journal+console
+User=vortex
+Restart=no
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
