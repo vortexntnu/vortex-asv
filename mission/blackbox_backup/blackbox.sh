@@ -11,3 +11,8 @@ export ROS_LOCALHOST_ONLY=0
 
 # Execute the Python script, using the script's directory to find it
 exec python3 "$SCRIPT_DIR/record_data.py"
+
+# cd SCRIPT_DIR
+# cd ../../../.. # Go back to workspace 
+# source install/setup.bash
+# ros2 launch 

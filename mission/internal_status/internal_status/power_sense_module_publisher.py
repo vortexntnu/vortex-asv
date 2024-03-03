@@ -10,8 +10,8 @@ class MinimalPublisher(Node):
     def __init__(self):
         super().__init__('PSM_publisher')
         self.PSM = internal_status.power_sense_module_lib.PowerSenseModule()
-        self.publisher_current = self.create_publisher(Float32, '/asv/power_sense_module/current', 1)
-        self.publisher_voltage = self.create_publisher(Float32, '/asv/power_sense_module/voltage', 1)
+        self.publisher_current = self.create_publisher(Float32, '/asv/power_sense_module/current', 5)
+        self.publisher_voltage = self.create_publisher(Float32, '/asv/power_sense_module/voltage', 5)
         timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
