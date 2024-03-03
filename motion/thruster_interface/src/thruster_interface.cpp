@@ -3,58 +3,7 @@
 const int I2C_ADDRESS = 0x21;
 const char *I2C_DEVICE = "/dev/i2c-1";
 int8_t i2c_slave_addr = 0x21;
-
-bool started = false;
-
-int8_t hardware_status = 0;
-
-#ifndef PWM_TABLE_HPP
-#define PWM_TABLE_HPP
-
 std::map<float, float> pwm_table;
-std::vector<float> temperature;
-std::vector<uint16_t> pwm_values;
-
-#endif
-
-/**
-int main() {
-
-    std::vector<float> forces_values = {110000,5000,-7700,-1300000.15}; //change
-later has to come from somewhere uint8_t software_killswitch = 0; //0 if
-everything goes well and 1 if there is a problem ; change later has to come from
-somewhere
-
-    pwm_values.resize(4);
-    pwm_values = interpolate_all(forces_values);
-
-    int file;
-    if(started == false){
-        init(file);
-        started = true;
-    }
-
-// SENDING
-    send_status(software_killswitch, file);
-    send_pwm(pwm_values, file);
-
-
-// RECEIVING
-    temperature = readFloatsFromI2C(file);
-
-    for (size_t i = 0; i < temperature.size(); i++)
-    {
-        std::cout << i << "temperature value = " << temperature[i] << std::endl;
-    }
-
-    hardware_status = read_hardware_statusFromI2C(file);
-    cout << "hardware status = " << (uint16_t)(hardware_status) << endl;
-
-    close(file);
-
-    return 1;
-}
-**/
 
 //--------------------------FUNCTIONS--------------------------
 
@@ -178,7 +127,7 @@ void get_pwm_table() {
   file.close();
 }
 
-uint16_t interpolate(float force) {
+uint16_t interpolate(double force) {
 
   if (pwm_table.empty()) {
     get_pwm_table();
@@ -207,7 +156,7 @@ uint16_t interpolate(float force) {
   return pwm1 + (pwm2 - pwm1) * (force - force1) / (force2 - force1);
 }
 
-std::vector<uint16_t> interpolate_all(std::vector<float> &force_values) {
+std::vector<uint16_t> interpolate_all(std::vector<double> &force_values) {
   std::vector<uint16_t> interpolatedVector;
   // Interpolate each value in the input vector
   for (const auto &force : force_values) {

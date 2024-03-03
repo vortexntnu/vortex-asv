@@ -10,8 +10,18 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <vector>
-
 using namespace std;
+
+#ifndef PWM_TABLE_HPP
+#define PWM_TABLE_HPP
+extern const int I2C_ADDRESS;
+extern const char *I2C_DEVICE;
+extern int8_t i2c_slave_addr;
+extern bool started;
+extern int8_t hardware_status;
+extern uint8_t software_killswitch;
+extern std::map<float, float> pwm_table;
+#endif
 
 //--------------------------INITIALISATION--------------------------
 void init(int &file);
@@ -27,5 +37,5 @@ uint8_t read_hardware_statusFromI2C(int file);
 
 //--------------------------INTERPOLATION--------------------------
 void get_pwm_table();
-uint16_t interpolate(float force);
-std::vector<uint16_t> interpolate_all(std::vector<float> &force_values);
+uint16_t interpolate(double force);
+std::vector<uint16_t> interpolate_all(std::vector<double> &force_values);
