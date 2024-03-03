@@ -66,7 +66,6 @@ class BlackBoxNode(Node):
         ros2_package_directory_location = ros2_package_directory_location + "src/vortex-asv/mission/blackbox/" # Navigate to this package
         
         # Make blackbox loging file
-        self.get_logger().info(ros2_package_directory_location)
         self.blackbox_log_data = BlackBoxLogData(
             ROS2_PACKAGE_DIRECTORY = ros2_package_directory_location
         )
