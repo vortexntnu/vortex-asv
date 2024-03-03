@@ -4,6 +4,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <thread>
+#include <sstream>
 
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <vortex_msgs/action/filtered_landmarks.hpp>
@@ -136,15 +137,6 @@ protected:
   void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<
                    vortex_msgs::action::FilteredLandmarks>>
                    goal_handle);
-
-  /**
-   * Calculates the distance between the landmark and the drone.
-   *
-   * @param pose The pose of the landmark.
-   * @param target_frame The frame to which data should be transformed.
-   * @param source_frame The frame where the data originated
-   * @return The distance between the landmark and the drone.
-   */
 
   /**
    * @brief Logs messages based on request.

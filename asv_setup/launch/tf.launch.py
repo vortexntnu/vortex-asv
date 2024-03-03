@@ -69,7 +69,7 @@ def generate_launch_description():
                    '--pitch'          , '0',
                    '--yaw'            , '0',
                    '--frame-id'       , 'base_link',
-                   '--child-frame-id' , 'seapath_frame_pose'],
+                   '--child-frame-id' , 'seapath_frame'],
     )
 
     return LaunchDescription([

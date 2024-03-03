@@ -4,7 +4,7 @@
   <name>landmark_server</name>
   <version>0.0.1</version>
   <description>ROS2 action server that handles the storage of landmarks and publishing based on the action request</description>
-  <maintainer email="jorgen.fjermedal@hotmail.com">jorgen Fjermedal</maintainer>
+  <maintainer email="jorgen.fjermedal@hotmail.com">Jorgen Fjermedal</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

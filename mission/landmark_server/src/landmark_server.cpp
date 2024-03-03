@@ -47,7 +47,7 @@ void LandmarkServerNode::landmarksRecievedCallback(
     "Received empty landmark array");
     return;
   }
-  const auto &pose = msg->landmarks[0].odom.pose.pose;
+  
   for (const auto &landmark : msg->landmarks) {
     // RCLCPP_INFO(this->get_logger(), "Landmarks received");
 
@@ -63,7 +63,7 @@ void LandmarkServerNode::landmarksRecievedCallback(
                          }),
           storedLandmarks_->landmarks.end());
     } else if (landmark.action == 1) {
-      // Find if the landmark already exists
+      // Find the landmark if it already exists
       auto it = std::find_if(
           storedLandmarks_->landmarks.begin(),
           storedLandmarks_->landmarks.end(), [&](const auto &storedLandmark) {
@@ -225,38 +225,35 @@ vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
   return filteredLandmarksOdoms;
 }
 
-void LandmarkServerNode::requestLogger(
-    const std::shared_ptr<
-        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
-        goal_handle) {
-  const auto goal = goal_handle->get_goal();
-  double distance = goal->distance;
+void LandmarkServerNode::requestLogger(  
+    const std::shared_ptr<  
+        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>  
+        goal_handle) {  
+  const auto goal = goal_handle->get_goal();  
+  double distance = goal->distance;  
 
-  if (distance == 0.0 && goal->landmark_types.empty()) {
-    RCLCPP_INFO(this->get_logger(), "Received request to return all landmarks");
-  } else if (goal->landmark_types.empty()) {
-    RCLCPP_INFO(this->get_logger(),
-                "Received request to return all landmarks within distance %f",
-                distance);
-  } else {
-    // Log the request to return landmarks by type filter
-    std::string types_log =
-        "Received request to return landmarks by type filter: [";
+  if (distance == 0.0 && goal->landmark_types.empty()) {  
+    RCLCPP_INFO_STREAM(this->get_logger(), "Received request to return all landmarks.");  
+    return;  
+  }  
+  
+  if (goal->landmark_types.empty()) {  
+    RCLCPP_INFO_STREAM(this->get_logger(),  
+                "Received request to return all landmarks within distance " << distance << ".");  
+    return;  
+  }  
 
-    for (const auto &type : goal->landmark_types) {
-      types_log += type + ", ";
-    }
-
-    // Remove the trailing comma and space
-    if (!goal->landmark_types.empty()) {
-      types_log = types_log.substr(0, types_log.size() - 2);
-    }
-
-    types_log += "]";
-
-    RCLCPP_INFO(this->get_logger(), types_log.c_str());
-  }
-}
+  std::stringstream types_log;  
+  types_log << "Received request to return landmarks by type filter: [";  
+  for (auto it = goal->landmark_types.begin(); it != goal->landmark_types.end(); it++) {  
+    types_log << *it;  
+    if (std::next(it) != goal->landmark_types.end()) {  
+      types_log << ", ";  
+    }  
+  }  
+  types_log << "].";  
+  RCLCPP_INFO_STREAM(this->get_logger(), types_log.str());  
+}  
 
 double
 LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Point &point,
