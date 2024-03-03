@@ -31,6 +31,7 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
   tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_);
 
   declare_parameter<std::string>("target_frame", "base_link");
+  declare_parameter<std::string>("world_frame", "world_frame");
 
   // Create the act.
   action_server_ = rclcpp_action::create_server<Action>(
@@ -49,7 +50,6 @@ void LandmarkServerNode::landmarksRecievedCallback(
   }
 
   for (const auto &landmark : msg->landmarks) {
-    // RCLCPP_INFO(this->get_logger(), "Landmarks received");
 
     if (landmark.action == 0) {
       // Remove landmarks with matching id and landmark_type
@@ -91,7 +91,13 @@ geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
 
   geometry_msgs::msg::PoseArray poseArray;
   // sets the header for the array to equal the header of the first landmark
-  poseArray.header.frame_id = landmarks.landmarks[0].odom.header.frame_id;
+  if (!landmarks.landmarks.empty()) {
+    poseArray.header.frame_id = landmarks.landmarks.at(0).odom.header.frame_id;
+    }
+    else {
+      poseArray.header.frame_id = get_parameter("world_frame").as_string();
+      poseArray.header.stamp = rclcpp::Clock().now();
+    }
   // Timestamps for stored landmarks may vary so use current time for
   // visualization
   poseArray.header.stamp = rclcpp::Clock().now();
