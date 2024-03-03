@@ -59,20 +59,53 @@ class DStarLite:
     def create_grid(self, val: float):
         return np.full((self.x_max, self.y_max), val)
     
-    def is_obstacle(self, node: Node):
-        x = np.array([node.x])
-        y = np.array([node.y])
-        obstacle_x_equal = self.obstacles_xy[:, 0] == x
-        obstacle_y_equal = self.obstacles_xy[:, 1] == y
-        is_in_obstacle = (obstacle_x_equal & obstacle_y_equal).any()
+    def is_valid_position(self, node: Node, min_distance: float = 1.0) -> bool:
+        """
+        Check if the node position is valid by ensuring it's at least min_distance away from the nearest obstacle.
 
-        is_in_detected_obstacle = False
-        if self.detected_obstacles_xy.shape[0] > 0:
-            is_x_equal = self.detected_obstacles_xy[:, 0] == x
-            is_y_equal = self.detected_obstacles_xy[:, 1] == y
-            is_in_detected_obstacle = (is_x_equal & is_y_equal).any()
+        :param node: The node to check.
+        :param min_distance: The minimum required distance from the nearest obstacle.
+        :return: True if the node is valid, False otherwise.
+        """
+        for obstacle in self.obstacles:
+            if distance(node, obstacle) < min_distance:
+                return False
+        return True
+    
+    # def is_obstacle(self, node: Node):
+    #     x = np.array([node.x])
+    #     y = np.array([node.y])
+    #     obstacle_x_equal = self.obstacles_xy[:, 0] == x
+    #     obstacle_y_equal = self.obstacles_xy[:, 1] == y
+    #     is_in_obstacle = (obstacle_x_equal & obstacle_y_equal).any()
 
-        return is_in_obstacle or is_in_detected_obstacle
+    #     is_in_detected_obstacle = False
+    #     if self.detected_obstacles_xy.shape[0] > 0:
+    #         is_x_equal = self.detected_obstacles_xy[:, 0] == x
+    #         is_y_equal = self.detected_obstacles_xy[:, 1] == y
+    #         is_in_detected_obstacle = (is_x_equal & is_y_equal).any()
+
+    #     return is_in_obstacle or is_in_detected_obstacle
+    def is_obstacle(self, node: Node, min_distance: float = 2.5) -> bool:
+        """
+        Check if the node is considered an obstacle or is too close to an obstacle.
+
+        :param node: The node to check.
+        :param min_distance: The minimum distance a node must be from any obstacle to be considered valid.
+        :return: True if the node is an obstacle or too close to one, False otherwise.
+        """
+        # Convert the node's coordinates to a numpy array for efficient distance computation
+        node_xy = np.array([node.x, node.y])
+
+        # Compute the distances from the node to all obstacles
+        distances = np.sqrt(np.sum((self.obstacles_xy - node_xy) ** 2, axis=1))
+
+        # Check if any distance is less than the minimum distance
+        if np.any(distances < min_distance):
+            return True  # The node is too close to an obstacle or is an obstacle
+
+        return False  # The node is not an obstacle and respects the minimum distance requirement
+
     
     def c(self, node1: Node, node2: Node):
         if self.is_obstacle(node2):
