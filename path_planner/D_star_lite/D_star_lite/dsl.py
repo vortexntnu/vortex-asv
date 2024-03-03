@@ -19,6 +19,9 @@ def add_coordinates(node1: Node, node2: Node):
 def compare_coordinates(node1: Node, node2: Node):
     return node1.x == node2.x and node1.y == node2.y
 
+def distance(node1: Node, node2: Node):
+    return math.sqrt((node1.x - node2.x)**2 + (node1.y - node2.y)**2)
+
 class DStarLite:
 
     motions = [
@@ -204,11 +207,15 @@ class DStarLite:
         path.append(self.goal)
         return path
     
+    def smooth_corner(self):
+        pass
+    
     def get_WP(self):
         WP_list = []
         for wp in self.WP:
             WP_list.append([wp.x + self.x_min_world, wp.y + self.y_min_world])
         return WP_list
+    
     
     def main(self, start: Node, goal: Node): #, spoofed_ox: list, spoofed_oy: list):
         #self.spoofed_obstacles = [[Node(x - self.x_min_world, y - self.y_min_world) for x, y in zip(rowx, rowy)] for rowx, rowy in zip(spoofed_ox, spoofed_oy)]
@@ -224,31 +231,52 @@ class DStarLite:
 
 def main():
     # start and goal position
-    sx = 10
-    sy = 10
-    gx = 50
-    gy = 50
+    sx = -5
+    sy = 50
+    gx = -5
+    gy = 30
 
     # Set obstacle positions
     ox, oy = [], []
     for i in range(-10, 60):
         ox.append(i)
-        oy.append(-10)
-    for i in range(-10, 60):
+        oy.append(60)
+    for i in range(20, 60):
         ox.append(60)
         oy.append(i)
-    for i in range(-10, 61):
+    for i in range(-10, 60):
         ox.append(i)
         oy.append(60)
-    for i in range(-10, 61):
+    for i in range(20, 61):
         ox.append(-10)
         oy.append(i)
-    for i in range(-10, 40):
-        ox.append(20)
+    for i in range(-10, 60):
+        ox.append(i)
+        oy.append(55)
+    for i in range(-10, 46):
+        ox.append(i)
+        oy.append(45)
+    for i in range(35, 45):
+        ox.append(45)
         oy.append(i)
-    for i in range(0, 40):
-        ox.append(40)
-        oy.append(60 - i)
+    for i in range(-10, 46):
+        ox.append(i)
+        oy.append(35)
+    for i in range(-10, 60):
+        ox.append(i)
+        oy.append(25)
+    # for i in range(-10, 40):
+    #     ox.append(20)
+    #     oy.append(i)
+    # for i in range(0, 40):
+    #     ox.append(40)
+    #     oy.append(60 - i)
+    # for i in range(-10, 40):
+    #     ox.append(15)
+    #     oy.append(i)
+    for i in range(-10, 60):
+        ox.append(i)
+        oy.append(20)
 
     dstarlite = DStarLite(ox, oy)
     dstarlite.main(Node(sx, sy), Node(gx, gy))
@@ -256,6 +284,7 @@ def main():
     pathx = [node.x + dstarlite.x_min_world for node in path]
     pathy = [node.y + dstarlite.y_min_world for node in path]
     WP = dstarlite.get_WP()
+    print("Waypoints: ", WP)
     
     # Plotting
     plt.plot(ox, oy, ".k")
