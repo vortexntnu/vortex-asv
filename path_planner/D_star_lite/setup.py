@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'D_star_lite_node = D_star_lite.D_star_lite_node:main'
         ],
     },
 )
