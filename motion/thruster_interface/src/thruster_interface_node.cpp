@@ -44,10 +44,12 @@ private:
     //----------------------------------------------------------
 
     int file;
-    if (started == false) {
+    /**if (started == false) {
       init(file);
       started = true;
-    }
+    }**/
+
+     init(file);
 
     // SENDING
     send_status(software_killswitch, file);
