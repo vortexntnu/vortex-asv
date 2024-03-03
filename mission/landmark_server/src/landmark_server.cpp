@@ -93,11 +93,10 @@ geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
   // sets the header for the array to equal the header of the first landmark
   if (!landmarks.landmarks.empty()) {
     poseArray.header.frame_id = landmarks.landmarks.at(0).odom.header.frame_id;
-    }
-    else {
-      poseArray.header.frame_id = get_parameter("world_frame").as_string();
-      poseArray.header.stamp = rclcpp::Clock().now();
-    }
+  } else {
+    poseArray.header.frame_id = get_parameter("world_frame").as_string();
+    poseArray.header.stamp = rclcpp::Clock().now();
+  }
   // Timestamps for stored landmarks may vary so use current time for
   // visualization
   poseArray.header.stamp = rclcpp::Clock().now();
