@@ -35,7 +35,7 @@ class BlackBoxLogData:
             writer.writerow(self.csv_headers)
     
     # Methods for inside use of the class ----------
-    def manage_csv_files(self, max_file_age_in_days=1, max_size_kb=3_000):         #adjust the max size before you start deleting old files (1 000 000 kb = 1 000 mb = 1 gb)
+    def manage_csv_files(self, max_file_age_in_days=1, max_size_kb=3_000_000):         #adjust the max size before you start deleting old files (1 000 000 kb = 1 000 mb = 1 gb)
         current_time = datetime.now()
         older_than_time = current_time - timedelta(days=max_file_age_in_days)
 

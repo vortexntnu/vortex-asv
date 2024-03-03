@@ -1,3 +1,31 @@
+"""
+TODO
+From Martynas:
+To Rose:
+Add data recording for these ROS2 topics:
+
+MOST IMPORTANT:
+'/internal/status/bms0',
+'/internal/status/bms1',
+'/asv/temperature/ESC1',
+'/asv/temperature/ESC2',
+'/asv/temperature/ESC3',
+'/asv/temperature/ESC4',
+'/asv/temperature/ambient1',
+'/asv/temperature/ambient2',
+'/thrust/thruster_forces',
+'/pwm',
+
+Nice to have:
+'/joy',                               
+'/joystick/joy',
+'/thrust/wrench_input',
+'/controller/lqr/enable',
+'/tf',
+'/tf_static'
+"""
+
+
 # ROS2 Libraries
 import rclpy
 from rclpy.node import Node
