@@ -43,11 +43,11 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
 void LandmarkServerNode::landmarksRecievedCallback(
     const LandmarkArray::SharedPtr msg) {
   if (msg->landmarks.empty()) {
-    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000, 
-    "Received empty landmark array");
+    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                                "Received empty landmark array");
     return;
   }
-  
+
   for (const auto &landmark : msg->landmarks) {
     // RCLCPP_INFO(this->get_logger(), "Landmarks received");
 
@@ -109,8 +109,8 @@ rclcpp_action::GoalResponse LandmarkServerNode::handle_goal(
   RCLCPP_INFO(this->get_logger(), "Received request");
   (void)uuid;
   if (goal->distance < 0.0) {
-    RCLCPP_ERROR(this->get_logger(), 
-    "Distance must be non-negative, aborting goal");
+    RCLCPP_ERROR(this->get_logger(),
+                 "Distance must be non-negative, aborting goal");
 
     return rclcpp_action::GoalResponse::REJECT;
   }
@@ -225,35 +225,39 @@ vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
   return filteredLandmarksOdoms;
 }
 
-void LandmarkServerNode::requestLogger(  
-    const std::shared_ptr<  
-        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>  
-        goal_handle) {  
-  const auto goal = goal_handle->get_goal();  
-  double distance = goal->distance;  
+void LandmarkServerNode::requestLogger(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<vortex_msgs::action::FilteredLandmarks>>
+        goal_handle) {
+  const auto goal = goal_handle->get_goal();
+  double distance = goal->distance;
 
-  if (distance == 0.0 && goal->landmark_types.empty()) {  
-    RCLCPP_INFO_STREAM(this->get_logger(), "Received request to return all landmarks.");  
-    return;  
-  }  
-  
-  if (goal->landmark_types.empty()) {  
-    RCLCPP_INFO_STREAM(this->get_logger(),  
-                "Received request to return all landmarks within distance " << distance << ".");  
-    return;  
-  }  
+  if (distance == 0.0 && goal->landmark_types.empty()) {
+    RCLCPP_INFO_STREAM(this->get_logger(),
+                       "Received request to return all landmarks.");
+    return;
+  }
 
-  std::stringstream types_log;  
-  types_log << "Received request to return landmarks by type filter: [";  
-  for (auto it = goal->landmark_types.begin(); it != goal->landmark_types.end(); it++) {  
-    types_log << *it;  
-    if (std::next(it) != goal->landmark_types.end()) {  
-      types_log << ", ";  
-    }  
-  }  
-  types_log << "].";  
-  RCLCPP_INFO_STREAM(this->get_logger(), types_log.str());  
-}  
+  if (goal->landmark_types.empty()) {
+    RCLCPP_INFO_STREAM(
+        this->get_logger(),
+        "Received request to return all landmarks within distance " << distance
+                                                                    << ".");
+    return;
+  }
+
+  std::stringstream types_log;
+  types_log << "Received request to return landmarks by type filter: [";
+  for (auto it = goal->landmark_types.begin(); it != goal->landmark_types.end();
+       it++) {
+    types_log << *it;
+    if (std::next(it) != goal->landmark_types.end()) {
+      types_log << ", ";
+    }
+  }
+  types_log << "].";
+  RCLCPP_INFO_STREAM(this->get_logger(), types_log.str());
+}
 
 double
 LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Point &point,
@@ -279,10 +283,10 @@ LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Point &point,
     return sqrt(x * x + y * y + z * z);
 
   } catch (tf2::TransformException &ex) {
-    RCLCPP_WARN_STREAM_THROTTLE(
-        this->get_logger(), *this->get_clock(), 5000,
-        "Could not transform landmark position: " << ex.what() << 
-        "\nIgnoring distance filter");
+    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                                "Could not transform landmark position: "
+                                    << ex.what()
+                                    << "\nIgnoring distance filter");
   }
 
   return 0.0;

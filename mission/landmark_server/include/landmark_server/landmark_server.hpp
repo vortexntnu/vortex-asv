@@ -3,8 +3,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
-#include <thread>
 #include <sstream>
+#include <thread>
 
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <vortex_msgs/action/filtered_landmarks.hpp>
