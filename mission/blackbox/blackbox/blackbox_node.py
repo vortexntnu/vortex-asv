@@ -71,9 +71,10 @@ class BlackBoxNode(Node):
         )
 
         # Logs all the newest data 10 times per second
-        self.declare_parameter("blackbox.data_logging_rate", 0.1)  # Providing a default value
+        self.declare_parameter("blackbox.data_logging_rate", 1.0)  # Providing a default value 1.0 => 1 samplings per second, verry slow
         DATA_LOGING_RATE = self.get_parameter("blackbox.data_logging_rate").get_parameter_value().double_value
-        self.logger_timer = self.create_timer(1.0/DATA_LOGING_RATE, self.logger)
+        timer_period = 1.0/DATA_LOGING_RATE
+        self.logger_timer = self.create_timer(timer_period, self.logger)
 
         # Debuging ----------
         self.get_logger().info(

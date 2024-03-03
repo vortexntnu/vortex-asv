@@ -50,6 +50,9 @@
           scaling: [ 1.0,  1.0,  1.0, 1.0, 1.0, 1.0]
 
     blackbox:
-      data_logging_rate: 5.0 # Log all data 5 times per second
+      data_logging_rate: 5.0 # [logings/second], Recomended: 5.0 logings per second
+    
+    internal_status:
+      psm_read_rate: 2.0 # [readings/second], Recomended 2.0 readings per second OBS! Try keeping under 2.0 as otherwise I2C comunication to Power Sense Module might become bad as psm needs time to sample data
 
     computer: "pc-debug"

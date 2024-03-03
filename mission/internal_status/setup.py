@@ -3,6 +3,7 @@ from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'internal_status'
+yaml_file_dir = "asv_setup/"
 
 setup(
     name=package_name,
@@ -12,7 +13,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*')))
+        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
+        (os.path.join('share', yaml_file_dir, 'config/robots'), glob('robots/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

@@ -5,7 +5,6 @@ import os
 
 def generate_launch_description():
     # Path to the YAML file
-    # If the YAML file is not within a package, specify the absolute path directly
     yaml_file_path = os.path.join(
         get_package_share_directory("blackbox"),
         "../../../../",  # Go to the workspace
