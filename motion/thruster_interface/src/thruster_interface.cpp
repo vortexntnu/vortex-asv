@@ -1,6 +1,6 @@
 #include <thruster_interface/thruster_interface.hpp>
 
-//const int I2C_ADDRESS = 0x21;
+// const int I2C_ADDRESS = 0x21;
 const char *I2C_DEVICE = "/dev/i2c-1";
 int8_t i2c_slave_addr = 0x20;
 std::map<float, float> pwm_table;
