@@ -1,8 +1,10 @@
 import os
 from glob import glob
 from setuptools import find_packages, setup
+from ament_index_python.packages import get_package_share_directory
 
 package_name = 'blackbox'
+yaml_file_dir = "asv_setup/"
 
 setup(
     name=package_name,
@@ -14,6 +16,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
+        (os.path.join('share', yaml_file_dir, 'config/robots'), glob('robots/*.yaml'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,

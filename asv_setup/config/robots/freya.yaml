@@ -49,4 +49,7 @@
           max:     [150.0, 150.0, 150.0, 150.0, 150.0, 150.0]
           scaling: [ 1.0,  1.0,  1.0, 1.0, 1.0, 1.0]
 
+    blackbox:
+      data_logging_rate: 5.0 # Log all data 5 times per second
+
     computer: "pc-debug"

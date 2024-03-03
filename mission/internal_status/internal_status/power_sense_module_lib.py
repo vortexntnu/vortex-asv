@@ -34,8 +34,8 @@ class PowerSenseModule:
                              self.psm_to_battery_voltage)
             return system_voltage
 
-        except IOError:
-            return
+        except IOError as e:
+            return -1
 
     def get_current(self):
         try:
@@ -45,8 +45,9 @@ class PowerSenseModule:
 
             return system_current
 
-        except IOError:
-            return
-
+        except IOError as e:
+            return -1
+        
     def shutdown(self):
         self.bus.close()
+
