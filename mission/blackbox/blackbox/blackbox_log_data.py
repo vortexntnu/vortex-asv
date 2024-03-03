@@ -30,10 +30,11 @@ class BlackBoxLogData:
         self.manage_csv_files()
 
         # Make new .csv file for loging blackbox data ----------
-        with open(self.data_file_location, mode='w', newline='') as csv_file:
+        with open(self.data_file_location, mode="w", newline="") as csv_file:
             writer = csv.writer(csv_file)
             writer.writerow(self.csv_headers)
-        
+    
+    # Methods for inside use of the class ----------
     def manage_csv_files(self, max_file_age_in_days=1, max_size_kb=3_000):         #adjust the max size before you start deleting old files (1 000 000 kb = 1 000 mb = 1 gb)
         current_time = datetime.now()
         older_than_time = current_time - timedelta(days=max_file_age_in_days)
@@ -75,8 +76,19 @@ class BlackBoxLogData:
             total_size_kb = sum(os.path.getsize(os.path.join(self.blackbox_data_directory, f)) for f in os.listdir(self.blackbox_data_directory) if f.endswith('.csv')) / 1024
             print(f'Now the total size of .csv files is: {total_size_kb:.2f} KB')
 
+    # Methods for external uses ----------
     def log_data_to_csv_file(self,
-        POWER_SENSE_MODULE_CURRENT = 0.0,
-        POWER_SENSE_MODULE_VOLTAGE = 0.0
+        psm_current = 0.0,
+        psm_voltage = 0.0,
     ):
-        pass
+        # Get current time in hours, minutes, seconds and miliseconds
+        current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+
+        # Write to .csv file
+        with open(self.data_file_location, mode="a", newline="") as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow([
+                current_time,
+                psm_current,
+                psm_voltage,
+            ])

@@ -53,7 +53,6 @@ class BlackBoxNode(Node):
             "/asv/power_sense_module/voltage [Float32] \n"
         )
 
-
     # Callback Methods ----------
     def psm_current_callback(self, msg):
         self.psm_current_data = msg.data
@@ -62,7 +61,10 @@ class BlackBoxNode(Node):
         self.psm_voltage_data = msg.data
 
     def logger(self):
-        pass
+        self.blackbox_log_data.log_data_to_csv_file(
+            psm_current=self.psm_current_data,
+            psm_voltage=self.psm_voltage_data,
+        )
 
 
 
