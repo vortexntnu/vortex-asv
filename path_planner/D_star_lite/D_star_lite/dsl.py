@@ -116,7 +116,11 @@ class DStarLite:
     
     def h(self, s: Node):
         # Can be modified
-        return 1
+        #return 1
+        #return max(abs(self.start.x - s.x), abs(self.start.y - s.y)) # Manhattan distance
+        dx = abs(self.start.x - s.x)
+        dy = abs(self.start.y - s.y)
+        return max(dx, dy) + (math.sqrt(2) - 1) * min(dx, dy) # Chebyshev distance
     
     def calculate_key(self, s: Node):
         return (min(self.g[s.x][s.y], self.rhs[s.x][s.y]) + self.h(s) + self.km, min(self.g[s.x][s.y], self.rhs[s.x][s.y]))
