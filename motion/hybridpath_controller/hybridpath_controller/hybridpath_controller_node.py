@@ -10,7 +10,7 @@ class HybridPathControllerNode(Node):
     def __init__(self):
         super().__init__("hybridpath_controller_node")
         
-        self.hpref_subscriber_ = self.create_subscription(HybridpathReference, "guidance/Hybridpath/reference", self.hpref_cb, 1)
+        self.hpref_subscriber_ = self.create_subscription(HybridpathReference, "guidance/hybridpath/reference", self.hpref_cb, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench, "thrust/wrench_input", 1)
 
         self.declare_parameters(
@@ -21,7 +21,7 @@ class HybridPathControllerNode(Node):
 
         self.kappa = self.get_parameter('hybridpath_controller.kappa').get_parameter_value().double_value
 
-        self.AB_controller = AdaptiveBackstep(self.kappa)
+        self.AB_controller = AdaptiveBackstep()
 
         self.get_logger().info("hybridpath_controller_node started")
 

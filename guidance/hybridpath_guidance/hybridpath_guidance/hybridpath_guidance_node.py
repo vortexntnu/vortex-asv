@@ -23,7 +23,7 @@ class HybridPathGuidanceNode(Node):
         self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odometry/ned", self.state_cb, 1)
 
         # Publishers
-        self.guidance_publisher_ = self.create_publisher(HybridpathReference, "guidance/Hybridpath/reference", 1)
+        self.guidance_publisher_ = self.create_publisher(HybridpathReference, "guidance/hybridpath/reference", 1)
 
         # Init parameters
         self.waypoints = waypoints
