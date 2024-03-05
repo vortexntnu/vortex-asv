@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from hybridpath_controller.hybridpath import HybridPathGenerator, HybridPathSignals
 
 class AdaptiveBackstep:
     def __init__(self, kappa):
