@@ -2,6 +2,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import math
+from path_utils import HybridPathGenerator, HybridPathSignals
 
 class Node:
     def __init__(self, x: int = 0, y: int = 0, cost: float = 0.0):
@@ -118,9 +119,10 @@ class DStarLite:
         # Can be modified
         #return 1
         #return max(abs(self.start.x - s.x), abs(self.start.y - s.y)) # Manhattan distance
-        dx = abs(self.start.x - s.x)
-        dy = abs(self.start.y - s.y)
-        return max(dx, dy) + (math.sqrt(2) - 1) * min(dx, dy) # Chebyshev distance
+        # dx = abs(self.start.x - s.x)
+        # dy = abs(self.start.y - s.y)
+        # return max(dx, dy) + (math.sqrt(2) - 1) * min(dx, dy) # Chebyshev distance
+        return distance(s, self.goal) # Euclidean distance
     
     def calculate_key(self, s: Node):
         return (min(self.g[s.x][s.y], self.rhs[s.x][s.y]) + self.h(s) + self.km, min(self.g[s.x][s.y], self.rhs[s.x][s.y]))
@@ -242,6 +244,7 @@ class DStarLite:
             last_point = current_point
             current_point = min(self.succ(current_point), key = lambda sprime: self.c(current_point, sprime) + self.g[sprime.x][sprime.y])
         path.append(self.goal)
+        self.WP.append(self.goal)
         return path
     
     def smooth_corner(self):
@@ -314,25 +317,38 @@ def main():
     for i in range(-10, 60):
         ox.append(i)
         oy.append(20)
-
+    
     dstarlite = DStarLite(ox, oy)
     dstarlite.main(Node(sx, sy), Node(gx, gy))
     path = dstarlite.compute_current_path()
     pathx = [node.x + dstarlite.x_min_world for node in path]
     pathy = [node.y + dstarlite.y_min_world for node in path]
-    WP = dstarlite.get_WP()
+    WP = np.array(dstarlite.get_WP())
+    WP = np.array([[wp[1], wp[0]] for wp in WP])
     print("Waypoints: ", WP)
-    
+    new_WP = [WP[0]]
+    for i in range(1, len(WP)):
+        if abs(WP[i][0] - WP[i - 1][0]) < 2 and abs(WP[i][1] - WP[i - 1][1]) < 2:
+            continue
+        else:
+            new_WP.append(WP[i])
+    WP = np.array(new_WP)
+    print("Waypoints: ", WP)
+        
+    hp = HybridPathGenerator(WP, 1, 0.3, 1)
     # Plotting
     plt.plot(ox, oy, ".k")
     plt.plot(sx, sy, "og")
     plt.plot(gx, gy, "xb")
     plt.plot(pathx, pathy, "-r")
     for wp in WP:
-        plt.plot(wp[0], wp[1], "or")
+        plt.plot(wp[1], wp[0], "or")
     plt.grid(True)
     plt.axis("equal")
     plt.show()
+
+    hp.plot_path()
+
 
 if __name__ == '__main__':
     main()
