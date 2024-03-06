@@ -17,27 +17,43 @@ class WaypointManager(Node):
     Subscribes to:
     Publishes to:
     """
-
+    
     def __init__(self):
-        super().__init("WaypointManager")
+        """
+        Initializes WaypointManager class.
+
+        Initializes node, sets up action client, services, and publishers.
+        """
+        super().__init__("WaypointManager")
 
         self.waypoint_list = []
 
         ## Action client
-        self.action_client = ActionClient(LosPathFollowing, 'LosPathFollowing')
-        while not self.action_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Action server not available, waiting again...')
+        self._action_client = ActionClient(self, LosPathFollowing, 'LosPathFollowing')
+        #while not self._action_client.wait_for_server(timeout_sec=1.0):
+        #   self.get_logger().info('Action server not available, waiting again...')
 
         # Services
+        self.get_logger().info('kommet til services')
         self.add_waypoint_service = self.create_service(Waypoint, 'add_waypoint', self.add_waypoint_to_list)
+        self.get_logger().info('kommet til etter at man har laget add_waypoint_services')
         self.remove_waypoint_service = self.create_service(Waypoint, 'remove_waypoint', self.remove_waypoint_from_list)
 
         # nav_msgs Path to visualize LOS in Rviz
         self.path_pub = self.create_publisher(Path, 'los_path', 10)
         self.path = Path()
         self.path.header.frame_id = 'world'
-        
+   
     def add_waypoint_to_list(self, req):
+        """
+        Adds a waypoint to the waypoint list.
+
+        Args:
+            req (Waypoint.Request): Request containing the waypoint to be added.
+
+        Returns:
+            Waypoint.Response: True if waypoint is added successfully.
+        """
         self.waypoint_list.append(req.waypoint)
         self.get_logger().info("add waypoint to waypoint_list")
         newpose = PoseStamped()
@@ -48,6 +64,12 @@ class WaypointManager(Node):
         return Waypoint.Response(True)
     
     def remove_waypoint_from_list(self, req):
+        """
+        Removes a waypoint from the waypoint list.
+
+        Args:
+            req (Waypoint.Request): Request containing the waypoint to be removed.
+        """
         self.waypoint_list.remove(req)
         self.get_logger().info("remove waypoint from waypoint_list")
         self.path.poses.reverse()
@@ -56,6 +78,9 @@ class WaypointManager(Node):
         self.path_pub.publish(self.path)
     
     def spin(self):
+        """
+        Spins the node to process added waypoints and send them to the action server.
+        """
         index_waypoint_k = 0
         while rclpy.ok():
             if len(self.waypoint_list) >= 2 and index_waypoint_k < len(self.waypoint_list) - 1:

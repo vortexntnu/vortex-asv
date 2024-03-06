@@ -10,8 +10,7 @@ def generate_launch_description():
         package='waypoint_manager',
         executable='waypoint_manager.py',
         name='waypoint_manager',
-        output='screen',
-        parameters=[os.path.join(get_package_share_directory('waypoint_manager'), 'config/param_waypoint_manager.yaml')]
+        output='screen'
     )
  
     return LaunchDescription([
