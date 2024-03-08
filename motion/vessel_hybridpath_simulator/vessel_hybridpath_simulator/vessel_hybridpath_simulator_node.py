@@ -16,14 +16,15 @@ class VesselHybridpathSimulatorNode(Node):
     def __init__(self):
         super().__init__("vessel_hybridpath_simulator_node")
         
-        self.wrench_subscriber_ = self.create_subscription(Wrench, "thrust/wrench_input", self.wrench_input_cb, 1)
-        self.hp_ref_subscriber_ = self.create_subscription(HybridpathReference, "guidance/hybridpath/reference", self.hp_ref_cb, 1)
+        self.wrench_subscriber_ = self.create_subscription(Wrench, "thrust/wrench_input", self.wrench_input_cb, 15)
+        self.hp_ref_subscriber_ = self.create_subscription(HybridpathReference, "guidance/hybridpath/reference", self.hp_ref_cb, 20)
         self.state_publisher_ = self.create_publisher(Odometry, "/sensor/seapath/odometry/ned", 1)
         
-        T = 200.0
+        self.T = 200.0
         self.dt = 0.05
 
-        self.time = np.arange(0, T, self.dt)
+        self.time = np.arange(0, self.T, self.dt)
+
         self.i = 1 # Step counter
         self.i_ref = 1 # Step counter for guidance ref
 
@@ -63,7 +64,7 @@ class VesselHybridpathSimulatorNode(Node):
                             ,"     ## /           U
                           ,"   ##    /
 
-                Simulation time: """ + str(self.T) + """ secs. Pleas wait for sim to funish:)
+                Simulation time: """ + str(self.T) + """ secs. Please wait for sim to finish:)
                     """)
 
     def wrench_input_cb(self, msg: Wrench):
@@ -82,6 +83,7 @@ class VesselHybridpathSimulatorNode(Node):
         eta_dot = R @ self.nu[:, self.i]
         self.eta[:, self.i] = self.eta[:, self.i-1] + eta_dot * self.dt
 
+        # SSA
         psi0 = self.eta[2, self.i-1]
         psi1 = self.eta[2, self.i]
         psi_vec = np.array([psi0, psi1])
@@ -96,7 +98,10 @@ class VesselHybridpathSimulatorNode(Node):
 
 
     def hp_ref_cb(self, msg: HybridpathReference):
-        self.eta_d[:, self.i_ref] = np.array([msg.eta_d.x, msg.eta_d.y, msg.eta_d.theta])
+        if self.i_ref < self.eta_d.shape[1]:
+            self.eta_d[:, self.i_ref] = np.array([msg.eta_d.x, msg.eta_d.y, msg.eta_d.theta])
+        else:
+            self.get_logger().error('Index out of bounds: self.i_ref is too large')
         self.i_ref += 1
     
     def state_to_odometrymsg(self):
@@ -121,7 +126,8 @@ class VesselHybridpathSimulatorNode(Node):
     
 
     def plot_simulation(self):
-             # Plotting
+        # np.savetxt('/home/eta_d_ros.txt', self.eta_d.T)
+        # Plotting
         plt.figure()
         plt.plot(self.eta_d[1,:], self.eta_d[0,:], label='Reference path', zorder = 0)
         plt.plot(self.eta[1,:], self.eta[0,:], label='Actual path', zorder = 1)
