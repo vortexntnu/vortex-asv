@@ -29,7 +29,7 @@ class HybridPathGuidanceNode(Node):
         self.waypoints = waypoints
         self.lambda_val = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
         self.path_generator_order = self.get_parameter('hybridpath_guidance.path_generator_order').get_parameter_value().integer_value
-        self.time_to_max_speed = self.get_parameter('hybridpath_guidance.time_to_max_speed').get_parameter_value().double_value
+        self.time_to_max_speed = self.get_parameter('hybridpath_guidance.time_to_max_speed').get_parameter_value().double_value # Not used
         
         self.generator = HybridPathGenerator(waypoints, self.path_generator_order, self.lambda_val, 1)
         self.path = self.generator.Path
