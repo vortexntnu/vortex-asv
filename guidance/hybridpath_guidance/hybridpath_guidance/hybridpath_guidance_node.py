@@ -102,18 +102,6 @@ class HybridPathGuidanceNode(Node):
         self.eta_, self.nu_ = state[:3], state[3:]
         w_ref, v_ref, v_ref_t, v_ref_s, eta_d, eta_d_s, eta_d_ss = self.calculate_desired_states(self.dt_)
 
-        # Write w_ref, v_ref, v_ref_t, v_ref_s, eta_d, eta_d_s, eta_d_ss to file
-        with open('hp_ref_msg.txt', 'w') as f:
-            f.write(f'w_ref: {w_ref}\n')
-            f.write(f'v_ref: {v_ref}\n')
-            f.write(f'v_ref_t: {v_ref_t}\n')
-            f.write(f'v_ref_s: {v_ref_s}\n')
-            f.write(f'eta: {self.eta_}\n')
-            f.write(f'nu: {self.nu_}\n')
-            f.write(f'eta_d: {eta_d}\n')
-            f.write(f'eta_d_s: {eta_d_s}\n')
-            f.write(f'eta_d_ss: {eta_d_ss}\n')
-
         hp_ref_msg = HybridpathReference()
         hp_ref_msg.w_ref = w_ref
         hp_ref_msg.v_ref = v_ref
