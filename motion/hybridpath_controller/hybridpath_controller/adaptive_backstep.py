@@ -1,7 +1,7 @@
 import numpy as np
 
 class AdaptiveBackstep:
-    def __init__(self, kappa):
+    def __init__(self, kappa = 0.5):
         self.init_system(kappa)
 
     def init_system(self, kappa):
