@@ -4,8 +4,6 @@ from rclpy.node import Node
 from hybridpath_controller.adaptive_backstep import AdaptiveBackstep
 from geometry_msgs.msg import Wrench
 from vortex_msgs.msg import HybridpathReference
-# TESTING
-# from geometry_msgs.msg import Pose2D
 
 class HybridPathControllerNode(Node):
     def __init__(self):
@@ -23,23 +21,6 @@ class HybridPathControllerNode(Node):
         self.kappa_ = self.get_parameter('hybridpath_controller.kappa').get_parameter_value().double_value
 
         self.AB_controller_ = AdaptiveBackstep(self.kappa_)
-
-        # TESTING
-
-        # msg = HybridpathReference()
-        # # Set the properties of the msg object as needed
-        # msg.w_ref = 0.03819000726434428
-        # msg.v_ref = 0.1001407579811512
-        # msg.v_ref_t = 0.0
-        # msg.v_ref_s = 0.0108627157420586
-
-        # msg.eta = Pose2D(x=1.0, y=1.0, theta=0.0)
-        # msg.nu = Pose2D(x=0.0, y=0.0, theta=0.0)
-        # msg.eta_d = Pose2D(x=10.00035914, y=0.24996664, theta=1.56654648)
-        # msg.eta_d_s = Pose2D(x=0.04243858, y=9.98585381, theta=-0.33009297)
-        # msg.eta_d_ss = Pose2D(x=3.29165665, y=-1.09721888, theta=-11.90686869)
-
-        # self.hpref_cb(msg)
 
         self.get_logger().info("hybridpath_controller_node started")
 
@@ -65,10 +46,6 @@ class HybridPathControllerNode(Node):
         eta_d_ss = np.array([msg.eta_d_ss.x, msg.eta_d_ss.y, msg.eta_d_ss.theta])
 
         tau = self.AB_controller_.control_law(eta, nu, w_ref, v_ref, v_ref_t, v_ref_s, eta_d, eta_d_s, eta_d_ss)
-
-        # TESTING
-        # with open('tau.txt', 'w') as file:
-        #     file.write(f'tau: {tau}')
 
         wrench_msg = Wrench()
         wrench_msg.force.x  = float(tau[0])
