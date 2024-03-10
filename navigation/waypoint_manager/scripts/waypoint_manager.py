@@ -32,36 +32,52 @@ class WaypointManager(Node):
         self._action_client = ActionClient(self, LosPathFollowing, 'LosPathFollowing')
         #while not self._action_client.wait_for_server(timeout_sec=1.0):
         #   self.get_logger().info('Action server not available, waiting again...')
+           
+        #Action server 
 
         # Services
         self.get_logger().info('kommet til services')
-        self.add_waypoint_service = self.create_service(Waypoint, 'add_waypoint', self.add_waypoint_to_list)
+        self.add_waypoint_service = self.create_service(Waypoint, 'add_waypoint', self.add_waypoint_callback)
         self.get_logger().info('kommet til etter at man har laget add_waypoint_services')
-        self.remove_waypoint_service = self.create_service(Waypoint, 'remove_waypoint', self.remove_waypoint_from_list)
+        self.remove_waypoint_service = self.create_service(Waypoint, 'remove_waypoint', self.remove_waypoint_callback)
 
         # nav_msgs Path to visualize LOS in Rviz
         self.path_pub = self.create_publisher(Path, 'los_path', 10)
         self.path = Path()
         self.path.header.frame_id = 'world'
+
+
    
     def add_waypoint_to_list(self, req):
         """
-        Adds a waypoint to the waypoint list.
+        Adds waypoints to the waypoint list.
 
         Args:
-            req (Waypoint.Request): Request containing the waypoint to be added.
+            req (Waypoint.Request): Request containing the list of waypoints to be added.
 
         Returns:
-            Waypoint.Response: True if waypoint is added successfully.
+            Waypoint.Response: True if waypoints are added successfully.
         """
-        self.waypoint_list.append(req.waypoint)
-        self.get_logger().info("add waypoint to waypoint_list")
-        newpose = PoseStamped()
-        newpose.pose.position = Point(x=req.waypoint.x, y=req.waypoint.y, z=0)
-        self.path.poses.append(newpose)
+        waypoints = req.waypoints
+
+        for waypoint in waypoints:
+            x = waypoint[0]
+            y = waypoint[1]
+
+            self.waypoint_list.append(waypoint)
+            self.get_logger().info(f"Added waypoint {waypoint} to waypoint_list")
+
+            new_pose = PoseStamped()
+            new_pose.pose.position = Point(x=x, y=y, z=0.0)
+            self.path.poses.append(new_pose)
+
         self.path_pub.publish(self.path)
 
-        return Waypoint.Response(True)
+        response = Waypoint.Response()
+        response.success = True
+
+        return response
+
     
     def remove_waypoint_from_list(self, req):
         """
@@ -70,12 +86,49 @@ class WaypointManager(Node):
         Args:
             req (Waypoint.Request): Request containing the waypoint to be removed.
         """
-        self.waypoint_list.remove(req)
-        self.get_logger().info("remove waypoint from waypoint_list")
-        self.path.poses.reverse()
-        self.path.poses.pop()
-        self.path.poses.reverse()
-        self.path_pub.publish(self.path)
+
+        self.get_logger().info("request: " + str(req.waypoint))
+        self.get_logger().info("before remove: " + str(self.waypoint_list))
+
+        # Checks if the waypoint_list is empty
+        if not self.waypoint_list:
+            self.get_logger().info("Waypoint list is empty")
+
+            response = Waypoint.Response()
+            response.success = False
+            return response
+
+        # Checks if the waypoint exists in the list
+        if req.waypoint in self.waypoint_list:
+            self.waypoint_list.remove(req.waypoint)
+            self.get_logger().info("remove waypoint from waypoint_list")
+        else:
+            self.get_logger().info("Waypoint not found in waypoint_list")
+
+            response = Waypoint.Response()
+            response.success = False
+            return response
+        
+        self.get_logger().info("after remove: " +str(self.waypoint_list))
+
+        # Check if path.poses is empty before popping
+        if self.path.poses:
+            self.path.poses.reverse()
+            self.path.poses.pop()
+            self.path.poses.reverse()
+
+            self.path_pub.publish(self.path)
+
+        response = Waypoint.Response()
+        response.success = True
+        
+        return response
+    
+    def add_waypoint_callback(self, request, response):
+        return self.add_waypoint_to_list(request)
+
+    def remove_waypoint_callback(self, request, response):
+        return self.remove_waypoint_from_list(request)
     
     def spin(self):
         """
@@ -125,4 +178,4 @@ def main(args=None):
     rclpy.shutdown()
 
 if __name__ == '__main__':
-    main()    
+    main()      
