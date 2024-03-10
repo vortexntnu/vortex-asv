@@ -24,7 +24,7 @@ class HybridPathGuidanceNode(Node):
         self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odometry/ned", self.state_cb, 1)
         self.guidance_publisher_ = self.create_publisher(HybridpathReference, "guidance/hybridpath/reference", 1)
 
-        # TODO: Add support for WaypointManager
+        # TODO: Add support for WaypointManager, add removal of "completed" waypoints
 
         self.waypoints_ = waypoints
         self.lambda_val_ = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
@@ -86,6 +86,7 @@ class HybridPathGuidanceNode(Node):
         Args:
             waypoints (np.ndarray): New waypoints
         """
+        self.s_ = 0
         self.generator_ = HybridPathGenerator(waypoints, self.path_generator_order_, self.lambda_val_, 1)
         self.path_ = self.generator_.Path
 
