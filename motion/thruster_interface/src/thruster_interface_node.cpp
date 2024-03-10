@@ -23,7 +23,8 @@ void ThrusterInterfaceROS::thrust_callback(
   // clockwise
   for (int i = 0; i < 4; i++) {
     int center_pwm_value = 1500;
-    int input = pwm_values[i] - center_pwm_value int offset_from_center_value =
+    int input = pwm_values[i] - center_pwm_value;
+    int offset_from_center_value =
                     center_pwm_value + pwm_offsets_[i];
     int pwm_value_correct_direction =
         offset_from_center_value + input * thruster_direction_map_[i];
