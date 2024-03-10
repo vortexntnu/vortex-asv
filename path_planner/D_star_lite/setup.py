@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'D_star_lite'
@@ -16,7 +18,7 @@ setup(
     maintainer='andeshog',
     maintainer_email='157955984+Andeshog@users.noreply.github.com',
     description='TODO: Package description',
-    license='TODO: License declaration',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

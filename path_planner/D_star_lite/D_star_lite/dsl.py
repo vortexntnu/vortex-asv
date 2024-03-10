@@ -2,7 +2,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import math
-from path_utils import HybridPathGenerator, HybridPathSignals
+# from path_utils import HybridPathGenerator, HybridPathSignals
 
 class Node:
     def __init__(self, x: int = 0, y: int = 0, cost: float = 0.0):
@@ -87,7 +87,7 @@ class DStarLite:
     #         is_in_detected_obstacle = (is_x_equal & is_y_equal).any()
 
     #     return is_in_obstacle or is_in_detected_obstacle
-    def is_obstacle(self, node: Node, min_distance: float = 2.5) -> bool:
+    def is_obstacle(self, node: Node, min_distance: float = 4.5) -> bool:
         """
         Check if the node is considered an obstacle or is too close to an obstacle.
 
@@ -257,7 +257,7 @@ class DStarLite:
         return WP_list
     
     
-    def main(self, start: Node, goal: Node): #, spoofed_ox: list, spoofed_oy: list):
+    def dsl_main(self, start: Node, goal: Node): #, spoofed_ox: list, spoofed_oy: list):
         #self.spoofed_obstacles = [[Node(x - self.x_min_world, y - self.y_min_world) for x, y in zip(rowx, rowy)] for rowx, rowy in zip(spoofed_ox, spoofed_oy)]
         pathx = []
         pathy = []
@@ -269,88 +269,80 @@ class DStarLite:
         print("Path found")
         return True, pathx, pathy
 
-def main():
-    # start and goal position
-    sx = -5
-    sy = 50
-    gx = -5
-    gy = 30
+# def main():
+#     # start and goal position
+#     sx = -5
+#     sy = 50
+#     gx = -5
+#     gy = 30
 
-    # Set obstacle positions
-    ox, oy = [], []
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(60)
-    for i in range(20, 60):
-        ox.append(60)
-        oy.append(i)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(60)
-    for i in range(20, 61):
-        ox.append(-10)
-        oy.append(i)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(55)
-    for i in range(-10, 46):
-        ox.append(i)
-        oy.append(45)
-    for i in range(35, 45):
-        ox.append(45)
-        oy.append(i)
-    for i in range(-10, 46):
-        ox.append(i)
-        oy.append(35)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(25)
-    # for i in range(-10, 40):
-    #     ox.append(20)
-    #     oy.append(i)
-    # for i in range(0, 40):
-    #     ox.append(40)
-    #     oy.append(60 - i)
-    # for i in range(-10, 40):
-    #     ox.append(15)
-    #     oy.append(i)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(20)
+#     # Set obstacle positions
+#     ox, oy = [], []
+#     for i in range(-10, 60):
+#         ox.append(i)
+#         oy.append(60)
+#     for i in range(20, 60):
+#         ox.append(60)
+#         oy.append(i)
+#     for i in range(-10, 60):
+#         ox.append(i)
+#         oy.append(60)
+#     for i in range(20, 61):
+#         ox.append(-10)
+#         oy.append(i)
+#     for i in range(-10, 60):
+#         ox.append(i)
+#         oy.append(55)
+#     for i in range(-10, 46):
+#         ox.append(i)
+#         oy.append(45)
+#     for i in range(35, 45):
+#         ox.append(45)
+#         oy.append(i)
+#     for i in range(-10, 46):
+#         ox.append(i)
+#         oy.append(35)
+#     for i in range(-10, 60):
+#         ox.append(i)
+#         oy.append(25)
+#     for i in range(-10, 60):
+#         ox.append(i)
+#         oy.append(20)
     
-    dstarlite = DStarLite(ox, oy)
-    dstarlite.main(Node(sx, sy), Node(gx, gy))
-    path = dstarlite.compute_current_path()
-    pathx = [node.x + dstarlite.x_min_world for node in path]
-    pathy = [node.y + dstarlite.y_min_world for node in path]
-    WP = np.array(dstarlite.get_WP())
-    WP = np.array([[wp[1], wp[0]] for wp in WP])
-    print("Waypoints: ", WP)
-    new_WP = [WP[0]]
-    for i in range(1, len(WP)):
-        if abs(WP[i][0] - WP[i - 1][0]) < 2 and abs(WP[i][1] - WP[i - 1][1]) < 2:
-            continue
-        else:
-            new_WP.append(WP[i])
-    WP = np.array(new_WP)
-    print("Waypoints: ", WP)
-        
-    hp = HybridPathGenerator(WP, 1, 0.3, 1)
-    # Plotting
-    plt.plot(ox, oy, ".k")
-    plt.plot(sx, sy, "og")
-    plt.plot(gx, gy, "xb")
-    plt.plot(pathx, pathy, "-r")
-    for wp in WP:
-        plt.plot(wp[1], wp[0], "or")
-    plt.grid(True)
-    plt.axis("equal")
-    plt.show()
+#     dstarlite = DStarLite(ox, oy)
+#     dstarlite.main(Node(sx, sy), Node(gx, gy))
+#     path = dstarlite.compute_current_path()
+#     pathx = [node.x + dstarlite.x_min_world for node in path]
+#     pathy = [node.y + dstarlite.y_min_world for node in path]
+#     WP = np.array(dstarlite.get_WP())
+#     WP = np.array([[wp[1], wp[0]] for wp in WP])
+#     print("Waypoints: ", WP)
+#     new_WP = [WP[0]]
+#     for i in range(1, len(WP)):
+#         if abs(WP[i][0] - WP[i - 1][0]) < 2 and abs(WP[i][1] - WP[i - 1][1]) < 2:
+#             continue
+#         else:
+#             new_WP.append(WP[i])
+#     WP = np.array(new_WP)
+#     print("Waypoints: ", WP)
+    
+#     hp = HybridPathGenerator(WP, 1, 0.1, 1)
 
-    hp.plot_path()
+#     # Plotting
+#     plt.plot(ox, oy, ".k")
+#     plt.plot(sx, sy, "og")
+#     plt.plot(gx, gy, "xb")
+#     plt.plot(pathx, pathy, "-r")
+#     for wp in WP:
+#         plt.plot(wp[1], wp[0], "or")
+#     plt.grid(True)
+#     plt.axis("equal")
+#     plt.show()
+
+#     hp.plot_path()
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
     
                             
