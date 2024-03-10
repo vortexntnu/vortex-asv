@@ -4,3 +4,4 @@
       lambda_val: 0.6 # Curvature constant
       path_generator_order: 2 # Differentiability order
       time_to_max_speed: 10.0 # Time to reach maximum speed
+      dt: 0.05 # Time step
