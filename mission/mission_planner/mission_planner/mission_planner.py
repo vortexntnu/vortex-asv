@@ -6,14 +6,33 @@ from rclpy.node import Node
 from vortex_msgs.srv import MissionPlanner
 
 class MissionPlannerClient(Node):
+    """
+    A ROS2 client node for interacting with the MissionPlanner service.
+    """
     def __init__(self):
+        """
+        Initializes the client node, creates a client for the MissionPlanner service,
+        and waits for the service to become available.
+        """
         super().__init__('mission_planner_client')
         self.client = self.create_client(MissionPlanner, 'mission_planner')
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting again...')
         self.req = MissionPlanner.Request()
 
-    def send_request(self, ox, oy, sx, sy, gx, gy):
+    def send_request(self, ox: list, oy: list, sx: int, sy: int, gx: int, gy: int):
+        """
+        Sends an asynchronous request to the MissionPlanner service with obstacle locations,
+        start, and goal positions.
+
+        Args:
+            ox (list): The x-coordinates of obstacles.
+            oy (list): The y-coordinates of obstacles.
+            sx (int): The x-coordinate of the start position.
+            sy (int): The y-coordinate of the start position.
+            gx (int): The x-coordinate of the goal position.
+            gy (int): The y-coordinate of the goal position.
+        """
         self.req.ox = ox
         self.req.oy = oy
         self.req.sx = sx
@@ -23,6 +42,10 @@ class MissionPlannerClient(Node):
         self.future = self.client.call_async(self.req)
 
 def main(args=None):
+    """
+    Main function with example usage of the MissionPlannerClient.
+
+    """
     rclpy.init(args=args)
     mission_planner_client = MissionPlannerClient()
     ox, oy = [], []

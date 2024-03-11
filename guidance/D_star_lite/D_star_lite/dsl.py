@@ -75,42 +75,43 @@ class DStarLite:
     Implements the D* Lite algorithm for path planning in a grid.
 
     This class manages the pathfinding grid, obstacles and calculates the shortest path from a start node to a goal node.
-
+    
     Methods:
+    -------------------------------------------------------------------------------------------
         __init__(ox: list, oy: list, dist_to_obstacle: float = 4.5): Initializes a new instance of the DStarLite class.
-
+        
         create_grid(val: float) -> np.ndarray: Creates a grid initialized with a specific value.
-
+        
         is_obstacle(node: Node) -> bool: Check if the node is considered an obstacle or is too close to an obstacle.
-
+        
         movement_cost(node1: Node, node2: Node) -> float: Calculates the cost of moving from node1 to node2.
-
+       
         heuristic_distance(s: Node) -> float: Calculates the heuristic distance from node s to the goal using the Euclidean distance.
-
+      
         calculate_key(s: Node) -> tuple: Calculates the priority key for a node 's' based on the D* Lite algorithm.
-
+      
         is_valid(node: Node) -> bool: Determines if a node is within the grid boundaries.
-
+        
         get_neighbours(u: Node) -> list[Node]: Generates a list of valid neighbours of a node 'u'.
-
+        
         pred(u: Node) -> list[Node]: Retrieves the predecessors of a node 'u'.
-
+        
         initialize(start: Node, goal: Node): Initializes the grid and the D* Lite algorithm.
-
+        
         update_vertex(u: Node): Updates the vertex in the priority queue and the rhs value of the node 'u'.
-
+        
         get_direction(node1: Node, node2: Node) -> tuple: Calculates the direction from node1 to node2.
-
+        
         detect_and_update_waypoints(current_point: Node, next_point: Node): Updates the waypoints based on the current and next points.
-
+        
         compare_keys(key_pair1: tuple[float, float], key_pair2: tuple[float, float]) -> bool: Compares the priority keys of two nodes.
-
+        
         compute_shortest_path(): Computes or recomputes the shortest path from the start to the goal using the D* Lite algorithm.
-
+        
         compute_current_path() -> list[Node]: Computes the current path from the start to the goal.
-
+        
         get_WP() -> list[list[int]]: Retrieves the waypoints and adjusts their coordinates to the original coordinate system.
-
+        
         dsl_main(start: Node, goal: Node) -> tuple[bool, list[int], list[int]]: Main function to run the D* Lite algorithm.
     """
 
