@@ -58,24 +58,39 @@ class WaypointManager(Node):
         Returns:
             Waypoint.Response: True if waypoints are added successfully.
         """
-        waypoints = req.waypoints
 
-        for waypoint in waypoints:
-            x = waypoint[0]
-            y = waypoint[1]
+        """
+        x = req.waypoint[0]
+        y = req.waypoint[1]
 
-            self.waypoint_list.append(waypoint)
-            self.get_logger().info(f"Added waypoint {waypoint} to waypoint_list")
+        self.waypoint_list.append(req.waypoint)
+        self.get_logger().info("Added waypoint to waypoint_list")
 
-            new_pose = PoseStamped()
-            new_pose.pose.position = Point(x=x, y=y, z=0.0)
-            self.path.poses.append(new_pose)
-
+        new_pose = PoseStamped()
+        new_pose.pose.position = Point(x=x, y=y, z=0.0)
+        self.path.poses.append(new_pose)
         self.path_pub.publish(self.path)
 
         response = Waypoint.Response()
         response.success = True
+        return response
 
+        """
+        for i in range(0, len(req.waypoint), 2):
+            x = req.waypoint[i]
+            y = req.waypoint[i+1]
+
+            self.waypoint_list.append([x, y])
+            self.get_logger().info("Added waypoint to waypoint_list")
+
+            new_pose = PoseStamped()
+            new_pose.pose.position = Point(x=x, y=y, z=0.0)
+            self.path.poses.append(new_pose)
+            self.path_pub.publish(self.path)
+            self.get_logger().info("points :" + str(self.waypoint_list))
+
+        response = Waypoint.Response()
+        response.success = True
         return response
 
     
@@ -98,16 +113,23 @@ class WaypointManager(Node):
             response.success = False
             return response
 
-        # Checks if the waypoint exists in the list
-        if req.waypoint in self.waypoint_list:
-            self.waypoint_list.remove(req.waypoint)
-            self.get_logger().info("remove waypoint from waypoint_list")
-        else:
-            self.get_logger().info("Waypoint not found in waypoint_list")
+        # Checks if the waypoint exists in the list, and removes it if it exists
+        waypoint_list_len = len(self.waypoint_list)
 
-            response = Waypoint.Response()
-            response.success = False
-            return response
+        if waypoint_list_len == 1 and ([req.waypoint[0], req.waypoint[1]] == self.waypoint_list[0]):
+                self.waypoint_list.remove(self.waypoint_list[0])
+                self.get_logger().info("remove waypoint from waypoint_list")
+        else:
+            for i in range(0, waypoint_list_len-1):
+                if [req.waypoint[0], req.waypoint[1]] == self.waypoint_list[i]:
+                    self.waypoint_list.remove(self.waypoint_list[i])
+                    self.get_logger().info("remove waypoint from waypoint_list")
+            if waypoint_list_len == len(self.waypoint_list):
+                self.get_logger().info("Waypoint not found in waypoint_list")
+
+                response = Waypoint.Response()
+                response.success = False
+                return response
         
         self.get_logger().info("after remove: " +str(self.waypoint_list))
 
@@ -123,12 +145,14 @@ class WaypointManager(Node):
         response.success = True
         
         return response
-    
-    def add_waypoint_callback(self, request, response):
-        return self.add_waypoint_to_list(request)
+
 
     def remove_waypoint_callback(self, request, response):
         return self.remove_waypoint_from_list(request)
+
+    def add_waypoint_callback(self, request, response):
+        self.get_logger().info(str(request))
+        return self.add_waypoint_to_list(request)
     
     def spin(self):
         """
@@ -139,24 +163,22 @@ class WaypointManager(Node):
             if len(self.waypoint_list) >= 2 and index_waypoint_k < len(self.waypoint_list) - 1:
                 goal = LosPathFollowing.Goal()
                 self.get_logger().info("define goal to send to los_guidance_node")
-
+                
+                """
                 goal.waypoints[0].x = self.waypoint_list[self.index_waypoint_k][0]
                 goal.waypoints[0].y = self.waypoint_list[self.index_waypoint_k][1]
                 goal.waypoints[1].x = self.waypoint_list[self.index_waypoint_k + 1][0]
                 goal.waypoints[1].y = self.waypoint_list[self.index_waypoint_k + 1][1]
-                self.get_logger().info("add waypoints to goal")
-                self.get_logger().info(
-                        "current points are: \n("
-                        + str(goal.waypoints[0].x)
-                        + ","
-                        + str(goal.waypoints[0].y)
-                        + ")\n"
-                        + "("
-                        + str(goal.waypoints[1].x)
-                        + ","
-                        + str(goal.waypoints[1].y)
-                        + ")"
-                )
+                """
+
+                for i in range(index_waypoint_k, min(index_waypoint_k + 2, len(self.waypoint_list))):
+                    waypoint = self.waypoint_list[i]
+                    if i - index_waypoint_k == 0:
+                        goal.waypoints[0].x = waypoint[0]
+                        goal.waypoints[0].y = waypoint[1]
+                    elif i - index_waypoint_k == 1:
+                        goal.waypoints[1].x = waypoint[0]
+                        goal.waypoints[1].y = waypoint[1]
 
                 self.action_client.send_goal_async(goal)
                 self.get_logger().info("send goal to los_guidance_node")
