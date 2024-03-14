@@ -42,7 +42,7 @@ void ThrusterInterfaceROS::thrust_callback(
 
   pwm_pub_->publish(pwm_msg);
 
-  thrusterInterface.publish_thrust_to_escs(forces_in_grams);
+  thrusterInterface.publish_thrust_to_escs(forces_in_grams, thruster_to_pin_map, thruster_direction_map, pwm_offsets);
 }
 
 int main(int argc, char *argv[]) {
