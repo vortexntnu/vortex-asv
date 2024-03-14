@@ -95,8 +95,8 @@ void ThrusterInterface::publish_thrust_to_escs(std::vector<double> forces, std::
   }
 
   // Remap the pwm values to the correct pins
-  std::vector<int> remapped_pwm_values(thruster_to_pin_map.size());
-  for (int i = 0; i < thruster_to_pin_map.size(); i++)
+  std::vector<int> remapped_pwm_values(int(thruster_to_pin_map.size()));
+  for (int i = 0; i < int(thruster_to_pin_map.size()); i++)
     remapped_pwm_values[thruster_to_pin_map[i]] = pwm_values[i];
 
   pwm_values = remapped_pwm_values;
