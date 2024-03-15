@@ -3,7 +3,7 @@
 import rclpy
 from rclpy.node import Node as rclpy_node
 import numpy as np
-from D_star_lite.dsl import DStarLite, Node
+from d_star_lite import DStarLite, Node
 from vortex_msgs.srv import MissionPlanner, Waypoint
 
 class DStarLiteNode(rclpy_node):
@@ -46,8 +46,9 @@ class DStarLiteNode(rclpy_node):
         dsl.dsl_main(Node(sx, sy), Node(gx, gy))
         path = dsl.compute_current_path()
         WP = np.array(dsl.get_WP()).tolist()
+        # Convert to float32[] for Waypoint service
         self.WP_float = [float(coordinate) for pair in WP for coordinate in pair]
-
+        
         self.send_waypoints_request()
 
         response.success = True
@@ -58,18 +59,13 @@ class DStarLiteNode(rclpy_node):
         """
         Sends the computed waypoints to the waypoint service.
         """
-        while not self.wp_client.wait_for_service(timeout_sec=1.0):
+        if not self.wp_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waypoint service not available, waiting again...')
+            return None  # Return None to indicate the service is not available.
         request = Waypoint.Request()
-        request.waypoints = self.WP_float
+        request.waypoint = self.WP_float
         future = self.wp_client.call_async(request)
-
-        rclpy.spin_until_future_complete(self, future)
-        try:
-            response = future.result()
-            self.get_logger().info(f'Waypoints successfully submitted: {response.success}')
-        except Exception as e:
-            self.get_logger().error('Service call failed %r' % (e,))
+        return future
 
 def main(args=None):
     rclpy.init(args=args)

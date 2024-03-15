@@ -1,6 +1,0 @@
-# Request
-int64[] ox
-int64[] oy
-
-# Response
-bool success

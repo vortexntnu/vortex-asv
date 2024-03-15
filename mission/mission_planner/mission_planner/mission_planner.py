@@ -40,6 +40,7 @@ class MissionPlannerClient(Node):
         self.req.gx = gx
         self.req.gy = gy
         self.future = self.client.call_async(self.req)
+        self.get_logger().info('MissionPlanner service has been called')
 
 def main(args=None):
     """
@@ -89,9 +90,11 @@ def main(args=None):
                 mission_planner_client.get_logger().info(f'Success: {response.success}')
             except Exception as e:
                 mission_planner_client.get_logger().info(f'Service call failed {e}')
+                break  # Break out of the loop if the service call failed
             else:
-                mission_planner_client.get_logger().info(f'Successfully created path')
-            break
+                # This else block should be executed if no exceptions were raised
+                mission_planner_client.get_logger().info('Successfully created path')
+                break  # Ensure to break out of the loop once processing is done
     rclpy.shutdown()
 
 if __name__ == '__main__':
