@@ -7,19 +7,17 @@ int main() {
   int16_t maxPWM[4] = {1900, 1900, 1900, 1900};
 
   // Get filepath of .CSV file
-  std::string forcesToPWMDataFilePath = ament_index_cpp::get_package_share_directory("thruster_interface_asv");
+  std::string forcesToPWMDataFilePath =
+      ament_index_cpp::get_package_share_directory("thruster_interface_asv");
   forcesToPWMDataFilePath += "/config/ThrustMe_P1000_force_mapping.csv";
 
   // Initialize Thruster driver
-  thruster_interface_asv_driver_lib::init(forcesToPWMDataFilePath, minPWM, maxPWM);
-
-
-
-
+  thruster_interface_asv_driver_lib::init(forcesToPWMDataFilePath, minPWM,
+                                          maxPWM);
 
   // Test (START) --------------------------------------------------
   float test_input[4];
-  int16_t* test_output;
+  int16_t *test_output;
 
   // Test 1 ----------
   test_input[0] = 0.0;
