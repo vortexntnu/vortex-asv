@@ -177,7 +177,7 @@ class DStarLite:
         # Compute the euclidean distances from the node to all obstacles
         distances = np.sqrt(np.sum((self.obstacles_xy - node_xy) ** 2, axis=1))
 
-        # Check if any distance is less than the minimum distance
+        # Check if any distance is less than the minimum distance (default: 4.5)
         return np.any(distances < self.dist_to_obstacle)
     
     def movement_cost(self, node1: Node, node2: Node) -> float:
