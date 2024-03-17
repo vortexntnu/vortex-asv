@@ -28,12 +28,12 @@ class WaypointManager(Node):
 
         self.waypoint_list = []
 
-        ## Action client
-        self._action_client = ActionClient(self, LosPathFollowing, 'LosPathFollowing')
-        #while not self._action_client.wait_for_server(timeout_sec=1.0):
-        #   self.get_logger().info('Action server not available, waiting again...')
-           
-        #Action server 
+        # Service for getting the list of waypoints and client for sending the list of waypoint
+        self.waypoint_service = self.create_service(Waypoint, 'waypoint', self.waypoint_callback)
+        self.waypoint_list_client = self.create_client(Waypoint, 'waypoint_list')
+
+        # Service to send waypoints
+        # self.send_waypoint_service = self.create_service(Waypoint, 'send_waypoint_service', self.send_waypoint_service_callback)
 
         # Services
         self.get_logger().info('kommet til services')
@@ -46,7 +46,15 @@ class WaypointManager(Node):
         self.path = Path()
         self.path.header.frame_id = 'world'
 
+    def waypoint_callback(self, request, response):
+        """
+        Callback function to handle received waypoints.
+        """
+        # Clear the existing waypoint list
+        self.waypoint_list.clear()
 
+        return self.add_waypoint_to_list(request)
+    
    
     def add_waypoint_to_list(self, req):
         """
@@ -57,24 +65,6 @@ class WaypointManager(Node):
 
         Returns:
             Waypoint.Response: True if waypoints are added successfully.
-        """
-
-        """
-        x = req.waypoint[0]
-        y = req.waypoint[1]
-
-        self.waypoint_list.append(req.waypoint)
-        self.get_logger().info("Added waypoint to waypoint_list")
-
-        new_pose = PoseStamped()
-        new_pose.pose.position = Point(x=x, y=y, z=0.0)
-        self.path.poses.append(new_pose)
-        self.path_pub.publish(self.path)
-
-        response = Waypoint.Response()
-        response.success = True
-        return response
-
         """
         for i in range(0, len(req.waypoint), 2):
             x = req.waypoint[i]
@@ -145,8 +135,7 @@ class WaypointManager(Node):
         response.success = True
         
         return response
-
-
+    
     def remove_waypoint_callback(self, request, response):
         return self.remove_waypoint_from_list(request)
 
@@ -154,49 +143,68 @@ class WaypointManager(Node):
         self.get_logger().info(str(request))
         return self.add_waypoint_to_list(request)
     
-    def spin(self):
-        """
-        Spins the node to process added waypoints and send them to the action server.
-        """
-        index_waypoint_k = 0
-        while rclpy.ok():
-            if len(self.waypoint_list) >= 2 and index_waypoint_k < len(self.waypoint_list) - 1:
-                goal = LosPathFollowing.Goal()
-                self.get_logger().info("define goal to send to los_guidance_node")
-                
-                """
-                goal.waypoints[0].x = self.waypoint_list[self.index_waypoint_k][0]
-                goal.waypoints[0].y = self.waypoint_list[self.index_waypoint_k][1]
-                goal.waypoints[1].x = self.waypoint_list[self.index_waypoint_k + 1][0]
-                goal.waypoints[1].y = self.waypoint_list[self.index_waypoint_k + 1][1]
-                """
+    def sending_waypoints(self):
+        while not self.waypoint_list_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Waypoint service not available, waiting again...')
+        request = Waypoint.Request()
+        self.temp_waypoint_list = []
+        for waypoint in self.waypoint_list:
+            self.temp_waypoint_list.append(waypoint[0])
+            self.temp_waypoint_list.append(waypoint[1])
+        request.waypoints = self.temp_waypoint_list
+        future = self.waypoint_list_client.call_async(request)
 
-                for i in range(index_waypoint_k, min(index_waypoint_k + 2, len(self.waypoint_list))):
-                    waypoint = self.waypoint_list[i]
-                    if i - index_waypoint_k == 0:
-                        goal.waypoints[0].x = waypoint[0]
-                        goal.waypoints[0].y = waypoint[1]
-                    elif i - index_waypoint_k == 1:
-                        goal.waypoints[1].x = waypoint[0]
-                        goal.waypoints[1].y = waypoint[1]
+        rclpy.spin_until_future_complete(self, future)
+        try:
+            response = future.result()
+            self.get_logger().info(f'Waypoints successfully submitted: {response.success}')
+        except Exception as e:
+            self.get_logger().error('Service call failed %r' % (e,))
+    
+    """
+    def remove_reached_waypoints(self, current_position):
+       
+        Remove waypoints from the list that have been reached by the robot.
+        
+        if not self.waypoint_list:
+            return
+        
+        # Calculate the distance between the current position and each waypoint
+        distance_threshold = 0.1  # Define a threshold for considering a waypoint reached
+        remaining_waypoints = []
+        for waypoint in self.waypoint_list:
+            distance_to_waypoint = ((waypoint[0] - current_position.x) ** 2 + (waypoint[1] - current_position.y) ** 2) ** 0.5
+            if distance_to_waypoint > distance_threshold:
+                remaining_waypoints.append(waypoint)
+        
+        # Update the waypoint list
+        self.waypoint_list = remaining_waypoints
 
-                self.action_client.send_goal_async(goal)
-                self.get_logger().info("send goal to los_guidance_node")
-                self.action_client.wait_for_result_async()
-                self.get_logger().info("receive result from los_guidance_node")
-                self.index_waypoint_k += 1
-            elif len(self.waypoint_list) >= 2 and index_waypoint_k >= len(self.waypoint_list) - 1:
-                self.waypoint_list.clear()
-                self.path.poses.clear()
-                self.path_pub.publish(self.path)
-                self.get_logger().info("clear waypoint_list")
+        # Publish the updated waypoints for visualization
+        self.path.poses = []
+        for waypoint in self.waypoint_list:
+            new_pose = PoseStamped()
+            new_pose.pose.position = Point(x=waypoint[0], y=waypoint[1], z=0.0)
+            self.path.poses.append(new_pose)
+        self.path_pub.publish(self.path)
 
+    def send_waypoint_service_callback(self, request, response, current_position):
+        
+        Service callback function to send the waypoint list.
+        
+        self.remove_reached_waypoints(current_position)  # Pass the current position of the robot
+        # Populate the response with the waypoint list
+        response.waypoints = []
+        for waypoint in self.waypoint_list:
+            response.waypoints.extend(waypoint)
+        
+        return response
+"""
 
 def main(args=None):
     rclpy.init(args=args)
     waypoint_manager = WaypointManager()
     rclpy.spin(waypoint_manager)
-    waypoint_manager.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
