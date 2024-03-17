@@ -8,4 +8,4 @@ And when using this map when running the D* lite algorithm with safe distance 4.
 ![Path](https://drive.google.com/uc?export=download&id=1il-i2aJM3pkQacTO8Jg77_2zDVcZF1ty)
 
 # D* lite node
-The node is responsible for communicating the waypoints found form the algorithm and send them to the waypoint manager. The node receives the obstacle map from the mission planner.
+The node is responsible for communicating the waypoints found from the algorithm and send them to the waypoint manager. The node receives the obstacle map from the mission planner.
