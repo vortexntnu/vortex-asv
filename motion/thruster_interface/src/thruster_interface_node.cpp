@@ -18,17 +18,19 @@ class ThrusterInterface : public rclcpp::Node {
 public:
   ThrusterInterface() : Node("thruster_interface_node") {
 
-    subscription_thruster_forces = this->create_subscription<vortex_msgs::msg::ThrusterForces>(
-        "thrust/thruster_forces", 10,
-        std::bind(&ThrusterInterface::thrusterForcesCallback, this,
-                  std::placeholders::_1));
+    subscription_thruster_forces =
+        this->create_subscription<vortex_msgs::msg::ThrusterForces>(
+            "thrust/thruster_forces", 10,
+            std::bind(&ThrusterInterface::thrusterForcesCallback, this,
+                      std::placeholders::_1));
 
-    subscription_hardware_status = this->create_subscription<std_msgs::msg::Int8>(
-        "asv/software/killswitch", 10,
-        std::bind(&ThrusterInterface::SoftwareKillswitchCallback, this,
-                  std::placeholders::_1));
+    subscription_hardware_status =
+        this->create_subscription<std_msgs::msg::Int8>(
+            "asv/software/killswitch", 10,
+            std::bind(&ThrusterInterface::SoftwareKillswitchCallback, this,
+                      std::placeholders::_1));
 
-//remove the /test from the topic names later
+    // remove the /test from the topic names later
 
     publisher_ESC1 = this->create_publisher<std_msgs::msg::Float32>(
         "/asv/temperature/ESC1/test", 10);
@@ -44,8 +46,8 @@ public:
         "/asv/temperature/ambient1/test", 10);
     publisher_ambient2 = this->create_publisher<std_msgs::msg::Float32>(
         "/asv/temperature/ambient2/test", 10);
-    publisher_status =
-        this->create_publisher<std_msgs::msg::Int8>("/asv/failsafe/hardware/status", 10);
+    publisher_status = this->create_publisher<std_msgs::msg::Int8>(
+        "/asv/failsafe/hardware/status", 10);
 
     timer_ = this->create_wall_timer(
         std::chrono::seconds(1),
@@ -53,8 +55,7 @@ public:
   }
 
 private:
-
-//----------------------------------------------------------
+  //----------------------------------------------------------
 
   void thrusterForcesCallback(
       const vortex_msgs::msg::ThrusterForces::SharedPtr msg) const {
@@ -82,14 +83,14 @@ private:
     send_pwm(pwm_values, file);
   }
 
-//----------------------------------------------------------
+  //----------------------------------------------------------
 
-void SoftwareKillswitchCallback(
-  const std_msgs::msg::Int8::SharedPtr msg) const {
+  void
+  SoftwareKillswitchCallback(const std_msgs::msg::Int8::SharedPtr msg) const {
     software_killswitch = msg->data;
-}
+  }
 
-//----------------------------------------------------------
+  //----------------------------------------------------------
 
   void publish_temperature_and_status() {
 
@@ -128,10 +129,10 @@ void SoftwareKillswitchCallback(
     publisher_ambient2->publish(message_ambient2);
 
     // HARDWARE STATUS
-    //int8_t hardware_status = 0;
+    // int8_t hardware_status = 0;
     hardware_status = read_hardware_statusFromI2C(file);
 
-    //cout << "hardware status = " << (uint16_t)(hardware_status) << endl;
+    // cout << "hardware status = " << (uint16_t)(hardware_status) << endl;
 
     auto message_status = std_msgs::msg::Int8();
 

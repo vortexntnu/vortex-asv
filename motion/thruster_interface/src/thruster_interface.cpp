@@ -2,7 +2,7 @@
 
 // const int I2C_ADDRESS = 0x21;
 const char *I2C_DEVICE = "/dev/i2c-1";
-int8_t i2c_slave_addr = 0x40; //change later to 0x21
+int8_t i2c_slave_addr = 0x40; // change later to 0x21
 std::map<float, float> pwm_table;
 
 //--------------------------FUNCTIONS--------------------------
