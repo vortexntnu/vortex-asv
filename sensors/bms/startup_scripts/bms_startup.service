@@ -1,0 +1,15 @@
+[Unit]
+Description=Launch internal bms node
+After=network.target
+
+[Service]
+# Use the wrapper script for ExecStart
+ExecStart=/bin/bash <home directory>/<username>/<workspace>/src/vortex-asv/sensors/bms/startup_scripts/bms.sh
+WorkingDirectory=/home/vortex/
+StandardOutput=journal+console
+User=vortex
+Restart=no
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

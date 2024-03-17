@@ -5,16 +5,16 @@ To Rose:
 Add data recording for these ROS2 topics:
 
 MOST IMPORTANT:
-'/internal/status/bms0',
-'/internal/status/bms1',
-'/asv/temperature/ESC1',
-'/asv/temperature/ESC2',
-'/asv/temperature/ESC3',
-'/asv/temperature/ESC4',
-'/asv/temperature/ambient1',
-'/asv/temperature/ambient2',
-'/thrust/thruster_forces',
-'/pwm',
+'/internal/status/bms0',   split the array in three different lines 
+'/internal/status/bms1', BatteryState ROS2
+'/asv/temperature/ESC1', DONE
+'/asv/temperature/ESC2', DONE
+'/asv/temperature/ESC3', DONE
+'/asv/temperature/ESC4', DONE
+'/asv/temperature/ambient1',  DONE
+'/asv/temperature/ambient2',  DONE
+'/thrust/thruster_forces',  Float32_array 4, Thuster1 forces (N) , ... 
+'/pwm', PWM1, PWM2, 
 
 Nice to have:
 '/joy',                               
@@ -30,6 +30,7 @@ Nice to have:
 import rclpy
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
+from sensor_msgs.msg import BatteryState
 
 # ROS2 Topic Libraries
 from std_msgs.msg import Float32
@@ -59,6 +60,61 @@ class BlackBoxNode(Node):
             1)
         self.psm_voltage_data = 0.0
 
+        self.temperature_ESC1_subscriber = self.create_subscription(
+            Float32,
+            "/asv/temperature/ESC1",
+            self.temperature_ESC1_callback,
+            1)
+        self.temperature_ESC1_data = 0.0
+
+        self.temperature_ESC2_subscriber = self.create_subscription(
+            Float32,
+            "/asv/temperature/ESC2",
+            self.temperature_ESC2_callback,
+            1)
+        self.temperature_ESC2_data = 0.0
+
+        self.temperature_ESC3_subscriber = self.create_subscription(
+            Float32,
+            "/asv/temperature/ESC3",
+            self.temperature_ESC3_callback,
+            1)
+        self.temperature_ESC3_data = 0.0
+
+        self.temperature_ESC4_subscriber = self.create_subscription(
+            Float32,
+            "/asv/temperature/ESC4",
+            self.temperature_ESC4_callback,
+            1)
+        self.temperature_ESC4_data = 0.0
+
+        self.temperature_ambient1_subscriber = self.create_subscription(
+            Float32,
+            "/asv/temperature/ambient1",
+            self.temperature_ambient1_callback,
+            1)
+        self.temperature_ambient1_data = 0.0
+
+        self.temperature_ambient2_subscriber = self.create_subscription(
+            Float32,
+            "/asv/temperature/ambient2",
+            self.temperature_ambient2_callback,
+            1)
+        self.temperature_ambient2_data = 0.0
+
+        self.bms0_subscriber = self.create_subscription(
+            BatteryState,
+            "/internal/status/bms0",
+            self.bms0_callback,
+            1)
+        self.bms0_voltage_data = 0.0
+        self.bms0_current_data = 0.0
+        self.bms0_percentage_data = 0.0
+        self.bms0_cell_temperature_data = 0.0
+        
+        
+
+
         # Initialize logger ----------
         # Get package directory location
         ros2_package_directory_location = get_package_share_directory("blackbox")
@@ -78,9 +134,16 @@ class BlackBoxNode(Node):
 
         # Debuging ----------
         self.get_logger().info(
-            "Startied logging data for topics: \n"
+            "Started logging data for topics: \n"
             "/asv/power_sense_module/current [Float32] \n"
             "/asv/power_sense_module/voltage [Float32] \n"
+            "/asv/temperature/ESC1 [Float32] \n"
+            "/asv/temperature/ESC2 [Float32] \n"
+            "/asv/temperature/ESC3 [Float32] \n"
+            "/asv/temperature/ESC4 [Float32] \n"
+            "/asv/temperature/ambient1 [Float32] \n"
+            "/asv/temperature/ambient2 [Float32] \n"
+            "/internal/status/bms0 [Float32] \n"
         )
 
     # Callback Methods ----------
@@ -90,10 +153,49 @@ class BlackBoxNode(Node):
     def psm_voltage_callback(self, msg):
         self.psm_voltage_data = msg.data
 
+    def temperature_ESC1_callback(self,msg):
+        self.temperature_ESC1_data = msg.data
+
+    def temperature_ESC2_callback(self,msg):
+        self.temperature_ESC2_data = msg.data
+
+    def temperature_ESC3_callback(self,msg):
+        self.temperature_ESC3_data = msg.data
+
+    def temperature_ESC4_callback(self,msg):
+        self.temperature_ESC4_data = msg.data
+    
+    def temperature_ambient1_callback(self,msg):
+        self.temperature_ambient1_data = msg.data
+
+    def temperature_ambient2_callback(self,msg):
+        self.temperature_ambient2_data = msg.data
+
+    def bms0_callback(self,msg):
+        self.bms0_voltage_data = msg.voltage
+        self.bms0_current_data = msg.current
+        self.bms0_percentage_data = msg.percentage
+        self.bms0_cell_temperature_data = msg.cell_temperature
+        
+
+
+        
+
     def logger(self):
         self.blackbox_log_data.log_data_to_csv_file(
             psm_current=self.psm_current_data,
             psm_voltage=self.psm_voltage_data,
+            temperature_ESC1 =self.temperature_ESC1_data,
+            temperature_ESC2 =self.temperature_ESC2_data,
+            temperature_ESC3 =self.temperature_ESC3_data,
+            temperature_ESC4 =self.temperature_ESC4_data,
+            temperature_ambient1 =self.temperature_ambient1_data,
+            temperature_ambient2 =self.temperature_ambient2_data,
+            bms0_voltage =self.bms0_voltage_data,
+            bms0_current =self.bms0_current_data,
+            bms0_percentage =self.bms0_percentage_data,
+            bms0_cell_temperature =self.bms0_cell_temperature_data,
+
         )
 
 
