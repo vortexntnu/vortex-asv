@@ -21,7 +21,7 @@ void ThrusterInterfaceROS::thrust_callback(
   // TODO: Get mapping and offsets from rosparam
   // Give thrust to thruster 0: publish on pin = thruster_to_pin_map[0]
   std::vector<int> thruster_to_pin_map = {3, 2, 1, 0};
-  std::vector<int> thruster_direction_map = {1,-1,-1, 1};
+  std::vector<int> thruster_direction_map = {1, -1, -1, 1};
   std::vector<int> pwm_offsets = {0, 0, 0, 0};
 
   // Iterates through thruster 0 to 3, where 0 is front right, iterated
@@ -42,7 +42,8 @@ void ThrusterInterfaceROS::thrust_callback(
 
   pwm_pub_->publish(pwm_msg);
 
-  thrusterInterface.publish_thrust_to_escs(forces_in_grams, thruster_to_pin_map, thruster_direction_map, pwm_offsets);
+  thrusterInterface.publish_thrust_to_escs(forces_in_grams, thruster_to_pin_map,
+                                           thruster_direction_map, pwm_offsets);
 }
 
 int main(int argc, char *argv[]) {

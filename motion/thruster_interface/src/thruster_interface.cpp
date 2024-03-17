@@ -76,12 +76,14 @@ ThrusterInterface::pwm_to_bytes(const std::vector<int> &pwm_values) {
   return bytes;
 }
 
-void ThrusterInterface::publish_thrust_to_escs(std::vector<double> forces, std::vector<int> thruster_to_pin_map, std::vector<int> direction_map, std::vector<int> pwm_offsets) {
+void ThrusterInterface::publish_thrust_to_escs(
+    std::vector<double> forces, std::vector<int> thruster_to_pin_map,
+    std::vector<int> direction_map, std::vector<int> pwm_offsets) {
   std::vector<int> pwm_values;
 
   int center_pwm_value = 1500;
 
-  // Use correct direction and correct pwm offsets 
+  // Use correct direction and correct pwm offsets
   for (int i = 0; i < 4; i++) {
     int true_center_value = center_pwm_value + pwm_offsets[i];
 
@@ -90,7 +92,7 @@ void ThrusterInterface::publish_thrust_to_escs(std::vector<double> forces, std::
 
     int pwm_clamped = std::min(std::max(pwm_value_correct_direction, 1300),
                                1700); // min 1100, max 1900
-    
+
     pwm_values.push_back(pwm_clamped);
   }
 
