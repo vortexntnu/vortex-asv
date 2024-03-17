@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import rclpy
-from rclpy.node import Node as rclpy_node
+from rclpy.node import Node
 import numpy as np
-from d_star_lite import DStarLite, Node
+from d_star_lite import DStarLite, DSLNode
 from vortex_msgs.srv import MissionPlanner, Waypoint
 
-class DStarLiteNode(rclpy_node):
+class DStarLiteNode(Node):
     """
     A ROS2 node implementing the D* Lite algorithm.
 
@@ -43,7 +43,7 @@ class DStarLiteNode(rclpy_node):
         gx = request.gx
         gy = request.gy
         dsl = DStarLite(ox, oy)
-        dsl.dsl_main(Node(sx, sy), Node(gx, gy))
+        dsl.dsl_main(DSLNode(sx, sy), DSLNode(gx, gy))
         path = dsl.compute_current_path()
         WP = np.array(dsl.get_WP()).tolist()
         # Convert to float32[] for Waypoint service
