@@ -22,6 +22,16 @@ class BlackBoxLogData:
             "Time",
             "Power Sense Module Current",
             "Power Sense Module Voltage",
+            "Temperature ESC1",
+            "Temperature ESC2",
+            "Temperature ESC3",
+            "Temperature ESC4",
+            "Temperature Ambiant1",
+            "Temperature Ambiant2",
+            "BMS0 Voltage",
+            "BMS0 Current",
+            "BMS0 Battery Percentage",
+            "BMS0 Cell Temperature"
         ]
 
         # Manage csv files for blackbox data ----------
@@ -80,6 +90,16 @@ class BlackBoxLogData:
     def log_data_to_csv_file(self,
         psm_current = 0.0,
         psm_voltage = 0.0,
+        temperature_ESC1 = 0.0,
+        temperature_ESC2 = 0.0,
+        temperature_ESC3 = 0.0,
+        temperature_ESC4 = 0.0,
+        temperature_ambient1 = 0.0,
+        temperature_ambient2 = 0.0,
+        bms0_voltage = 0.0,
+        bms0_current = 0.0,
+        bms0_percentage = 0.0,
+        bms0_cell_temperature = 0.0,
     ):
         # Get current time in hours, minutes, seconds and miliseconds
         current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
@@ -91,4 +111,15 @@ class BlackBoxLogData:
                 current_time,
                 psm_current,
                 psm_voltage,
+                temperature_ESC1,
+                temperature_ESC2,
+                temperature_ESC3,
+                temperature_ESC4,
+                temperature_ambient1,
+                temperature_ambient2,
+                bms0_voltage,
+                bms0_current,
+                bms0_percentage,
+                bms0_cell_temperature,
+
             ])
