@@ -26,6 +26,9 @@ private:
 
 public:
   ThrusterInterface(std::string mapping_file);
-  void publish_thrust_to_escs(std::vector<double> forces, std::vector<int> pin_map, std::vector<int> direction_map, std::vector<int> pwm_offsets);
+  void publish_thrust_to_escs(std::vector<double> forces,
+                              std::vector<int> pin_map,
+                              std::vector<int> direction_map,
+                              std::vector<int> pwm_offsets);
   float interpolate(float force);
 };
