@@ -8,7 +8,7 @@ struct _ForcePWM {
 };
 
 // Local variables used inside the interpolation
-std::vector<_ForcePWM> _datatableForForceAndPWM;
+std::vector<_ForcePWM> _ForcePWMTable;
 
 std::vector<_ForcePWM> _loadDataFromCSV(const std::string &filepath) {
   // Prepare the datastructure we will load our data in
@@ -30,7 +30,7 @@ std::vector<_ForcePWM> _loadDataFromCSV(const std::string &filepath) {
       // Define temporary placeholders for variables we are extracting
       std::string tempVar;
       // Define data structure format we want our .CSV vlaues to be ordered in
-      _ForcePWM formatOfForcePWMDatastructure;
+      _ForcePWM ForcePWMDataStructure;
 
       // Data manipulation ----------
       // csvLineSplit variable converts "line" variable to a char stream of data
@@ -38,18 +38,18 @@ std::vector<_ForcePWM> _loadDataFromCSV(const std::string &filepath) {
       std::istringstream csvLineSplit(line);
       // Extract Forces from "csvLineSplit" variable
       std::getline(csvLineSplit, tempVar, '\t');
-      formatOfForcePWMDatastructure.force = std::stof(tempVar);
+      ForcePWMDataStructure.force = std::stof(tempVar);
       // Convert grams into Newtons as we expect to get Forces in Newtons but
       // the .CSV file calculates forsces in grams
-      formatOfForcePWMDatastructure.force =
-          formatOfForcePWMDatastructure.force * (9.81 / 1000.0);
+      ForcePWMDataStructure.force =
+          ForcePWMDataStructure.force * (9.81 / 1000.0);
       // Extract PWM from "csvLineSplit" variable
       std::getline(csvLineSplit, tempVar, '\t');
-      formatOfForcePWMDatastructure.pwm = std::stof(tempVar);
+      ForcePWMDataStructure.pwm = std::stof(tempVar);
 
       // Push processed data with correct formating into the complete dataset
       // ----------
-      data.push_back(formatOfForcePWMDatastructure);
+      data.push_back(ForcePWMDataStructure);
     }
 
     file.close();
@@ -68,23 +68,23 @@ int16_t *_interpolate_force_to_pwm(float *forces) {
   for (int8_t i = 0; i < 4; i++) {
     // Edge case, if the force is out of the bounds of your data table, handle
     // accordingly
-    if (forces[i] <= _datatableForForceAndPWM.front().force) {
+    if (forces[i] <= _ForcePWMTable.front().force) {
       interpolatedPWMArray[i] = static_cast<int16_t>(
-          _datatableForForceAndPWM.front().pwm); // To small Force
-    } else if (forces[i] >= _datatableForForceAndPWM.back().force) {
+          _ForcePWMTable.front().pwm); // To small Force
+    } else if (forces[i] >= _ForcePWMTable.back().force) {
       interpolatedPWMArray[i] = static_cast<int16_t>(
-          _datatableForForceAndPWM.back().pwm); // To big Force
+          _ForcePWMTable.back().pwm); // To big Force
     } else {
       // Set temporary variables for interpolating
       // Initialize with the first element
-      _ForcePWM low = _datatableForForceAndPWM.front();
+      _ForcePWM low = _ForcePWMTable.front();
       _ForcePWM high;
 
       // Interpolate
       // Find the two points surrounding the given force
       // Run the loop until the force value we are givven is lower than the
       // current dataset value
-      for (const _ForcePWM &CurrentForcePWMData : _datatableForForceAndPWM) {
+      for (const _ForcePWM &CurrentForcePWMData : _ForcePWMTable) {
         if (CurrentForcePWMData.force >= forces[i]) {
           high = CurrentForcePWMData;
           break;
@@ -171,7 +171,7 @@ void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
   // We load it here instead of interpolation step as this will save time as we
   // only open and load all the data once, savind time in intrepolation isnce we
   // dont need to open the .CSV file over and over again.
-  _datatableForForceAndPWM = _loadDataFromCSV(pathToCSVFile);
+  _ForcePWMTable = _loadDataFromCSV(pathToCSVFile);
 
   // Set correct parameters
   // - Thruster Mapping
@@ -219,11 +219,7 @@ int16_t *drive_thrusters(float *thrusterForces) {
 
   // Limit PWM
   for (int8_t i = 0; i < 4; i++) {
-    if (pwm[i] < _minPWM[i]) {
-      pwm[i] = _minPWM[i]; // To small PWM
-    } else if (pwm[i] > _maxPWM[i]) {
-      pwm[i] = _maxPWM[i]; // To big PWM
-    }
+    pwm[i] = std::clamp(pwm[i], _minPWM[i], _maxPWM[i]);
   }
 
   // Send PWM vlaues through I2C to the microcontroller to control thrusters
