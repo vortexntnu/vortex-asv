@@ -69,11 +69,11 @@ int16_t *_interpolate_force_to_pwm(float *forces) {
     // Edge case, if the force is out of the bounds of your data table, handle
     // accordingly
     if (forces[i] <= _ForcePWMTable.front().force) {
-      interpolatedPWMArray[i] = static_cast<int16_t>(
-          _ForcePWMTable.front().pwm); // To small Force
+      interpolatedPWMArray[i] =
+          static_cast<int16_t>(_ForcePWMTable.front().pwm); // To small Force
     } else if (forces[i] >= _ForcePWMTable.back().force) {
-      interpolatedPWMArray[i] = static_cast<int16_t>(
-          _ForcePWMTable.back().pwm); // To big Force
+      interpolatedPWMArray[i] =
+          static_cast<int16_t>(_ForcePWMTable.back().pwm); // To big Force
     } else {
       // Set temporary variables for interpolating
       // Initialize with the first element
