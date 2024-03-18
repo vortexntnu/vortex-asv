@@ -194,10 +194,10 @@ int16_t *drive_thrusters(float *thrusterForces) {
   // , pin4:thruster4          ] To:   [pin1:<specifiedThruster>,
   // pin2:<specifiedThruster>, pin3:<specifiedThruster>,
   // pin4:<specifiedThruster>]
-  float thrusterForcesCahngedMapping[4] = {0.0, 0.0, 0.0, 0.0};
+  float thrusterForcesChangedMapping[4] = {0.0, 0.0, 0.0, 0.0};
   for (int8_t pinNr = 0; pinNr < 4; pinNr++) {
     int8_t remapedThrusterForcesIndex = _thrusterMapping[pinNr];
-    thrusterForcesCahngedMapping[pinNr] =
+    thrusterForcesChangedMapping[pinNr] =
         thrusterForces[remapedThrusterForcesIndex];
   }
 
@@ -206,7 +206,7 @@ int16_t *drive_thrusters(float *thrusterForces) {
   float thrusterForcesCahngedDirection[4] = {0.0, 0.0, 0.0, 0.0};
   for (int8_t i = 0; i < 4; i++) {
     thrusterForcesCahngedDirection[i] =
-        thrusterForcesCahngedMapping[i] * _thrusterDirection[i];
+        thrusterForcesChangedMapping[i] * _thrusterDirection[i];
   }
 
   // Interpolate forces to raw PWM values
