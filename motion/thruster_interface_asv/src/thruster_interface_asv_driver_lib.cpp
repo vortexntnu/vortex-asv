@@ -158,11 +158,11 @@ void _send_pwm_to_ESCs(int16_t *pwm) {
 
 // Initial function to set everything up with thruster driver
 // Set initial PWM limiting variables
-int8_t _thrusterMapping[4] = {0, 1, 2, 3};
-int8_t _thrusterDirection[4] = {1, 1, 1, 1};
-int16_t _offsetPWM[4] = {0, 0, 0, 0};
-int16_t _minPWM[4] = {1100, 1100, 1100, 1100};
-int16_t _maxPWM[4] = {1900, 1900, 1900, 1900};
+int8_t _thrusterMapping[4];
+int8_t _thrusterDirection[4];
+int16_t _offsetPWM[4];
+int16_t _minPWM[4];
+int16_t _maxPWM[4];
 
 void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
           int8_t *thrusterDirection, int16_t *offsetPWM, int16_t *minPWM,
