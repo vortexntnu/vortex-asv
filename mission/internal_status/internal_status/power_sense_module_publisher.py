@@ -23,9 +23,9 @@ class MinimalPublisher(Node):
         current.data = self.PSM.get_current()
         voltage.data = self.PSM.get_voltage()
         self.publisher_current.publish(current)  #publish current value to the "current topic" 
-        self.get_logger().info('Publishing PSM current: "%s"' % current.data)
+        # self.get_logger().info('Publishing PSM current: "%s"' % current.data) # Comented out because anoying on the info screen on ROS2
         self.publisher_voltage.publish(voltage)  #publish voltage value to the "voltge topic"
-        self.get_logger().info('Publishing PSM voltage: "%s"' % voltage.data)
+        # self.get_logger().info('Publishing PSM voltage: "%s"' % voltage.data) # Comented out because anoying on the info screen on ROS2
 
 
 def main(args=None):
