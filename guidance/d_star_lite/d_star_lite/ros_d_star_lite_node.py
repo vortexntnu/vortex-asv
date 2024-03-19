@@ -72,9 +72,19 @@ class DStarLiteNode(Node):
             self.get_logger().info('Waypoint service not available, waiting again...')
             return None  # Return None to indicate the service is not available.
         request = Waypoint.Request()
-        request.waypoint = self.waypoint_list
+        request.waypoint = self.waypoints
         future = self.waypoint_client.call_async(request)
-        return future
+        future.add_done_callback(self.waypoint_response_callback)  # Handle response
+
+    def waypoint_response_callback(self, future):
+        try:
+            response = future.result()
+            if response.success:
+                self.get_logger().info('Waypoints successfully submitted.')
+            else:
+                self.get_logger().error('Waypoint submission failed.')
+        except Exception as e:
+            self.get_logger().error('Service call failed %r' % (e,))
 
 def main(args=None):
     rclpy.init(args=args)
@@ -82,6 +92,7 @@ def main(args=None):
     rclpy.spin(node)
 
     # Cleanup and shutdown
+    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
