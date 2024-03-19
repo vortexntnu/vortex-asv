@@ -23,18 +23,18 @@ typedef struct mqtt_session mqtt_session_t;
 #define MQTT_TOPIC_LEN 128
 
 struct mqtt_config {
-	char host[MQTT_HOST_LEN];
-	char user[MQTT_USER_LEN];
-	char pass[MQTT_PASS_LEN];
-	char clientid[MQTT_CLIENTID_LEN];
-	char lwt_topic[MQTT_TOPIC_LEN];
+  char host[MQTT_HOST_LEN];
+  char user[MQTT_USER_LEN];
+  char pass[MQTT_PASS_LEN];
+  char clientid[MQTT_CLIENTID_LEN];
+  char lwt_topic[MQTT_TOPIC_LEN];
 };
 typedef struct mqtt_config mqtt_config_t;
 
-typedef void (mqtt_callback_t)(void *, char *, char *, int, char *);
+typedef void(mqtt_callback_t)(void *, char *, char *, int, char *);
 
 int mqtt_parse_config(mqtt_config_t *conf, char *str);
-int mqtt_get_config(void *,mqtt_config_t *);
+int mqtt_get_config(void *, mqtt_config_t *);
 mqtt_session_t *mqtt_new(mqtt_config_t *, mqtt_callback_t *, void *);
 int mqtt_newclient(mqtt_session_t *);
 int mqtt_connect(mqtt_session_t *s, int interval);
@@ -43,10 +43,12 @@ int mqtt_destroy(mqtt_session_t *s);
 int mqtt_send(mqtt_session_t *s, char *topic, char *message, int timeout);
 int mqtt_sub(mqtt_session_t *s, char *topic);
 int mqtt_unsub(mqtt_session_t *s, char *topic);
-int mqtt_setcb(mqtt_session_t *s, void *ctx, MQTTClient_connectionLost *cl, MQTTClient_messageArrived *ma, MQTTClient_deliveryComplete *dc);
+int mqtt_setcb(mqtt_session_t *s, void *ctx, MQTTClient_connectionLost *cl,
+               MQTTClient_messageArrived *ma, MQTTClient_deliveryComplete *dc);
 int mqtt_pub(mqtt_session_t *s, char *topic, char *message, int retain);
 
 int mqtt_dosend(mqtt_session_t *m, char *topic, char *message);
-int mqtt_fullsend(char *address, char *clientid, char *message, char *topic, char *user, char *pass);
+int mqtt_fullsend(char *address, char *clientid, char *message, char *topic,
+                  char *user, char *pass);
 
 #endif
