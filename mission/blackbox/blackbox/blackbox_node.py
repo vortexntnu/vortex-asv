@@ -1,31 +1,3 @@
-"""
-TODO
-From Martynas:
-To Rose:
-Add data recording for these ROS2 topics:
-
-MOST IMPORTANT:
-'/internal/status/bms0',   DONE 
-'/internal/status/bms1', DONE
-'/asv/temperature/ESC1', DONE
-'/asv/temperature/ESC2', DONE
-'/asv/temperature/ESC3', DONE
-'/asv/temperature/ESC4', DONE
-'/asv/temperature/ambient1',  DONE
-'/asv/temperature/ambient2',  DONE
-'/thrust/thruster_forces',  Float32_array 4, Thuster1 forces (N) , ... 
-'/pwm', PWM1, PWM2, 
-
-Nice to have:
-'/joy',                               
-'/joystick/joy',
-'/thrust/wrench_input',
-'/controller/lqr/enable',
-'/tf',
-'/tf_static'
-"""
-
-
 # ROS2 Libraries
 import rclpy
 import array
@@ -34,7 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import BatteryState
 
 # ROS2 Topic Libraries
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32MultiArray, Float32, Int16MultiArray
 
 # Custom Libraries
 from blackbox.blackbox_log_data import BlackBoxLogData
@@ -123,14 +95,20 @@ class BlackBoxNode(Node):
         self.bms1_percentage_data = 0.0
         self.bms1_cell_temperature_data = array.array('f', [0.0, 0.0, 0.0])
 
-        #self.thruster_forces = self.create_subscription(
-           # Float3 A,
-            #"/thrust/thruster_forces",
-           # self.thruster_forces_callback,
-           # 1)
-        #self.thruster_forces_data = array.array('f', [0.0, 0.0, 0.0, 0.0])
-        #################
-        
+        self.thruster_forces = self.create_subscription(
+            Float32MultiArray,
+            "/thrust/thruster_forces",
+            self.thruster_forces_callback,
+            1)
+        self.thruster_forces_data = array.array('f', [0.0, 0.0, 0.0, 0.0])
+
+        self.pwm = self.create_subscription(
+            Int16MultiArray,
+            "/pwm",
+            self.pwm_callback,
+            1)
+        self.pwm_data = array.array('i', [0, 0, 0, 0])
+       
 
 
         # Initialize logger ----------
@@ -163,6 +141,8 @@ class BlackBoxNode(Node):
             "/asv/temperature/ambient2 [Float32] \n"
             "/internal/status/bms0 [Float32] \n"
             "/internal/status/bms1 [Float32] \n"
+            "/thrust/thruster_forces [Float32] \n"
+            "/pwm [Float32] \n"
         )
 
     # Callback Methods ----------
@@ -202,8 +182,11 @@ class BlackBoxNode(Node):
         self.bms1_percentage_data = msg.percentage
         self.bms1_cell_temperature_data = msg.cell_temperature
         
-    #def thruster_forces_callback(self,msg):
-    #    self.thruster_fr_data = msg.data
+    def thruster_forces_callback(self,msg):
+        self.thruster_forces_data = msg.data
+
+    def pwm_callback(self,msg):
+        self.pwm_data = msg.data
 
         
 
@@ -233,6 +216,16 @@ class BlackBoxNode(Node):
             bms1_cell_temperature_1 =self.bms1_cell_temperature_data[0],
             bms1_cell_temperature_2 =self.bms1_cell_temperature_data[1],
             bms1_cell_temperature_3 =self.bms1_cell_temperature_data[2],
+
+            thruster_forces_1 =self.thruster_forces_data[0],
+            thruster_forces_2 =self.thruster_forces_data[1],
+            thruster_forces_3 =self.thruster_forces_data[2],
+            thruster_forces_4 =self.thruster_forces_data[3],
+
+            pwm_1 =self.pwm_data[0],
+            pwm_2 =self.pwm_data[1],
+            pwm_3 =self.pwm_data[2],
+            pwm_4 =self.pwm_data[3],
 
         )
 
