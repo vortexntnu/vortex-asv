@@ -188,8 +188,9 @@ void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
 // The main core functionality of interacting and controling the thrusters
 int16_t *drive_thrusters(float *thrusterForces) {
   // Remap Thrusters
-  // From: [pin1:thruster1, pin2:thruster2, pin3:thruster3, pin4:thruster4] 
-  // To:   [pin1:<specifiedThruster>, pin2:<specifiedThruster>, pin3:<specifiedThruster>, pin4:<specifiedThruster>]
+  // From: [pin1:thruster1, pin2:thruster2, pin3:thruster3, pin4:thruster4]
+  // To:   [pin1:<specifiedThruster>, pin2:<specifiedThruster>,
+  // pin3:<specifiedThruster>, pin4:<specifiedThruster>]
   float thrusterForcesChangedMapping[4] = {0.0, 0.0, 0.0, 0.0};
   for (int8_t pinNr = 0; pinNr < 4; pinNr++) {
     int8_t remapedThrusterForcesIndex = _thrusterMapping[pinNr];
