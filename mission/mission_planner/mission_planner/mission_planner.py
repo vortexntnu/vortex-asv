@@ -3,7 +3,8 @@
 import sys
 import rclpy
 from rclpy.node import Node
-from vortex_msgs.srv import MissionPlanner
+from vortex_msgs.srv import MissionParameters
+from geometry_msgs.msg import Point
 
 class MissionPlannerClient(Node):
     """
@@ -15,30 +16,31 @@ class MissionPlannerClient(Node):
         and waits for the service to become available.
         """
         super().__init__('mission_planner_client')
-        self.client = self.create_client(MissionPlanner, 'mission_planner')
+        self.client = self.create_client(MissionParameters, 'mission_parameters')
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting again...')
-        self.req = MissionPlanner.Request()
+        self.req = MissionParameters.Request()
 
-    def send_request(self, ox: list, oy: list, sx: int, sy: int, gx: int, gy: int):
+    def send_request(self, obstacles: list[Point], start: Point, goal: Point, origin: Point, height: int, width: int):
         """
         Sends an asynchronous request to the MissionPlanner service with obstacle locations,
         start, and goal positions.
 
         Args:
-            ox (list): The x-coordinates of obstacles.
-            oy (list): The y-coordinates of obstacles.
-            sx (int): The x-coordinate of the start position.
-            sy (int): The y-coordinate of the start position.
-            gx (int): The x-coordinate of the goal position.
-            gy (int): The y-coordinate of the goal position.
+            obstacles (list[Point]): The list of obstacle points.
+            start (Point): The start point.
+            goal (Point): The goal point.
+            origin (Point): The origin point of the world.
+            height (int): The height of the world.
+            width (int): The width of the world.
         """
-        self.req.ox = ox
-        self.req.oy = oy
-        self.req.sx = sx
-        self.req.sy = sy
-        self.req.gx = gx
-        self.req.gy = gy
+        self.req.obstacles = obstacles
+        self.req.start = start
+        self.req.goal = goal
+        self.req.origin = origin
+        self.req.height = height
+        self.req.width = width
+
         self.future = self.client.call_async(self.req)
         self.get_logger().info('MissionPlanner service has been called')
 
@@ -49,38 +51,11 @@ def main(args=None):
     """
     rclpy.init(args=args)
     mission_planner_client = MissionPlannerClient()
-    ox, oy = [], []
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(60)
-    for i in range(20, 60):
-        ox.append(60)
-        oy.append(i)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(60)
-    for i in range(20, 61):
-        ox.append(-10)
-        oy.append(i)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(55)
-    for i in range(-10, 46):
-        ox.append(i)
-        oy.append(45)
-    for i in range(35, 45):
-        ox.append(45)
-        oy.append(i)
-    for i in range(-10, 46):
-        ox.append(i)
-        oy.append(35)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(25)
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(20)
-    mission_planner_client.send_request(ox, oy, -5, 50, -5, 30)
+    # Test data
+    obstacles = []
+    start = Point(x=1.0, y=1.0)
+    goal = Point(x=10.0, y=10.0)
+    mission_planner_client.send_request(obstacles, start, goal, Point(x=0.0, y=0.0), 15, 15)
 
     while rclpy.ok():
         rclpy.spin_once(mission_planner_client)
