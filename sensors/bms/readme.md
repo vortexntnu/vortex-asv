@@ -19,7 +19,7 @@ The node publishes a message of type BatteryState to the bms topics, and a Diagn
 
 The node can be run with:
 ```
-ros2 launch bms_launch.py
+ros2 launch bms bms_launch.py
 ```
 
 or alternatively

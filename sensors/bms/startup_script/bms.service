@@ -1,0 +1,17 @@
+[Unit]
+Description=launch ros2 bms node
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /home/<username>/<workspace>/src/vortex-asv/sensors/bms/startup_script/bms.sh
+WorkingDirectory=/home/<username>/
+RemainAfterExit=yes
+StandardOutput=journal+console
+
+User=vortex
+
+Restart=no
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
