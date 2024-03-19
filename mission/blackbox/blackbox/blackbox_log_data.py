@@ -46,6 +46,16 @@ class BlackBoxLogData:
             "BMS1 Cell Temperature 2",
             "BMS1 Cell Temperature 3",
 
+            "Thruster Forces 1",
+            "Thruster Forces 2",
+            "Thruster Forces 3",
+            "Thruster Forces 4",
+ 
+            "PWM 1",
+            "PWM 2",
+            "PWM 3",
+            "PWM 4",
+
         ]
 
         # Manage csv files for blackbox data ----------
@@ -127,6 +137,17 @@ class BlackBoxLogData:
         bms1_cell_temperature_2 = 0.0,
         bms1_cell_temperature_3 = 0.0,
 
+        thruster_forces_1 = 0.0,
+        thruster_forces_2 = 0.0,
+        thruster_forces_3 = 0.0,
+        thruster_forces_4 = 0.0,
+
+        pwm_1 = 0,
+        pwm_2 = 0,
+        pwm_3 = 0,
+        pwm_4 = 0,
+    
+
     ):
         # Get current time in hours, minutes, seconds and miliseconds
         current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
@@ -162,5 +183,13 @@ class BlackBoxLogData:
                 bms1_cell_temperature_2,
                 bms1_cell_temperature_3,
 
+                thruster_forces_1,
+                thruster_forces_2,
+                thruster_forces_3,
+                thruster_forces_4,
 
+                pwm_1,
+                pwm_2,
+                pwm_3,
+                pwm_4,
             ])
