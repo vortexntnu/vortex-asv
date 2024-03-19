@@ -73,30 +73,30 @@ void logProperties(MQTTProperties *props) {
     switch (MQTTProperty_getType(id)) {
     case MQTTPROPERTY_TYPE_BYTE:
       //		  MyLog(LOGA_INFO, intformat, name,
-      //props->array[i].value.byte);
+      // props->array[i].value.byte);
       break;
     case MQTTPROPERTY_TYPE_TWO_BYTE_INTEGER:
       //		  MyLog(LOGA_INFO, intformat, name,
-      //props->array[i].value.integer2);
+      // props->array[i].value.integer2);
       break;
     case MQTTPROPERTY_TYPE_FOUR_BYTE_INTEGER:
       //		  MyLog(LOGA_INFO, intformat, name,
-      //props->array[i].value.integer4);
+      // props->array[i].value.integer4);
       break;
     case MQTTPROPERTY_TYPE_VARIABLE_BYTE_INTEGER:
       //		  MyLog(LOGA_INFO, intformat, name,
-      //props->array[i].value.integer4);
+      // props->array[i].value.integer4);
       break;
     case MQTTPROPERTY_TYPE_BINARY_DATA:
     case MQTTPROPERTY_TYPE_UTF_8_ENCODED_STRING:
       //		  MyLog(LOGA_INFO, "Property name value %s %.*s", name,
-      //props->array[i].value.data.len, props->array[i].value.data.data);
+      // props->array[i].value.data.len, props->array[i].value.data.data);
       break;
     case MQTTPROPERTY_TYPE_UTF_8_STRING_PAIR:
       //		  MyLog(LOGA_INFO, "Property name %s key %.*s value
       //%.*s", name, props->array[i].value.data.len,
-      //props->array[i].value.data.data, props->array[i].value.value.len,
-      //props->array[i].value.value.data);
+      // props->array[i].value.data.data, props->array[i].value.value.len,
+      // props->array[i].value.value.data);
       break;
     }
   }
@@ -162,7 +162,7 @@ int mqtt_newclient(struct mqtt_session *s) {
   opts.MQTTVersion = MQTTVERSION_3_1;
 #endif
   //	rc = MQTTClient_create(&s->c, s->config.host, s->config.clientid,
-  //MQTTCLIENT_PERSISTENCE_NONE, NULL);
+  // MQTTCLIENT_PERSISTENCE_NONE, NULL);
   rc = MQTTClient_createWithOptions(&s->c, s->config.host, s->config.clientid,
                                     MQTTCLIENT_PERSISTENCE_NONE, NULL, &opts);
   dprintf(2, "create rc: %d\n", rc);
