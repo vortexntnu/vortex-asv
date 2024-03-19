@@ -20,5 +20,5 @@ where 'obstacle_x' and 'obstacle_y' are lists containg the x and y coordinates o
 ![Obstacle](https://drive.google.com/uc?export=download&id=1M43ohD3wpKwmgkjJ44Ut1uOT3f5MlSQI)
 
 # D* lite ROS2 node
-The node is responsible for gathering the waypoints found from the algorithm and send them to the waypoint manager. The node receives the mission parameters from the mission planner. It is both
+The node is responsible for gathering the waypoints found from the algorithm and send them to the waypoint manager. The node receives the mission parameters from the mission planner. It is both a client and a server.
 
