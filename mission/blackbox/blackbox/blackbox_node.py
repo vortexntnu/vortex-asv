@@ -129,7 +129,7 @@ class BlackBoxNode(Node):
            # self.thruster_forces_callback,
            # 1)
         #self.thruster_forces_data = array.array('f', [0.0, 0.0, 0.0, 0.0])
-        
+        #################
         
 
 
