@@ -12,7 +12,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h> // Used for the close function
 
-// Declare functions we can use
 namespace thruster_interface_asv_driver_lib {
 void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
           int8_t *thrusterDirection, int16_t *offsetPWM, int16_t *minPWM,
