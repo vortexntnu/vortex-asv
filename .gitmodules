@@ -1,0 +1,3 @@
+[submodule "jbdtool"]
+	path = jbdtool
+	url = https://github.com/vortexntnu/jbdtool.git
