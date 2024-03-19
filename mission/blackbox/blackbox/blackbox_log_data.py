@@ -20,18 +20,32 @@ class BlackBoxLogData:
 
         self.csv_headers = [
             "Time",
+
             "Power Sense Module Current",
             "Power Sense Module Voltage",
+
             "Temperature ESC1",
             "Temperature ESC2",
             "Temperature ESC3",
             "Temperature ESC4",
+
             "Temperature Ambiant1",
             "Temperature Ambiant2",
+
             "BMS0 Voltage",
             "BMS0 Current",
             "BMS0 Battery Percentage",
-            "BMS0 Cell Temperature"
+            "BMS0 Cell Temperature 1",
+            "BMS0 Cell Temperature 2",
+            "BMS0 Cell Temperature 3",
+
+            "BMS1 Voltage",
+            "BMS1 Current",
+            "BMS1 Battery Percentage",
+            "BMS1 Cell Temperature 1",
+            "BMS1 Cell Temperature 2",
+            "BMS1 Cell Temperature 3",
+
         ]
 
         # Manage csv files for blackbox data ----------
@@ -90,16 +104,29 @@ class BlackBoxLogData:
     def log_data_to_csv_file(self,
         psm_current = 0.0,
         psm_voltage = 0.0,
+
         temperature_ESC1 = 0.0,
         temperature_ESC2 = 0.0,
         temperature_ESC3 = 0.0,
         temperature_ESC4 = 0.0,
+
         temperature_ambient1 = 0.0,
         temperature_ambient2 = 0.0,
+
         bms0_voltage = 0.0,
         bms0_current = 0.0,
         bms0_percentage = 0.0,
-        bms0_cell_temperature = 0.0,
+        bms0_cell_temperature_1 = 0.0,
+        bms0_cell_temperature_2 = 0.0,
+        bms0_cell_temperature_3 = 0.0,
+
+        bms1_voltage = 0.0,
+        bms1_current = 0.0,
+        bms1_percentage = 0.0,
+        bms1_cell_temperature_1 = 0.0,
+        bms1_cell_temperature_2 = 0.0,
+        bms1_cell_temperature_3 = 0.0,
+
     ):
         # Get current time in hours, minutes, seconds and miliseconds
         current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
@@ -109,17 +136,31 @@ class BlackBoxLogData:
             writer = csv.writer(csv_file)
             writer.writerow([
                 current_time,
+
                 psm_current,
                 psm_voltage,
+
                 temperature_ESC1,
                 temperature_ESC2,
                 temperature_ESC3,
                 temperature_ESC4,
+
                 temperature_ambient1,
                 temperature_ambient2,
+
                 bms0_voltage,
                 bms0_current,
                 bms0_percentage,
-                bms0_cell_temperature,
+                bms0_cell_temperature_1,
+                bms0_cell_temperature_2,
+                bms0_cell_temperature_3,
+
+                bms1_voltage,
+                bms1_current,
+                bms1_percentage,
+                bms1_cell_temperature_1,
+                bms1_cell_temperature_2,
+                bms1_cell_temperature_3,
+
 
             ])

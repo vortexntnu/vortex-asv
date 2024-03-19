@@ -5,8 +5,8 @@ To Rose:
 Add data recording for these ROS2 topics:
 
 MOST IMPORTANT:
-'/internal/status/bms0',   split the array in three different lines 
-'/internal/status/bms1', BatteryState ROS2
+'/internal/status/bms0',   DONE 
+'/internal/status/bms1', DONE
 '/asv/temperature/ESC1', DONE
 '/asv/temperature/ESC2', DONE
 '/asv/temperature/ESC3', DONE
@@ -28,6 +28,7 @@ Nice to have:
 
 # ROS2 Libraries
 import rclpy
+import array
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import BatteryState
@@ -110,7 +111,24 @@ class BlackBoxNode(Node):
         self.bms0_voltage_data = 0.0
         self.bms0_current_data = 0.0
         self.bms0_percentage_data = 0.0
-        self.bms0_cell_temperature_data = 0.0
+        self.bms0_cell_temperature_data = array.array('f', [0.0, 0.0, 0.0])
+
+        self.bms1_subscriber = self.create_subscription(
+            BatteryState,
+            "/internal/status/bms1",
+            self.bms1_callback,
+            1)
+        self.bms1_voltage_data = 0.0
+        self.bms1_current_data = 0.0
+        self.bms1_percentage_data = 0.0
+        self.bms1_cell_temperature_data = array.array('f', [0.0, 0.0, 0.0])
+
+        #self.thruster_forces = self.create_subscription(
+           # Float3 A,
+            #"/thrust/thruster_forces",
+           # self.thruster_forces_callback,
+           # 1)
+        #self.thruster_forces_data = array.array('f', [0.0, 0.0, 0.0, 0.0])
         
         
 
@@ -144,6 +162,7 @@ class BlackBoxNode(Node):
             "/asv/temperature/ambient1 [Float32] \n"
             "/asv/temperature/ambient2 [Float32] \n"
             "/internal/status/bms0 [Float32] \n"
+            "/internal/status/bms1 [Float32] \n"
         )
 
     # Callback Methods ----------
@@ -176,8 +195,15 @@ class BlackBoxNode(Node):
         self.bms0_current_data = msg.current
         self.bms0_percentage_data = msg.percentage
         self.bms0_cell_temperature_data = msg.cell_temperature
-        
 
+    def bms1_callback(self,msg):
+        self.bms1_voltage_data = msg.voltage
+        self.bms1_current_data = msg.current
+        self.bms1_percentage_data = msg.percentage
+        self.bms1_cell_temperature_data = msg.cell_temperature
+        
+    #def thruster_forces_callback(self,msg):
+    #    self.thruster_fr_data = msg.data
 
         
 
@@ -185,16 +211,28 @@ class BlackBoxNode(Node):
         self.blackbox_log_data.log_data_to_csv_file(
             psm_current=self.psm_current_data,
             psm_voltage=self.psm_voltage_data,
+
             temperature_ESC1 =self.temperature_ESC1_data,
             temperature_ESC2 =self.temperature_ESC2_data,
             temperature_ESC3 =self.temperature_ESC3_data,
             temperature_ESC4 =self.temperature_ESC4_data,
+
             temperature_ambient1 =self.temperature_ambient1_data,
             temperature_ambient2 =self.temperature_ambient2_data,
+
             bms0_voltage =self.bms0_voltage_data,
             bms0_current =self.bms0_current_data,
             bms0_percentage =self.bms0_percentage_data,
-            bms0_cell_temperature =self.bms0_cell_temperature_data,
+            bms0_cell_temperature_1 =self.bms0_cell_temperature_data[0],
+            bms0_cell_temperature_2 =self.bms0_cell_temperature_data[1],
+            bms0_cell_temperature_3 =self.bms0_cell_temperature_data[2],
+
+            bms1_voltage =self.bms1_voltage_data,
+            bms1_current =self.bms1_current_data,
+            bms1_percentage =self.bms1_percentage_data,
+            bms1_cell_temperature_1 =self.bms1_cell_temperature_data[0],
+            bms1_cell_temperature_2 =self.bms1_cell_temperature_data[1],
+            bms1_cell_temperature_3 =self.bms1_cell_temperature_data[2],
 
         )
 
