@@ -8,11 +8,17 @@ class MinimalPublisher(Node):
 
 
     def __init__(self):
+        # Node setup ----------
         super().__init__('PSM_publisher')
         self.PSM = internal_status.power_sense_module_lib.PowerSenseModule()
-        self.publisher_current = self.create_publisher(Float32, '/asv/power_sense_module/current', 1)
-        self.publisher_voltage = self.create_publisher(Float32, '/asv/power_sense_module/voltage', 1)
-        timer_period = 0.5
+
+        self.publisher_current = self.create_publisher(Float32, '/asv/power_sense_module/current', 5)
+        self.publisher_voltage = self.create_publisher(Float32, '/asv/power_sense_module/voltage', 5)
+        
+        # Data gathering cycle ----------
+        self.declare_parameter("internal_status.psm_read_rate", 1.0)  # Providing a default value 1.0 => 1 second delay per data gathering
+        psm_read_rate = self.get_parameter("internal_status.psm_read_rate").get_parameter_value().double_value
+        timer_period = 1.0/psm_read_rate
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
 
@@ -26,6 +32,7 @@ class MinimalPublisher(Node):
         # self.get_logger().info('Publishing PSM current: "%s"' % current.data) # Comented out because anoying on the info screen on ROS2
         self.publisher_voltage.publish(voltage)  #publish voltage value to the "voltge topic"
         # self.get_logger().info('Publishing PSM voltage: "%s"' % voltage.data) # Comented out because anoying on the info screen on ROS2
+
 
 
 def main(args=None):
