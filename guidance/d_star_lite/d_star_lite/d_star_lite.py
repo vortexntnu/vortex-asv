@@ -115,7 +115,7 @@ class DStarLite:
         """
         return np.full((self.x_max, self.y_max), val)
     
-    def is_obstacle(self, DSLNode: DSLNode) -> bool:
+    def is_obstacle(self, dslnode: DSLNode) -> bool:
         """
         Check if the DSLNode is considered an obstacle or is too close to an obstacle.
 
@@ -130,7 +130,7 @@ class DStarLite:
             return False
         
         # Convert the DSLNode's coordinates to a numpy array for efficient distance computation
-        node_xy = np.array([DSLNode.x, DSLNode.y])
+        node_xy = np.array([dslnode.x, dslnode.y])
 
         # Compute the euclidean distances from the DSLNode to all obstacles
         distances = np.sqrt(np.sum((self.obstacles_xy - node_xy) ** 2, axis=1))
