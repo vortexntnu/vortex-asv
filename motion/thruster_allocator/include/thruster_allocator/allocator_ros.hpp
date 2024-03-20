@@ -14,7 +14,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <geometry_msgs/msg/wrench.hpp>
-#include <vortex_msgs/msg/thruster_forces.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
 
 using namespace std::chrono_literals;
 
@@ -46,8 +46,8 @@ private:
    * @return True if the vector is healthy, false otherwise.
    */
   bool healthyWrench(const Eigen::VectorXd &v) const;
-  rclcpp::Publisher<vortex_msgs::msg::ThrusterForces>::SharedPtr publisher_;
-  rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr subscription_;
+  rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr thrust_publisher_;
+  rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr wrench_subscriber_;
   rclcpp::TimerBase::SharedPtr timer_;
   size_t count_;
   int num_dof_;

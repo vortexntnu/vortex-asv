@@ -1,7 +1,7 @@
 #include "thruster_allocator/allocator_ros.hpp"
 #include "thruster_allocator/allocator_utils.hpp"
 #include "thruster_allocator/pseudoinverse_allocator.hpp"
-#include <vortex_msgs/msg/thruster_forces.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
 
 #include <chrono>
 #include <functional>
@@ -25,17 +25,18 @@ ThrusterAllocator::ThrusterAllocator()
   max_thrust_ = get_parameter("propulsion.thrusters.max").as_int();
   direction_ =
       get_parameter("propulsion.thrusters.direction").as_integer_array();
+      
   thrust_configuration = doubleArrayToEigenMatrix(
       get_parameter("propulsion.thrusters.configuration_matrix")
           .as_double_array(),
       num_dof_, num_thrusters_);
 
-  subscription_ = this->create_subscription<geometry_msgs::msg::Wrench>(
+  wrench_subscriber_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
       std::bind(&ThrusterAllocator::wrench_callback, this,
                 std::placeholders::_1));
 
-  publisher_ = this->create_publisher<vortex_msgs::msg::ThrusterForces>(
+  thrust_publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
       "thrust/thruster_forces", 1);
 
   timer_ = this->create_wall_timer(
@@ -60,12 +61,9 @@ void ThrusterAllocator::timer_callback() {
     RCLCPP_WARN(get_logger(), "Thruster forces vector required saturation.");
   }
 
-  vortex_msgs::msg::ThrusterForces msg_out;
+  std_msgs::msg::Float32MultiArray msg_out;
   arrayEigenToMsg(thruster_forces, msg_out);
-  std::transform(msg_out.thrust.begin(), msg_out.thrust.end(),
-                 direction_.begin(), msg_out.thrust.begin(),
-                 std::multiplies<>());
-  publisher_->publish(msg_out);
+  thrust_publisher_->publish(msg_out);
 }
 
 void ThrusterAllocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
