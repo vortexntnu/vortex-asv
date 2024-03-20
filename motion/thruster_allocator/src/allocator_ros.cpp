@@ -25,7 +25,7 @@ ThrusterAllocator::ThrusterAllocator()
   max_thrust_ = get_parameter("propulsion.thrusters.max").as_int();
   direction_ =
       get_parameter("propulsion.thrusters.direction").as_integer_array();
-      
+
   thrust_configuration = doubleArrayToEigenMatrix(
       get_parameter("propulsion.thrusters.configuration_matrix")
           .as_double_array(),

@@ -92,7 +92,7 @@ inline void arrayEigenToMsg(const Eigen::VectorXd &u,
                             std_msgs::msg::Float32MultiArray &msg) {
   int size = u.size();
   for (int i = 0; i < size; ++i) {
-      msg.data[i] = static_cast<float>(u(i));
+    msg.data[i] = static_cast<float>(u(i));
   }
 }
 

@@ -46,8 +46,10 @@ private:
    * @return True if the vector is healthy, false otherwise.
    */
   bool healthyWrench(const Eigen::VectorXd &v) const;
-  rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr thrust_publisher_;
-  rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr wrench_subscriber_;
+  rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr
+      thrust_publisher_;
+  rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr
+      wrench_subscriber_;
   rclcpp::TimerBase::SharedPtr timer_;
   size_t count_;
   int num_dof_;
