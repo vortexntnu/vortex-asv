@@ -81,7 +81,7 @@ inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
 }
 
 /**
- * @brief Converts an Eigen VectorXd to a vortex_msgs::msg::ThrusterForces
+ * @brief Converts an Eigen VectorXd to a std_msgs::msg::Float32MultiArray
  * message.
  *
  * @param u The Eigen VectorXd to be converted.
