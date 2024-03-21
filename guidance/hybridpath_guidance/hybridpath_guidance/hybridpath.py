@@ -33,15 +33,18 @@ class HybridPathGenerator:
     '''
 
     def __init__(self, WP, r, lambda_val, plot_handle = None):
-        self.WP = WP
+        if len(WP) == 2:
+            self.WP = np.array([WP[0], [(WP[0][0] + WP[1][0])/2, (WP[0][1] + WP[1][1])/2], WP[1]])
+        else:
+            self.WP = WP
         self.r = r
         self.lambda_val = lambda_val
         self.plot_handle = plot_handle
         self.ord = 2*r + 1
         self.Path = {
-            'NumSubpaths': len(WP) - 1,
+            'NumSubpaths': len(self.WP) - 1,
             'Order': self.ord,
-            'WP': {'x': WP[:,0], 'y': WP[:,1]},
+            'WP': {'x': self.WP[:,0], 'y': self.WP[:,1]},
             'LinSys': {
                 'A': None,
                 'bx': [],
@@ -76,7 +79,7 @@ class HybridPathGenerator:
             ax, bx = np.zeros(ord_plus_one), np.zeros(ord_plus_one)
             ax[:2] = self.WP[j:j+2, 0]
             bx[:2] = self.WP[j:j+2, 1]
-            if self.ord > 2:
+            if self.ord > 2: # More than two waypoints
                 if j == 0:
                     ax[2:4] = [self.WP[j+1, 0] - self.WP[j, 0], self.lambda_val * (self.WP[j+2, 0] - self.WP[j, 0])] 
                     bx[2:4] = [self.WP[j+1, 1] - self.WP[j, 1], self.lambda_val * (self.WP[j+2, 1] - self.WP[j, 1])] 
@@ -87,7 +90,7 @@ class HybridPathGenerator:
                 else:
                     ax[2:4] = [self.lambda_val * (self.WP[j+1, 0] - self.WP[j-1, 0]), self.lambda_val * (self.WP[j+2, 0] - self.WP[j, 0])]
                     bx[2:4] = [self.lambda_val * (self.WP[j+1, 1] - self.WP[j-1, 1]), self.lambda_val * (self.WP[j+2, 1] - self.WP[j, 1])]
-                
+            
             a_vec = np.linalg.solve(A, ax)
             b_vec = np.linalg.solve(A, bx)
             self.Path['LinSys']['bx'].append(ax)
@@ -107,6 +110,13 @@ class HybridPathGenerator:
                 # b_poly = Polynomial(b_vec).deriv(k).coef
                 # self.Path['coeff']['a_der'].append(a_poly)
                 # self.Path['coeff']['b_der'].append(b_poly)
+                    
+    @staticmethod
+    def update_s(path, dt, u_d, s):
+        signals = HybridPathSignals(path, s)
+        v_ref, _ = signals.calc_vs(u_d)
+        s = v_ref * dt
+        return s
 
     def plot_path(self):
         if self.plot_handle is not None:

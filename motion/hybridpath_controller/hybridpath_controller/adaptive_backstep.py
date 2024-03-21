@@ -1,16 +1,19 @@
 import numpy as np
+from nav_msgs.msg import Odometry
+from vortex_msgs.msg import HybridpathReference
+from transforms3d.euler import quat2euler
 
 class AdaptiveBackstep:
-    def __init__(self, kappa = 0.5):
-        self.init_system(kappa)
+    def __init__(self):
+        self.init_system()
 
-    def init_system(self, kappa):
+    def init_system(self):
 
         I = np.eye(3)
-
-        K_1 = np.diag([10, 10, 10])
+        kappa = 0 
+        K_1 = np.diag([10, 10, 10]) # First gain matrix
         self.K_1_tilde = K_1 + kappa*I
-        self.K_2 = np.diag([60, 60, 30])
+        self.K_2 = np.diag([60, 60, 30]) # Second gain matrix
         self.tau_max = np.array([41.0, 50.0, 55.0]) # Må tilpasses thrusterne
 
         ## Forenklet modell ## Bør også endres
@@ -18,43 +21,61 @@ class AdaptiveBackstep:
         self.M = np.diag([m, m, m])
         self.D = np.diag([10, 10, 5])
 
-    def control_law(self, eta, nu, w, v_ref, dt_v_ref, dtheta_v_ref, eta_d, dtheta_eta_d, ddtheta_eta_d): # dtheta == ds
-        _, R_trps = self.R(eta[2])
-        S = self.S(nu[2])
+    def control_law(self, state: Odometry, reference: HybridpathReference) -> np.ndarray:
+        """
+        Calculates the control input based on the state and reference.
 
+        Args:
+            state (Odometry): The current state of the system.
+            reference (HybridpathReference): The reference to follow.
+
+        Returns:
+            np.ndarray: The control input.
+        """
+
+        # Transform the Odometry message to a state vector
+        state = self.odom_to_state(state)
+
+        # Extract values from the state and reference
+        eta = state[:3]
+        nu = state[3:]
+        w = reference.w
+        v_s = reference.v_s
+        v_ss = reference.v_ss
+        eta_d = np.array([reference.eta_d.x, reference.eta_d.y, reference.eta_d.theta])
+        eta_d_s = np.array([reference.eta_d_s.x, reference.eta_d_s.y, reference.eta_d_s.theta])
+        eta_d_ss = np.array([reference.eta_d_ss.x, reference.eta_d_ss.y, reference.eta_d_ss.theta])
+
+        # Get R_transposed and S
+        R_trps = self.rotationmatrix_in_yaw_transpose(eta[2])
+        S = self.skew_symmetric_matrix(nu[2])
+
+        # Define error signals
         eta_error = eta - eta_d
         eta_error[2] = self.ssa(eta_error[2])
 
         z1 = R_trps @ eta_error
-        alpha1 = -self.K_1_tilde @ z1 + R_trps @ dtheta_eta_d * v_ref
+        alpha1 = -self.K_1_tilde @ z1 + R_trps @ eta_d_s * v_s
 
         z2 = nu - alpha1
 
-        sigma1 = self.K_1_tilde @ (S @ z1) - self.K_1_tilde @ nu - S @ (R_trps @ dtheta_eta_d) * v_ref + R_trps @ dtheta_eta_d * dt_v_ref
+        sigma1 = self.K_1_tilde @ (S @ z1) - self.K_1_tilde @ nu - S @ (R_trps @ eta_d_s) * v_s
 
-        dtheta_alpha1 = self.K_1_tilde @ (R_trps @ dtheta_eta_d) + R_trps @ ddtheta_eta_d * v_ref + R_trps @ dtheta_eta_d * dtheta_v_ref
+        dtheta_alpha1 = self.K_1_tilde @ (R_trps @ eta_d_s) + R_trps @ eta_d_ss * v_s + R_trps @ eta_d_s * v_ss
 
-        # Control law ## Må endres når system-matrisene endres
-        tau = -self.K_2 @ z2 + self.D @ nu + self.M @ sigma1 + self.M @ dtheta_alpha1 * (v_ref + w)
+        # Control law ## Må endres om de ulineære matrisene skal brukes
+        tau = -self.K_2 @ z2 + self.D @ nu + self.M @ sigma1 + self.M @ dtheta_alpha1 * (v_s + w)
 
-        # Add constraints to tau #
+        # Add constraints to tau # This should be improved
+        # for i in range(len(tau)):
+        #     if tau[i] > self.tau_max[i]:
+        #         tau[i] = self.tau_max[i]
+        #     elif tau[i] < -self.tau_max[i]:
+        #         tau[i] = -self.tau_max[i]
 
-        if np.absolute(tau[0]) > self.tau_max[0] or np.absolute(tau[1]) > self.tau_max[1] or np.absolute(tau[2]) > self.tau_max[2]:
-            if np.absolute(tau[0]) > self.tau_max[0]:
-                tau[2] = np.sign(tau[2]) * np.absolute(self.tau_max[0] / tau[0]) * np.absolute(tau[2])
-                tau[1] = np.sign(tau[1]) * np.absolute(self.tau_max[0] / tau[0]) * np.absolute(tau[1])
-                tau[0] = np.sign(tau[0]) * self.tau_max[0]
-            if np.absolute(tau[1]) > self.tau_max[1]:
-                tau[2] = np.sign(tau[2]) * np.absolute(self.tau_max[1] / tau[1]) * np.absolute(tau[2])
-                tau[0] = np.sign(tau[0]) * np.absolute(self.tau_max[1] / tau[1]) * np.absolute(tau[0])
-                tau[1] = np.sign(tau[1]) * self.tau_max[1]
-            if np.absolute(tau[2]) > self.tau_max[2]:
-                tau[1] = np.sign(tau[1]) * np.absolute(self.tau_max[2] / tau[2]) * np.absolute(tau[1])
-                tau[0] = np.sign(tau[0]) * np.absolute(self.tau_max[2] / tau[2]) * np.absolute(tau[0])
-                tau[2] = np.sign(tau[2]) * self.tau_max[2]
         return tau
 
-    def calculate_coriolis_matrix(self, nu):
+    def calculate_coriolis_matrix(self, nu): # Må bestemme om dette er noe vi skal bruke
         # u = nu[0]
         # v = nu[1]
         # r = nu[2]
@@ -68,19 +89,50 @@ class AdaptiveBackstep:
         #return C
         pass
 
-    def R(self,psi):
+    @staticmethod
+    def rotationmatrix_in_yaw_transpose(psi):
         R = np.array([[np.cos(psi), -np.sin(psi), 0],
                     [np.sin(psi), np.cos(psi), 0],
                     [0, 0, 1]])
-        R_T = np.transpose(R)
-        return R, R_T
+        R_trps = np.transpose(R)
+        return R_trps
     
-    def S(self,r):
+    @staticmethod
+    def skew_symmetric_matrix(r):
         S = np.array([[0, -r, 0],
                     [r, 0, 0],
                     [0, 0, 0]])
         return S
     
-    def ssa(self,angle):
+    @staticmethod
+    def ssa(angle):
         wrpd_angle = (angle + np.pi) % (2.0*np.pi) - np.pi
         return wrpd_angle
+    
+    @staticmethod
+    def odom_to_state(msg: Odometry) -> np.ndarray:
+        """
+        Converts an Odometry message to a state 3DOF vector.
+
+        Args:
+            msg (Odometry): The Odometry message to convert.
+
+        Returns:
+            np.ndarray: The state vector.
+        """
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        orientation_q = msg.pose.pose.orientation
+        orientation_list = [
+            orientation_q.w, orientation_q.x, orientation_q.y, orientation_q.z
+        ]
+
+        # Convert quaternion to Euler angles
+        (roll, pitch, yaw) = quat2euler(orientation_list)
+
+        u = msg.twist.twist.linear.x
+        v = msg.twist.twist.linear.y
+        r = msg.twist.twist.angular.z 
+
+        state = np.array([x, y, yaw, u, v, r])
+        return state
