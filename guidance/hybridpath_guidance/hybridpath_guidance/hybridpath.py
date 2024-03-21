@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 class HybridPathGenerator:
     '''
@@ -32,14 +31,13 @@ class HybridPathGenerator:
         Based on MATLAB code by prof. Roger Skjetne, NTNU
     '''
 
-    def __init__(self, WP, r, lambda_val, plot_handle = None):
-        if len(WP) == 2:
+    def __init__(self, WP: np.ndarray, r: int, lambda_val: float) -> None:
+        if len(WP) == 2: # If only two waypoints are given, add a middle waypoint
             self.WP = np.array([WP[0], [(WP[0][0] + WP[1][0])/2, (WP[0][1] + WP[1][1])/2], WP[1]])
         else:
             self.WP = WP
         self.r = r
         self.lambda_val = lambda_val
-        self.plot_handle = plot_handle
         self.ord = 2*r + 1
         self.Path = {
             'NumSubpaths': len(self.WP) - 1,
@@ -59,7 +57,7 @@ class HybridPathGenerator:
         }
         self._calculate_subpaths()
 
-    def _calculate_subpaths(self):
+    def _calculate_subpaths(self) -> None:
         ord_plus_one = self.ord + 1
         A = np.zeros((ord_plus_one, ord_plus_one))
         coefs = np.ones(ord_plus_one)
@@ -108,24 +106,26 @@ class HybridPathGenerator:
                     self.Path['coeff']['b_der'].append([b_vec])
                     
     @staticmethod
-    def update_s(path, dt, u_d, s):
+    def update_s(path, dt: float, u_d: float, s: float) -> float:
         signals = HybridPathSignals(path, s)
         v_ref, _ = signals.calc_vs(u_d)
         s = v_ref * dt
         return s
             
 class HybridPathSignals:
-    def __init__(self, path, s):
+    def __init__(self, path: dict, s: float) -> None:
         self.path = path
         self.s = self._clamp_s(s, path['NumSubpaths'])
         self.ord = path['Order']
         self.pd = None
         self.pd_der = []
         self.pd, self.pd_der = self.get_signals()
-        self.psi, self.psi_der, self.psi_dder = self.get_heading()
+        self.psi = self.get_heading()
+        self.psi_der = self.get_heading_derivative()
+        self.psi_dder = self.get_heading_second_derivative()
         
     @staticmethod
-    def _clamp_s(s, num_subpaths):
+    def _clamp_s(s, num_subpaths: int) -> float:
         """
         Ensure s is within the valid range.
         """
@@ -135,7 +135,7 @@ class HybridPathSignals:
             return num_subpaths - 1e-3 # A small epsilon
         return s
     
-    def get_signals(self):
+    def get_signals(self) -> tuple[list[float], list[list[float]]]:
         """
         Compute the location and derivative at s.
         """
@@ -161,14 +161,25 @@ class HybridPathSignals:
 
         return self.pd, self.pd_der
     
-    def get_heading(self):
+    def get_heading(self) -> float:
         psi = np.arctan2(self.pd_der[0][1], self.pd_der[0][0])
-        psi_der = (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[0][1] * self.pd_der[1][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2)
-        psi_dder = (self.pd_der[0][0] * self.pd_der[2][1] - self.pd_der[0][1] * self.pd_der[2][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2) - 2 * (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[1][0] * self.pd_der[0][1]) * (self.pd_der[0][0] * self.pd_der[1][0] - self.pd_der[1][1] * self.pd_der[0][1]) / ((self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**2)
-        return psi, psi_der, psi_dder
+        return psi
     
-    def calc_vs(self, u_d):
-        #vs = u_d/np.sqrt(self.pd_der[0][0]**2 + self.pd_der[0][1]**2)
+    def get_heading_derivative(self) -> float:
+        if self.path['Order'] > 1:
+            psi_der = (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[0][1] * self.pd_der[1][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2)
+        else:
+            psi_der = 0
+        return psi_der
+    
+    def get_heading_second_derivative(self) -> float:
+        if self.path['Order'] > 1:
+            psi_dder = (self.pd_der[0][0] * self.pd_der[2][1] - self.pd_der[0][1] * self.pd_der[2][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2) - 2 * (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[1][0] * self.pd_der[0][1]) * (self.pd_der[0][0] * self.pd_der[1][0] - self.pd_der[1][1] * self.pd_der[0][1]) / ((self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**2)
+        else:
+            psi_dder = 0
+        return psi_dder
+    
+    def calc_vs_and_vss(self, u_d: float) -> tuple[float, float]:
         vs = u_d / np.linalg.norm(self.pd_der[0])
         vs_s = -u_d * (np.array(self.pd_der[0]) @ np.array(self.pd_der[1])) / (np.sqrt(self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**3)
         return vs, vs_s
