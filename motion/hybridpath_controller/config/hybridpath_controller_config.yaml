@@ -1,4 +1,1 @@
-/**:
-  ros__parameters:
-    hybridpath_controller:
-      kappa: 0.5
+# K1 and K2 should be put here
