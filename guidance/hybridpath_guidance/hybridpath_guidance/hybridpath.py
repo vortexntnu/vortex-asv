@@ -106,10 +106,6 @@ class HybridPathGenerator:
                 else:
                     self.Path['coeff']['a_der'].append([a_vec])
                     self.Path['coeff']['b_der'].append([b_vec])
-                # a_poly = Polynomial(a_vec).deriv(k).coef
-                # b_poly = Polynomial(b_vec).deriv(k).coef
-                # self.Path['coeff']['a_der'].append(a_poly)
-                # self.Path['coeff']['b_der'].append(b_poly)
                     
     @staticmethod
     def update_s(path, dt, u_d, s):
@@ -128,8 +124,8 @@ class HybridPathSignals:
         self.pd, self.pd_der = self.get_signals()
         self.psi, self.psi_der, self.psi_dder = self.get_heading()
         
-    
-    def _clamp_s(self, s, num_subpaths):
+    @staticmethod
+    def _clamp_s(s, num_subpaths):
         """
         Ensure s is within the valid range.
         """
@@ -153,10 +149,9 @@ class HybridPathSignals:
         self.pd = [xd, yd]
 
         # Compute derivatives
-        for k in range(1, self.ord + 1): ##
+        for k in range(1, self.ord + 1): 
             xd_der, yd_der = 0, 0
-            # print('Index number: ', idx, ' was OK! Max is: ', self.path['NumSubpaths'])
-            # print('k: ', k, ' was OK! Max is: ', len(self.path['coeff']['a_der']))
+            
             a_vec = self.path['coeff']['a_der'][k - 1][idx - 1]
             b_vec = self.path['coeff']['b_der'][k - 1][idx - 1]
             for j in range(len(a_vec)):
