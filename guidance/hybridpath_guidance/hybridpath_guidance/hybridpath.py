@@ -117,34 +117,6 @@ class HybridPathGenerator:
         v_ref, _ = signals.calc_vs(u_d)
         s = v_ref * dt
         return s
-
-    def plot_path(self):
-        if self.plot_handle is not None:
-            e = np.arange(0, 1, 0.01)
-            plt.figure(self.plot_handle)
-            plt.clf()
-            for j in range(self.Path['NumSubpaths']):
-                X,Y = np.zeros_like(e), np.zeros_like(e)
-                for k in range(self.ord + 1):
-                    X += self.Path['coeff']['a'][j][k] * e**k
-                    Y += self.Path['coeff']['b'][j][k] * e**k
-                if j == 0:
-                    plt.plot(Y,X,'b', linewidth = 1.25, label = 'ASV Reference Path')
-                else:
-                    plt.plot(Y,X,'b', linewidth = 1.25)
-            
-            plt.plot(self.WP[:, 1], self.WP[:, 0], 'r*', linewidth = 1.5, label = 'Waypoints')
-            plt.xlabel('y')
-            plt.ylabel('x')
-            plt.axis('equal')
-            minX, maxX = np.min(self.WP[:, 1]), np.max(self.WP[:, 1])
-            minY, maxY = np.min(self.WP[:, 0]), np.max(self.WP[:, 0])
-            plt.axis([1.1*minX - 0.1*maxX, 1.1*maxX - 0.1*minX, 1.1*minY - 0.1*maxY, 1.1*maxY - 0.1*minY])
-            plt.grid()
-            plt.legend()
-            plt.title('Path')
-            plt.show()
-
             
 class HybridPathSignals:
     def __init__(self, path, s):
@@ -205,49 +177,3 @@ class HybridPathSignals:
         vs = u_d / np.linalg.norm(self.pd_der[0])
         vs_s = -u_d * (np.array(self.pd_der[0]) @ np.array(self.pd_der[1])) / (np.sqrt(self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**3)
         return vs, vs_s
-
-
-if __name__ == '__main__':
-    # Example Parameters
-    pos = np.array([[10, 0],
-        [10, 10],
-        [0, 20],
-        [30, 30],
-        [40,0],
-        [0,-10],
-        [0, 0],
-        [10, 0]])
-    
-    pos2 = np.array([[15,-3],
-                     [33, 5],
-                     [30, 20],
-                     [15, 19],
-                     [15, -3]])
-    
-    s = 0.5  # Path parameter
-    lambda_val = 0.4  # Curvature constant
-    r = 1  # Differentiability order
-    PlotHandle = 1  # 1: Plot path, 2: Plot path and derivatives
-    generator = HybridPathGenerator(pos, r, lambda_val, PlotHandle)
-    signals = HybridPathSignals(generator.Path, s)
-    
-    if PlotHandle >= 1:
-        plt.figure()
-        generator.plot_path()
-        if PlotHandle == 1:
-            plt.show()
-
-
-    # Extra plotting
-    if PlotHandle > 1:
-        s = np.arange(0, generator.Path['NumSubpaths'], 0.01)
-        for k in range(signals.ord):
-            pd_der = np.zeros((len(s), 2))
-            for i in range(len(s)):
-                PS = HybridPathSignals(generator.Path, s[i])
-                pd_der[i, :] = PS.pd_der[k]
-            plt.figure('Derivative number: ' + str(k+1))
-            plt.plot(s, pd_der[:, 1], s, pd_der[:, 0])
-            plt.legend(['y', 'x'])
-            plt.grid()
-        plt.show()
