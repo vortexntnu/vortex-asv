@@ -7,7 +7,7 @@ class AdaptiveBackstep:
     def __init__(self):
         self.init_system()
 
-    def init_system(self):
+    def init_system(self) -> None:
 
         I = np.eye(3)
         kappa = 0 
@@ -90,7 +90,7 @@ class AdaptiveBackstep:
         pass
 
     @staticmethod
-    def rotationmatrix_in_yaw_transpose(psi):
+    def rotationmatrix_in_yaw_transpose(psi: float) -> np.ndarray:
         R = np.array([[np.cos(psi), -np.sin(psi), 0],
                     [np.sin(psi), np.cos(psi), 0],
                     [0, 0, 1]])
@@ -98,14 +98,14 @@ class AdaptiveBackstep:
         return R_trps
     
     @staticmethod
-    def skew_symmetric_matrix(r):
+    def skew_symmetric_matrix(r: float) -> np.ndarray:
         S = np.array([[0, -r, 0],
                     [r, 0, 0],
                     [0, 0, 0]])
         return S
     
     @staticmethod
-    def ssa(angle):
+    def ssa(angle: float) -> float:
         wrpd_angle = (angle + np.pi) % (2.0*np.pi) - np.pi
         return wrpd_angle
     
