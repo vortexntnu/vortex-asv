@@ -115,8 +115,6 @@ Differentiating one more time will get messy, but here it is:
 \psi^{\theta^2}_d(i,\theta) = \frac{x^\theta_d(i,\theta)y^{\theta^3}_d(i,\theta)-x^{\theta^3}_d(i,\theta)y^\theta_d(i,\theta)}{x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2} \\-2\frac{(x^\theta_d(i,\theta)y^{\theta^2}_d(i,\theta)-x^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))(x^\theta_d(i,\theta)x^{\theta^2}_d(i,\theta)-y^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))}{(x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2)^2}
 ```
 
-```
-
 ### Example plots
 
 These plots showcases the what the $r$ and $\lambda$ parameters does to the path.
