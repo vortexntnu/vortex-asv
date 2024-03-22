@@ -35,11 +35,11 @@ x_{d,i}(\theta) = a_{k,i} \theta^k + ... + a_{1,i} \theta + a_{0,i}
 ```math
  y_{d,i}(\theta) = b_{k,i} \theta^k + ... + b_{1,i} \theta + b_{0,i}
 ```
-where the coefficients {$a_{j,i}$, $b_{j,i}$} must be determined. For each subpath there are $(k + 1)$ $\cdot$ $2$ unknowns so that there are $(k + 1)$ $\cdot$ $2n$ unknown coefficients in total to be determined for the full path. This is done by setting up and solving the linear system 
+where the coefficients {$`a_{j,i}`$, $`b_{j,i}`$} must be determined. For each subpath there are $(k + 1)$ $\cdot$ $2$ unknowns so that there are $(k + 1)$ $\cdot$ $2n$ unknown coefficients in total to be determined for the full path. This is done by setting up and solving the linear system 
 ```math
 A\phi = b \; \; \; \; \; \; \phi^T = [a^T, b^T]
 ```
-for each path segment and solve them in a single operation as $ \phi = A^{-1}b$.
+for each path segment and solve them in a single operation as $` \phi = A^{-1}b`$.
 
 Assuming that the subpaths is to be connected at the waypoints, we use the following procedure to calculate the coefficients of each subpath:
 
@@ -90,7 +90,10 @@ This results in the hybrid parametrization of the path,
 
 where $\theta \in [0,1)$. 
 
-If the differentiability requirement of the path is $C^r$, then the above equations up to $j=r$ gives $2(r+1) \cdot 2n$ equations to solve for $(k + 1) \cot 2n$ unknown coefficients. As a result, the order $k$ of the polynomials must be $$ k = 2r + 1 $$
+If the differentiability requirement of the path is $C^r$, then the above equations up to $j=r$ gives $2(r+1) \cdot 2n$ equations to solve for $(k + 1) \cdot 2n$ unknown coefficients. As a result, the order $k$ of the polynomials must be 
+```math
+k = 2r + 1
+```
 
 ### Guidance system
 So far we have defined the desired path 
@@ -110,6 +113,8 @@ Differentiating one more time will get messy, but here it is:
 
 ```math
 \psi^{\theta^2}_d(i,\theta) = \frac{x^\theta_d(i,\theta)y^{\theta^3}_d(i,\theta)-x^{\theta^3}_d(i,\theta)y^\theta_d(i,\theta)}{x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2} \\-2\frac{(x^\theta_d(i,\theta)y^{\theta^2}_d(i,\theta)-x^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))(x^\theta_d(i,\theta)x^{\theta^2}_d(i,\theta)-y^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))}{(x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2)^2}
+```
+
 ```
 
 ### Example plots
