@@ -67,17 +67,16 @@ class HybridPathGenerator:
         for k in range(2, (self.ord + 1) // 2 + 1):
             c_der = np.polyder(c_der[::-1])[::-1]
             coefs = np.concatenate([np.zeros(k-1), c_der])
-            #coefs = np.pad(c_der, (k-1, 0), 'constant')
             A[2*k-2, k-1] = c_der[0]
             A[2*k-1, :] = coefs
         self.Path['LinSys']['A'] = A
 
-        N = self.Path['NumSubpaths'] #
+        N = self.Path['NumSubpaths'] 
         for j in range(N):
             ax, bx = np.zeros(ord_plus_one), np.zeros(ord_plus_one)
             ax[:2] = self.WP[j:j+2, 0]
             bx[:2] = self.WP[j:j+2, 1]
-            if self.ord > 2: # More than two waypoints
+            if self.ord > 2: 
                 if j == 0:
                     ax[2:4] = [self.WP[j+1, 0] - self.WP[j, 0], self.lambda_val * (self.WP[j+2, 0] - self.WP[j, 0])] 
                     bx[2:4] = [self.WP[j+1, 1] - self.WP[j, 1], self.lambda_val * (self.WP[j+2, 1] - self.WP[j, 1])] 
@@ -108,7 +107,7 @@ class HybridPathGenerator:
     @staticmethod
     def update_s(path, dt: float, u_d: float, s: float) -> float:
         signals = HybridPathSignals(path, s)
-        v_ref, _ = signals.calc_vs(u_d)
+        v_ref, _ = signals.calc_vs_and_vss(u_d)
         s = v_ref * dt
         return s
             
@@ -140,12 +139,12 @@ class HybridPathSignals:
         Compute the location and derivative at s.
         """
         idx = int(self.s) + 1
-        t = self.s - (idx - 1)
+        theta = self.s - (idx - 1)
         xd, yd = 0, 0
         # Compute position
         for k in range(self.ord + 1):
-            xd += self.path['coeff']['a'][idx - 1][k] * t**k
-            yd += self.path['coeff']['b'][idx - 1][k] * t**k
+            xd += self.path['coeff']['a'][idx - 1][k] * theta**k
+            yd += self.path['coeff']['b'][idx - 1][k] * theta**k
         self.pd = [xd, yd]
 
         # Compute derivatives
@@ -155,8 +154,8 @@ class HybridPathSignals:
             a_vec = self.path['coeff']['a_der'][k - 1][idx - 1]
             b_vec = self.path['coeff']['b_der'][k - 1][idx - 1]
             for j in range(len(a_vec)):
-                xd_der += a_vec[j] * t**j
-                yd_der += b_vec[j] * t**j
+                xd_der += a_vec[j] * theta**j
+                yd_der += b_vec[j] * theta**j
             self.pd_der.append([xd_der, yd_der])
 
         return self.pd, self.pd_der
@@ -183,3 +182,55 @@ class HybridPathSignals:
         vs = u_d / np.linalg.norm(self.pd_der[0])
         vs_s = -u_d * (np.array(self.pd_der[0]) @ np.array(self.pd_der[1])) / (np.sqrt(self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**3)
         return vs, vs_s
+
+wp = np.array([[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]])
+
+path1 = HybridPathGenerator(wp, 0, 0.5)
+path2 = HybridPathGenerator(wp, 1, 0.5)
+path3 = HybridPathGenerator(wp, 2, 0.5)
+
+signals1 = HybridPathSignals(path1.Path, 0.5)
+signals2 = HybridPathSignals(path2.Path, 0.5)
+signals3 = HybridPathSignals(path3.Path, 0.5)
+
+# Plotting
+import matplotlib.pyplot as plt
+
+# Fill up the paths
+s = np.arange(0, path1.Path['NumSubpaths'], 0.01)
+x1, y1 = [], []
+x2, y2 = [], []
+x3, y3 = [], []
+
+for i in s:
+    signals1 = HybridPathSignals(path1.Path, i)
+    signals2 = HybridPathSignals(path2.Path, i)
+    signals3 = HybridPathSignals(path3.Path, i)
+    x1.append(signals1.pd[0])
+    y1.append(signals1.pd[1])
+    x2.append(signals2.pd[0])
+    y2.append(signals2.pd[1])
+    x3.append(signals3.pd[0])
+    y3.append(signals3.pd[1])
+
+fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+
+ax[0].plot(x1, y1)
+ax[0].set_title('r = 0, lambda = 0.5')
+ax[0].set_xlabel('x')
+ax[0].set_ylabel('y')
+ax[0].grid(True)
+
+ax[1].plot(x2, y2)
+ax[1].set_title('r = 1, lambda = 0.5')
+ax[1].set_xlabel('x')
+ax[1].set_ylabel('y')
+ax[1].grid(True)
+
+ax[2].plot(x3, y3)
+ax[2].set_title('r = 2, lambda = 0.5')
+ax[2].set_xlabel('x')
+ax[2].set_ylabel('y')
+ax[2].grid(True)
+
+plt.show()
