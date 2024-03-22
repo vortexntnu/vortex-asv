@@ -12,7 +12,7 @@ Or alternatively, run it together with the hybridpath controller using the launc
 You can configure the behavior of the hybrid path guidance by modifying the parameters in the `config` directory. 
 
 ## Theory
-
+### Path generation
 Given a set of $n + 1$ waypoints, the hybridpath generator will generate a $C^r$ path that goes through the waypoints. That is, the path is continuous in $r$ derivatives. Towards constructing the overall desired path $p_d(s)$, it is first divided into $n$ subpaths $p_{d,i}(s)$ for $i = 1, ... , n$ between the waypoints. Each of these is expressed as a polynomial in $s$ of a certain order. Then the expressions for the subpaths are concatenated at the waypoints to assemble the full path. The order of the polynomials must be chosen sufficiently high to ensure the overall path is sufficiently differentiable at the waypoints. Increasing the order of the polynomial increases the number of coefficients giving more degrees-of-freedom to satisfy these continuity constraints.
 
 The variable $s \in [0,n)$ is called the path variable, and it tells us exactly where we are on the path. For example, $s$ will be $0$ at the first waypoint, $1$ at the second, and so on. However, using the path parameter to take values $s \in [0,n)$ is unnecessary and can be numerically problematic. Instead, we can identify each path segment $p_i$ and parametrize it by $\theta \in [0,1)$. We define $$ i := \lfloor s \rfloor + 1$$ $$\theta = s - \lfloor s \rfloor \in [0,1)$$ to get the continuous map $$ s \mapsto p_d(s)$$
@@ -44,3 +44,20 @@ $$ \bar{p_d}(i,\theta) = \begin{bmatrix} x_{d,i}(\theta) \\ y_{d,i}(\theta) \end
 where $\theta \in [0,1)$. 
 
 If the differentiability requirement of the path is $C^r$, then the above equations up to $j=r$ gives $2(r+1) \cdot 2n$ equations to solve for $(k + 1) \cot 2n$ unknown coefficients. As a result, the order $k$ of the polynomials must be $$ k = 2r + 1 $$
+
+### Guidance system
+So far we have defined the desired path $$p_d(i,\theta) = \begin{bmatrix} x_d(i,\theta) \\ y_d(i,\theta) \end{bmatrix},\; \theta \in [0,1)$$. Now we define the desired heading $$\psi_d = atan2(y^\theta_d(i,\theta), x^\theta_d(i,\theta))$$ where $atan2(y,x) is the four-quadrant version of arctan(y/x). As mentioned previously, the pair $(i,\theta)$ tells us which path segment $i$ we are on and where on the segment we are (given by $\theta$). Since we also need the first and second derivatives of the heading for the controller, we define them as:
+$$ \psi^\theta_d(i,\theta) = \frac{x^\theta_d(i,\theta)y^{\theta^2}_d(i,\theta)-x^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta)}{x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2} $$ 
+
+Differentiating one more time will get messy, but here it is:
+
+$$ \psi^{\theta^2}_d(i,\theta) = \frac{x^\theta_d(i,\theta)y^{\theta^3}_d(i,\theta)-x^{\theta^3}_d(i,\theta)y^\theta_d(i,\theta)}{x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2} \\-2\frac{(x^\theta_d(i,\theta)y^{\theta^2}_d(i,\theta)-x^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))(x^\theta_d(i,\theta)x^{\theta^2}_d(i,\theta)-y^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))}{(x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2)^2} $$
+
+### Example plots
+
+These plots showcases the what the $r$ and $\lambda$ parameters does to the path.
+
+![Path Plots](https://drive.google.com/uc?export=download&id=1CE8kN1yJSjEgiCdWGQYgjdIfSkE40V1f)
+
+![Lambda Plots](https://drive.google.com/uc?export=download&id=1TtpIAwBRKcZhpuXAUEinpuqUhN-WKoX-)
+
