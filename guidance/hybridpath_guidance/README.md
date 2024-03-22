@@ -46,7 +46,7 @@ where $\theta \in [0,1)$.
 If the differentiability requirement of the path is $C^r$, then the above equations up to $j=r$ gives $2(r+1) \cdot 2n$ equations to solve for $(k + 1) \cot 2n$ unknown coefficients. As a result, the order $k$ of the polynomials must be $$ k = 2r + 1 $$
 
 ### Guidance system
-So far we have defined the desired path $$p_d(i,\theta) = \begin{bmatrix} x_d(i,\theta) \\ y_d(i,\theta) \end{bmatrix},\; \theta \in [0,1)$$. Now we define the desired heading $$\psi_d = atan2(y^\theta_d(i,\theta), x^\theta_d(i,\theta))$$ where $atan2(y,x) is the four-quadrant version of arctan(y/x). As mentioned previously, the pair $(i,\theta)$ tells us which path segment $i$ we are on and where on the segment we are (given by $\theta$). Since we also need the first and second derivatives of the heading for the controller, we define them as:
+So far we have defined the desired path $$p_d(i,\theta) = \begin{bmatrix} x_d(i,\theta) \\ y_d(i,\theta) \end{bmatrix},\; \theta \in [0,1)$$. Now we define the desired heading $$\psi_d = atan2(y^\theta_d(i,\theta), x^\theta_d(i,\theta))$$ where $atan2(y,x)$ is the four-quadrant version of $arctan(y/x)$. As mentioned previously, the pair $(i,\theta)$ tells us which path segment $i$ we are on and where on the segment we are (given by $\theta$). Since we also need the first and second derivatives of the heading for the controller, we define them as:
 $$ \psi^\theta_d(i,\theta) = \frac{x^\theta_d(i,\theta)y^{\theta^2}_d(i,\theta)-x^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta)}{x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2} $$ 
 
 Differentiating one more time will get messy, but here it is:
