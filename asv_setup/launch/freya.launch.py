@@ -1,4 +1,4 @@
-import os
+from os import path
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.actions import SetEnvironmentVariable, IncludeLaunchDescription
@@ -12,18 +12,17 @@ def generate_launch_description():
         value='[${severity}] [${time}] [${node}]: ${message}'
     )
 
-
     # Thruster Allocator launch
     thruster_allocator_launch = IncludeLaunchDescription(
     PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('thruster_allocator'), 'launch/thruster_allocator.launch.py')
+            path.join(get_package_share_directory('thruster_allocator'),'launch','thruster_allocator.launch.py')
         )
     )
 
     #Thruster Interface launch
     thruster_interface_launch = IncludeLaunchDescription(
     PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('thruster_interface'), 'launch/thruster_interface.launch.py')
+            path.join(get_package_share_directory('thruster_interface_asv'),'launch','thruster_interface_asv.launch.py')
         )
     )
 
