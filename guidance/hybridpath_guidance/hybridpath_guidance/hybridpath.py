@@ -165,14 +165,14 @@ class HybridPathSignals:
         return psi
     
     def get_heading_derivative(self) -> float:
-        if self.path['Order'] > 1:
+        if self.path['Order'] > 2:
             psi_der = (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[0][1] * self.pd_der[1][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2)
         else:
             psi_der = 0
         return psi_der
     
     def get_heading_second_derivative(self) -> float:
-        if self.path['Order'] > 1:
+        if self.path['Order'] > 2:
             psi_dder = (self.pd_der[0][0] * self.pd_der[2][1] - self.pd_der[0][1] * self.pd_der[2][0]) / (self.pd_der[0][0]**2 + self.pd_der[0][1]**2) - 2 * (self.pd_der[0][0] * self.pd_der[1][1] - self.pd_der[1][0] * self.pd_der[0][1]) * (self.pd_der[0][0] * self.pd_der[1][0] - self.pd_der[1][1] * self.pd_der[0][1]) / ((self.pd_der[0][0]**2 + self.pd_der[0][1]**2)**2)
         else:
             psi_dder = 0
@@ -185,9 +185,9 @@ class HybridPathSignals:
 
 wp = np.array([[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]])
 
-path1 = HybridPathGenerator(wp, 0, 0.5)
+path1 = HybridPathGenerator(wp, 1, 0.2)
 path2 = HybridPathGenerator(wp, 1, 0.5)
-path3 = HybridPathGenerator(wp, 2, 0.5)
+path3 = HybridPathGenerator(wp, 1, 0.7)
 
 signals1 = HybridPathSignals(path1.Path, 0.5)
 signals2 = HybridPathSignals(path2.Path, 0.5)
@@ -212,23 +212,26 @@ for i in s:
     y2.append(signals2.pd[1])
     x3.append(signals3.pd[0])
     y3.append(signals3.pd[1])
-
+print(signals2.pd_der[2])   
 fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-
+# Plotting waypoints
+ax[0].plot(wp[:, 0], wp[:, 1], 'ro')
+ax[1].plot(wp[:, 0], wp[:, 1], 'ro')
+ax[2].plot(wp[:, 0], wp[:, 1], 'ro')
 ax[0].plot(x1, y1)
-ax[0].set_title('r = 0, lambda = 0.5')
+ax[0].set_title('r = 1, $\lambda$ = 0.2')
 ax[0].set_xlabel('x')
 ax[0].set_ylabel('y')
 ax[0].grid(True)
 
 ax[1].plot(x2, y2)
-ax[1].set_title('r = 1, lambda = 0.5')
+ax[1].set_title('r = 1, $\lambda$ = 0.5')
 ax[1].set_xlabel('x')
 ax[1].set_ylabel('y')
 ax[1].grid(True)
 
 ax[2].plot(x3, y3)
-ax[2].set_title('r = 2, lambda = 0.5')
+ax[2].set_title('r = 1, $\lambda$ = 0.7')
 ax[2].set_xlabel('x')
 ax[2].set_ylabel('y')
 ax[2].grid(True)
