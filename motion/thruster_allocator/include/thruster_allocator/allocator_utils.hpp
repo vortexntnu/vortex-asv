@@ -88,12 +88,11 @@ inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
  * @param msg The std_msgs::msg::Float32MultiArray message to store the
  * converted values.
  */
+#include <std_msgs/msg/float32_multi_array.hpp>
+
 inline void arrayEigenToMsg(const Eigen::VectorXd &u,
                             std_msgs::msg::Float32MultiArray &msg) {
-  int size = u.size();
-  for (int i = 0; i < size; ++i) {
-    msg.data[i] = static_cast<float>(u(i));
-  }
+  msg.data.assign(u.data(), u.data() + u.size());
 }
 
 /**
