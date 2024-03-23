@@ -8,11 +8,7 @@ class AdaptiveBackstep:
         self.init_system()
 
     def init_system(self) -> None:
-
-        I = np.eye(3)
-        kappa = 0 
-        K_1 = np.diag([10, 10, 10]) # First gain matrix
-        self.K_1_tilde = K_1 + kappa*I
+        self.K_1 = np.diag([10, 10, 10]) # First gain matrix
         self.K_2 = np.diag([60, 60, 30]) # Second gain matrix
         self.tau_max = np.array([41.0, 50.0, 55.0]) # Må tilpasses thrusterne
 
@@ -55,13 +51,13 @@ class AdaptiveBackstep:
         eta_error[2] = self.ssa(eta_error[2])
 
         z1 = R_trps @ eta_error
-        alpha1 = -self.K_1_tilde @ z1 + R_trps @ eta_d_s * v_s
+        alpha1 = -self.K_1 @ z1 + R_trps @ eta_d_s * v_s
 
         z2 = nu - alpha1
 
-        sigma1 = self.K_1_tilde @ (S @ z1) - self.K_1_tilde @ nu - S @ (R_trps @ eta_d_s) * v_s
+        sigma1 = self.K_1 @ (S @ z1) - self.K_1 @ nu - S @ (R_trps @ eta_d_s) * v_s
 
-        dtheta_alpha1 = self.K_1_tilde @ (R_trps @ eta_d_s) + R_trps @ eta_d_ss * v_s + R_trps @ eta_d_s * v_ss
+        dtheta_alpha1 = self.K_1 @ (R_trps @ eta_d_s) + R_trps @ eta_d_ss * v_s + R_trps @ eta_d_s * v_ss
 
         # Control law ## Må endres om de ulineære matrisene skal brukes
         tau = -self.K_2 @ z2 + self.D @ nu + self.M @ sigma1 + self.M @ dtheta_alpha1 * (v_s + w)
