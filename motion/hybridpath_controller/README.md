@@ -166,7 +166,7 @@ Plugging in our 3DOF model for $\textbf{M}\dot{\nu}$ we obtain:
 ```
 We now choose $\tau$ to stabilize our second CLF:
 ```math
-\tau = -\textbf{K}_2 z_2 + \textbf{D}\nu + \textbf{M}\alpha_1, \; \textbf{K}_2 = \textbf{K}^T_2 > 0
+\tau = -\textbf{K}_2 z_2 + \textbf{D}\nu + \textbf{M}\dot{\alpha}_1, \; \textbf{K}_2 = \textbf{K}^T_2 > 0
 ```
 And plugging into the equation for $\dot{V}_2$:
 ```math
