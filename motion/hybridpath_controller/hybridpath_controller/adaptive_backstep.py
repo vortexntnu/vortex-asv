@@ -57,10 +57,10 @@ class AdaptiveBackstep:
 
         sigma1 = self.K_1 @ (S @ z1) - self.K_1 @ nu - S @ (R_trps @ eta_d_s) * v_s
 
-        dtheta_alpha1 = self.K_1 @ (R_trps @ eta_d_s) + R_trps @ eta_d_ss * v_s + R_trps @ eta_d_s * v_ss
+        ds_alpha1 = self.K_1 @ (R_trps @ eta_d_s) + R_trps @ eta_d_ss * v_s + R_trps @ eta_d_s * v_ss
 
         # Control law ## Må endres om de ulineære matrisene skal brukes
-        tau = -self.K_2 @ z2 + self.D @ nu + self.M @ sigma1 + self.M @ dtheta_alpha1 * (v_s + w)
+        tau = -self.K_2 @ z2 + self.D @ nu + self.M @ sigma1 + self.M @ ds_alpha1 * (v_s + w)
 
         # Add constraints to tau # This should be improved
         # for i in range(len(tau)):
