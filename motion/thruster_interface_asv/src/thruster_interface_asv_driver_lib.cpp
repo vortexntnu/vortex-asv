@@ -133,27 +133,38 @@ void _send_pwm_to_ESCs(int16_t *pwm) {
   }
 
   // Data sending ----------
-  // Open I2C conection
-  int fileI2C = open(_I2C_DEVICE, O_RDWR);
-
-  // Error handling in case of edge cases with I2C
-  if (fileI2C < 0) {
-    std::cerr << "ERROR: Couldn't opening I2C device" << std::endl;
-    exit(2);
+  
+  int fileI2C = -1;
+  
+  try {
+    // Open I2C conection
+    int fileI2C = open(_I2C_DEVICE, O_RDWR);
+    
+    // Error handling in case of edge cases with I2C
+    if (fileI2C < 0) {
+      throw std::runtime_error("ERROR: Couldn't opening I2C device");
+    }
+    if (ioctl(fileI2C, I2C_SLAVE, _I2C_ADDRESS) < 0) {
+      throw std::runtime_error("ERROR: Couldn't set I2C address");
+    }
+    // Send the I2C message
+    if (write(fileI2C, messageInBytesPWM, dataSize) != dataSize) {
+      throw std::runtime_error("ERROR: Couldn't send data, ignoring message...");
+    }
   }
-  if (ioctl(fileI2C, I2C_SLAVE, _I2C_ADDRESS) < 0) {
-    std::cerr << "ERROR: Couldn't set I2C address" << std::endl;
-    close(fileI2C); // Close I2C connection before exiting
-    exit(3);
+  catch (const std::exception& error) {
+    std::cerr << error.what() << std::endl;
+
+    // Close I2C connection if we connected to I2C
+    if (fileI2C >= 0) {
+        close(fileI2C);
+    }
   }
 
-  // Send the I2C message
-  if (write(fileI2C, messageInBytesPWM, dataSize) != dataSize) {
-    std::cerr << "ERROR: Couldn't send data, ignoring message..." << std::endl;
+  // Close I2C connection if we connected to I2C
+  if (fileI2C >= 0) {
+    close(fileI2C);
   }
-
-  // Close I2C connection
-  close(fileI2C);
 }
 
 // Initial function to set everything up with thruster driver
@@ -223,7 +234,10 @@ int16_t *drive_thrusters(float *thrusterForces) {
   }
 
   // Send PWM vlaues through I2C to the microcontroller to control thrusters
-  _send_pwm_to_ESCs(pwm);
+  try:
+    _send_pwm_to_ESCs(pwm);
+  catch error:
+    
 
   // Return PWM values for debuging and logging purposes
   return pwm;
