@@ -133,13 +133,13 @@ void _send_pwm_to_ESCs(int16_t *pwm) {
   }
 
   // Data sending ----------
-
+  
   int fileI2C = -1;
-
+  
   try {
     // Open I2C conection
     int fileI2C = open(_I2C_DEVICE, O_RDWR);
-
+    
     // Error handling in case of edge cases with I2C
     if (fileI2C < 0) {
       throw std::runtime_error("ERROR: Couldn't opening I2C device");
@@ -149,15 +149,15 @@ void _send_pwm_to_ESCs(int16_t *pwm) {
     }
     // Send the I2C message
     if (write(fileI2C, messageInBytesPWM, dataSize) != dataSize) {
-      throw std::runtime_error(
-          "ERROR: Couldn't send data, ignoring message...");
+      throw std::runtime_error("ERROR: Couldn't send data, ignoring message...");
     }
-  } catch (const std::exception &error) {
+  }
+  catch (const std::exception& error) {
     std::cerr << error.what() << std::endl;
 
     // Close I2C connection if we connected to I2C
     if (fileI2C >= 0) {
-      close(fileI2C);
+        close(fileI2C);
     }
   }
 
@@ -234,11 +234,9 @@ int16_t *drive_thrusters(float *thrusterForces) {
   }
 
   // Send PWM vlaues through I2C to the microcontroller to control thrusters
-  try : _send_pwm_to_ESCs(pwm)
-    ;
-  catch error :
+  _send_pwm_to_ESCs(pwm);    
 
-      // Return PWM values for debuging and logging purposes
-      return pwm;
+  // Return PWM values for debuging and logging purposes
+  return pwm;
 }
 } // namespace thruster_interface_asv_driver_lib
