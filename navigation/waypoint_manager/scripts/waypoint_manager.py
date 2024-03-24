@@ -5,6 +5,7 @@ from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point
 from scripts.Waypoint2D import Waypoint2D
+from typing import List
 
 
 class WaypointManager(Node):
@@ -30,13 +31,12 @@ class WaypointManager(Node):
         self.path = Path()
         self.path.header.frame_id = 'world'
 
-    def waypoint_callback(self, request, response):
+    def waypoint_callback(self, request: Waypoint.Request) -> Waypoint.Response:
         """
         Clears the current waypoint list and adds new waypoints from the request.
 
         Args:
             request: The request message containing waypoints.
-            response: The response message indicating the success of the operation.
 
         Returns:
             The response message with the success status.
@@ -44,9 +44,9 @@ class WaypointManager(Node):
 
         self.waypoint_list.clear()
         return self.add_waypoint_to_list(request)
-    
-   
-    def add_waypoint_to_list(self, req):
+
+
+    def add_waypoint_to_list(self, req: Waypoint.Request) -> Waypoint.Response:
         """
         Adds waypoints to the waypoint list from the request.
 
@@ -74,7 +74,7 @@ class WaypointManager(Node):
         response.success = True
         return response
 
-    def add_waypoint_callback(self, request, response):
+    def add_waypoint_callback(self, request: Waypoint.Request, response: Waypoint.Response) -> Waypoint.Response:
         """
         Callback function for the add_waypoint service.
 
@@ -89,8 +89,8 @@ class WaypointManager(Node):
         """
 
         return self.add_waypoint_to_list(request)
-    
-    def sending_waypoints(self):
+
+    def sending_waypoints(self) -> None:
         """
         Sends the current list of waypoints to the waypoint list service.
 
@@ -102,7 +102,7 @@ class WaypointManager(Node):
         while not self.waypoint_list_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waypoint service not available, waiting again...')
         request = Waypoint.Request()
-        
+
         request.waypoints = self.waypoint_list
         future = self.waypoint_list_client.call_async(request)
 
