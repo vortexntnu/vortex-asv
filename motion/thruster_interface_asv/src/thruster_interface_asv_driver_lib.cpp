@@ -15,10 +15,9 @@ std::vector<_ForcePWM> _loadDataFromCSV(const std::string &filepath) {
   std::vector<_ForcePWM> data;
 
   // Try opening the file and if suceeded fill our datastructure with all the
-  // values in the .CSV file
+  // values from the force mapping .CSV file
   std::ifstream file(filepath);
   if (file.is_open()) {
-    // Variable for the currect line value in the .CSV file
     std::string line;
 
     // Skip the header line
@@ -29,6 +28,7 @@ std::vector<_ForcePWM> _loadDataFromCSV(const std::string &filepath) {
       // Temporarty variables to store data correctly ----------
       // Define temporary placeholders for variables we are extracting
       std::string tempVar;
+
       // Define data structure format we want our .CSV vlaues to be ordered in
       _ForcePWM ForcePWMDataStructure;
 
@@ -36,13 +36,16 @@ std::vector<_ForcePWM> _loadDataFromCSV(const std::string &filepath) {
       // csvLineSplit variable converts "line" variable to a char stream of data
       // that can further be used to split and filter out values we want
       std::istringstream csvLineSplit(line);
+
       // Extract Forces from "csvLineSplit" variable
       std::getline(csvLineSplit, tempVar, '\t');
       ForcePWMDataStructure.force = std::stof(tempVar);
+
       // Convert grams into Newtons as we expect to get Forces in Newtons but
-      // the .CSV file calculates forsces in grams
+      // the .CSV file contains forces in grams
       ForcePWMDataStructure.force =
           ForcePWMDataStructure.force * (9.81 / 1000.0);
+
       // Extract PWM from "csvLineSplit" variable
       std::getline(csvLineSplit, tempVar, '\t');
       ForcePWMDataStructure.pwm = std::stof(tempVar);
@@ -70,10 +73,12 @@ int16_t *_interpolate_force_to_pwm(float *forces) {
     // accordingly
     if (forces[i] <= _ForcePWMTable.front().force) {
       interpolatedPWMArray[i] =
-          static_cast<int16_t>(_ForcePWMTable.front().pwm); // To small Force
+          static_cast<int16_t>(_ForcePWMTable.front().pwm); // Too small Force
+
     } else if (forces[i] >= _ForcePWMTable.back().force) {
       interpolatedPWMArray[i] =
-          static_cast<int16_t>(_ForcePWMTable.back().pwm); // To big Force
+          static_cast<int16_t>(_ForcePWMTable.back().pwm); // Too big Force
+
     } else {
       // Set temporary variables for interpolating
       // Initialize with the first element
@@ -133,27 +138,38 @@ void _send_pwm_to_ESCs(int16_t *pwm) {
   }
 
   // Data sending ----------
-  // Open I2C conection
-  int fileI2C = open(_I2C_DEVICE, O_RDWR);
 
-  // Error handling in case of edge cases with I2C
-  if (fileI2C < 0) {
-    std::cerr << "ERROR: Couldn't opening I2C device" << std::endl;
-    exit(2);
-  }
-  if (ioctl(fileI2C, I2C_SLAVE, _I2C_ADDRESS) < 0) {
-    std::cerr << "ERROR: Couldn't set I2C address" << std::endl;
-    close(fileI2C); // Close I2C connection before exiting
-    exit(3);
+  int fileI2C = -1;
+
+  try {
+    // Open I2C conection
+    int fileI2C = open(_I2C_DEVICE, O_RDWR);
+
+    // Error handling in case of edge cases with I2C
+    if (fileI2C < 0) {
+      throw std::runtime_error("ERROR: Couldn't opening I2C device");
+    }
+    if (ioctl(fileI2C, I2C_SLAVE, _I2C_ADDRESS) < 0) {
+      throw std::runtime_error("ERROR: Couldn't set I2C address");
+    }
+    // Send the I2C message
+    if (write(fileI2C, messageInBytesPWM, dataSize) != dataSize) {
+      throw std::runtime_error(
+          "ERROR: Couldn't send data, ignoring message...");
+    }
+  } catch (const std::exception &error) {
+    std::cerr << error.what() << std::endl;
+
+    // Close I2C connection if we connected to I2C
+    if (fileI2C >= 0) {
+      close(fileI2C);
+    }
   }
 
-  // Send the I2C message
-  if (write(fileI2C, messageInBytesPWM, dataSize) != dataSize) {
-    std::cerr << "ERROR: Couldn't send data, ignoring message..." << std::endl;
+  // Close I2C connection if we connected to I2C
+  if (fileI2C >= 0) {
+    close(fileI2C);
   }
-
-  // Close I2C connection
-  close(fileI2C);
 }
 
 // Initial function to set everything up with thruster driver
@@ -168,16 +184,9 @@ void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
           int8_t *thrusterDirection, int16_t *offsetPWM, int16_t *minPWM,
           int16_t *maxPWM) {
   // Load data from the .CSV file
-  // We load it here instead of interpolation step as this will save time as we
-  // only open and load all the data once, savind time in intrepolation isnce we
-  // dont need to open the .CSV file over and over again.
   _ForcePWMTable = _loadDataFromCSV(pathToCSVFile);
 
   // Set correct parameters
-  // - Thruster Mapping
-  // - Thruster Direction
-  // - Offset PWM
-  // - Limit PWM
   for (int8_t i = 0; i < 4; i++) {
     _thrusterMapping[i] = thrusterMapping[i];
     _thrusterDirection[i] = thrusterDirection[i];
@@ -190,10 +199,9 @@ void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
 // The main core functionality of interacting and controling the thrusters
 int16_t *drive_thrusters(float *thrusterForces) {
   // Remap Thrusters
-  // From: [pin1:thruster1          , pin2:thruster2          , pin3:thruster3
-  // , pin4:thruster4          ] To:   [pin1:<specifiedThruster>,
-  // pin2:<specifiedThruster>, pin3:<specifiedThruster>,
-  // pin4:<specifiedThruster>]
+  // From: [pin1:thruster1, pin2:thruster2, pin3:thruster3, pin4:thruster4]
+  // To:   [pin1:<specifiedThruster>, pin2:<specifiedThruster>,
+  // pin3:<specifiedThruster>, pin4:<specifiedThruster>]
   float thrusterForcesChangedMapping[4] = {0.0, 0.0, 0.0, 0.0};
   for (int8_t pinNr = 0; pinNr < 4; pinNr++) {
     int8_t remapedThrusterForcesIndex = _thrusterMapping[pinNr];
@@ -203,14 +211,14 @@ int16_t *drive_thrusters(float *thrusterForces) {
 
   // Change direction of the thruster (Forward(+1)/Backwards(-1)) according to
   // the direction parameter
-  float thrusterForcesCahngedDirection[4] = {0.0, 0.0, 0.0, 0.0};
+  float thrusterForcesChangedDirection[4] = {0.0, 0.0, 0.0, 0.0};
   for (int8_t i = 0; i < 4; i++) {
-    thrusterForcesCahngedDirection[i] =
+    thrusterForcesChangedDirection[i] =
         thrusterForcesChangedMapping[i] * _thrusterDirection[i];
   }
 
   // Interpolate forces to raw PWM values
-  int16_t *pwm = _interpolate_force_to_pwm(thrusterForcesCahngedDirection);
+  int16_t *pwm = _interpolate_force_to_pwm(thrusterForcesChangedDirection);
 
   // Offset PWM
   for (int8_t i = 0; i < 4; i++) {
