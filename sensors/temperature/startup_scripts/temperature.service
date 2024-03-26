@@ -4,7 +4,9 @@ After=network.target
 
 [Service]
 # Use the wrapper script for ExecStart
-ExecStart=/bin/bash /home/vortex/rose_test_ws/src/vortex-asv/sensors/temperature/startup_scripts/temperature.sh
+# DONT CHANGE THIS LINE!!!!
+# Use vortex-asv/scripts/add_service_files_to_bootup_sequence.sh to automaticaly set everything up
+ExecStart=/bin/bash '<pathToThisFile>temperature.sh'
 WorkingDirectory=/home/vortex/
 StandardOutput=journal+console
 User=vortex

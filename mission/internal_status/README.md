@@ -17,6 +17,15 @@ This ros node just publishes the current and voltage data we get from the lib to
 * /asv/power_sense_module/current for the current data [A]
 * /asv/power_sense_module/voltage for the voltage data [V]
 
+## Service file bootup
+
+To start the internal_status publishing automaticaly every time on bootup just run this command:
+```
+./vortex-asv/add_service_files_to_bootup_sequence.sh
+```
+
+Enjoy :)
+
 
 
 

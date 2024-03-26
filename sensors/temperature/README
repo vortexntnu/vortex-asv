@@ -4,7 +4,7 @@ We messure temperature of the 4 ESCs that run the thrusters as well as 2 temperu
 
 ## Service file bootup
 
-To start the Temperature publishing automaticaly every time on bootup just run this comand:
+To start the Temperature publishing automaticaly every time on bootup just run this command:
 ./vortex-asv/add_service_files_to_bootup_sequence.sh
 
 Enjoy :)
