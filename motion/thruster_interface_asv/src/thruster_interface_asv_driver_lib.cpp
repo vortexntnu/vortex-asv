@@ -193,7 +193,6 @@ void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
 // The main core functionality of interacting and controling the thrusters
 int16_t *drive_thrusters(float *thrusterForces) {
 
-
   // Change direction of the thruster (Forward(+1)/Backwards(-1)) according to
   // the direction parameter
   float thrusterForcesChangedDirection[4] = {0.0, 0.0, 0.0, 0.0};
@@ -201,7 +200,7 @@ int16_t *drive_thrusters(float *thrusterForces) {
     thrusterForcesChangedDirection[i] =
         thrusterForces[i] * _thrusterDirection[i];
   }
-  
+
   // Remap Thrusters
   // From: [pin1:thruster1, pin2:thruster2, pin3:thruster3, pin4:thruster4]
   // To:   [pin1:<specifiedThruster>, pin2:<specifiedThruster>,
