@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import rclpy
 from rclpy.node import Node
 from vortex_msgs.srv import MissionParameters
@@ -52,10 +51,10 @@ def main(args=None):
     rclpy.init(args=args)
     mission_planner_client = MissionPlannerClient()
     # Test data
-    obstacles = []
-    start = Point(x=1.0, y=1.0)
+    obstacles = [Point(x=5.0, y=5.0)]
+    start = Point(x=0.0, y=0.0)
     goal = Point(x=10.0, y=10.0)
-    mission_planner_client.send_request(obstacles, start, goal, Point(x=0.0, y=0.0), 15, 15)
+    mission_planner_client.send_request(obstacles, start, goal, Point(x=0.0, y=0.0), 30, 30)
 
     while rclpy.ok():
         rclpy.spin_once(mission_planner_client)

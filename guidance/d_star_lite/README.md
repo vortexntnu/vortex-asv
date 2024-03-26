@@ -9,13 +9,13 @@ And when using this map when running the D* lite algorithm with safe distance 4.
 
 A D* lite object consists of these parameters:
 
-'''
-dsl_object = DStarLite(obstacle_x, obstacle_y, start, goa, dist_to_obstacle, origin, height, width)
-'''
+```
+dsl_object = DStarLite(obstacle_x, obstacle_y, start, goal, safe_dist_to_obstacle, origin, height, width)
+```
 
-where 'obstacle_x' and 'obstacle_y' are lists containg the x and y coordinates of the obstacles. 'start' and 'goal' are the start and goal node for the selected mission. 'origin', 'height' and 'widht' are parameters to create the world boundaries and are used to compute 'x_min', 'x_max', 'y_min' and 'y_max'. See the figures below for visual representation.
+where `obstacle_x` and `obstacle_y` are lists containg the x and y coordinates of the obstacles. `start` and `goal` are the start and goal node for the selected mission. `origin`, `height` and `width` are parameters to create the world boundaries and are used to compute `x_min`, `x_max`, `y_min` and `y_max`. See the figures below for visual representation.
 
-![World Grid](https://drive.google.com/uc?export=download&id=1aoxujTgjgO8oaP2H6xIE0JHGb6VVNcRs)
+![World Grid](https://drive.google.com/uc?export=download&id=1RYXcRTjFWMFRhYBMRx5ILmheNvEKahrY)
 
 ![Obstacle](https://drive.google.com/uc?export=download&id=1M43ohD3wpKwmgkjJ44Ut1uOT3f5MlSQI)
 
