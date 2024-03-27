@@ -7,6 +7,10 @@ This package provides the implementation of hybrid path guidance for the Vortex 
 To use the hybrid path guidance launch it using: `ros2 launch hybridpath_guidance hybridpath_guidance.launch`
 Or alternatively, run it together with the hybridpath controller using the launch file `hybridpath.launch.py` in asv_setup 
 
+To run with custom waypoints (replace example waypoints with actual waypoints, and add as many prefered):
+
+`ros2 service call waypoint_list vortex_msgs/srv/Waypoint "waypoint: [{x: 0.0, y: 0.0, z: 0.0}, {x: 5.0, y: 5.0, z: 0.0}]"`
+
 ## Configuration
 
 You can configure the behavior of the hybrid path guidance by modifying the parameters in the `config` directory. 
