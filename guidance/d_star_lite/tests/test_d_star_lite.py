@@ -2,6 +2,7 @@ import unittest
 import pytest
 from d_star_lite.d_star_lite import DStarLite
 from d_star_lite.d_star_lite_node import DSLNode
+from geometry_msgs.msg import Point
 import numpy as np
 
 class TestDStarLite(unittest.TestCase):
@@ -13,15 +14,14 @@ class TestDStarLite(unittest.TestCase):
         self.DSLNode5 = DSLNode(-1, -1, -5.8)
 
         # Create example obstacle coordinates
-        self.ox = [1, 2, 3, 4, 5]
-        self.oy = [0, 0, 0, 0, 0]
+        self.obstacles = [Point(x=5.0, y=5.0, z=0.0)]
         
         # Create start and goal
-        self.start = DSLNode(0, 0)
-        self.goal = DSLNode(5, 5)
+        self.start = Point(x=0.0, y=0.0, z=0.0)
+        self.goal = Point(x=10.0, y=10.0, z=0.0)
 
         # Create example dsl object
-        self.dsl = DStarLite(self.ox, self.oy, self.start, self.goal)
+        self.dsl = DStarLite(self.obstacles, self.start, self.goal, min_dist_to_obstacle=3, origin=Point(x=0.0, y=0.0, z=0.0), height=30, width=30)
 
     def tearDown(self):
         pass
@@ -56,10 +56,10 @@ class TestDStarLite(unittest.TestCase):
     # Test the is_obstacle function
     def test_is_obstacle_is_true_when_node_is_obstacle(self):
         
-        self.assertEqual(self.dsl.is_obstacle(DSLNode(1, 0)), True)
+        self.assertEqual(self.dsl.is_obstacle(DSLNode(5, 5)), True)
 
     def test_is_obstacle_is_true_when_node_is_in_safe_distance_from_obstacle(self):
-        self.assertEqual(self.dsl.is_obstacle(DSLNode(2, 2)), True)
+        self.assertEqual(self.dsl.is_obstacle(DSLNode(4, 4)), True)
 
     def test_is_obstacle_is_false_when_node_is_not_obstacle(self):
         self.assertEqual(self.dsl.is_obstacle(DSLNode(10, 0)), False)
@@ -73,13 +73,13 @@ class TestDStarLite(unittest.TestCase):
         self.assertEqual(self.dsl.movement_cost(DSLNode(10, 10), DSLNode(11, 11)), np.sqrt(2))
 
     def test_movement_cost_when_moving_to_obstacle(self):
-        self.assertEqual(self.dsl.movement_cost(DSLNode(1, 0), DSLNode(2, 0)), np.inf)
+        self.assertEqual(self.dsl.movement_cost(DSLNode(3, 3), DSLNode(4, 4)), np.inf)
 
     # Test the heuristic_distance function (distance to target node)
     def test_heuristic_distance(self):
-        self.assertEqual(self.dsl.heuristic_distance(DSLNode(0, 0)), np.sqrt(50))
-        self.assertEqual(self.dsl.heuristic_distance(DSLNode(5, 5)), 0.0)
-        self.assertEqual(self.dsl.heuristic_distance(DSLNode(10, 10)), np.sqrt(50))
+        self.assertEqual(self.dsl.heuristic_distance(DSLNode(0, 0)), 2*np.sqrt(50))
+        self.assertEqual(self.dsl.heuristic_distance(DSLNode(5, 5)), np.sqrt(50))
+        self.assertEqual(self.dsl.heuristic_distance(DSLNode(10, 10)), 0)
     # Test the get_direction function
     def test_get_direction_when_moving_in_positive_x_direction(self):
         self.assertEqual(DSLNode.get_direction(DSLNode(0, 0), DSLNode(1, 0)), (1, 0))
