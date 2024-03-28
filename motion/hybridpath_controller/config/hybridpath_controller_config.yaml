@@ -1,1 +1,5 @@
-# K1 and K2 should be put here
+/**:
+  ros_parameters:
+    gain_matrices:
+      K1_diag: [10, 10, 10] # First gain matrix
+      K2_diag: [60, 60, 60] # Second gain matrix
