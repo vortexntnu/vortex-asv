@@ -4,18 +4,11 @@ from vortex_msgs.msg import HybridpathReference
 from transforms3d.euler import quat2euler
 
 class AdaptiveBackstep:
-    def __init__(self):
-        self.init_system()
-
-    def init_system(self) -> None:
-        self.K_1 = np.diag([10, 10, 10]) # First gain matrix
-        self.K_2 = np.diag([60, 60, 30]) # Second gain matrix
-        self.tau_max = np.array([41.0, 50.0, 55.0]) # Må tilpasses thrusterne
-
-        ## Forenklet modell ## Bør også endres
-        m = 50
-        self.M = np.diag([m, m, m])
-        self.D = np.diag([10, 10, 5])
+    def __init__(self, K1: np.ndarray, K2: np.ndarray, M: np.ndarray, D: np.ndarray) -> None:
+        self.K_1 = K1
+        self.K_2 = K2
+        self.M = M
+        self.D = D
 
     def control_law(self, state: Odometry, reference: HybridpathReference) -> np.ndarray:
         """
