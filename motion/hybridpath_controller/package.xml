@@ -3,22 +3,21 @@
 <package format="3">
   <name>hybridpath_controller</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="vortex.git@vortexntnu.no">vortex</maintainer>
+  <description>This package provides the implementation of hybrid path controller for the Vortex ASV.</description>
+  <maintainer email="martiniuss.wan@gmail.com">vortex</maintainer>
   <license>MIT</license>
+
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>rclpy</depend>
   <depend>python-transforms3d-pip</depend>
   <depend>geometry_msgs</depend>
   <depend>vortex_msgs</depend>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
   
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
