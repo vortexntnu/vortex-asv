@@ -56,7 +56,9 @@ class Guidance(Node):
             pos = signals.pd
             pos_der = signals.pd_der[0]
             pos_dder = signals.pd_der[1]
-            psi, psi_der, psi_dder = signals.get_heading()
+            psi = signals.get_heading()
+            psi_der = signals.get_heading_derivative()
+            psi_dder = signals.get_heading_second_derivative()
 
             hp_msg = HybridpathReference()
             hp_eta = Pose2D(x=pos[0], y=pos[1], theta=psi)
