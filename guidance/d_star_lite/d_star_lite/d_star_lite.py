@@ -383,7 +383,7 @@ class DStarLite:
         """
         WP_list = []
         for wp in self.waypoints:
-            WP_list.append(Point(x=float(wp.x), y=float(wp.y)))
+            WP_list.append(Point(x=float(wp.x), y=float(wp.y), z=0.0))
         return WP_list
     
     
@@ -394,10 +394,7 @@ class DStarLite:
         Args:
             start (DSLNode): The start DSLNode.
             goal (DSLNode): The goal DSLNode.
-        
-        Returns:
-            tuple: A tuple containing a boolean indicating if the path was found, and the x and y coordinates of the path.  
-        """ 
+        """
         self.initialize()
         self.compute_shortest_path()
         self.compute_current_path()
