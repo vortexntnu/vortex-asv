@@ -50,7 +50,7 @@ class LQRControllerNode(Node):
         controller_period = 0.1
         self.controller_timer_ = self.create_timer(controller_period, self.controller_callback)
 
-        test_oneMeterAhead()
+        self.test_oneMeterAhead()
 
         self.get_logger().info("lqr_controller_node started")
 
