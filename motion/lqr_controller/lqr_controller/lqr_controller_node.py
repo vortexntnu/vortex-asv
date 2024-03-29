@@ -54,7 +54,7 @@ class LQRControllerNode(Node):
 
         self.get_logger().info("lqr_controller_node started")
 
-    def test_oneMeterAhead():
+    def test_oneMeterAhead(self):
         print("Sleeping 3 secs to get odom state")
         sleep(3)
         self.x_ref = [self.state[0] + 1, self.state[1], self.state[2]]
