@@ -12,18 +12,8 @@ class States:
     AUTONOMOUS_MODE = 2
     NO_GO = 3
 
-
-class JoystickInterface(Node):
-
-    def __init__(self):
-        super().__init__('joystick_interface_node')
-        self.get_logger().info("Joystick interface is up and running. \n When the XBOX controller is connected, press the killswitch button once to enter XBOX mode.")
-
-        self.last_button_press_time_ = 0
-        self.debounce_duration_ = 0.25
-        self.state_ = States.NO_GO
-
-        self.joystick_buttons_map_ = [
+class Wired:
+    joystick_buttons_map_ = [
             "A",
             "B",
             "X",
@@ -35,18 +25,64 @@ class JoystickInterface(Node):
             "power",
             "stick_button_left",
             "stick_button_right",
+            "share_button",
         ]
 
-        self.joystick_axes_map_ = [
-            "horizontal_axis_left_stick",  #Translation (Left and Right)
-            "vertical_axis_left_stick",    #Translation (Forwards and Backwards)
+    joystick_axes_map_ = [
+            "horizontal_axis_left_stick",  #Sway
+            "vertical_axis_left_stick",    #Surge
             "LT",                          #Negative thrust/torque multiplier
-            "horizontal_axis_right_stick", #Rotation
+            "horizontal_axis_right_stick", #Yaw
             "vertical_axis_right_stick",
             "RT",                          #Positive thrust/torque multiplier
             "dpad_horizontal",
             "dpad_vertical",
         ]
+
+class Wireless:
+    joystick_buttons_map_ = [
+            "A",
+            "B",
+            "0",
+            "X",
+            "Y",
+            "0",
+            "LB",
+            "RB",
+            "0",
+            "0",
+            "back",
+            "start",
+            "power",
+            "stick_button_left",
+            "stick_button_right",
+            "share_button",
+        ]
+
+    joystick_axes_map_ = [
+            "horizontal_axis_left_stick",  #Sway
+            "vertical_axis_left_stick",    #Surge
+            "horizontal_axis_right_stick", #Yaw
+            "vertical_axis_right_stick",
+            "RT",                          #Positive thrust/torque multiplier
+            "LT",                          #Negative thrust/torque multiplier
+            "dpad_horizontal",
+            "dpad_vertical",
+        ]
+
+class JoystickInterface(Node):
+
+    def __init__(self):
+        super().__init__('joystick_interface_node')
+        self.get_logger().info("Joystick interface is up and running. \n When the XBOX controller is connected, press the killswitch button once to enter XBOX mode.")
+
+        self.last_button_press_time_ = 0
+        self.debounce_duration_ = 0.25
+        self.state_ = States.NO_GO
+
+        self.joystick_buttons_map_ = []
+
+        self.joystick_axes_map_ = []
 
         self.joy_subscriber_ = self.create_subscription(Joy, "joystick/joy",
                                                        self.joystick_cb, 1)
@@ -158,6 +194,13 @@ class JoystickInterface(Node):
 
         buttons = {}
         axes = {}
+
+        if len(msg.buttons) > 12:
+            self.joystick_buttons_map_ = Wireless.joystick_buttons_map_
+            self.joystick_axes_map_ = Wireless.joystick_axes_map_
+        else:
+            self.joystick_buttons_map_ = Wired.joystick_buttons_map_
+            self.joystick_axes_map_ = Wired.joystick_axes_map_
 
         for i in range(len(msg.buttons)):
             buttons[self.joystick_buttons_map_[i]] = msg.buttons[i]
