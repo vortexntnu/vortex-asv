@@ -21,8 +21,8 @@
       buoyancy: 0   # kg
       center_of_mass: [0, 0, 0]        # mm (x,y,z)
       center_of_buoyancy: [0, 0, 0]   # mm (x,y,z)
-      inertia_matrix_diag: [] # kg
-      damping_matrix_diag: []
+      inertia_matrix_diag: [50.0, 50.0, 50.0] # kg
+      damping_matrix_diag: [10.0, 10.0, 5.0]
 
 
     propulsion:

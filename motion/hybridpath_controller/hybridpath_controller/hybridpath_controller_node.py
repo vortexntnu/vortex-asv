@@ -11,25 +11,29 @@ from vortex_msgs.msg import HybridpathReference
 class HybridPathControllerNode(Node):
     def __init__(self):
         super().__init__("hybridpath_controller_node")
-
         self.declare_parameters(
             namespace='',
             parameters=[
-                ("hybridpath_controller.K1_diag", [10, 10, 10]),
-                ("hybridpath_controller.K2_diag", [60, 60, 60]),
-                ("hybridpath_controller.M_diag", [50, 50, 50]),
-                ("hybridpath_controller.D_diag", [10, 10, 5])
+                ('hybridpath_controller.K1_diag', [10.0, 10.0, 10.0]),
+                ('hybridpath_controller.K2_diag', [60.0, 60.0, 60.0]),
+                ('physical.inertia_matrix_diag', [50.0, 50.0, 50.0]),
+                ('physical.damping_matrix_diag', [10.0, 10.0, 5.0])
             ])
         
-        self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odometry/ned", self.state_callback, 1)
-        self.hpref_subscriber_ = self.create_subscription(HybridpathReference, "guidance/hybridpath/reference", self.reference_callback, 1)
-        self.wrench_publisher_ = self.create_publisher(Wrench, "thrust/wrench_input", 1)
+        self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odometry/ned', self.state_callback, 1)
+        self.hpref_subscriber_ = self.create_subscription(HybridpathReference, 'guidance/hybridpath/reference', self.reference_callback, 1)
+        self.wrench_publisher_ = self.create_publisher(Wrench, 'thrust/wrench_input', 1)
 
         # Get parameters
-        K1_diag = self.get_parameter("hybridpath_controller.K1_diag").get_parameter_value().double_array_value
-        K2_diag = self.get_parameter("hybridpath_controller.K2_diag").get_parameter_value().double_array_value
-        M_diag = self.get_parameter("hybridpath_controller.M_diag").get_parameter_value().double_array_value
-        D_diag = self.get_parameter("hybridpath_controller.D_diag").get_parameter_value().double_array_value
+        K1_diag = self.get_parameter('hybridpath_controller.K1_diag').get_parameter_value().double_array_value
+        K2_diag = self.get_parameter('hybridpath_controller.K2_diag').get_parameter_value().double_array_value
+        M_diag = self.get_parameter('physical.inertia_matrix_diag').get_parameter_value().double_array_value
+        D_diag = self.get_parameter('physical.damping_matrix_diag').get_parameter_value().double_array_value
+
+        K1_diag = [10.0, 10.0, 10.0]
+        K2_diag = [60.0, 60.0, 60.0]
+        M_diag = [50.0, 50.0, 50.0]
+        D_diag = [10.0, 10.0, 5.0]
 
         # Transform parameters to diagonal matrices
         K1 = np.diag(K1_diag)
