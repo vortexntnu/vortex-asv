@@ -8,14 +8,15 @@ class AdaptiveBackstep:
         self.init_system()
 
     def init_system(self) -> None:
-        self.K_1 = np.diag([10, 10, 10]) # First gain matrix
-        self.K_2 = np.diag([60, 60, 30]) # Second gain matrix
+        self.K_1 = np.diag([0.2, 0.2, 0.2]) # First gain matrix
+        self.K_2 = np.diag([1, 1, 1]) # Second gain matrix
         self.tau_max = np.array([41.0, 50.0, 55.0]) # Må tilpasses thrusterne
 
         ## Forenklet modell ## Bør også endres
         m = 50
         self.M = np.diag([m, m, m])
         self.D = np.diag([10, 10, 5])
+        self.tau_max = np.array([100, 100, 100])
 
     def control_law(self, state: Odometry, reference: HybridpathReference) -> np.ndarray:
         """
@@ -63,11 +64,11 @@ class AdaptiveBackstep:
         tau = -self.K_2 @ z2 + self.D @ nu + self.M @ sigma1 + self.M @ ds_alpha1 * (v_s + w)
 
         # Add constraints to tau # This should be improved
-        # for i in range(len(tau)):
-        #     if tau[i] > self.tau_max[i]:
-        #         tau[i] = self.tau_max[i]
-        #     elif tau[i] < -self.tau_max[i]:
-        #         tau[i] = -self.tau_max[i]
+        for i in range(len(tau)):
+            if tau[i] > self.tau_max[i]:
+                tau[i] = self.tau_max[i]
+            elif tau[i] < -self.tau_max[i]:
+                tau[i] = -self.tau_max[i]
 
         return tau
 

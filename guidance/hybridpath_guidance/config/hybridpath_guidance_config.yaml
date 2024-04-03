@@ -5,4 +5,4 @@
       path_generator_order: 1 # Differentiability order
       time_to_max_speed: 10.0 # Time to reach maximum speed
       dt: 0.1 # Time step
-      u_desired: 0.5 # Desired speed
+      u_desired: 0.01 # Desired speed

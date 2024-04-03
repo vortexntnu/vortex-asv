@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.linalg import solve_continuous_are
 from lqr_controller.asv_model import ASV
 
