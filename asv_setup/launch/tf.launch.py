@@ -37,9 +37,9 @@ def generate_launch_description():
                    '--z'              , '-0.392425',
                    '--roll'           , str(math.pi),
                    '--pitch'          , '0',
-                   '--yaw'            , '0',
+                   '--yaw'            , str(math.pi),
                    '--frame-id'       , 'base_link',
-                   '--child-frame-id' , 'os_lidar'],
+                   '--child-frame-id' , 'os_sensor'],
     )
 
     # base_link to zed2i_camera_center tf.
