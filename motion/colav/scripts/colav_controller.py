@@ -14,12 +14,12 @@ class ColavController(Node):
     def __init__(self):
         super().__init__("colav_controller")
 
-        
-        self.declare_parameters(namespace='', parameters=[
-            ('guidance_interface_colav_data_topic', '/guidance/colav_data'),
-            ('stop_zone_radius', 0.0),
-            ('colimm_max_radius', float('inf')),
-        ])
+        self.declare_parameter('guidance_interface/colav_data_topic', 'guidance/collision_avoidance')  # Provide a default topic here    
+        self.declare_parameter('stop_zone_radius', 0.0)
+        self.declare_parameter('colimm_max_radius', math.inf)
+
+        stop_zone_radius = self.get_parameter('stop_zone_radius').get_parameter_value().double_value
+        colimm_max_radius = self.get_parameter('colimm_max_radius').get_parameter_value().double_value
 
         self.obstacle_sub = self.create_subscription(OdometryArray, "/tracking/mul_tracked_cv_objects", self.obst_callback, 10)
         self.vessel_sub = self.create_subscription(Odometry, "/pose_gt", self.vessel_callback, 10)
@@ -28,8 +28,10 @@ class ColavController(Node):
         self.obstacles = []
         self.vessel_odom = Odometry()
         self.vessel = Obstacle() 
-        self.stop_zone_radius = self.get_parameter('stop_zone_radius').value
-        self.colimm_max_radius = self.get_parameter('colimm_max_radius').value
+        self.vessel.radius = stop_zone_radius
+        self.stop_zone_radius = stop_zone_radius
+        self.colimm_max_radius = colimm_max_radius
+        self.current_time = self.get_clock().now()
     
     def vessel_callback(self, msg):
         self.vessel_odom = msg
