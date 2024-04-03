@@ -15,7 +15,6 @@ ThrusterAllocator::ThrusterAllocator()
   declare_parameter("propulsion.thrusters.num", 4);
   declare_parameter("propulsion.thrusters.min", -100);
   declare_parameter("propulsion.thrusters.max", 100);
-  declare_parameter("propulsion.thrusters.direction", std::vector<int64_t>{0});
   declare_parameter("propulsion.thrusters.configuration_matrix",
                     std::vector<double>{0});
 
@@ -23,10 +22,8 @@ ThrusterAllocator::ThrusterAllocator()
   num_thrusters_ = get_parameter("propulsion.thrusters.num").as_int();
   min_thrust_ = get_parameter("propulsion.thrusters.min").as_int();
   max_thrust_ = get_parameter("propulsion.thrusters.max").as_int();
-  direction_ =
-      get_parameter("propulsion.thrusters.direction").as_integer_array();
 
-  thrust_configuration = doubleArrayToEigenMatrix(
+  thrust_configuration = double_array_to_eigen_matrix(
       get_parameter("propulsion.thrusters.configuration_matrix")
           .as_double_array(),
       num_dof_, num_thrusters_);
@@ -36,34 +33,34 @@ ThrusterAllocator::ThrusterAllocator()
       std::bind(&ThrusterAllocator::wrench_callback, this,
                 std::placeholders::_1));
 
-  thrust_publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
+  thruster_forces_publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
       "thrust/thruster_forces", 1);
 
-  timer_ = this->create_wall_timer(
-      100ms, std::bind(&ThrusterAllocator::timer_callback, this));
+  calculate_thrust_timer_ = this->create_wall_timer(
+      100ms, std::bind(&ThrusterAllocator::calculate_thrust_timer_cb, this));
 
   pseudoinverse_allocator_.T_pinv =
-      calculateRightPseudoinverse(thrust_configuration);
+      calculate_right_pseudoinverse(thrust_configuration);
 
   body_frame_forces_.setZero();
 }
 
-void ThrusterAllocator::timer_callback() {
-  Eigen::VectorXd thruster_forces =
-      pseudoinverse_allocator_.calculateAllocatedThrust(body_frame_forces_);
+void ThrusterAllocator::calculate_thrust_timer_cb() {
+  Eigen::Vector3d thruster_forces =
+      pseudoinverse_allocator_.calculate_allocated_thrust(body_frame_forces_);
 
-  if (isInvalidMatrix(thruster_forces)) {
-    RCLCPP_ERROR(get_logger(), "ThrusterForces vector invalid");
+  if (is_invalid_matrix(thruster_forces)) {
+    RCLCPP_ERROR(get_logger(), "ThrusterForces vector invalid, ignoring");
     return;
   }
 
-  if (!saturateVectorValues(thruster_forces, min_thrust_, max_thrust_)) {
+  if (!saturate_vector_values(thruster_forces, min_thrust_, max_thrust_)) {
     RCLCPP_WARN(get_logger(), "Thruster forces vector required saturation.");
   }
 
   std_msgs::msg::Float32MultiArray msg_out;
-  arrayEigenToMsg(thruster_forces, msg_out);
-  thrust_publisher_->publish(msg_out);
+  array_eigen_to_msg(thruster_forces, msg_out);
+  thruster_forces_publisher_->publish(msg_out);
 }
 
 void ThrusterAllocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
@@ -71,20 +68,14 @@ void ThrusterAllocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
   msg_vector(0) = msg.force.x;  // surge
   msg_vector(1) = msg.force.y;  // sway
   msg_vector(2) = msg.torque.z; // yaw
-  if (!healthyWrench(msg_vector)) {
+  if (is_invalid_matrix(msg_vector)) {
     RCLCPP_ERROR(get_logger(), "ASV wrench vector invalid, ignoring.");
     return;
   }
+
+  if (!saturate_vector_values(msg_vector, min_thrust_, max_thrust_)) {
+    RCLCPP_WARN(get_logger(), "ASV wrench vector required saturation.");
+  }
+
   std::swap(msg_vector, body_frame_forces_);
-}
-
-bool ThrusterAllocator::healthyWrench(const Eigen::VectorXd &v) const {
-  if (isInvalidMatrix(v))
-    return false;
-
-  bool within_max_thrust = std::none_of(v.begin(), v.end(), [this](double val) {
-    return std::abs(val) > max_thrust_;
-  });
-
-  return within_max_thrust;
 }
