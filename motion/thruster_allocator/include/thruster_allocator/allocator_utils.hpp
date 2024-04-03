@@ -22,7 +22,7 @@
  * @return true if the matrix has any NaN or INF elements, false otherwise.
  */
 template <typename Derived>
-inline bool isInvalidMatrix(const Eigen::MatrixBase<Derived> &M) {
+inline bool is_invalid_matrix(const Eigen::MatrixBase<Derived> &M) {
   bool has_nan = !(M.array() == M.array()).all();
   bool has_inf = M.array().isInf().any();
   return has_nan || has_inf;
@@ -35,7 +35,7 @@ inline bool isInvalidMatrix(const Eigen::MatrixBase<Derived> &M) {
  * @param M The matrix to print.
  * @return std::stringstream The string stream containing the matrix.
  */
-inline std::stringstream printMatrix(std::string name,
+inline std::stringstream print_matrix(std::string name,
                                      const Eigen::MatrixXd &M) {
   std::stringstream ss;
   ss << std::endl << name << " = " << std::endl << M;
@@ -49,10 +49,10 @@ inline std::stringstream printMatrix(std::string name,
  * @throws char* if the pseudoinverse is invalid.
  * @return The pseudoinverse of the given matrix.
  */
-inline Eigen::MatrixXd calculateRightPseudoinverse(const Eigen::MatrixXd &T) {
+inline Eigen::MatrixXd calculate_right_pseudoinverse(const Eigen::MatrixXd &T) {
   Eigen::MatrixXd pseudoinverse = T.transpose() * (T * T.transpose()).inverse();
   // pseudoinverse.completeOrthogonalDecomposition().pseudoInverse();
-  if (isInvalidMatrix(pseudoinverse)) {
+  if (is_invalid_matrix(pseudoinverse)) {
     throw std::runtime_error("Invalid Psuedoinverse Calculated");
   }
   return pseudoinverse;
@@ -68,7 +68,7 @@ inline Eigen::MatrixXd calculateRightPseudoinverse(const Eigen::MatrixXd &T) {
  * @return True if all vector values are within the given range, false
  * otherwise.
  */
-inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
+inline bool saturate_vector_values(Eigen::Vector3d &vec, double min, double max) {
   bool all_values_in_range =
       std::all_of(vec.begin(), vec.end(),
                   [min, max](double val) { return val >= min && val <= max; });
@@ -90,7 +90,7 @@ inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
  */
 #include <std_msgs/msg/float32_multi_array.hpp>
 
-inline void arrayEigenToMsg(const Eigen::VectorXd &u,
+inline void array_eigen_to_msg(const Eigen::VectorXd &u,
                             std_msgs::msg::Float32MultiArray &msg) {
   msg.data.assign(u.data(), u.data() + u.size());
 }
@@ -104,7 +104,7 @@ inline void arrayEigenToMsg(const Eigen::VectorXd &u,
  * @return The resulting Eigen matrix.
  */
 inline Eigen::MatrixXd
-doubleArrayToEigenMatrix(const std::vector<double> &matrix, int rows,
+double_array_to_eigen_matrix(const std::vector<double> &matrix, int rows,
                          int cols) {
   return Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
                                         Eigen::RowMajor>>(matrix.data(), rows,
