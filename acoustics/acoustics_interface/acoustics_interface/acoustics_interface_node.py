@@ -7,7 +7,19 @@ from std_msgs.msg import Int32MultiArray, Float32MultiArray
 from acoustics_interface.acoustics_interface_lib import TeensyCommunicationUDP
 
 class AcousticsInterfaceNode(Node):
+    """
+        Publishes Acoustics data to ROS2
+
+        Methods: 
+            data_update() -> None:
+                calls fetch_data() from acoustics_interface
+            data_publisher(self) -> None:
+                publishes data to ROS2 topics
+    """
     def __init__(self) -> None:
+        """
+            Sets up acoustics logging and publishers, also sets up teensy communication
+        """
         super().__init__('acoustics_interface')
         rclpy.logging.initialize()
 
@@ -52,10 +64,11 @@ class AcousticsInterfaceNode(Node):
         self.get_logger().info("Sucsefully connected to Acoustics PCB MCU :D")
 
 
-    def data_update(self):
+    def data_update(self) -> None:
         TeensyCommunicationUDP.fetch_data()
 
-    def data_publisher(self):
+    def data_publisher(self) -> None:
+        """Publishes to topics"""
         self._hydrophone_1_publisher.publish(Int32MultiArray(data=TeensyCommunicationUDP.acoustics_data["HYDROPHONE_1"]))
         self._hydrophone_2_publisher.publish(Int32MultiArray(data=TeensyCommunicationUDP.acoustics_data["HYDROPHONE_2"]))
         self._hydrophone_3_publisher.publish(Int32MultiArray(data=TeensyCommunicationUDP.acoustics_data["HYDROPHONE_3"]))
