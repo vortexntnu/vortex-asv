@@ -11,6 +11,7 @@
 
   <depend>rclpy</depend>
   <depend>python-transforms3d-pip</depend>
+  <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>vortex_msgs</depend>
 
