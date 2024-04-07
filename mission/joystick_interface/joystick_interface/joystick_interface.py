@@ -39,7 +39,7 @@ class Wired:
             "dpad_vertical",
         ]
 
-class Wireless:
+class WirelessXboxSeriesX:
     joystick_buttons_map_ = [
             "A",
             "B",
@@ -111,10 +111,6 @@ class JoystickInterface(Node):
         
         # Signal that we are not in autonomous mode
         self.operational_mode_signal_publisher_.publish(String(data="XBOX"))
-
-        #Controller publisher
-        self.enable_controller_publisher_ = self.create_publisher(
-            Bool, "controller/lqr/enable", 10)
         
     def right_trigger_linear_converter(self, rt_input: float) -> float:
         """
@@ -137,7 +133,7 @@ class JoystickInterface(Node):
             lt_input: The input value of the left trigger, ranging from -1 to 1.
 
         Returns:
-            float: The output value, ranging from 1 to 2.
+            float: The output value, ranging from 1 to 0.5.
         """
         ouput_value = lt_input * 0.25 + 0.75
         return ouput_value
@@ -164,7 +160,6 @@ class JoystickInterface(Node):
         """
         Turns off the controller and signals that the operational mode has switched to Xbox mode.
         """
-        self.enable_controller_publisher_.publish(Bool(data=False))
         self.operational_mode_signal_publisher_.publish(String(data="XBOX"))
         self.state_ = States.XBOX_MODE
 
@@ -195,33 +190,39 @@ class JoystickInterface(Node):
         buttons = {}
         axes = {}
 
-        if len(msg.buttons) > 12:
-            self.joystick_buttons_map_ = Wireless.joystick_buttons_map_
-            self.joystick_axes_map_ = Wireless.joystick_axes_map_
+        # Check if the controller is wireless (has 16 buttons) or wired
+        if len(msg.buttons) == 16:
+            self.joystick_buttons_map_ = WirelessXboxSeriesX.joystick_buttons_map_
+            self.joystick_axes_map_ = WirelessXboxSeriesX.joystick_axes_map_
         else:
             self.joystick_buttons_map_ = Wired.joystick_buttons_map_
             self.joystick_axes_map_ = Wired.joystick_axes_map_
 
-        for i in range(len(msg.buttons)):
-            buttons[self.joystick_buttons_map_[i]] = msg.buttons[i]
+        # Populate buttons dictionary
+        for i, button_name in enumerate(self.joystick_buttons_map_):
+            if i < len(msg.buttons):
+                buttons[button_name] = msg.buttons[i]
+            else:
+                # Assuming default value if button is not present
+                buttons[button_name] = 0
 
-        for i in range(len(msg.axes)):
-            axes[self.joystick_axes_map_[i]] = msg.axes[i]
+        # Populate axes dictionary
+        for i, axis_name in enumerate(self.joystick_axes_map_):
+            if i < len(msg.axes):
+                axes[axis_name] = msg.axes[i]
+            else:
+                # Assuming default value if axis is not present
+                axes[axis_name] = 0.0
 
-        xbox_control_mode_button = buttons["A"]
-        software_killswitch_button = buttons["B"]
-        software_control_mode_button = buttons["X"]
-        left_trigger = axes['LT']
-        right_trigger = axes['RT']
-        right_trigger = self.right_trigger_linear_converter(right_trigger)
-        left_trigger = self.left_trigger_linear_converter(left_trigger)
+        xbox_control_mode_button = buttons.get("A", 0)
+        software_killswitch_button = buttons.get("B", 0)
+        software_control_mode_button = buttons.get("X", 0)
+        left_trigger = self.left_trigger_linear_converter(axes.get('LT', 0.0))
+        right_trigger = self.right_trigger_linear_converter(axes.get('RT', 0.0))
 
-        surge = axes[
-            "vertical_axis_left_stick"] * self.joystick_surge_scaling_ * left_trigger * right_trigger
-        sway = -axes[
-            "horizontal_axis_left_stick"] * self.joystick_sway_scaling_ * left_trigger * right_trigger
-        yaw  = -axes[
-            "horizontal_axis_right_stick"] * self.joystick_yaw_scaling_ * left_trigger * right_trigger
+        surge = axes.get("vertical_axis_left_stick", 0.0) * self.joystick_surge_scaling_ * left_trigger * right_trigger
+        sway = -axes.get("horizontal_axis_left_stick", 0.0) * self.joystick_sway_scaling_ * left_trigger * right_trigger
+        yaw  = -axes.get("horizontal_axis_right_stick", 0.0) * self.joystick_yaw_scaling_ * left_trigger * right_trigger
 
         # Debounce for the buttons
         if current_time - self.last_button_press_time_ < self.debounce_duration_:
@@ -246,8 +247,6 @@ class JoystickInterface(Node):
                 self.get_logger().info("SW killswitch", throttle_duration_sec=1)
                 # signal that killswitch is blocking
                 self.software_killswitch_signal_publisher_.publish(Bool(data=True))
-                # Turn off controller in sw killswitch
-                self.enable_controller_publisher_.publish(Bool(data=False))
                 # Publish a zero wrench message when sw killing
                 wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
                 self.wrench_publisher_.publish(wrench_msg)
