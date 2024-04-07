@@ -53,7 +53,7 @@ class AdaptiveBackstep:
         ds_alpha1 = self.K_1 @ (R_trps @ eta_d_s) + R_trps @ eta_d_ss * v_s + R_trps @ eta_d_s * v_ss
 
         # Control law ## Må endres om de ulineære matrisene skal brukes
-        tau = -self.K_2 @ z2 + self.D @ nu + self.M @ sigma1 + self.M @ ds_alpha1 * (v_s + w)
+        tau = -self.K_2 @ z2 + self.calculate_coriolis_matrix(nu) + self.D @ nu + self.M @ sigma1 + self.M @ ds_alpha1 * (v_s + w)
 
         # Add constraints to tau # This should be improved
         # for i in range(len(tau)):
@@ -63,20 +63,15 @@ class AdaptiveBackstep:
         #         tau[i] = -self.tau_max[i]
 
         return tau
-
-    def calculate_coriolis_matrix(self, nu): # Må bestemme om dette er noe vi skal bruke
-        # u = nu[0]
-        # v = nu[1]
-        # r = nu[2]
-
-        # C_RB = np.array([[0.0, 0.0, -self.m * (self.xg * r + v)], [0.0, 0.0, self.m * u],
-        #                   [self.m*(self.xg*r+v), -self.m*u, 0.0]])
-        # C_A = np.array([[0.0, 0.0, -self.M_A[1,1] * v + (-self.M_A[1,2])*r],[0.0,0.0,-self.M_A[0,0]*u],
-        #                  [self.M_A[1,1]*v-(-self.M_A[1,2])*r, self.M_A[0,0]*u, 0.0]])
-        # C = C_RB + C_A
-
-        #return C
-        pass
+    
+    @staticmethod
+    def calculate_coriolis_matrix(nu): 
+        C_A = np.array([
+            [0, 0, -82.5],
+            [0, 0, 5.5],
+            [82.5, -5.5, 0]
+        ])
+        return C_A @ nu
 
     @staticmethod
     def rotationmatrix_in_yaw_transpose(psi: float) -> np.ndarray:
