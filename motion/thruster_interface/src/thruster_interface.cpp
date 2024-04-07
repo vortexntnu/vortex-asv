@@ -17,7 +17,7 @@ void init(int &file) {
   } else {
     std::cout << "connected to i2c bus!!" << std::endl;
   }
-  
+
   if (ioctl(file, I2C_SLAVE, i2c_slave_addr) < 0) {
     std::cerr << "error, could not set adress" << std::endl;
     close(file);
@@ -133,32 +133,36 @@ uint16_t interpolate(double force, int PWM_min, int PWM_max) {
     get_pwm_table();
   }
   // Find the first element with a key not less than force
-  auto it = pwm_table.lower_bound(force); 
-  if (it == pwm_table.begin()){       // If the force is less than or equal to the smallest force in the table
+  auto it = pwm_table.lower_bound(force);
+  if (it == pwm_table.begin()) { // If the force is less than or equal to the
+                                 // smallest force in the table
     pwm = it->second;
-  }else if (it == pwm_table.end()) {  // If the force is greater than or equal to the largest force in the table
+  } else if (it == pwm_table.end()) { // If the force is greater than or equal
+                                      // to the largest force in the table
     --it;
     pwm = it->second;
-  }else{
-  // Linear interpolation
-  auto prev = std::prev(it); // Get the element with the next smaller key
-  double force1 = prev->first;
-  double force2 = it->first;
-  double pwm1 = prev->second;
-  double pwm2 = it->second;
-  pwm =  pwm1 + (pwm2 - pwm1) * (force - force1) / (force2 - force1);
+  } else {
+    // Linear interpolation
+    auto prev = std::prev(it); // Get the element with the next smaller key
+    double force1 = prev->first;
+    double force2 = it->first;
+    double pwm1 = prev->second;
+    double pwm2 = it->second;
+    pwm = pwm1 + (pwm2 - pwm1) * (force - force1) / (force2 - force1);
   }
-  //check if the calculated pwm values are within the defined limits [PWM_min, PWM_max].
-  if (pwm < PWM_min){
+  // check if the calculated pwm values are within the defined limits [PWM_min,
+  // PWM_max].
+  if (pwm < PWM_min) {
     return PWM_min;
-  }else if(pwm > PWM_max){
+  } else if (pwm > PWM_max) {
     return PWM_max;
-  }else{
+  } else {
     return pwm;
   }
 }
 
-std::vector<uint16_t> interpolate_all(std::vector<double> &force_values,int PWM_min, int PWM_max) {
+std::vector<uint16_t> interpolate_all(std::vector<double> &force_values,
+                                      int PWM_min, int PWM_max) {
   std::vector<uint16_t> interpolatedVector;
   // Interpolate each value in the input vector
   for (const auto &force : force_values) {

@@ -38,4 +38,5 @@ uint8_t read_hardware_statusFromI2C(int file);
 //--------------------------INTERPOLATION--------------------------
 void get_pwm_table();
 uint16_t interpolate(double force, int PWM_min, int PWM_max);
-std::vector<uint16_t> interpolate_all(std::vector<double> &force_values, int PWM_min = 1100, int PWM_max = 1900);
+std::vector<uint16_t> interpolate_all(std::vector<double> &force_values,
+                                      int PWM_min = 1100, int PWM_max = 1900);
