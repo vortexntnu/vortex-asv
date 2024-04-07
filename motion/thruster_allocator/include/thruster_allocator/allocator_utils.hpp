@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <vortex_msgs/msg/thruster_forces.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
 
 /**
  * @brief Check if the matrix has any NaN or INF elements.
@@ -81,19 +81,18 @@ inline bool saturateVectorValues(Eigen::VectorXd &vec, double min, double max) {
 }
 
 /**
- * @brief Converts an Eigen VectorXd to a vortex_msgs::msg::ThrusterForces
+ * @brief Converts an Eigen VectorXd to a std_msgs::msg::Float32MultiArray
  * message.
  *
  * @param u The Eigen VectorXd to be converted.
- * @param msg The vortex_msgs::msg::ThrusterForces message to store the
+ * @param msg The std_msgs::msg::Float32MultiArray message to store the
  * converted values.
  */
+#include <std_msgs/msg/float32_multi_array.hpp>
+
 inline void arrayEigenToMsg(const Eigen::VectorXd &u,
-                            vortex_msgs::msg::ThrusterForces &msg) {
-  int r = u.size();
-  std::vector<double> u_vec(r);
-  std::copy_n(u.begin(), r, u_vec.begin());
-  msg.thrust = u_vec;
+                            std_msgs::msg::Float32MultiArray &msg) {
+  msg.data.assign(u.data(), u.data() + u.size());
 }
 
 /**

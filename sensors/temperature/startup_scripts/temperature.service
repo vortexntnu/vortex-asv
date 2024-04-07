@@ -1,0 +1,17 @@
+[Unit]
+Description=Launch internal status node
+After=network.target
+
+[Service]
+# Use the wrapper script for ExecStart
+# DONT CHANGE THIS LINE!!!!
+# Use vortex-asv/scripts/add_service_files_to_bootup_sequence.sh to automaticaly set everything up
+ExecStart=/bin/bash '<pathToThisFile>temperature.sh'
+WorkingDirectory=/home/vortex/
+StandardOutput=journal+console
+User=vortex
+Restart=no
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

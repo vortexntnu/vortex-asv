@@ -1,3 +1,4 @@
+import time
 import smbus
 from MCP342x import MCP342x
 
@@ -11,6 +12,7 @@ class PowerSenseModule:
 
         # init of I2C bus communication
         self.bus = smbus.SMBus(1)
+        time.sleep(1) # A short pause because sometimes I2C is slow to conect
         self.channel_voltage = MCP342x(self.bus,
                                        self.i2c_adress,
                                        channel=1,
@@ -18,7 +20,7 @@ class PowerSenseModule:
         self.channel_current = MCP342x(self.bus,
                                        self.i2c_adress,
                                        channel=0,
-                                       resolution=18)  # current   
+                                       resolution=18)  # current  
     
 
         # Convertion ratios taken from PSM datasheet at: https://bluerobotics.com/store/comm-control-power/control/psm-asm-r2-rp/
@@ -34,8 +36,8 @@ class PowerSenseModule:
                              self.psm_to_battery_voltage)
             return system_voltage
 
-        except IOError:
-            return
+        except IOError as e:
+            return e
 
     def get_current(self):
         try:
@@ -45,8 +47,9 @@ class PowerSenseModule:
 
             return system_current
 
-        except IOError:
-            return
-
+        except IOError as e:
+            return e
+        
     def shutdown(self):
         self.bus.close()
+

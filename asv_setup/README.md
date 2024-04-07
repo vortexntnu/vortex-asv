@@ -8,7 +8,7 @@ The config folder contains physical parameters related to the AUV and the enviro
 There are currently no physical parameters
 
 ### Launch
-This package contains a launchfile for each specific ASV. Additionally the pc.launch file is to
+This package contains a launchfile for each specific ASV. Additionally the shoreside.launch.py file is to
 be used on the topside computer that the joystick is connected to, for ROV operations.
 
 
