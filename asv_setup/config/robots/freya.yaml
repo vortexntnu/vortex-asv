@@ -50,3 +50,10 @@
           scaling: [ 1.0,  1.0,  1.0, 1.0, 1.0, 1.0]
 
     computer: "pc-debug"
+
+
+    thruster_interface:
+      publishing_rate: 1000 # [millisecond], Publishing 6 temperature values (ESC1, ESC2, ESC3, ESC4, AMBIENT1, AMBIENT2)
+                                  # and the status received from the arduino controlling the ESC
+      PWM_min: 1300 # Recommended : 1100 
+      PWM_max: 1700 # Recommended : 1900

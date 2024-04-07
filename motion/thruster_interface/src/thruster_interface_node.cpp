@@ -40,8 +40,6 @@ public:
         "/asv/temperature/ESC3/test", 10);
     publisher_ESC4 = this->create_publisher<std_msgs::msg::Float32>(
         "/asv/temperature/ESC4/test", 10);
-    publisher_ESC4 = this->create_publisher<std_msgs::msg::Float32>(
-        "/asv/temperature/ESC4/test", 10);
     publisher_ambient1 = this->create_publisher<std_msgs::msg::Float32>(
         "/asv/temperature/ambient1/test", 10);
     publisher_ambient2 = this->create_publisher<std_msgs::msg::Float32>(
@@ -49,8 +47,22 @@ public:
     publisher_status = this->create_publisher<std_msgs::msg::Int8>(
         "/asv/failsafe/hardware/status", 10);
 
+
+    // get parameters from the freya.yaml file    
+
+    this->declare_parameter("thruster_interface.PWM_min", 500);
+    int PWM_min = this->get_parameter("thruster_interface.PWM_min").as_int();
+    this->declare_parameter("thruster_interface.PWM_max", 500);
+    int PWM_max = this->get_parameter("thruster_interface.PWM_max").as_int();
+    this->declare_parameter("thruster_interface.publishing_rate", 500);
+    int publishing_rate = this->get_parameter("thruster_interface.publishing_rate").as_int();
+
+    cout << "800 : " << interpolate(800, PWM_min, PWM_max) << endl; 
+    cout << "-10000 : " << interpolate(-10000, PWM_min, PWM_max) << endl;       
+    cout << "publishing rate : " << publishing_rate << endl;
+
     timer_ = this->create_wall_timer(
-        std::chrono::seconds(1),
+        std::chrono::milliseconds(publishing_rate),
         std::bind(&ThrusterInterface::publish_temperature_and_status, this));
   }
 
