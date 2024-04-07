@@ -7,7 +7,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Wrench
 from vortex_msgs.msg import HybridpathReference
 from hybridpath_controller.adaptive_backstep import AdaptiveBackstep
-from hybridpath_guidance.hp_guidance_utils import Rot
+# from hybridpath_guidance.hp_guidance_utils import Rot
 from transforms3d.euler import euler2quat
 
 

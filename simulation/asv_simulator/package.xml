@@ -14,6 +14,10 @@
   <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>vortex_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>numpy</depend>
+  <depend>matplotlib</depend>
+  <depend>scipy</depend>
 
   <test_depend>python3-pytest</test_depend>
   
