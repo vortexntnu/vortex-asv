@@ -5,7 +5,7 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from vortex_msgs.msg import GuidanceData, OdometryArray
 import math
-from scripts.VO_math import VelocityObstacle, Obstacle, Zones, Approaches
+from VO_math import VelocityObstacle, Obstacle, Zones, Approaches
 from tf2_ros import Buffer, TransformListener
 from transformations import euler_from_quaternion
 from geometry_msgs.msg import Quaternion
@@ -14,16 +14,17 @@ class ColavController(Node):
     def __init__(self):
         super().__init__("colav_controller")
 
-        self.declare_parameter('guidance_interface/colav_data_topic', 'guidance/collision_avoidance')  # Provide a default topic here    
+        self.declare_parameter('guidance_interface/colav_data_topic', 'guidance/collision_avoidance')    
         self.declare_parameter('stop_zone_radius', 0.0)
         self.declare_parameter('colimm_max_radius', math.inf)
 
-        stop_zone_radius = self.get_parameter('stop_zone_radius').get_parameter_value().double_value
-        colimm_max_radius = self.get_parameter('colimm_max_radius').get_parameter_value().double_value
+        stop_zone_radius = self.get_parameter('stop_zone_radius').value
+        colimm_max_radius = self.get_parameter('colimm_max_radius').value
+        colav_data_topic = self.get_parameter('guidance_interface/colav_data_topic').get_parameter_value().string_value
 
         self.obstacle_sub = self.create_subscription(OdometryArray, "/tracking/mul_tracked_cv_objects", self.obst_callback, 10)
         self.vessel_sub = self.create_subscription(Odometry, "/pose_gt", self.vessel_callback, 10)
-        self.colav_pub = self.create_publisher(GuidanceData, self.get_parameter("/guidance_interface/colav_data").get_parameter_value().string_value, 10)
+        self.colav_pub = self.create_publisher(GuidanceData, colav_data_topic, 10)
         
         self.obstacles = []
         self.vessel_odom = Odometry()
@@ -147,10 +148,11 @@ class ColavController(Node):
             return Zones.COLIMM
         return Zones.STOPNOW
 
-
-
-if __name__ == '__main__':
+def main(args=None):
     rclpy.init()
     colav_controller = ColavController()
     rclpy.spin(colav_controller)
     rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()    

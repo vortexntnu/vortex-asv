@@ -10,9 +10,6 @@ def generate_launch_description():
         package='colav',
         executable='colav_controller.py',
         name='colav',
-        parameters=[
-                {'guidance_interface/colav_data': 'guidance/collision_avoidance'}
-            ],
         output='screen'
     )
 
