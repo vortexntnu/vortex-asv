@@ -1,7 +1,12 @@
 import numpy as np
 import math
+<<<<<<< HEAD
 import matplotlib.pyplot as plt
 from d_star_lite.d_star_lite_node import DSLNode
+=======
+from d_star_lite.d_star_lite_node import DSLNode
+from geometry_msgs.msg import Point
+>>>>>>> development
 
 # Link to the original code:
 # https://github.com/AtsushiSakai/PythonRobotics/blob/master/PathPlanning/DStarLite/d_star_lite.py
@@ -18,7 +23,11 @@ class DStarLite:
     
     Methods:
     -------------------------------------------------------------------------------------------
+<<<<<<< HEAD
         __init__(ox: list, oy: list, dist_to_obstacle: float = 4.5): Initializes a new instance of the DStarLite class.
+=======
+        __init__(ox: list, oy: list, min_dist_to_obstacle: float = 4.5): Initializes a new instance of the DStarLite class.
+>>>>>>> development
         
         create_grid(val: float) -> np.ndarray: Creates a grid initialized with a specific value.
         
@@ -51,26 +60,42 @@ class DStarLite:
         dsl_main(start: DSLNode, goal: DSLNode) -> tuple[bool, list[int], list[int]]: Main function to run the D* Lite algorithm.
     """
 
+<<<<<<< HEAD
     motions = [ # Represents the possible motions in the grid and corresponding costs
+=======
+    possible_motions = [ # Represents the possible motions in the grid and corresponding costs
+>>>>>>> development
         DSLNode(1, 0, 1), DSLNode(0, 1, 1), DSLNode(-1, 0, 1), DSLNode(0, -1, 1), 
         DSLNode(1, 1, math.sqrt(2)), DSLNode(1, -1, math.sqrt(2)),
         DSLNode(-1, 1, math.sqrt(2)), DSLNode(-1, -1, math.sqrt(2))
     ]
 
+<<<<<<< HEAD
     def __init__(self, ox: list, oy: list, start: DSLNode, goal: DSLNode, dist_to_obstacle: float = 4.5, origin: tuple = (0,0), height: int = 25, width: int = 25):
+=======
+    def __init__(self, obstacles: list[Point], start: Point, goal: Point, min_dist_to_obstacle: float = 4.5, origin: Point = Point(x=0.0,y=0.0), height: int = 25, width: int = 25):
+>>>>>>> development
         """
         Initializes a new instance of the DStarLite class.
 
         Args:
+<<<<<<< HEAD
             ox (list): The x-coordinates of the obstacles.
             oy (list): The y-coordinates of the obstacles.
             start (DSLNode): The start node.
             goal (DSLNode): The goal node.
             dist_to_obstacle (float): The minimum distance a DSLNode must be from any obstacle to be considered valid. Defaults to 4.5.
+=======
+            obstacles (list): A list of Point objects representing the obstacles.
+            start (DSLNode): The start node.
+            goal (DSLNode): The goal node.
+            min_dist_to_obstacle (float): The minimum distance a DSLNode must be from any obstacle to be considered valid. Defaults to 4.5.
+>>>>>>> development
             origin (tuple): The origin of the grid. Defaults to (0, 0).
             height (int): The height of the grid. Defaults to 25.
             width (int): The width of the grid. Defaults to 25.
         """
+<<<<<<< HEAD
         if len(ox) != len(oy):
             raise ValueError("The number of x and y coordinates must be equal.")
         
@@ -78,10 +103,18 @@ class DStarLite:
             self.obstacles = []
         else:
             self.obstacles = [DSLNode(x, y) for x, y in zip(ox, oy)] # The obstacles as nodes
+=======
+        if len(obstacles) == 0: # If no obstacles are provided
+            self.obstacles = []
+
+        else:
+            self.obstacles = [DSLNode(int(point.x), int(point.y)) for point in obstacles] # The obstacles as nodes
+>>>>>>> development
             self.obstacles_xy = np.array( # The obstacles as xy coordinates
                 [[obstacle.x, obstacle.y] for obstacle in self.obstacles]
             )
         
+<<<<<<< HEAD
         self.start = start # The start DSLNode
         self.goal = goal # The goal DSLNode
         self.origin = origin # The origin of the world grid
@@ -93,6 +126,19 @@ class DStarLite:
         self.y_min = int(origin[1]-self.height)
         self.x_max = int(origin[0]+self.width)
         self.y_max = int(origin[1]+self.height)
+=======
+        self.start = DSLNode(int(start.x), int(start.y)) # The start DSLNode
+        self.goal = DSLNode(int(goal.x), int(goal.y)) # The goal DSLNode
+        self.world_grid_origin = (int(origin.x), int(origin.y)) # The origin of the world grid
+        self.world_grid_height = height/2 # The height of the world grid
+        self.world_grid_width = width/2 # The width of the world grid
+
+        # Compute the min and max values for the world boundaries
+        self.x_min = int(origin.x-self.world_grid_width)
+        self.y_min = int(origin.y-self.world_grid_height)
+        self.x_max = int(origin.x+self.world_grid_width)
+        self.y_max = int(origin.y+self.world_grid_height)
+>>>>>>> development
 
         self.priority_queue = [] # Priority queue
         self.key_min = 0.0 # The minimum key in priority queue
@@ -101,7 +147,11 @@ class DStarLite:
         self.g = self.create_grid(float("inf")) # The g values
         self.initialized = False # Whether the grid has been initialized
         self.waypoints = [] # The waypoints
+<<<<<<< HEAD
         self.dist_to_obstacle = dist_to_obstacle # The minimum distance a DSLNode must be from any obstacle to be considered valid
+=======
+        self.min_dist_to_obstacle = min_dist_to_obstacle # The minimum distance a DSLNode must be from any obstacle to be considered valid
+>>>>>>> development
 
     def create_grid(self, val: float) -> np.ndarray:
         """
@@ -113,7 +163,11 @@ class DStarLite:
         Returns:
             np.ndarray: A 2D numpy array representing the initialized grid.
         """
+<<<<<<< HEAD
         return np.full((self.x_max, self.y_max), val)
+=======
+        return np.full((self.x_max - self.x_min, self.y_max - self.y_min), val)
+>>>>>>> development
     
     def is_obstacle(self, dslnode: DSLNode) -> bool:
         """
@@ -136,7 +190,11 @@ class DStarLite:
         distances = np.sqrt(np.sum((self.obstacles_xy - node_xy) ** 2, axis=1))
 
         # Check if any distance is less than the minimum distance (default: 4.5)
+<<<<<<< HEAD
         return np.any(distances < self.dist_to_obstacle)
+=======
+        return np.any(distances < self.min_dist_to_obstacle)
+>>>>>>> development
     
     def movement_cost(self, node1: DSLNode, node2: DSLNode) -> float:
         """
@@ -153,7 +211,11 @@ class DStarLite:
             return math.inf
         
         movement_vector = DSLNode(node1.x - node2.x, node1.y - node2.y)
+<<<<<<< HEAD
         for motion in self.motions:
+=======
+        for motion in self.possible_motions:
+>>>>>>> development
             if motion == movement_vector:
                 return motion.cost
         return math.inf
@@ -198,7 +260,11 @@ class DStarLite:
         Returns:
             bool: True if the DSLNode is within the grid boundaries, False otherwise.
         """
+<<<<<<< HEAD
         return 0 <= DSLNode.x < self.x_max and 0 <= DSLNode.y < self.y_max
+=======
+        return self.x_min <= DSLNode.x < self.x_max and self.y_min <= DSLNode.y < self.y_max
+>>>>>>> development
     
     def pred(self, u: DSLNode) -> list[DSLNode]:
         """
@@ -210,7 +276,11 @@ class DStarLite:
         Returns:
             list: A list of predecessors of the DSLNode 'u'.
         """
+<<<<<<< HEAD
         return [u + motion for motion in self.motions if self.is_valid(u + motion)]
+=======
+        return [u + motion for motion in self.possible_motions if self.is_valid(u + motion)]
+>>>>>>> development
     
     def initialize(self):
         """
@@ -319,8 +389,15 @@ class DStarLite:
             # Double-check conditions to potentially exit the loop
             has_elements = len(self.priority_queue) > 0
             start_key = self.calculate_key(self.start)
+<<<<<<< HEAD
             # Determine if the start node's key is outdated or not, affecting loop continuation
             start_key_not_updated = has_elements and self.compare_keys(self.priority_queue[0][1], start_key)
+=======
+
+            # Determine if the start node's key is outdated or not, affecting loop continuation
+            start_key_not_updated = has_elements and self.compare_keys(self.priority_queue[0][1], start_key)
+
+>>>>>>> development
             # Check if the rhs value and g value for the start node are equal, indicating optimality reached for the start node
             rhs_not_equal_to_g = self.rhs[self.start.x][self.start.y] != self.g[self.start.x][self.start.y]
             
@@ -334,16 +411,32 @@ class DStarLite:
             # If the current node's old key is outdated, reinsert it with the updated key
             if self.compare_keys(k_old, self.calculate_key(u)):
                 self.priority_queue.append((u, self.calculate_key(u)))
+<<<<<<< HEAD
             # If the g value is greater than the rhs value, update it to achieve consistency
             elif self.g[u.x][u.y] > self.rhs[u.x][u.y]:
                 self.g[u.x][u.y] = self.rhs[u.x][u.y]
                 # Update all predecessors of the current node as their cost might have changed
                 for s in self.pred(u):
                     self.update_vertex(s)
+=======
+
+            # If the g value is greater than the rhs value, update it to achieve consistency
+            elif self.g[u.x][u.y] > self.rhs[u.x][u.y]:
+                self.g[u.x][u.y] = self.rhs[u.x][u.y]
+
+                # Update all predecessors of the current node as their cost might have changed
+                for s in self.pred(u):
+                    self.update_vertex(s)
+
+>>>>>>> development
             # If no optimal path is known (g value is infinity), set the current node's g value to
             # infinity and update its predecessors
             else:
                 self.g[u.x][u.y] = float('inf')
+<<<<<<< HEAD
+=======
+
+>>>>>>> development
                 # Update the current node and its predecessors
                 for s in self.pred(u) + [u]:
                     self.update_vertex(s)
@@ -358,7 +451,11 @@ class DStarLite:
         path = list()
         current_point = DSLNode(self.start.x, self.start.y)
         last_point = None
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> development
         while not current_point == self.goal:
             if last_point is not None:
                 self.detect_and_update_waypoints(last_point, current_point)
@@ -371,7 +468,11 @@ class DStarLite:
         return path
     
     
+<<<<<<< HEAD
     def get_WP(self) -> list[list[int]]:
+=======
+    def get_WP(self) -> list[Point]:
+>>>>>>> development
         """
         Retrieves the waypoints and adjusts their coordinates to the original coordinate system.
 
@@ -380,17 +481,26 @@ class DStarLite:
         """
         WP_list = []
         for wp in self.waypoints:
+<<<<<<< HEAD
             WP_list.append([wp.x, wp.y])
         return WP_list
     
     
     def dsl_main(self):# -> tuple[bool, list[int], list[int]]:
+=======
+            WP_list.append(Point(x=float(wp.x), y=float(wp.y), z=0.0))
+        return WP_list
+    
+    
+    def dsl_main(self) -> None:
+>>>>>>> development
         """
         Main function to run the D* Lite algorithm.
 
         Args:
             start (DSLNode): The start DSLNode.
             goal (DSLNode): The goal DSLNode.
+<<<<<<< HEAD
         
         Returns:
             tuple: A tuple containing a boolean indicating if the path was found, and the x and y coordinates of the path.  
@@ -405,4 +515,12 @@ class DStarLite:
         pathx = [node.x for node in path]
         pathy = [node.y for node in path]
         print("Path found")
+=======
+        """
+        self.initialize()
+        self.compute_shortest_path()
+        self.compute_current_path()
+        print("Path found")
+
+>>>>>>> development
         

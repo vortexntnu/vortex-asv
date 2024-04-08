@@ -82,27 +82,12 @@ create_key_value_pair(key: str, value) -> KeyValue:
     creates KeyValue object from supplied key and value
 ```
 
-## Startup service
+## Service file bootup
 
-Note: The .service file may need to be edited in order to source the setup.bash file 
-from the correct workspace.
+To start the BMS publishing automaticaly every time on bootup just run this command:
+```
+./vortex-asv/add_service_files_to_bootup_sequence.sh
+```
 
-This package also contains a .service file for running the node on startup. To enable this, just run (from this directory)
-```
-sudo cp startup_script/bms_startup.service /etc/systemd/system/bms_startup.service
-```
-then run the following commands
-```
-cd /etc/systemd/system
-```
-```
-sudo systemctl daemon-reload && sudo systemctl enable bms_startup.service
-```
-To verify that the service is enabled, run
-```
-systemctl list-unit-files | grep enabled
-```
-The file will now run automatically on startup the next time the system starts.
-
-If this fails, try checking if systemd is installed.
+Enjoy :)
 

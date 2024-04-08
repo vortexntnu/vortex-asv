@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 import sys
 import rclpy
 from rclpy.node import Node
@@ -8,6 +9,12 @@ from d_star_lite.d_star_lite import DStarLite
 from d_star_lite.d_star_lite_node import DSLNode
 from vortex_msgs.srv import MissionParameters, Waypoint
 from geometry_msgs.msg import Point
+=======
+import rclpy
+from rclpy.node import Node
+from d_star_lite.d_star_lite import DStarLite
+from vortex_msgs.srv import MissionParameters, Waypoint
+>>>>>>> development
 
 class DStarLiteNode(Node):
     """
@@ -24,7 +31,10 @@ class DStarLiteNode(Node):
         self.obstacle_srv = self.create_service(MissionParameters, 'mission_parameters', self.d_star_lite_callback)
         self.waypoint_client = self.create_client(Waypoint, 'waypoint')
         self.get_logger().info('D Star Lite Node has been started')
+<<<<<<< HEAD
         self.waypoint_list = []
+=======
+>>>>>>> development
         
 
     def d_star_lite_callback(self, request, response):
@@ -40,13 +50,17 @@ class DStarLiteNode(Node):
         """
         self.get_logger().info('D Star Lite Service has been called')
         obstacles = request.obstacles
+<<<<<<< HEAD
         obstacles_x = [obs.x for obs in obstacles]
         obstacles_y = [obs.y for obs in obstacles]
+=======
+>>>>>>> development
         start = request.start
         goal = request.goal
         origin = request.origin
         height = request.height
         width = request.width
+<<<<<<< HEAD
         start_node = DSLNode(int(start.x), int(start.y))
         goal_node = DSLNode(int(goal.x), int(goal.y))
         origin = (origin.x, origin.y)
@@ -57,6 +71,15 @@ class DStarLiteNode(Node):
         waypoints_list = np.array(dsl.get_WP()).tolist()
         # Convert to Point2D[] for Waypoint service
         self.waypoints = [Point(x=float(wp[0]), y=float(wp[1])) for wp in waypoints_list]
+=======
+        
+        dsl = DStarLite(obstacles, start, goal, origin=origin, height=height, width=width)
+        dsl.dsl_main() # Run the main function to generate path
+        
+        # Get waypoints
+        self.waypoints = dsl.get_WP()
+
+>>>>>>> development
         # Send waypoints to waypoint service
         self.send_waypoints_request()
 
