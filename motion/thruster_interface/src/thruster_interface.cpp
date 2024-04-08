@@ -84,7 +84,7 @@ std::vector<float> readFloatsFromI2C(int file) {
 
 uint8_t read_hardware_statusFromI2C(int file) {
   uint8_t hardware_status;
-  if (read(file, &hardware_status, 1) != 1) {     
+  if (read(file, &hardware_status, 1) != 1) {
     throw I2C_Exception("Failed to read hardware status from the I2C device");
   }
   return hardware_status;
@@ -163,4 +163,3 @@ std::vector<uint16_t> interpolate_all(std::vector<double> &force_values,
 
   return interpolatedVector;
 }
-

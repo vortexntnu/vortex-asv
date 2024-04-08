@@ -17,9 +17,8 @@ int8_t hardware_status = 0;
 
 class ThrusterInterface : public rclcpp::Node {
 private:
-
-int PWM_min;
-int PWM_max;
+  int PWM_min;
+  int PWM_max;
 
 public:
   ThrusterInterface() : Node("thruster_interface_node") {
@@ -86,23 +85,21 @@ private:
 
     std::vector<uint16_t> pwm_values;
     pwm_values.resize(4);
-    pwm_values = interpolate_all(forces_in_grams,PWM_min,PWM_max);
+    pwm_values = interpolate_all(forces_in_grams, PWM_min, PWM_max);
 
     for (size_t i = 0; i < forces_in_grams.size(); ++i) {
       RCLCPP_INFO(this->get_logger(), "Force[%zu]: %f", i, forces_in_grams[i]);
       RCLCPP_INFO(this->get_logger(), "PWM[%zu]: %u", i, pwm_values[i]);
     }
 
-    try{
-    int file;
-    init(file);
+    try {
+      int file;
+      init(file);
 
-    // SENDING
-    send_status(software_killswitch, file);
-    send_pwm(pwm_values, file);
-    }
-    catch(const std::exception& e)
-    {
+      // SENDING
+      send_status(software_killswitch, file);
+      send_pwm(pwm_values, file);
+    } catch (const std::exception &e) {
       std::cerr << e.what() << '\n';
     }
   }
@@ -117,61 +114,58 @@ private:
   //----------------------------------------------------------
 
   void publish_temperature_and_status() {
-    try
-    {
-    // RECEIVING
-    int file;
-    init(file);
+    try {
+      // RECEIVING
+      int file;
+      init(file);
 
-    // TEMPERATURE
-    std::vector<float> temperature = {0, 0, 0, 0};
-    temperature = readFloatsFromI2C(file);
-    /*
-    for (size_t i = 0; i < temperature.size(); i++) {
-      std::cout << i << "temperature value = " << temperature[i] << std::endl;
-    }
-    */
-    auto message_ESC1 = std_msgs::msg::Float32();
-    auto message_ESC2 = std_msgs::msg::Float32();
-    auto message_ESC3 = std_msgs::msg::Float32();
-    auto message_ESC4 = std_msgs::msg::Float32();
-    auto message_ambient1 = std_msgs::msg::Float32();
-    auto message_ambient2 = std_msgs::msg::Float32();
+      // TEMPERATURE
+      std::vector<float> temperature = {0, 0, 0, 0};
+      temperature = readFloatsFromI2C(file);
+      /*
+      for (size_t i = 0; i < temperature.size(); i++) {
+        std::cout << i << "temperature value = " << temperature[i] << std::endl;
+      }
+      */
+      auto message_ESC1 = std_msgs::msg::Float32();
+      auto message_ESC2 = std_msgs::msg::Float32();
+      auto message_ESC3 = std_msgs::msg::Float32();
+      auto message_ESC4 = std_msgs::msg::Float32();
+      auto message_ambient1 = std_msgs::msg::Float32();
+      auto message_ambient2 = std_msgs::msg::Float32();
 
-    message_ESC1.data = temperature[0];
-    message_ESC2.data = temperature[1];
-    message_ESC3.data = temperature[2];
-    message_ESC4.data = temperature[3];
-    message_ambient1.data = temperature[4];
-    message_ambient2.data = temperature[5];
+      message_ESC1.data = temperature[0];
+      message_ESC2.data = temperature[1];
+      message_ESC3.data = temperature[2];
+      message_ESC4.data = temperature[3];
+      message_ambient1.data = temperature[4];
+      message_ambient2.data = temperature[5];
 
-    RCLCPP_INFO(this->get_logger(), "Publishing temperature");
-    publisher_ESC1->publish(message_ESC1);
-    publisher_ESC2->publish(message_ESC2);
-    publisher_ESC3->publish(message_ESC3);
-    publisher_ESC4->publish(message_ESC4);
-    publisher_ambient1->publish(message_ambient1);
-    publisher_ambient2->publish(message_ambient2);
+      RCLCPP_INFO(this->get_logger(), "Publishing temperature");
+      publisher_ESC1->publish(message_ESC1);
+      publisher_ESC2->publish(message_ESC2);
+      publisher_ESC3->publish(message_ESC3);
+      publisher_ESC4->publish(message_ESC4);
+      publisher_ambient1->publish(message_ambient1);
+      publisher_ambient2->publish(message_ambient2);
 
-    // HARDWARE STATUS
-    // int8_t hardware_status = 0;
-    hardware_status = read_hardware_statusFromI2C(file);
+      // HARDWARE STATUS
+      // int8_t hardware_status = 0;
+      hardware_status = read_hardware_statusFromI2C(file);
 
-    // cout << "hardware status = " << (uint16_t)(hardware_status) << endl;
+      // cout << "hardware status = " << (uint16_t)(hardware_status) << endl;
 
-    auto message_status = std_msgs::msg::Int8();
+      auto message_status = std_msgs::msg::Int8();
 
-    message_status.data = hardware_status;
+      message_status.data = hardware_status;
 
-    RCLCPP_INFO(this->get_logger(), "Publishing status");
+      RCLCPP_INFO(this->get_logger(), "Publishing status");
 
-    publisher_status->publish(message_status);
+      publisher_status->publish(message_status);
 
-    close(file);
+      close(file);
 
-    }
-    catch(const std::exception& e)
-    {
+    } catch (const std::exception &e) {
       std::cerr << e.what() << '\n';
     }
   }
@@ -202,4 +196,3 @@ int main(int argc, char *argv[]) {
   rclcpp::shutdown();
   return 0;
 }
-
