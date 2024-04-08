@@ -1,7 +1,0 @@
-/**:
-  ros__parameters:
-    lqr_controller:
-      mass: 50.0
-      D: [10.0, 10.0, 5.0] # Damping coefficients
-      Q: [10.0, 10.0, 5.0, 0.1, 1.0, 5.0]  # State costs for [x, y, heading, surge, sway, yaw]
-      R: [1.0, 1.0, 1.0]  # Control cost weight
