@@ -39,13 +39,6 @@ private:
    * @param msg The received geometry_msgs::msg::Wrench message.
    */
   void wrench_callback(const geometry_msgs::msg::Wrench &msg);
-
-  /**
-   * @brief Checks if the given Eigen vector contains any NaN or Inf values
-   * @param v The Eigen vector to check.
-   * @return True if the vector is healthy, false otherwise.
-   */
-  bool healthy_wrench(const Eigen::VectorXd &v) const;
   rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr
       thruster_forces_publisher_;
   rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr
