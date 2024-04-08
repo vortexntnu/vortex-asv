@@ -68,7 +68,7 @@ inline Eigen::MatrixXd calculate_right_pseudoinverse(const Eigen::MatrixXd &T) {
  * @return True if all vector values are within the given range, false
  * otherwise.
  */
-inline bool saturate_vector_values(Eigen::Vector3d &vec, double min, double max) {
+inline bool saturate_vector_values(Eigen::VectorXd &vec, double min, double max) {
   bool all_values_in_range =
       std::all_of(vec.begin(), vec.end(),
                   [min, max](double val) { return val >= min && val <= max; });

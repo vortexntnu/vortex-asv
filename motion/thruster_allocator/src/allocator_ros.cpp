@@ -46,7 +46,7 @@ ThrusterAllocator::ThrusterAllocator()
 }
 
 void ThrusterAllocator::calculate_thrust_timer_cb() {
-  Eigen::Vector3d thruster_forces =
+  Eigen::VectorXd thruster_forces =
       pseudoinverse_allocator_.calculate_allocated_thrust(body_frame_forces_);
 
   if (is_invalid_matrix(thruster_forces)) {
@@ -72,10 +72,10 @@ void ThrusterAllocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
     RCLCPP_ERROR(get_logger(), "ASV wrench vector invalid, ignoring.");
     return;
   }
-
-  if (!saturate_vector_values(msg_vector, min_thrust_, max_thrust_)) {
+  Eigen::VectorXd saturated_vector = msg_vector;
+  if (!saturate_vector_values(saturated_vector, min_thrust_, max_thrust_)) {
     RCLCPP_WARN(get_logger(), "ASV wrench vector required saturation.");
   }
-
+  msg_vector = saturated_vector;
   std::swap(msg_vector, body_frame_forces_);
 }
