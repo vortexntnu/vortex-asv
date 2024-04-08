@@ -18,9 +18,8 @@ void init(int &file) {
   }
 
   if (ioctl(file, I2C_SLAVE, i2c_slave_addr) < 0) {
-    std::cerr << "error, could not set adress" << std::endl;
     close(file);
-    exit(EXIT_FAILURE);
+    throw I2C_Exception("error, could not set address");
   } else {
     std::cout << "i2c adress set" << std::endl;
   }

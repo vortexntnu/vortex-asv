@@ -55,9 +55,9 @@ public:
 
     // get parameters from the freya.yaml file
 
-    this->declare_parameter("thruster_interface.PWM_min", 500);
+    this->declare_parameter("thruster_interface.PWM_min", 1100);
     PWM_min = this->get_parameter("thruster_interface.PWM_min").as_int();
-    this->declare_parameter("thruster_interface.PWM_max", 500);
+    this->declare_parameter("thruster_interface.PWM_max", 1900);
     PWM_max = this->get_parameter("thruster_interface.PWM_max").as_int();
     this->declare_parameter("thruster_interface.publishing_rate", 500);
     int publishing_rate =
