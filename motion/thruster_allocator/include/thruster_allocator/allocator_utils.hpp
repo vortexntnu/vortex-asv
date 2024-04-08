@@ -36,7 +36,7 @@ inline bool is_invalid_matrix(const Eigen::MatrixBase<Derived> &M) {
  * @return std::stringstream The string stream containing the matrix.
  */
 inline std::stringstream print_matrix(std::string name,
-                                     const Eigen::MatrixXd &M) {
+                                      const Eigen::MatrixXd &M) {
   std::stringstream ss;
   ss << std::endl << name << " = " << std::endl << M;
   return ss;
@@ -68,7 +68,8 @@ inline Eigen::MatrixXd calculate_right_pseudoinverse(const Eigen::MatrixXd &T) {
  * @return True if all vector values are within the given range, false
  * otherwise.
  */
-inline bool saturate_vector_values(Eigen::Vector3d &vec, double min, double max) {
+inline bool saturate_vector_values(Eigen::Vector3d &vec, double min,
+                                   double max) {
   bool all_values_in_range =
       std::all_of(vec.begin(), vec.end(),
                   [min, max](double val) { return val >= min && val <= max; });
@@ -91,7 +92,7 @@ inline bool saturate_vector_values(Eigen::Vector3d &vec, double min, double max)
 #include <std_msgs/msg/float32_multi_array.hpp>
 
 inline void array_eigen_to_msg(const Eigen::VectorXd &u,
-                            std_msgs::msg::Float32MultiArray &msg) {
+                               std_msgs::msg::Float32MultiArray &msg) {
   msg.data.assign(u.data(), u.data() + u.size());
 }
 
@@ -105,7 +106,7 @@ inline void array_eigen_to_msg(const Eigen::VectorXd &u,
  */
 inline Eigen::MatrixXd
 double_array_to_eigen_matrix(const std::vector<double> &matrix, int rows,
-                         int cols) {
+                             int cols) {
   return Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
                                         Eigen::RowMajor>>(matrix.data(), rows,
                                                           cols);
