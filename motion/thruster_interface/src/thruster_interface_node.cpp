@@ -3,7 +3,8 @@
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/int8.hpp"
 #include <thruster_interface/thruster_interface.hpp>
-#include <vortex_msgs/msg/thruster_forces.hpp>
+//#include <vortex_msgs/msg/thruster_forces.hpp>
+#include "std_msgs/msg/float64_multi_array.hpp"
 
 using std::placeholders::_1;
 
@@ -15,11 +16,16 @@ uint8_t software_killswitch;
 int8_t hardware_status = 0;
 
 class ThrusterInterface : public rclcpp::Node {
+private:
+
+int PWM_min;
+int PWM_max;
+
 public:
   ThrusterInterface() : Node("thruster_interface_node") {
 
     subscription_thruster_forces =
-        this->create_subscription<vortex_msgs::msg::ThrusterForces>(
+        this->create_subscription<std_msgs::msg::Float64MultiArray>(
             "thrust/thruster_forces", 10,
             std::bind(&ThrusterInterface::thrusterForcesCallback, this,
                       std::placeholders::_1));
@@ -50,9 +56,9 @@ public:
     // get parameters from the freya.yaml file
 
     this->declare_parameter("thruster_interface.PWM_min", 500);
-    int PWM_min = this->get_parameter("thruster_interface.PWM_min").as_int();
+    PWM_min = this->get_parameter("thruster_interface.PWM_min").as_int();
     this->declare_parameter("thruster_interface.PWM_max", 500);
-    int PWM_max = this->get_parameter("thruster_interface.PWM_max").as_int();
+    PWM_max = this->get_parameter("thruster_interface.PWM_max").as_int();
     this->declare_parameter("thruster_interface.publishing_rate", 500);
     int publishing_rate =
         this->get_parameter("thruster_interface.publishing_rate").as_int();
@@ -70,29 +76,35 @@ private:
   //----------------------------------------------------------
 
   void thrusterForcesCallback(
-      const vortex_msgs::msg::ThrusterForces::SharedPtr msg) const {
+      const std_msgs::msg::Float64MultiArray::SharedPtr msg) const {
 
     std::vector<double> forces_in_grams = {
-        msg->thrust[0] * newton_to_gram_conversion_factor,
-        msg->thrust[1] * newton_to_gram_conversion_factor,
-        msg->thrust[2] * newton_to_gram_conversion_factor,
-        msg->thrust[3] * newton_to_gram_conversion_factor};
+        msg->data[0] * newton_to_gram_conversion_factor,
+        msg->data[1] * newton_to_gram_conversion_factor,
+        msg->data[2] * newton_to_gram_conversion_factor,
+        msg->data[3] * newton_to_gram_conversion_factor};
 
     std::vector<uint16_t> pwm_values;
     pwm_values.resize(4);
-    pwm_values = interpolate_all(forces_in_grams);
+    pwm_values = interpolate_all(forces_in_grams,PWM_min,PWM_max);
 
     for (size_t i = 0; i < forces_in_grams.size(); ++i) {
       RCLCPP_INFO(this->get_logger(), "Force[%zu]: %f", i, forces_in_grams[i]);
       RCLCPP_INFO(this->get_logger(), "PWM[%zu]: %u", i, pwm_values[i]);
     }
 
+    try{
     int file;
     init(file);
 
     // SENDING
     send_status(software_killswitch, file);
     send_pwm(pwm_values, file);
+    }
+    catch(const std::exception& e)
+    {
+      std::cerr << e.what() << '\n';
+    }
   }
 
   //----------------------------------------------------------
@@ -105,7 +117,8 @@ private:
   //----------------------------------------------------------
 
   void publish_temperature_and_status() {
-
+    try
+    {
     // RECEIVING
     int file;
     init(file);
@@ -155,11 +168,17 @@ private:
     publisher_status->publish(message_status);
 
     close(file);
+
+    }
+    catch(const std::exception& e)
+    {
+      std::cerr << e.what() << '\n';
+    }
   }
 
   //----------------------------------------------------------
 
-  rclcpp::Subscription<vortex_msgs::msg::ThrusterForces>::SharedPtr
+  rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr
       subscription_thruster_forces;
 
   rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr
@@ -183,3 +202,4 @@ int main(int argc, char *argv[]) {
   rclcpp::shutdown();
   return 0;
 }
+

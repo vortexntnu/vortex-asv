@@ -11,9 +11,8 @@ std::map<float, float> pwm_table;
 
 void init(int &file) {
   if ((file = open(I2C_DEVICE, O_RDWR)) < 0) {
-    std::cerr << "error, could not connect to i2c bus" << std::endl;
     close(file);
-    exit(EXIT_FAILURE);
+    throw I2C_Exception("error, could not connect to i2c bus");
   } else {
     std::cout << "connected to i2c bus!!" << std::endl;
   }
@@ -31,9 +30,8 @@ void init(int &file) {
 
 void send_status(int8_t status, int file) {
   if (write(file, &status, 1) != 1) {
-    std::cerr << "error, could not send status" << std::endl;
     close(file);
-    exit(EXIT_FAILURE);
+    throw I2C_Exception("error, could not send status");
   } else {
     std::cout << "status data has been sent" << std::endl;
   }
@@ -43,10 +41,8 @@ void send_pwm(std::vector<uint16_t> pwm_values, int file) {
   std::vector<uint8_t> bytes = pwm_to_bytes(pwm_values);
   if (static_cast<size_t>(write(file, bytes.data(), bytes.size())) !=
       bytes.size()) {
-    std::cerr << "error, could not send PWM data" << std::endl;
+    throw I2C_Exception("error, could not send PWM data");
     close(file);
-    exit(EXIT_FAILURE);
-
   } else {
     std::cout << "PWM data has been sent" << std::endl;
   }
@@ -79,10 +75,9 @@ std::vector<float> readFloatsFromI2C(int file) {
   // Read a block of bytes from the I2C device
   std::vector<uint8_t> data(byte_length);
   if (read(file, data.data(), byte_length) != byte_length) {
-    std::cerr << "Failed to read data from the I2C device" << std::endl;
+    throw I2C_Exception("Failed to read data from the I2C device");
     return floats; // Returns empty vector if reading fails
   }
-
   // Convert the byte array to a list of floats
   memcpy(floats.data(), data.data(), byte_length);
   return floats;
@@ -90,10 +85,8 @@ std::vector<float> readFloatsFromI2C(int file) {
 
 uint8_t read_hardware_statusFromI2C(int file) {
   uint8_t hardware_status;
-  if (read(file, &hardware_status, 1) != 1) {
-    std::cerr << "Failed to read hardware status from the I2C device"
-              << std::endl;
-    exit(EXIT_FAILURE);
+  if (read(file, &hardware_status, 1) != 1) {     
+    throw I2C_Exception("Failed to read hardware status from the I2C device");
   }
   return hardware_status;
 }
@@ -171,3 +164,4 @@ std::vector<uint16_t> interpolate_all(std::vector<double> &force_values,
 
   return interpolatedVector;
 }
+
