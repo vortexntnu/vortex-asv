@@ -49,6 +49,7 @@ class ColavController(Node):
         if colav_data:
             self.colav_pub.publish(colav_data)
     
+    @staticmethod
     def quaternion_to_euler(quaternion: Quaternion):
         """Convert a ROS Quaternion message to Euler angles (roll, pitch, yaw)."""
         q = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
