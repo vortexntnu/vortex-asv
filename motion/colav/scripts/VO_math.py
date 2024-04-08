@@ -61,10 +61,14 @@ class VelocityObstacle:
         theta_ro = math.atan2(self.obstacle.y - self.vessel.y,
                               self.obstacle.x - self.vessel.x)
         print("ob", self.vessel.r, self.obstacle.r)
-        theta_ray = math.asin(
-            (self.vessel.r + self.obstacle.r) /
-            (math.sqrt((self.obstacle.x - self.vessel.x)**2 +
-                       (self.obstacle.y - self.vessel.y)**2)))
+        distance = math.sqrt((self.obstacle.x - self.vessel.x) ** 2 + (self.obstacle.y - self.vessel.y) ** 2)
+        if distance == 0:
+            # Handle the case where distance is zero
+            # This could be setting theta_ray to some default value or skipping calculations
+            return
+        else:
+            theta_ray = math.asin((self.vessel.r + self.obstacle.r) / distance)
+
         self.right_angle = theta_ro - theta_ray
         self.left_angle = theta_ro + theta_ray
 

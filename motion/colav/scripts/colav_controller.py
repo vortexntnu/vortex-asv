@@ -9,6 +9,7 @@ from VO_math import VelocityObstacle, Obstacle, Zones, Approaches
 from tf2_ros import Buffer, TransformListener
 from transformations import euler_from_quaternion
 from geometry_msgs.msg import Quaternion
+import numpy as np
 
 class ColavController(Node):
     def __init__(self):
@@ -40,7 +41,7 @@ class ColavController(Node):
         self.t = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
 
     def obst_callback(self, msg):
-        self.obstacles = [self.odometry_to_obstacle(odom) for odom in msg.odometry_array]
+        self.obstacles = [self.odometry_to_obstacle(odom) for odom in msg.odoms]
         if not self.obstacles:
             self.get_logger().info('No obstacles detected!')
             return
@@ -53,24 +54,20 @@ class ColavController(Node):
         q = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
         return euler_from_quaternion(q)
 
-    def odometry_to_obstacle(self, odometry: Odometry):
-        # Convert Odometry message to an Obstacle object
-        # Assuming Obstacle class exists and is properly defined elsewhere
-        quaternion = (
-            odometry.pose.pose.orientation.x,
-            odometry.pose.pose.orientation.y,
-            odometry.pose.pose.orientation.z,
-            odometry.pose.pose.orientation.w)
-        _, _, yaw = euler_from_quaternion(quaternion)
+    def odometry_to_obstacle(self, odom: Odometry) -> Obstacle:
+        obstacle = Obstacle()
+        obstacle.x = odom.pose.pose.position.x
+        obstacle.y = odom.pose.pose.position.y
+        obstacle.vx = odom.twist.twist.linear.x
+        obstacle.vy = odom.twist.twist.linear.y
+        obstacle.heading = np.arctan2(obstacle.vy, obstacle.vx)  # Assuming heading is direction of velocity
+        obstacle.speed = np.sqrt(obstacle.vx**2 + obstacle.vy**2)
         
-        return Obstacle(
-            x=odometry.pose.pose.position.x,
-            y=odometry.pose.pose.position.y,
-            vx=odometry.twist.twist.linear.x,
-            vy=odometry.twist.twist.linear.y,
-            heading=yaw,
-            speed=math.hypot(odometry.twist.twist.linear.x, odometry.twist.twist.linear.y),
-            radius=2)  # Assuming a fixed radius for simplicity
+        # Assuming 'r' (radius) needs to be calculated or set here. You might have a different way to determine it.
+        # obstacle.r = <some_value_or_calculation>
+
+        return obstacle
+
 
     def get_distance(self, obstacle1: Obstacle, obstacle2: Obstacle):
         return math.hypot(obstacle1.x - obstacle2.x, obstacle1.y - obstacle2.y)
@@ -79,7 +76,7 @@ class ColavController(Node):
         return min(obstacles, key=lambda obs: self.get_distance(obs, vessel), default=None)
 
     def gen_colav_data(self):
-        closest_obst = self.get_closest_obst(self.obstacles)
+        closest_obst = self.get_closest_obst(self.obstacles, self.vessel)
         if closest_obst is None:
             self.get_logger().info('No obstacles detected.')
             return None
@@ -113,17 +110,17 @@ class ColavController(Node):
 
     def create_guidance_data(self, speed, psi_d, vessel_heading, vessel_odom):
         data = GuidanceData()
-        data.u_d = speed
-        data.psi_d = psi_d
-        data.u = speed  # Assuming this is the desired speed
-        data.t = self.get_clock().now().to_msg()
+        data.u_d = float(speed)
+        data.psi_d = float(psi_d)
+        data.u = float(speed)  # Assuming this is the desired speed
+        data.t = float(self.get_clock().now().seconds_nanoseconds()[0]) + float(self.get_clock().now().seconds_nanoseconds()[1]) * 1e-9
         orientation_q = Quaternion(
             x=vessel_odom.pose.pose.orientation.x,
             y=vessel_odom.pose.pose.orientation.y,
             z=vessel_odom.pose.pose.orientation.z,
             w=vessel_odom.pose.pose.orientation.w)
         _, _, yaw = self.quaternion_to_euler(orientation_q)
-        data.psi = yaw
+        data.psi = float(yaw)
         return data
 
     def gen_approach(self, obstacle: Obstacle, vessel: Obstacle):
