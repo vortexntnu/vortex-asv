@@ -41,18 +41,16 @@ uint16_t interpolate(double force, int PWM_min, int PWM_max);
 std::vector<uint16_t> interpolate_all(std::vector<double> &force_values,
                                       int PWM_min = 1100, int PWM_max = 1900);
 
-
 class I2C_Exception : public std::exception {
 private:
-	string message = " ";
+  string message = " ";
+
 public:
-	I2C_Exception(string msg) {
-		message = msg;
-	}
+  I2C_Exception(string msg) { message = msg; }
 
-	const char *what() const
+  const char *what() const
 
-	noexcept override{
-			return message.c_str();
-	}
+      noexcept override {
+    return message.c_str();
+  }
 };
