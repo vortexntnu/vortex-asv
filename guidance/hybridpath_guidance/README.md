@@ -113,11 +113,13 @@ where $atan2(y,x)$ is the four-quadrant version of $arctan(y/x)$. As mentioned p
 \psi^\theta_d(i,\theta) = \frac{x^\theta_d(i,\theta)y^{\theta^2}_d(i,\theta)-x^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta)}{x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2}
 ```
 
-Differentiating one more time will get messy, but here it is:
+Differentiating one more time yields:
 
 ```math
 \psi^{\theta^2}_d(i,\theta) = \frac{x^\theta_d(i,\theta)y^{\theta^3}_d(i,\theta)-x^{\theta^3}_d(i,\theta)y^\theta_d(i,\theta)}{x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2} \\-2\frac{(x^\theta_d(i,\theta)y^{\theta^2}_d(i,\theta)-x^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))(x^\theta_d(i,\theta)x^{\theta^2}_d(i,\theta)-y^{\theta^2}_d(i,\theta)y^\theta_d(i,\theta))}{(x^\theta_d(i,\theta)^2+y^\theta_d(i,\theta)^2)^2}
 ```
+
+Source: https://folk.ntnu.no/rskjetne/Publications/SkjetnePhDthesis_B5_compressed.pdf
 
 ### Example plots
 
