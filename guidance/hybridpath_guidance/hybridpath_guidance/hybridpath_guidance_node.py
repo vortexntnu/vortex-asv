@@ -42,7 +42,7 @@ class Guidance(Node):
         self.get_logger().info('Received waypoints, generating path...')
         self.waypoints = request.waypoint
         generator = HybridPathGenerator(self.waypoints, self.path_generator_order, self.lambda_val)
-        self.path = generator.Path
+        self.path = generator.path
         self.waypoints_received = True
         self.waiting_message_printed = False  # Reset this flag to handle multiple waypoint sets
         self.s = 0
@@ -51,11 +51,11 @@ class Guidance(Node):
 
     def guidance_callback(self):
         if self.waypoints_received:
-            self.s += HybridPathGenerator.update_s(self.path, self.dt, self.u_desired, self.s)
+            self.s = HybridPathGenerator.update_s(self.path, self.dt, self.u_desired, self.s)
             signals = HybridPathSignals(self.path, self.s)
-            pos = signals.pd
-            pos_der = signals.pd_der[0]
-            pos_dder = signals.pd_der[1]
+            pos = signals.get_position()
+            pos_der = signals.get_derivatives()[0]
+            pos_dder = signals.get_derivatives()[1]
             psi = signals.get_heading()
             psi_der = signals.get_heading_derivative()
             psi_dder = signals.get_heading_second_derivative()
@@ -70,7 +70,7 @@ class Guidance(Node):
 
             self.guidance_publisher.publish(hp_msg)
 
-            if self.s >= self.path['NumSubpaths']:
+            if self.s >= self.path.NumSubpaths:
                 self.waypoints_received = False
                 self.waiting_message_printed = False
                 self.get_logger().info('Last waypoint reached')
