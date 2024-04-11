@@ -229,6 +229,13 @@ class HybridPathGenerator:
                 for k, (a, b) in enumerate(zip(a_derivatives, b_derivatives)):
                     self._append_derivatives(k, a, b)
 
+    @staticmethod
+    def update_s(path: Path, dt: float, u_desired: float, s: float) -> float:
+        signals = HybridPathSignals(path, s)
+        v_s = signals.get_vs(u_desired)
+        s_new = s + v_s * dt
+        return s_new
+
 class HybridPathSignals:
     """
     Given a path and the path parameter s, this class can get the position
