@@ -231,6 +231,19 @@ class HybridPathGenerator:
 
     @staticmethod
     def update_s(path: Path, dt: float, u_desired: float, s: float) -> float:
+        """
+        Update the position along the hybrid path based on the desired velocity and time step.
+
+        Args:
+            path (Path): The hybrid path.
+            dt (float): The time step.
+            u_desired (float): The desired velocity.
+            s (float): The current position along the hybrid path.
+
+        Returns:
+            float: The updated position along the hybrid path.
+
+        """
         signals = HybridPathSignals(path, s)
         v_s = signals.get_vs(u_desired)
         s_new = s + v_s * dt
