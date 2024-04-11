@@ -68,6 +68,10 @@ class Guidance(Node):
             hp_msg.eta_d_s = hp_eta_d
             hp_msg.eta_d_ss = hp_eta_dd
 
+            hp_msg.w = 0.0
+            hp_msg.v_s = signals.get_vs(self.u_desired)
+            hp_msg.v_ss = signals.get_vs_derivative(self.u_desired)
+
             self.guidance_publisher.publish(hp_msg)
 
             if self.s >= self.path.NumSubpaths:
