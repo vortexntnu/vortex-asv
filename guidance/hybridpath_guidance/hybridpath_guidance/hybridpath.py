@@ -375,7 +375,7 @@ class HybridPathSignals:
     
     def get_vs(self, u_desired: float) -> float:
         """
-        Calculate the reference velocity and its derivative.
+        Calculate the reference velocity.
 
         Args:
             u_desired (float): The desired velocity.
