@@ -40,9 +40,8 @@ class Guidance(Node):
 
     def waypoint_callback(self, request, response):
         self.get_logger().info('Received waypoints, generating path...')
-        waypoints = request.waypoint
-        self.waypoints_array = np.array([[waypoint.x, waypoint.y] for waypoint in waypoints])
-        generator = HybridPathGenerator(self.waypoints_array, self.path_generator_order, self.lambda_val)
+        self.waypoints = request.waypoint
+        generator = HybridPathGenerator(self.waypoints, self.path_generator_order, self.lambda_val)
         self.path = generator.Path
         self.waypoints_received = True
         self.waiting_message_printed = False  # Reset this flag to handle multiple waypoint sets
