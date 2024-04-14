@@ -112,7 +112,7 @@ class AdaptiveBackstep:
         ]
 
         # Convert quaternion to Euler angles
-        (roll, pitch, yaw) = quat2euler(orientation_list)
+        yaw = quat2euler(orientation_list)[2]
 
         u = msg.twist.twist.linear.x
         v = msg.twist.twist.linear.y
