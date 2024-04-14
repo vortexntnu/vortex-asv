@@ -427,15 +427,15 @@ class HybridPathSignals:
         return w
     
     @staticmethod
-    def odom_to_state(msg: Odometry) -> np.ndarray:
+    def odom_to_eta(msg: Odometry) -> np.ndarray:
         """
-        Converts an Odometry message to a state 3DOF vector.
+        Converts an Odometry message to 3DOF eta vector.
 
         Args:
             msg (Odometry): The Odometry message to convert.
 
         Returns:
-            np.ndarray: The state vector.
+            np.ndarray: The eta vector.
         """
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
@@ -447,9 +447,5 @@ class HybridPathSignals:
         # Convert quaternion to Euler angles
         yaw = quat2euler(orientation_list)[2]
 
-        u = msg.twist.twist.linear.x
-        v = msg.twist.twist.linear.y
-        r = msg.twist.twist.angular.z 
-
-        state = np.array([x, y, yaw, u, v, r])
+        state = np.array([x, y, yaw])
         return state
