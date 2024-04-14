@@ -90,8 +90,11 @@ class AdaptiveBackstep:
     
     @staticmethod
     def ssa(angle: float) -> float:
-        wrpd_angle = (angle + np.pi) % (2.0*np.pi) - np.pi
-        return wrpd_angle
+        """
+        Maps an angle to the range [-pi, pi].
+        """
+        angle = np.arctan2(np.sin(angle), np.cos(angle))
+        return angle
     
     @staticmethod
     def odom_to_state(msg: Odometry) -> np.ndarray:
