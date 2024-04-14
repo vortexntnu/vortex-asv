@@ -61,8 +61,10 @@ class Guidance(Node):
 
     def guidance_callback(self):
         if self.waypoints_received:
-            self.s = HybridPathGenerator.update_s(self.path, self.dt, self.u_desired, self.s)
+            self.s = HybridPathGenerator.update_s(self.path, self.dt, self.u_desired, self.s, self.w)
             signals = HybridPathSignals(self.path, self.s)
+            self.w = signals.get_w(self.mu, self.eta)
+
             pos = signals.get_position()
             pos_der = signals.get_derivatives()[0]
             pos_dder = signals.get_derivatives()[1]
