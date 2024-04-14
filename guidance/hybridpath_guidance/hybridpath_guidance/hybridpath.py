@@ -146,7 +146,7 @@ class HybridPathGenerator:
             ax[2:4] = [self.lambda_val * (self.WP[j+1, 0] - self.WP[j-1, 0]), self.lambda_val * (self.WP[j+2, 0] - self.WP[j, 0])]
             bx[2:4] = [self.lambda_val * (self.WP[j+1, 1] - self.WP[j-1, 1]), self.lambda_val * (self.WP[j+2, 1] - self.WP[j, 1])]
 
-    def solve_linear_system(self, A: np.ndarray, ax: np.ndarray, bx: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _solve_linear_system(self, A: np.ndarray, ax: np.ndarray, bx: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Solves the linear system for the given subpath.
 
@@ -219,7 +219,7 @@ class HybridPathGenerator:
                 self.path.LinSys.bx.append(ax)
                 self.path.LinSys.by.append(bx)
 
-                a_vec, b_vec = self.solve_linear_system(A, ax, bx)
+                a_vec, b_vec = self._solve_linear_system(A, ax, bx)
                 self.path.coeff.a.append(a_vec)
                 self.path.coeff.b.append(b_vec)
 
