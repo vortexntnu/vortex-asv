@@ -88,7 +88,7 @@ class Guidance(Node):
             if self.s >= self.path.NumSubpaths:
                 self.waypoints_received = False
                 self.waiting_message_printed = False
-                self.get_logger().info('Last waypoint reached, s = %f' % self.s)
+                self.get_logger().info('Last waypoint reached')
 
         else:
             if not self.waiting_message_printed:
