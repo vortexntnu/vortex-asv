@@ -57,7 +57,7 @@ class AdaptiveBackstep:
         return tau
     
     @staticmethod
-    def calculate_coriolis_matrix(nu): 
+    def calculate_coriolis_matrix(nu: np.ndarray) -> np.ndarray: 
         """
         Returns the Coriolis matrix times the velocity vector nu.
         """
@@ -123,4 +123,5 @@ class AdaptiveBackstep:
         r = msg.twist.twist.angular.z 
 
         state = np.array([x, y, yaw, u, v, r])
+        
         return state
