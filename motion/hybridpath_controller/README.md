@@ -197,3 +197,6 @@ We can write:
 ```math
 \dot{\alpha}_1 = \sigma_1 + \alpha^s_1\dot{s}
 ```
+
+### Source
+https://folk.ntnu.no/rskjetne/Publications/SkjetnePhDthesis_B5_compressed.pdf
