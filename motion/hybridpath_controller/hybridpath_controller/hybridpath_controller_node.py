@@ -16,7 +16,7 @@ class HybridPathControllerNode(Node):
             parameters=[
                 ('hybridpath_controller.K1_diag', [10.0, 10.0, 10.0]),
                 ('hybridpath_controller.K2_diag', [60.0, 60.0, 60.0]),
-                ('physical.inertia_matrix_diag', [50.0, 50.0, 50.0]),
+                ('physical.inertia_matrix', [50.0, 50.0, 50.0]),
                 ('physical.damping_matrix_diag', [10.0, 10.0, 5.0])
             ])
         
@@ -27,20 +27,17 @@ class HybridPathControllerNode(Node):
         # Get parameters
         K1_diag = self.get_parameter('hybridpath_controller.K1_diag').get_parameter_value().double_array_value
         K2_diag = self.get_parameter('hybridpath_controller.K2_diag').get_parameter_value().double_array_value
-        M_diag = self.get_parameter('physical.inertia_matrix_diag').get_parameter_value().double_array_value
         D_diag = self.get_parameter('physical.damping_matrix_diag').get_parameter_value().double_array_value
-
-        K1_diag = [10.0, 10.0, 10.0]
-        K2_diag = [60.0, 60.0, 60.0]
-        M_diag = [50.0, 50.0, 50.0]
-        D_diag = [10.0, 10.0, 5.0]
+        M = self.get_parameter('physical.inertia_matrix').get_parameter_value().double_array_value
 
         # Transform parameters to diagonal matrices
         K1 = np.diag(K1_diag)
         K2 = np.diag(K2_diag)
-        M = np.diag(M_diag)
         D = np.diag(D_diag)
 
+        # Reshape M to a 3x3 matrix
+        M = np.reshape(M, (3, 3))
+        
         # Create controller object
         self.AB_controller_ = AdaptiveBackstep(K1, K2, M, D)
 
