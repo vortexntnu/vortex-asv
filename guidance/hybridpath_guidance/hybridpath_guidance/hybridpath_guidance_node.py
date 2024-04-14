@@ -20,7 +20,8 @@ class Guidance(Node):
                 ('hybridpath_guidance.path_generator_order', 1),
                 ('hybridpath_guidance.time_to_max_speed', 10.0),
                 ('hybridpath_guidance.dt', 0.1),
-                ('hybridpath_guidance.u_desired', 0.5)
+                ('hybridpath_guidance.u_desired', 0.5),
+                ('hybridpath_guidance.mu', 0.03)
             ])
         
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
@@ -32,7 +33,7 @@ class Guidance(Node):
         self.path_generator_order = self.get_parameter('hybridpath_guidance.path_generator_order').get_parameter_value().integer_value
         self.dt = self.get_parameter('hybridpath_guidance.dt').get_parameter_value().double_value
         self.u_desired = self.get_parameter('hybridpath_guidance.u_desired').get_parameter_value().double_value
-        self.mu = 0.03
+        self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
         self.eta = np.zeros(3)
 
         # Flags for logging

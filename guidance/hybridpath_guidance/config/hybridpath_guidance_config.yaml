@@ -6,3 +6,4 @@
       time_to_max_speed: 10.0 # Time to reach maximum speed
       dt: 0.1 # Time step
       u_desired: 0.5 # Desired speed
+      mu: 0.03 # Tuning parameter 
