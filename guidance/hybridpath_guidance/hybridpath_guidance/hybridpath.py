@@ -9,13 +9,13 @@ class LinSys:
     A class to represent the linear system.
 
     Attributes:
-        A (np.ndarray): The coefficients matrix.
-        bx (np.ndarray): The x-vector for each subpath.
-        by (np.ndarray): The y-vector for each subpath.
+        A: The coefficients matrix.
+        bx: The x-vector for each subpath.
+        by: The y-vector for each subpath.
     """
     A: np.ndarray = None
-    bx: np.ndarray = np.array([])
-    by: np.ndarray = np.array([])
+    bx: list[np.ndarray] = field(default_factory=list)
+    by: list[np.ndarray] = field(default_factory=list)
 
 @dataclass
 class Coeff:
@@ -23,10 +23,10 @@ class Coeff:
     A class to represent the coefficients.
 
     Attributes:
-        a (np.ndarray): The x-coefficients.
-        b (np.ndarray): The y-coefficients.
-        a_der (np.ndarray): The x-coefficients for derivatives.
-        b_der (np.ndarray): The y-coefficients for derivatives.
+        a: The x-coefficients.
+        b: The y-coefficients.
+        a_der: The x-coefficients for derivatives.
+        b_der: The y-coefficients for derivatives.
     """
     a: list[np.ndarray] = field(default_factory=list)
     b: list[np.ndarray] = field(default_factory=list)
@@ -216,8 +216,8 @@ class HybridPathGenerator:
             N = self.path.NumSubpaths
             for j in range(N):
                 ax, bx = self._calculate_subpath_coeffs(j)
-                self.path.LinSys.bx = np.append(self.path.LinSys.bx, ax)
-                self.path.LinSys.by = np.append(self.path.LinSys.by, bx)
+                self.path.LinSys.bx.append(ax)
+                self.path.LinSys.by.append(bx)
 
                 a_vec, b_vec = self.solve_linear_system(A, ax, bx)
                 self.path.coeff.a.append(a_vec)
@@ -230,7 +230,7 @@ class HybridPathGenerator:
                     self._append_derivatives(k, a, b)
 
     @staticmethod
-    def update_s(path: Path, dt: float, u_desired: float, s: float) -> float:
+    def update_s(path: Path, dt: float, u_desired: float, s: float, w: float) -> float:
         """
         Update the position along the hybrid path based on the desired velocity and time step.
 
@@ -246,8 +246,9 @@ class HybridPathGenerator:
         """
         signals = HybridPathSignals(path, s)
         v_s = signals.get_vs(u_desired)
-        s_new = s + v_s * dt
+        s_new = s + (v_s + w) * dt
         return s_new
+
 
 class HybridPathSignals:
     """
@@ -330,10 +331,11 @@ class HybridPathSignals:
         """
         derivatives = []
         index = int(self.s) + 1
+        theta = self.s - (index - 1)
         for k in range(1, self.path.Order + 1):
             a_vec = self.path.coeff.a_der[k - 1][index - 1]
             b_vec = self.path.coeff.b_der[k - 1][index - 1]
-            derivatives.append(self._compute_derivatives(self.s, a_vec, b_vec))
+            derivatives.append(self._compute_derivatives(theta, a_vec, b_vec))
 
         return derivatives
     
@@ -375,7 +377,7 @@ class HybridPathSignals:
     
     def get_vs(self, u_desired: float) -> float:
         """
-        Calculate the reference velocity and its derivative.
+        Calculate the reference velocity.
 
         Args:
             u_desired (float): The desired velocity.
@@ -401,3 +403,24 @@ class HybridPathSignals:
         p_dder = self.get_derivatives()[1]
         v_s_s = -u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
         return v_s_s
+    
+    def get_w(self, mu: float, eta: np.ndarray) -> float:
+        """
+        Calculates and returns the value of the unit-tangent gradient update law based on the given parameters.
+        See chapter 3.4 in https://folk.ntnu.no/rskjetne/Publications/SkjetnePhDthesis_B5_compressed.pdf for more details.
+
+        Parameters:
+        mu (float): A tuning value.
+        eta (np.ndarray): An array representing the position and heading of the vessel.
+
+        Returns:
+        float: The calculated value of w.
+        """
+        eta_d = np.array([self.get_position()[0], self.get_position()[1], self.get_heading()])
+        error = eta - eta_d
+        p_der = self.get_derivatives()[0]
+        psi_der = self.get_heading_derivative()
+        eta_d_s = np.array([p_der[0], p_der[1], psi_der])
+        w = (mu / np.linalg.norm(eta_d_s)) * np.dot(eta_d_s, error)
+        return w
+    
