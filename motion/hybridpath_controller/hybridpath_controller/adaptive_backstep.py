@@ -123,5 +123,5 @@ class AdaptiveBackstep:
         r = msg.twist.twist.angular.z 
 
         state = np.array([x, y, yaw, u, v, r])
-        
+
         return state
