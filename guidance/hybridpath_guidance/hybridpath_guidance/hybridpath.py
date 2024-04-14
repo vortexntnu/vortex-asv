@@ -2,8 +2,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import numpy as np
 from geometry_msgs.msg import Point
-from nav_msgs.msg import Odometry
-from transforms3d.euler import quat2euler
 
 @dataclass
 class LinSys:
@@ -426,26 +424,3 @@ class HybridPathSignals:
         w = (mu / np.linalg.norm(eta_d_s)) * np.dot(eta_d_s, error)
         return w
     
-    @staticmethod
-    def odom_to_eta(msg: Odometry) -> np.ndarray:
-        """
-        Converts an Odometry message to 3DOF eta vector.
-
-        Args:
-            msg (Odometry): The Odometry message to convert.
-
-        Returns:
-            np.ndarray: The eta vector.
-        """
-        x = msg.pose.pose.position.x
-        y = msg.pose.pose.position.y
-        orientation_q = msg.pose.pose.orientation
-        orientation_list = [
-            orientation_q.w, orientation_q.x, orientation_q.y, orientation_q.z
-        ]
-
-        # Convert quaternion to Euler angles
-        yaw = quat2euler(orientation_list)[2]
-
-        state = np.array([x, y, yaw])
-        return state
