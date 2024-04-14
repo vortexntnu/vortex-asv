@@ -52,20 +52,15 @@ class AdaptiveBackstep:
 
         ds_alpha1 = self.K_1 @ (R_trps @ eta_d_s) + R_trps @ eta_d_ss * v_s + R_trps @ eta_d_s * v_ss
 
-        # Control law ## Må endres om de ulineære matrisene skal brukes
         tau = -self.K_2 @ z2 + self.calculate_coriolis_matrix(nu) + self.D @ nu + self.M @ sigma1 + self.M @ ds_alpha1 * (v_s + w)
-
-        # Add constraints to tau # This should be improved
-        # for i in range(len(tau)):
-        #     if tau[i] > self.tau_max[i]:
-        #         tau[i] = self.tau_max[i]
-        #     elif tau[i] < -self.tau_max[i]:
-        #         tau[i] = -self.tau_max[i]
 
         return tau
     
     @staticmethod
     def calculate_coriolis_matrix(nu): 
+        """
+        Returns the Coriolis matrix times the velocity vector nu.
+        """
         C_A = np.array([
             [0, 0, -82.5],
             [0, 0, 5.5],
@@ -75,6 +70,9 @@ class AdaptiveBackstep:
 
     @staticmethod
     def rotationmatrix_in_yaw_transpose(psi: float) -> np.ndarray:
+        """
+        Returns the transposed rotation matrix in the yaw angle psi.
+        """
         R = np.array([[np.cos(psi), -np.sin(psi), 0],
                     [np.sin(psi), np.cos(psi), 0],
                     [0, 0, 1]])
@@ -83,6 +81,9 @@ class AdaptiveBackstep:
     
     @staticmethod
     def skew_symmetric_matrix(r: float) -> np.ndarray:
+        """
+        Returns the skew symmetric matrix times the angular velocity r.
+        """
         S = np.array([[0, -r, 0],
                     [r, 0, 0],
                     [0, 0, 0]])
