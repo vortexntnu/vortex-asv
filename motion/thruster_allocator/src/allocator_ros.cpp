@@ -33,8 +33,9 @@ ThrusterAllocator::ThrusterAllocator()
       std::bind(&ThrusterAllocator::wrench_callback, this,
                 std::placeholders::_1));
 
-  thruster_forces_publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
-      "thrust/thruster_forces", 1);
+  thruster_forces_publisher_ =
+      this->create_publisher<std_msgs::msg::Float32MultiArray>(
+          "thrust/thruster_forces", 1);
 
   calculate_thrust_timer_ = this->create_wall_timer(
       100ms, std::bind(&ThrusterAllocator::calculate_thrust_timer_cb, this));
