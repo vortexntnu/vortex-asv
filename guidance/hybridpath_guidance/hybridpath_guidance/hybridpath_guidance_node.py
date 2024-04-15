@@ -25,7 +25,7 @@ class Guidance(Node):
             ])
         
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
-        self.eta_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odometry/ned', self.eta_callback, 1)
+        self.eta_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
         
         # Get parameters
