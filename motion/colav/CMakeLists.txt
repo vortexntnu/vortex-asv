@@ -22,6 +22,7 @@ install(DIRECTORY
 install(PROGRAMS
   scripts/colav_controller.py
   scripts/VO_math.py
+  scripts/VO_visualize.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
