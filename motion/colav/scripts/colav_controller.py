@@ -24,7 +24,7 @@ class ColavController(Node):
         colimm_max_radius = self.get_parameter('colimm_max_radius').value
         colav_data_topic = self.get_parameter('guidance_interface/colav_data_topic').get_parameter_value().string_value
 
-        self.obstacle_sub = self.create_subscription(OdometryArray, "/tracking/mul_tracked_cv_objects", self.obst_callback, 10)
+        self.obstacle_sub = self.create_subscription(Odometry, "/obstacle", self.obst_callback, 10)
         self.vessel_sub = self.create_subscription(Odometry, "/pose_gt", self.vessel_callback, 10)
         self.colav_pub = self.create_publisher(GuidanceData, colav_data_topic, 10)
         
@@ -42,7 +42,7 @@ class ColavController(Node):
         self.t = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
 
     def obst_callback(self, msg):
-        self.obstacles = [self.odometry_to_obstacle(odom) for odom in msg.odoms]
+        self.obstacles = [self.odometry_to_obstacle(msg)]
         if not self.obstacles:
             self.get_logger().info('No obstacles detected!')
             return
@@ -86,9 +86,9 @@ class ColavController(Node):
         VO = VelocityObstacle(self.vessel, closest_obst)
         VO.set_cone_angles()
 
-        self.get_logger().info(f'Closest obstacle at {closest_obst.x}, {closest_obst.y}')
-        self.get_logger().info(f'Vessel at {self.vessel.x}, {self.vessel.y}')
-        self.get_logger().info(f'VO Angles: Left {VO.left_angle}, Right {VO.right_angle}')
+        # self.get_logger().info(f'Closest obstacle at {closest_obst.x}, {closest_obst.y}')
+        # self.get_logger().info(f'Vessel at {self.vessel.x}, {self.vessel.y}')
+        # self.get_logger().info(f'VO Angles: Left {VO.left_angle}, Right {VO.right_angle}')
 
         zone = self.get_zone(closest_obst, self.vessel)
         self.get_logger().info(f'Zone: {zone}')
