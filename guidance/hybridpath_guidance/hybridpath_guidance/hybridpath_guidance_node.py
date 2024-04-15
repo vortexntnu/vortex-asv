@@ -18,9 +18,7 @@ class Guidance(Node):
             parameters=[
                 ('hybridpath_guidance.lambda_val', 0.15),
                 ('hybridpath_guidance.path_generator_order', 1),
-                ('hybridpath_guidance.time_to_max_speed', 10.0),
                 ('hybridpath_guidance.dt', 0.1),
-                ('hybridpath_guidance.u_desired', 0.5),
                 ('hybridpath_guidance.mu', 0.03)
             ])
         
@@ -32,7 +30,6 @@ class Guidance(Node):
         self.lambda_val = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
         self.path_generator_order = self.get_parameter('hybridpath_guidance.path_generator_order').get_parameter_value().integer_value
         self.dt = self.get_parameter('hybridpath_guidance.dt').get_parameter_value().double_value
-        self.u_desired = self.get_parameter('hybridpath_guidance.u_desired').get_parameter_value().double_value
         self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
         self.eta = np.zeros(3)
 
@@ -53,6 +50,7 @@ class Guidance(Node):
         self.waiting_message_printed = False  # Reset this flag to handle multiple waypoint sets
         self.s = 0
         signals = HybridPathSignals(self.path, self.s)
+        self.u_desired = signals.u_desired
         self.w = signals.get_w(self.mu, self.eta)
         response.success = True
         return response
