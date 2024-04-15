@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+    asv_sim:
+      plot_matplotlib_enabled: true
+      progress_bar_enabled: true
+      T: 100
+      
