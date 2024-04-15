@@ -346,8 +346,11 @@ class HybridPathSignals:
             Returns:
                 list[float]: The x and y coordinates of the object's position.
             """
+            # Get the index and theta. See README for what they represent.
             index = int(self.s) + 1
             theta = self.s - (index - 1)
+
+            # Calculate the position using the coefficients for the polynomial for the given subpath
             theta_pow = theta ** np.arange(self.path.Order + 1)
             a = self.path.coeff.a[index - 1]
             b = self.path.coeff.b[index - 1]
@@ -369,6 +372,7 @@ class HybridPathSignals:
             list[float]: A list containing the derivatives of x and y.
 
         """
+        # Calculate the derivatives of x and y using the coefficients for the polynomial for the given subpath
         theta_pow = theta ** np.arange(len(a_vec))
         x_der = np.dot(a_vec, theta_pow)
         y_der = np.dot(b_vec, theta_pow)
@@ -381,9 +385,14 @@ class HybridPathSignals:
         Returns:
             list: A list of computed derivatives.
         """
+        # Initialize the list to store the derivatives
         derivatives = []
+
+        # Get the index and theta. See README for what they represent.
         index = int(self.s) + 1
         theta = self.s - (index - 1)
+
+        # Loop through the order of the polynomial and calculate the derivatives for each order
         for k in range(1, self.path.Order + 1):
             a_vec = self.path.coeff.a_der[k - 1][index - 1]
             b_vec = self.path.coeff.b_der[k - 1][index - 1]
@@ -398,7 +407,10 @@ class HybridPathSignals:
         Returns:
             float: The heading of the object.
         """
+        # Get the first derivative of the position
         p_der = self.get_derivatives()[0]
+
+        # Calculate the heading
         psi = np.arctan2(p_der[1], p_der[0])
         return psi
     
@@ -409,8 +421,11 @@ class HybridPathSignals:
         Returns:
             float: The derivative of the heading.
         """
+        # Get the first and second derivatives of the position
         p_der = self.get_derivatives()[0]
         p_dder = self.get_derivatives()[1]
+
+        # Calculate the derivative of the heading
         psi_der = (p_der[0] * p_dder[1] - p_der[1] * p_dder[0]) / (p_der[0]**2 + p_der[1]**2)
         return psi_der
     
@@ -421,9 +436,12 @@ class HybridPathSignals:
         Returns:
             float: The second derivative of the heading.
         """
+        # Get the first, second and third derivatives of the position
         p_der = self.get_derivatives()[0]
         p_dder = self.get_derivatives()[1]
         p_ddder = self.get_derivatives()[2]
+
+        # Calculate the second derivative of the heading
         psi_dder = (p_der[0] * p_ddder[1] - p_der[1] * p_ddder[0]) / (p_der[0]**2 + p_der[1]**2) - 2 * (p_der[0] * p_dder[1] - p_dder[0] * p_der[1]) * (p_der[0] * p_dder[0] - p_dder[1] * p_der[0]) / ((p_der[0]**2 + p_der[1]**2)**2)
         return psi_dder
     
@@ -437,7 +455,10 @@ class HybridPathSignals:
         Returns:
             float: The reference velocity.
         """
+        # Get the first derivative of the position
         p_der = self.get_derivatives()[0]
+
+        # Calculate the reference velocity
         v_s = self.u_desired / np.linalg.norm(p_der)
         return v_s
     
@@ -451,8 +472,11 @@ class HybridPathSignals:
         Returns:
             float: The derivative of the reference velocity.
         """
+        # Get the first and second derivatives of the position
         p_der = self.get_derivatives()[0]
         p_dder = self.get_derivatives()[1]
+
+        # Calculate the derivative of the reference velocity
         v_s_s = -self.u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
         return v_s_s
     
@@ -468,11 +492,19 @@ class HybridPathSignals:
         Returns:
         float: The calculated value of w.
         """
+        # Get the desired position and heading
         eta_d = np.array([self.get_position()[0], self.get_position()[1], self.get_heading()])
+
+        # Compute the error
         error = eta - eta_d
+
+        # Get the first derivative of the position and the heading
         p_der = self.get_derivatives()[0]
         psi_der = self.get_heading_derivative()
         eta_d_s = np.array([p_der[0], p_der[1], psi_der])
+
+        # Compute the unit-tangent gradient
         w = (mu / np.linalg.norm(eta_d_s)) * np.dot(eta_d_s, error)
+        
         return w
     
