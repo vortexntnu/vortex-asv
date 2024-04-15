@@ -40,7 +40,7 @@ class Path:
 
     Attributes:
         NumSubpaths (int): The number of subpaths.
-        Order (int): The order of the subpaths.
+        Order (int): The order of the polynomials.
         LinSys (LinSys): The linear system to solve the subpaths.
         coeff (Coeff): The coefficients.
     """
@@ -62,7 +62,7 @@ class HybridPathGenerator:
         WP (np.ndarray): The waypoints.
         r (int): The differentiability order.
         lambda_val (float): The curvature constant.
-        order (int): The order of the subpaths.
+        order (int): The order of the polynomials.
         path (Path): The path object.
     """
     def __init__(self, WP: list[Point], r: int, lambda_val: float):
