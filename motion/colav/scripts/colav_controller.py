@@ -10,20 +10,11 @@ from tf2_ros import Buffer, TransformListener
 from transformations import euler_from_quaternion
 from geometry_msgs.msg import Quaternion
 import numpy as np
-
-import matplotlib
-matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
-plt.ion()  # Turn interactive mode on
-fig, ax = plt.subplots()  # Pre-create the figure and axes
-
 class ColavController(Node):
-
     def __init__(self):
         super().__init__("colav_controller")
-
-        self.vessel_path = []  # To store vessel positions over time
 
         self.declare_parameter('guidance_interface/colav_data_topic', 'guidance/collision_avoidance')    
         self.declare_parameter('stop_zone_radius', 0.0)
@@ -49,9 +40,6 @@ class ColavController(Node):
         self.vessel_odom = msg
         self.vessel = self.odometry_to_obstacle(msg)
         self.t = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
-
-        self.vessel_path.append((self.vessel.x, self.vessel.y))
-        self.plot_positions()
 
     def obst_callback(self, msg):
         self.obstacles = [self.odometry_to_obstacle(odom) for odom in msg.odoms]
@@ -158,23 +146,6 @@ class ColavController(Node):
         elif self.stop_zone_radius < distance <= self.colimm_max_radius:
             return Zones.COLIMM
         return Zones.STOPNOW
-
-    def plot_positions(self):
-        ax.clear()  # Clear previous drawings
-        if self.vessel_path:
-            path_x, path_y = zip(*self.vessel_path)
-            ax.plot(path_x, path_y, 'b-', label='Vessel Path')
-        ax.plot(self.vessel.x, self.vessel.y, 'bo', label='Vessel Current')
-        for obstacle in self.obstacles:
-            ax.plot(obstacle.x, obstacle.y, 'ro', label='Obstacle')
-        ax.set_xlabel('X position')
-        ax.set_ylabel('Y position')
-        ax.legend()
-        ax.grid(True)
-        plt.title('Vessel and Obstacles Position and Path')
-        fig.canvas.draw_idle()  # Redraw the current figure
-        fig.canvas.flush_events()  # Process events like key presses or resizes
-
 
 
 def main(args=None):
