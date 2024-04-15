@@ -3,7 +3,6 @@
     hybridpath_guidance:
       lambda_val: 0.15 # Curvature constant
       path_generator_order: 1 # Differentiability order
-      time_to_max_speed: 10.0 # Time to reach maximum speed
       dt: 0.1 # Time step
       u_desired: 0.5 # Desired speed
       mu: 0.03 # Tuning parameter 
