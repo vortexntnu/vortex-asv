@@ -93,16 +93,34 @@ class HybridPathGenerator:
             np.ndarray: The A matrix.
         """
         ord_plus_one = self.order + 1
+
+        # Initialize the A matrix
         A = np.zeros((ord_plus_one, ord_plus_one))
+
+        # Create an array of ones
         coefs = np.ones(ord_plus_one)
+
+        # Set the first and second row of the A matrix
         A[0,0] = coefs[0]
         A[1,:] = coefs
+
+        # Copy the coefficients array to work with derivatives
         c_der = coefs.copy()
+
+        # Loop through the rest of the rows
         for k in range(2, (self.order + 1) // 2 + 1):
+            # Calculate the polynomial derivative, reverse it for correct alignment, and reverse back after differentiation
             c_der = np.polyder(c_der[::-1])[::-1]
+
+            # Concatenate zeros to align derivatives at the correct order position
             coefs = np.concatenate([np.zeros(k-1), c_der])
+
+            # Update the A matrix with derivatives
             A[2*k-2, k-1] = c_der[0]
+
+            # Set every k-th row according to the adjusted coefficients
             A[2*k-1, :] = coefs
+
         return A
 
     def _calculate_subpath_coeffs(self, j: int) -> tuple[np.ndarray, np.ndarray]:
@@ -117,10 +135,15 @@ class HybridPathGenerator:
             """
             order_plus_one = self.order + 1
             N = self.path.NumSubpaths
+
+            # Initialize the coefficent arrays
             ax, bx = np.zeros(order_plus_one), np.zeros(order_plus_one)
+
+            # Set the first two coefficients for each dimension directly from waypoints. See README under C^0 continuity.
             ax[:2] = self.WP[j:j+2, 0]
             bx[:2] = self.WP[j:j+2, 1]
 
+            # Calculate the coefficients for subpaths when the order is greater than 2 i.e. C^1 continuity.
             if self.order > 2:
                 self._calculate_subpaths_coeffs_if_ord_greater_than_2(ax, bx, j, N)
 
@@ -129,7 +152,7 @@ class HybridPathGenerator:
     def _calculate_subpaths_coeffs_if_ord_greater_than_2(self, ax: np.ndarray, bx: np.ndarray, j: int, N: int) -> None:
         """
         Calculate the coefficients for subpaths when the order is greater than 2.
-        See the README for the details.
+        See the README for the details, C^1 continuity.
 
         Args:
             ax (np.ndarray): Array to store the x-coefficients.
@@ -140,14 +163,17 @@ class HybridPathGenerator:
         Returns:
             None
         """
+        # Set the coefficients for the subpath if we are on the first subpath i.e. j = 0 
         if j == 0:
             ax[2:4] = [self.WP[j+1, 0] - self.WP[j, 0], self.lambda_val * (self.WP[j+2, 0] - self.WP[j, 0])] 
             bx[2:4] = [self.WP[j+1, 1] - self.WP[j, 1], self.lambda_val * (self.WP[j+2, 1] - self.WP[j, 1])] 
 
+        # Set the coefficients for the subpath if we are on the last subpath i.e. j = N - 1
         elif j == N - 1:
             ax[2:4] = [self.lambda_val * (self.WP[j+1, 0] - self.WP[j-1, 0]), self.WP[j+1, 0] - self.WP[j, 0]]
             bx[2:4] = [self.lambda_val * (self.WP[j+1, 1] - self.WP[j-1, 1]), self.WP[j+1, 1] - self.WP[j, 1]]
 
+        # Set the coefficients for the subpath if we are on any other subpath
         else:
             ax[2:4] = [self.lambda_val * (self.WP[j+1, 0] - self.WP[j-1, 0]), self.lambda_val * (self.WP[j+2, 0] - self.WP[j, 0])]
             bx[2:4] = [self.lambda_val * (self.WP[j+1, 1] - self.WP[j-1, 1]), self.lambda_val * (self.WP[j+2, 1] - self.WP[j, 1])]
@@ -166,6 +192,7 @@ class HybridPathGenerator:
         """
         a = np.linalg.solve(A, ax)
         b = np.linalg.solve(A, bx)
+
         return a, b
 
     def _calculate_derivatives(self, vec: np.ndarray) -> np.ndarray:
@@ -178,10 +205,18 @@ class HybridPathGenerator:
         Returns:
         np.ndarray: A list of arrays representing the derivatives of the input vector.
         """
-        derivatives = []
+        derivatives = [] # Initialize the list to store the derivatives
+
+        # Loop through 1 to the order of the polynomial
         for _ in range(1, self.order + 1):
+
+            # Calculate the derivative of the polynomial vector. The vector is reversed for calculation, 
+            # then reversed back to maintain the original order of coefficients after differentiation.
             vec = np.polyder(vec[::-1])[::-1]
+
+            # Append the derivative vector to the list
             derivatives.append(vec)
+
         return derivatives
     
     def _append_derivatives(self, k: int, a: np.ndarray, b: np.ndarray) -> None:
@@ -196,10 +231,14 @@ class HybridPathGenerator:
         Returns:
             None
         """
+        # Check if the index k for the derivative is within the current length of the derivatives list
         if k < len(self.path.coeff.a_der):
+            # If the index is within the current bounds, append the new derivative to the existing list at index k
             self.path.coeff.a_der[k].append(a)
             self.path.coeff.b_der[k].append(b)
         else:
+            # If the index is beyond the current list size, it means this is a new derivative order being introduced.
+            # Start a new list for this order and append
             self.path.coeff.a_der.append([a])
             self.path.coeff.b_der.append([b])
 
@@ -216,22 +255,28 @@ class HybridPathGenerator:
                 None
             """
             
+            # Construct the A matrix
             A = self._construct_A_matrix()
             self.path.LinSys.A = A
 
+            # Loop through each subpath
             N = self.path.NumSubpaths
             for j in range(N):
+                # Calculate the subpath coefficients
                 ax, bx = self._calculate_subpath_coeffs(j)
                 self.path.LinSys.bx.append(ax)
                 self.path.LinSys.by.append(bx)
 
+                # Solve the linear system for the subpath
                 a_vec, b_vec = self._solve_linear_system(A, ax, bx)
                 self.path.coeff.a.append(a_vec)
                 self.path.coeff.b.append(b_vec)
 
+                # Calculate the derivatives of the coefficients
                 a_derivatives = self._calculate_derivatives(a_vec)
                 b_derivatives = self._calculate_derivatives(b_vec)
 
+                # Append the derivatives to the path object
                 for k, (a, b) in enumerate(zip(a_derivatives, b_derivatives)):
                     self._append_derivatives(k, a, b)
 
@@ -269,11 +314,12 @@ class HybridPathSignals:
         Path (Path): The path object.
         s (float): The path parameter.
     """
-    def __init__(self, path: Path, s: float):
+    def __init__(self, path: Path, s: float, u_desired: float = 0.5):
         if not isinstance(path, Path):
             raise TypeError("path must be an instance of Path")
         self.path = path
         self.s = self._clamp_s(s, self.path.NumSubpaths)
+        self.u_desired = u_desired
 
     def _clamp_s(self, s: float, num_subpaths: int) -> float:
         """
@@ -381,7 +427,7 @@ class HybridPathSignals:
         psi_dder = (p_der[0] * p_ddder[1] - p_der[1] * p_ddder[0]) / (p_der[0]**2 + p_der[1]**2) - 2 * (p_der[0] * p_dder[1] - p_dder[0] * p_der[1]) * (p_der[0] * p_dder[0] - p_dder[1] * p_der[0]) / ((p_der[0]**2 + p_der[1]**2)**2)
         return psi_dder
     
-    def get_vs(self, u_desired: float) -> float:
+    def get_vs(self) -> float:
         """
         Calculate the reference velocity.
 
@@ -392,10 +438,10 @@ class HybridPathSignals:
             float: The reference velocity.
         """
         p_der = self.get_derivatives()[0]
-        v_s = u_desired / np.linalg.norm(p_der)
+        v_s = self.u_desired / np.linalg.norm(p_der)
         return v_s
     
-    def get_vs_derivative(self, u_desired: float) -> float:
+    def get_vs_derivative(self) -> float:
         """
         Calculate the derivative of the reference velocity.
 
@@ -407,7 +453,7 @@ class HybridPathSignals:
         """
         p_der = self.get_derivatives()[0]
         p_dder = self.get_derivatives()[1]
-        v_s_s = -u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
+        v_s_s = -self.u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
         return v_s_s
     
     def get_w(self, mu: float, eta: np.ndarray) -> float:
