@@ -1,15 +1,15 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float32.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/int8.hpp"
 #include <thruster_interface/thruster_interface.hpp>
-#include "std_msgs/msg/float64_multi_array.hpp"
 
 using std::placeholders::_1;
 
 constexpr double newton_to_gram_conversion_factor = 101.97162;
 
-int file; //used to open the I2C connection
+int file; // used to open the I2C connection
 
 class ThrusterInterface : public rclcpp::Node {
 private:
@@ -58,19 +58,16 @@ public:
     int publishing_rate =
         this->get_parameter("thruster_interface.publishing_rate").as_int();
 
-    //cout << "800 : " << interpolate(800, PWM_min, PWM_max) << endl;
-    //cout << "-10000 : " << interpolate(-10000, PWM_min, PWM_max) << endl;
-    //cout << "publishing rate : " << publishing_rate << endl;
+    // cout << "800 : " << interpolate(800, PWM_min, PWM_max) << endl;
+    // cout << "-10000 : " << interpolate(-10000, PWM_min, PWM_max) << endl;
+    // cout << "publishing rate : " << publishing_rate << endl;
 
     timer_ = this->create_wall_timer(
         std::chrono::milliseconds(publishing_rate),
         std::bind(&ThrusterInterface::publish_temperature_and_status, this));
-    try
-    {
+    try {
       init(file);
-    }
-    catch(const std::exception& e)
-    {
+    } catch (const std::exception &e) {
       std::cerr << e.what() << '\n';
     }
   }
@@ -108,14 +105,11 @@ private:
 
   void
   SoftwareKillswitchCallback(const std_msgs::msg::Int8::SharedPtr msg) const {
-    try
-    {
+    try {
       uint8_t software_killswitch;
       software_killswitch = msg->data;
-      send_status(software_killswitch, file);  
-    }
-    catch(const std::exception& e)
-    {
+      send_status(software_killswitch, file);
+    } catch (const std::exception &e) {
       std::cerr << e.what() << '\n';
     }
   }
@@ -147,7 +141,7 @@ private:
       message_ambient1.data = temperature[4];
       message_ambient2.data = temperature[5];
 
-      //RCLCPP_INFO(this->get_logger(), "Publishing temperature");
+      // RCLCPP_INFO(this->get_logger(), "Publishing temperature");
       publisher_ESC1->publish(message_ESC1);
       publisher_ESC2->publish(message_ESC2);
       publisher_ESC3->publish(message_ESC3);
@@ -165,7 +159,7 @@ private:
 
       message_status.data = hardware_status;
 
-      //RCLCPP_INFO(this->get_logger(), "Publishing status");
+      // RCLCPP_INFO(this->get_logger(), "Publishing status");
 
       publisher_status->publish(message_status);
 
