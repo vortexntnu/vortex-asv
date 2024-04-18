@@ -236,7 +236,8 @@ class TeensyCommunicationUDP:
         """
             Checks if READY has been received
 
-            Note: The while loop here may not be necessary
+            Note: The while loop here may not be necessary, it is just there to make absolutely sure that *all* 
+            the data in the UDP buffer is read out when waiting for ready signal, to avoid strange bugs
         """
         try:
             i = 0
