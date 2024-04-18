@@ -3,17 +3,13 @@
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/int8.hpp"
 #include <thruster_interface/thruster_interface.hpp>
-//#include <vortex_msgs/msg/thruster_forces.hpp>
 #include "std_msgs/msg/float64_multi_array.hpp"
 
 using std::placeholders::_1;
 
 constexpr double newton_to_gram_conversion_factor = 101.97162;
 
-bool started = false;
-uint8_t software_killswitch;
-
-int8_t hardware_status = 0;
+int file; //used to open the I2C connection
 
 class ThrusterInterface : public rclcpp::Node {
 private:
@@ -38,17 +34,17 @@ public:
     // remove the /test from the topic names later
 
     publisher_ESC1 = this->create_publisher<std_msgs::msg::Float32>(
-        "/asv/temperature/ESC1/test", 10);
+        "/asv/temperature/ESC1", 10);
     publisher_ESC2 = this->create_publisher<std_msgs::msg::Float32>(
-        "/asv/temperature/ESC2/test", 10);
+        "/asv/temperature/ESC2", 10);
     publisher_ESC3 = this->create_publisher<std_msgs::msg::Float32>(
-        "/asv/temperature/ESC3/test", 10);
+        "/asv/temperature/ESC3", 10);
     publisher_ESC4 = this->create_publisher<std_msgs::msg::Float32>(
-        "/asv/temperature/ESC4/test", 10);
+        "/asv/temperature/ESC4", 10);
     publisher_ambient1 = this->create_publisher<std_msgs::msg::Float32>(
-        "/asv/temperature/ambient1/test", 10);
+        "/asv/temperature/ambient1", 10);
     publisher_ambient2 = this->create_publisher<std_msgs::msg::Float32>(
-        "/asv/temperature/ambient2/test", 10);
+        "/asv/temperature/ambient2", 10);
     publisher_status = this->create_publisher<std_msgs::msg::Int8>(
         "/asv/failsafe/hardware/status", 10);
 
@@ -62,13 +58,21 @@ public:
     int publishing_rate =
         this->get_parameter("thruster_interface.publishing_rate").as_int();
 
-    cout << "800 : " << interpolate(800, PWM_min, PWM_max) << endl;
-    cout << "-10000 : " << interpolate(-10000, PWM_min, PWM_max) << endl;
-    cout << "publishing rate : " << publishing_rate << endl;
+    //cout << "800 : " << interpolate(800, PWM_min, PWM_max) << endl;
+    //cout << "-10000 : " << interpolate(-10000, PWM_min, PWM_max) << endl;
+    //cout << "publishing rate : " << publishing_rate << endl;
 
     timer_ = this->create_wall_timer(
         std::chrono::milliseconds(publishing_rate),
         std::bind(&ThrusterInterface::publish_temperature_and_status, this));
+    try
+    {
+      init(file);
+    }
+    catch(const std::exception& e)
+    {
+      std::cerr << e.what() << '\n';
+    }
   }
 
 private:
@@ -93,11 +97,7 @@ private:
     }
 
     try {
-      int file;
-      init(file);
-
       // SENDING
-      send_status(software_killswitch, file);
       send_pwm(pwm_values, file);
     } catch (const std::exception &e) {
       std::cerr << e.what() << '\n';
@@ -108,7 +108,16 @@ private:
 
   void
   SoftwareKillswitchCallback(const std_msgs::msg::Int8::SharedPtr msg) const {
-    software_killswitch = msg->data;
+    try
+    {
+      uint8_t software_killswitch;
+      software_killswitch = msg->data;
+      send_status(software_killswitch, file);  
+    }
+    catch(const std::exception& e)
+    {
+      std::cerr << e.what() << '\n';
+    }
   }
 
   //----------------------------------------------------------
@@ -116,9 +125,6 @@ private:
   void publish_temperature_and_status() {
     try {
       // RECEIVING
-      int file;
-      init(file);
-
       // TEMPERATURE
       std::vector<float> temperature = {0, 0, 0, 0};
       temperature = readFloatsFromI2C(file);
@@ -141,7 +147,7 @@ private:
       message_ambient1.data = temperature[4];
       message_ambient2.data = temperature[5];
 
-      RCLCPP_INFO(this->get_logger(), "Publishing temperature");
+      //RCLCPP_INFO(this->get_logger(), "Publishing temperature");
       publisher_ESC1->publish(message_ESC1);
       publisher_ESC2->publish(message_ESC2);
       publisher_ESC3->publish(message_ESC3);
@@ -150,7 +156,7 @@ private:
       publisher_ambient2->publish(message_ambient2);
 
       // HARDWARE STATUS
-      // int8_t hardware_status = 0;
+      int8_t hardware_status = 0;
       hardware_status = read_hardware_statusFromI2C(file);
 
       // cout << "hardware status = " << (uint16_t)(hardware_status) << endl;
@@ -159,11 +165,9 @@ private:
 
       message_status.data = hardware_status;
 
-      RCLCPP_INFO(this->get_logger(), "Publishing status");
+      //RCLCPP_INFO(this->get_logger(), "Publishing status");
 
       publisher_status->publish(message_status);
-
-      close(file);
 
     } catch (const std::exception &e) {
       std::cerr << e.what() << '\n';
@@ -194,5 +198,6 @@ int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<ThrusterInterface>());
   rclcpp::shutdown();
+  close(file);
   return 0;
 }

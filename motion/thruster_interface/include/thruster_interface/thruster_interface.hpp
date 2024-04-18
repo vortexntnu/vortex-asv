@@ -14,12 +14,8 @@ using namespace std;
 
 #ifndef PWM_TABLE_HPP
 #define PWM_TABLE_HPP
-extern const int I2C_ADDRESS;
 extern const char *I2C_DEVICE;
 extern int8_t i2c_slave_addr;
-extern bool started;
-extern int8_t hardware_status;
-extern uint8_t software_killswitch;
 extern std::map<float, float> pwm_table;
 #endif
 

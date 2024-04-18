@@ -1,8 +1,7 @@
 #include <thruster_interface/thruster_interface.hpp>
 
-// const int I2C_ADDRESS = 0x21;
 const char *I2C_DEVICE = "/dev/i2c-1";
-int8_t i2c_slave_addr = 0x40; // change later to 0x21
+int8_t i2c_slave_addr = 0x21; // change later to 0x21
 std::map<float, float> pwm_table;
 
 //--------------------------FUNCTIONS--------------------------
@@ -11,14 +10,12 @@ std::map<float, float> pwm_table;
 
 void init(int &file) {
   if ((file = open(I2C_DEVICE, O_RDWR)) < 0) {
-    close(file);
     throw I2C_Exception("error, could not connect to i2c bus");
   } else {
     std::cout << "connected to i2c bus!!" << std::endl;
   }
 
   if (ioctl(file, I2C_SLAVE, i2c_slave_addr) < 0) {
-    close(file);
     throw I2C_Exception("error, could not set address");
   } else {
     std::cout << "i2c adress set" << std::endl;
@@ -29,7 +26,6 @@ void init(int &file) {
 
 void send_status(int8_t status, int file) {
   if (write(file, &status, 1) != 1) {
-    close(file);
     throw I2C_Exception("error, could not send status");
   } else {
     std::cout << "status data has been sent" << std::endl;
@@ -41,7 +37,6 @@ void send_pwm(std::vector<uint16_t> pwm_values, int file) {
   if (static_cast<size_t>(write(file, bytes.data(), bytes.size())) !=
       bytes.size()) {
     throw I2C_Exception("error, could not send PWM data");
-    close(file);
   } else {
     std::cout << "PWM data has been sent" << std::endl;
   }
