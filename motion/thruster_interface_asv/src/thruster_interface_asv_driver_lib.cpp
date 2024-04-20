@@ -117,6 +117,7 @@ int16_t *_interpolate_force_to_pwm(float *forces) {
 const int8_t _I2C_BUS = 1;
 const int16_t _I2C_ADDRESS = 0x21;
 const char *_I2C_DEVICE = "/dev/i2c-1";
+int _fileI2C = -1;
 void _send_pwm_to_ESCs(int16_t *pwm) {
   // Variables ----------
   // 4 PWM values of 16-bits
@@ -138,37 +139,14 @@ void _send_pwm_to_ESCs(int16_t *pwm) {
   }
 
   // Data sending ----------
-
-  int fileI2C = -1;
-
   try {
-    // Open I2C conection
-    int fileI2C = open(_I2C_DEVICE, O_RDWR);
-
-    // Error handling in case of edge cases with I2C
-    if (fileI2C < 0) {
-      throw std::runtime_error("ERROR: Couldn't opening I2C device");
-    }
-    if (ioctl(fileI2C, I2C_SLAVE, _I2C_ADDRESS) < 0) {
-      throw std::runtime_error("ERROR: Couldn't set I2C address");
-    }
     // Send the I2C message
-    if (write(fileI2C, messageInBytesPWM, dataSize) != dataSize) {
+    if (write(_fileI2C, messageInBytesPWM, dataSize) != dataSize) {
       throw std::runtime_error(
           "ERROR: Couldn't send data, ignoring message...");
     }
   } catch (const std::exception &error) {
     std::cerr << error.what() << std::endl;
-
-    // Close I2C connection if we connected to I2C
-    if (fileI2C >= 0) {
-      close(fileI2C);
-    }
-  }
-
-  // Close I2C connection if we connected to I2C
-  if (fileI2C >= 0) {
-    close(fileI2C);
   }
 }
 
@@ -194,10 +172,35 @@ void init(const std::string &pathToCSVFile, int8_t *thrusterMapping,
     _minPWM[i] = minPWM[i];
     _maxPWM[i] = maxPWM[i];
   }
+
+  // Connecting to the I2C
+  try {
+    // Open I2C conection
+    _fileI2C = open(_I2C_DEVICE, O_RDWR);
+
+    // Error handling in case of edge cases with I2C
+    if (_fileI2C < 0) {
+      throw std::runtime_error("ERROR: Couldn't opening I2C device");
+    }
+    if (ioctl(_fileI2C, I2C_SLAVE, _I2C_ADDRESS) < 0) {
+      throw std::runtime_error("ERROR: Couldn't set I2C address");
+    }
+  } catch (const std::exception &error) {
+    std::cerr << error.what() << std::endl;
+  }
 }
 
 // The main core functionality of interacting and controling the thrusters
 int16_t *drive_thrusters(float *thrusterForces) {
+
+  // Change direction of the thruster (Forward(+1)/Backwards(-1)) according to
+  // the direction parameter
+  float thrusterForcesChangedDirection[4] = {0.0, 0.0, 0.0, 0.0};
+  for (int8_t i = 0; i < 4; i++) {
+    thrusterForcesChangedDirection[i] =
+        thrusterForces[i] * _thrusterDirection[i];
+  }
+
   // Remap Thrusters
   // From: [pin1:thruster1, pin2:thruster2, pin3:thruster3, pin4:thruster4]
   // To:   [pin1:<specifiedThruster>, pin2:<specifiedThruster>,
@@ -206,19 +209,11 @@ int16_t *drive_thrusters(float *thrusterForces) {
   for (int8_t pinNr = 0; pinNr < 4; pinNr++) {
     int8_t remapedThrusterForcesIndex = _thrusterMapping[pinNr];
     thrusterForcesChangedMapping[pinNr] =
-        thrusterForces[remapedThrusterForcesIndex];
-  }
-
-  // Change direction of the thruster (Forward(+1)/Backwards(-1)) according to
-  // the direction parameter
-  float thrusterForcesChangedDirection[4] = {0.0, 0.0, 0.0, 0.0};
-  for (int8_t i = 0; i < 4; i++) {
-    thrusterForcesChangedDirection[i] =
-        thrusterForcesChangedMapping[i] * _thrusterDirection[i];
+        thrusterForcesChangedDirection[remapedThrusterForcesIndex];
   }
 
   // Interpolate forces to raw PWM values
-  int16_t *pwm = _interpolate_force_to_pwm(thrusterForcesChangedDirection);
+  int16_t *pwm = _interpolate_force_to_pwm(thrusterForcesChangedMapping);
 
   // Offset PWM
   for (int8_t i = 0; i < 4; i++) {

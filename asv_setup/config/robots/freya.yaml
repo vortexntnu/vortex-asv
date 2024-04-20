@@ -32,18 +32,18 @@
           yaw:   true
       thrusters:
         num: 4
-        min: -100
-        max: 100
+        min: -200
+        max: 200
         configuration_matrix: #NED
           [0.70711, 0.70711, 0.70711, 0.70711, 
           -0.70711, 0.70711, -0.70711, 0.70711, 
-          0.27738, 0.27738, -0.27738, -0.27738]
+          -0.8485, -0.8485, 0.8485, 0.8485]
 
         rate_of_change:
           max: 0 # Maximum rate of change in newton per second for a thruster
 
         thruster_to_pin_mapping: [3, 2, 1, 0] # I.e. if thruster_to_pin = [1, 3, 2, 0] then thruster 0 is pin 1 etc..
-        thruster_direction: [1,-1,-1, 1] # Disclose during thruster mapping (+/- 1)
+        thruster_direction: [-1, 1, 1,-1] # Disclose during thruster mapping (+/- 1)
         thruster_PWM_offset: [0, 0, 0, 0] # Disclose during thruster mapping, Recomended: [0, 0, 0, 0]
         thruster_PWM_min: [1100, 1100, 1100, 1100] # Minimum PWM value, Recomended: [1100, 1100, 1100, 1100]
         thruster_PWM_max: [1900, 1900, 1900, 1900] # Maximum PWM value, Recomended: [1900, 1900, 1900, 1900]

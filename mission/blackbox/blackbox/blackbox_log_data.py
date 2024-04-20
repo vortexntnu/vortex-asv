@@ -1,5 +1,6 @@
 # Python Libraries
 import os
+import re
 import time
 import csv
 from datetime import datetime, timedelta
@@ -69,46 +70,85 @@ class BlackBoxLogData:
             writer.writerow(self.csv_headers)
     
     # Methods for inside use of the class ----------
-    def manage_csv_files(self, max_file_age_in_days=1, max_size_kb=3_000_000):         #adjust the max size before you start deleting old files (1 000 000 kb = 1 000 mb = 1 gb)
+    def manage_csv_files(
+        self,
+        max_file_age_in_days=7,
+        max_size_kb=3_000_000,
+    ):  #adjust the max size before you start deleting old files (1 000 000 kb = 1 000 mb = 1 gb)
         current_time = datetime.now()
         older_than_time = current_time - timedelta(days=max_file_age_in_days)
 
+        # Compile a regular expression pattern for matching the expected filename format
+        pattern = re.compile(
+            r'blackbox_data_(\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2})\.csv')
+
         # List all .csv files in the blackbox data directory
-        csv_files = [f for f in os.listdir(self.blackbox_data_directory) if f.endswith('.csv') and f.startswith('blackbox_data_')]
-        
-        # Delete .csv files older than 1 day
+        csv_files = [
+            f for f in os.listdir(self.blackbox_data_directory)
+            if f.endswith('.csv') and f.startswith('blackbox_data_')
+        ]
+
         for csv_file in csv_files:
-            try:
-                file_time = datetime.strptime(csv_file[13:-4], '%Y-%m-%d_%H:%M:%S')
-            except ValueError:
+            match = pattern.match(csv_file)
+            # Skip files that do not match the expected format
+            if match is None:
                 print(f'Invalid filename format, skipping file: {csv_file}')
                 continue
-            
+
+            try:
+                file_time = datetime.strptime(match.group(1),
+                                              '%Y-%m-%d_%H:%M:%S')
+            except ValueError as e:
+                print(
+                    f'Error parsing file timestamp, skipping file: {csv_file}. Error: {e}'
+                )
+                continue
+
             if file_time < older_than_time:
-                file_path = os.path.join(self.blackbox_data_directory, csv_file)
+                file_path = os.path.join(self.blackbox_data_directory,
+                                         csv_file)
                 os.remove(file_path)
                 print(f'Deleted old csv file: {file_path}')
 
         # Calculate the total size of remaining .csv files
-        total_size_kb = sum(os.path.getsize(os.path.join(self.blackbox_data_directory, f)) for f in os.listdir(self.blackbox_data_directory) if f.endswith('.csv')) / 1024
-        
+        total_size_kb = sum(
+            os.path.getsize(os.path.join(self.blackbox_data_directory, f))
+            for f in os.listdir(self.blackbox_data_directory)
+            if f.endswith('.csv')) / 1024
+
+        csv_files = [
+            f for f in os.listdir(self.blackbox_data_directory)
+            if f.endswith('.csv') and f.startswith('blackbox_data_')
+            and pattern.match(f)
+        ]
         # Delete oldest files if total size exceeds max_size_kb
         while total_size_kb > max_size_kb:
             # Sort .csv files by timestamp (oldest first)
-            csv_files_sorted = sorted(csv_files, key=lambda x: datetime.strptime(x[13:-4], '%Y-%m-%d_%H:%M:%S'))
-            
+            csv_files_sorted = sorted(
+                csv_files,
+                key=lambda x: datetime.strptime(
+                    pattern.match(x).group(1), '%Y-%m-%d_%H:%M:%S'))
+
             if not csv_files_sorted:
                 print('No .csv files to delete.')
                 break
-            
+
             oldest_file = csv_files_sorted[0]
-            oldest_file_path = os.path.join(self.blackbox_data_directory, oldest_file)
+            oldest_file_path = os.path.join(self.blackbox_data_directory,
+                                            oldest_file)
             os.remove(oldest_file_path)
             print(f'Deleted the oldest csv file: {oldest_file_path}')
-            
+
             # Recalculate the total size of remaining .csv files
-            total_size_kb = sum(os.path.getsize(os.path.join(self.blackbox_data_directory, f)) for f in os.listdir(self.blackbox_data_directory) if f.endswith('.csv')) / 1024
-            print(f'Now the total size of .csv files is: {total_size_kb:.2f} KB')
+            total_size_kb = sum(
+                os.path.getsize(os.path.join(self.blackbox_data_directory, f))
+                for f in os.listdir(self.blackbox_data_directory)
+                if f.endswith('.csv')) / 1024
+            csv_files.remove(
+                oldest_file
+            )  # Ensure the deleted file is removed from the list
+            print(
+                f'Now the total size of .csv files is: {total_size_kb:.2f} KB')
 
     # Methods for external uses ----------
     def log_data_to_csv_file(self,
