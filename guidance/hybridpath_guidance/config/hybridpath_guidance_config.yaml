@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+    hybridpath_guidance:
+      lambda_val: 0.15 # Curvature constant
+      path_generator_order: 1 # Differentiability order
+      dt: 0.1 # Time step
+      mu: 0.03 # Tuning parameter 

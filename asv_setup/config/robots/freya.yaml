@@ -21,6 +21,8 @@
       buoyancy: 0   # kg
       center_of_mass: [0, 0, 0]        # mm (x,y,z)
       center_of_buoyancy: [0, 0, 0]   # mm (x,y,z)
+      inertia_matrix: [90.5, 0.0, 0.0, 0.0, 167.5, 12.25, 0.0, 12.25, 42.65] # from otter
+      damping_matrix_diag: [77.55, 162.5, 42.65] # from otter
 
 
     propulsion:
