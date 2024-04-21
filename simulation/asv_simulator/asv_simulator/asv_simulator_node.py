@@ -3,9 +3,10 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import Float32
-from geometry_msgs.msg import Wrench, PoseStamped
+from geometry_msgs.msg import Wrench, PoseStamped, Point
 from nav_msgs.msg import Odometry, Path
 from vortex_msgs.msg import HybridpathReference
+from vortex_msgs.srv import Waypoint
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,14 +24,19 @@ class ASVSimulatorNode(Node):
                 parameters=[
                     ('asv_sim.plot_matplotlib_enabled', True),
                     ('asv_sim.progress_bar_enabled', True),
+                    ('asv_sim.hybridpath_path_following', True),
                     ('asv_sim.T', 200),
+                    ('asv_sim.waypoints', [0.0, 0.0]),
                     ('physical.inertia_matrix', [50.0, 50.0, 50.0]),
                     ('physical.damping_matrix_diag', [10.0, 10.0, 5.0]),
                 ])
             
         self.plot_matplotlib_enabled = self.get_parameter('asv_sim.plot_matplotlib_enabled').get_parameter_value().bool_value
         self.progress_bar_enabled = self.get_parameter('asv_sim.progress_bar_enabled').get_parameter_value().bool_value
+        self.hybridpath_path_following = self.get_parameter('asv_sim.hybridpath_path_following').get_parameter_value().bool_value
         self.T = self.get_parameter('asv_sim.T').get_parameter_value().integer_value
+        waypoints_param = self.get_parameter('asv_sim.waypoints').get_parameter_value().double_array_value
+        self.waypoints = [Point(x=waypoints_param[i], y=waypoints_param[i+1], z=0.0) for i in range(0, len(waypoints_param), 2)]
         D_diag = self.get_parameter('physical.damping_matrix_diag').get_parameter_value().double_array_value
         M = self.get_parameter('physical.inertia_matrix').get_parameter_value().double_array_value
 
@@ -55,6 +61,13 @@ class ASVSimulatorNode(Node):
 
         self.yaw_ref_publisher_ = self.create_publisher(Float32, "/sensor/seapath/yaw_ref/ned", 1)
         self.yaw_publisher_ = self.create_publisher(Float32, "/sensor/seapath/yaw/ned", 1)
+
+        # send waypoints to guidance if hybridpath_path_following is enabled
+        if self.hybridpath_path_following:
+            self.waypoint_client = self.create_client(Waypoint, 'waypoint_list')
+            while not self.waypoint_client.wait_for_service(timeout_sec=1.0):
+                self.get_logger().info('service not available, waiting again...')
+            self.send_waypoint_request()
 
         # create timer
         timer_period = 0.1  # seconds
@@ -81,25 +94,29 @@ class ASVSimulatorNode(Node):
         # Publish initial state
         self.state_publisher_.publish(state_to_odometrymsg(self.state))
 
-        self.get_logger().info("""\
+        self.get_logger().info("ASV simulator node initialized with parameters: \n"
+            + "Simulation time T = " + str(self.T) + "\n" 
+            + "Matplotlib plotting enabled: " + str(self.plot_matplotlib_enabled) + "\n"
+            + "Hybridpath path following enabled: " + str(self.hybridpath_path_following) + "\n")
+            
+        
+    def send_waypoint_request(self):
+        req = Waypoint.Request()
+        req.waypoint = self.waypoints
+        future = self.waypoint_client.call_async(req)
+        future.add_done_callback(self.waypoint_response_callback)
 
-                                       ._ o o
-                                       \_`-)|_
-                                    ,""       \ 
-                                  ,"  ## |   ಠ ಠ. 
-                                ," ##   ,-\__    `.
-                              ,"       /     `--._;)
-                            ,"     ## /           U
-                          ,"   ##    /
-            """
-            + "Starting ASV simulator..." + "\n" 
-            + "            Simulation time T = " + str(self.T) + "\n" 
-            + "            Matplotlib plotting enabled: " + str(self.plot_matplotlib_enabled))
+    def waypoint_response_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'Received response: {response}')
+        except Exception as e:
+            self.get_logger().error(f'Service call failed: {e}')
 
     def timer_callback(self):
         self.simulate_step()
 
-        if self.progress_bar_enabled:
+        if self.progress_bar_enabled and not self.sim_finished:
             self.show_progressbar()
 
         if self.num_steps_simulated > self.max_steps and self.plot_matplotlib_enabled and not self.sim_finished:
