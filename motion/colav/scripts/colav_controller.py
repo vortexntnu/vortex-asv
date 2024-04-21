@@ -8,6 +8,7 @@ import math
 from VO_math import VelocityObstacle, Obstacle, Zones, Approaches
 from tf2_ros import Buffer, TransformListener
 from transformations import euler_from_quaternion
+from transforms3d.euler import quat2euler
 from geometry_msgs.msg import Quaternion
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,8 +18,8 @@ class ColavController(Node):
         super().__init__("colav_controller")
 
         self.declare_parameter('guidance_interface/colav_data_topic', 'guidance/collision_avoidance')    
-        self.declare_parameter('stop_zone_radius', 0.0)
-        self.declare_parameter('colimm_max_radius', math.inf)
+        self.declare_parameter('stop_zone_radius', 0.9)
+        self.declare_parameter('colimm_max_radius', 2.0)
 
         stop_zone_radius = self.get_parameter('stop_zone_radius').value
         colimm_max_radius = self.get_parameter('colimm_max_radius').value
@@ -94,11 +95,11 @@ class ColavController(Node):
         self.get_logger().info(f'Zone: {zone}')
 
         if zone == Zones.NOCOL:
-            return None
+            return self.create_guidance_data(self.vessel.speed, self.vessel.heading, self.vessel.heading, self.vessel_odom, is_colav=False)
         elif zone == Zones.STOPNOW:
             return self.create_guidance_data(0, 0, self.vessel.heading, self.vessel_odom)
         elif zone == Zones.COLIMM and not VO.check_if_collision():
-            return None
+            return self.create_guidance_data(self.vessel.speed, self.vessel.heading, self.vessel.heading, self.vessel_odom)
 
         approach = self.gen_approach(closest_obst, self.vessel)
 
@@ -110,19 +111,28 @@ class ColavController(Node):
             return None
         return None
 
-    def create_guidance_data(self, speed, psi_d, vessel_heading, vessel_odom):
+    def create_guidance_data(self, speed, psi_d, vessel_heading, vessel_odom, is_colav=True):
         data = GuidanceData()
         data.u_d = float(speed)
         data.psi_d = float(psi_d)
         data.u = float(speed)  # Assuming this is the desired speed
         data.t = float(self.get_clock().now().seconds_nanoseconds()[0]) + float(self.get_clock().now().seconds_nanoseconds()[1]) * 1e-9
-        orientation_q = Quaternion(
-            x=vessel_odom.pose.pose.orientation.x,
-            y=vessel_odom.pose.pose.orientation.y,
-            z=vessel_odom.pose.pose.orientation.z,
-            w=vessel_odom.pose.pose.orientation.w)
-        _, _, yaw = self.quaternion_to_euler(orientation_q)
+        # orientation_q = Quaternion(
+        #     x=vessel_odom.pose.pose.orientation.x,
+        #     y=vessel_odom.pose.pose.orientation.y,
+        #     z=vessel_odom.pose.pose.orientation.z,
+        #     w=vessel_odom.pose.pose.orientation.w)
+        orientation_list = [
+            vessel_odom.pose.pose.orientation.w,
+            vessel_odom.pose.pose.orientation.x,
+            vessel_odom.pose.pose.orientation.y,
+            vessel_odom.pose.pose.orientation.z
+        ]
+        # _, _, yaw = self.quaternion_to_euler(orientation_q)
+        yaw = quat2euler(orientation_list)[2]
+        self.get_logger().info(f'Current yaw: {yaw}')
         data.psi = float(yaw)
+        data.is_colav = is_colav
         return data
 
     def gen_approach(self, obstacle: Obstacle, vessel: Obstacle):
