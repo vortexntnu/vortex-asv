@@ -23,6 +23,8 @@ install(PROGRAMS
   scripts/colav_controller.py
   scripts/VO_math.py
   scripts/VO_visualize.py
+  scripts/colav_sim.py
+  scripts/cone_visualizer.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
