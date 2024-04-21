@@ -15,7 +15,7 @@ def generate_launch_description():
                    '--z'              , '-0.392425',
                    '--roll'           , str(math.pi),
                    '--pitch'          , '0',
-                   '--yaw'            , str(math.pi),
+                   '--yaw'            , '0',
                    '--frame-id'       , 'base_link',
                    '--child-frame-id' , 'os_sensor'],
     )
