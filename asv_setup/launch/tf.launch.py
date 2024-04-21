@@ -20,10 +20,10 @@ def generate_launch_description():
                    '--child-frame-id' , 'os_sensor'],
     )
 
-    # base_link to zed_camera_link tf.
-    tf_base_link_to_zed_camera_link = Node(
+    # base_link to zed2i_camera_center tf.
+    tf_base_link_to_zed2_camera_center = Node(
         package='tf2_ros',
-        name='base_link_to_zed_camera_link',
+        name='base_link_to_zed2_camera_center',
         executable='static_transform_publisher',
         arguments=['--x'              , '0.3005',
                    '--y'              , '0',
@@ -32,7 +32,7 @@ def generate_launch_description():
                    '--pitch'          , '0',
                    '--yaw'            , '0',
                    '--frame-id'       , 'base_link',
-                   '--child-frame-id' , 'zed_camera_link'],
+                   '--child-frame-id' , 'zed2i_camera_center'],
     )
 
     # base_link (NED) to seapath_frame (NED) tf.
@@ -52,6 +52,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         tf_base_link_to_lidar,
-        tf_base_link_to_zed_camera_link,
+        tf_base_link_to_zed2_camera_center,
         tf_base_link_to_seapath,
     ])
