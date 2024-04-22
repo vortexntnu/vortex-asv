@@ -314,12 +314,11 @@ class HybridPathSignals:
         Path (Path): The path object.
         s (float): The path parameter.
     """
-    def __init__(self, path: Path, s: float, u_desired: float = 0.5):
+    def __init__(self, path: Path, s: float):
         if not isinstance(path, Path):
             raise TypeError("path must be an instance of Path")
         self.path = path
         self.s = self._clamp_s(s, self.path.NumSubpaths)
-        self.u_desired = u_desired
 
     def _clamp_s(self, s: float, num_subpaths: int) -> float:
         """
