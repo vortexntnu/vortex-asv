@@ -445,7 +445,7 @@ class HybridPathSignals:
         psi_dder = (p_der[0] * p_ddder[1] - p_der[1] * p_ddder[0]) / (p_der[0]**2 + p_der[1]**2) - 2 * (p_der[0] * p_dder[1] - p_dder[0] * p_der[1]) * (p_der[0] * p_dder[0] - p_dder[1] * p_der[0]) / ((p_der[0]**2 + p_der[1]**2)**2)
         return psi_dder
     
-    def get_vs(self) -> float:
+    def get_vs(self, u_desired) -> float:
         """
         Calculate the reference velocity.
 
@@ -459,10 +459,10 @@ class HybridPathSignals:
         p_der = self.get_derivatives()[0]
 
         # Calculate the reference velocity
-        v_s = self.u_desired / np.linalg.norm(p_der)
+        v_s = u_desired / np.linalg.norm(p_der)
         return v_s
     
-    def get_vs_derivative(self) -> float:
+    def get_vs_derivative(self, u_desired) -> float:
         """
         Calculate the derivative of the reference velocity.
 
@@ -477,7 +477,7 @@ class HybridPathSignals:
         p_dder = self.get_derivatives()[1]
 
         # Calculate the derivative of the reference velocity
-        v_s_s = -self.u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
+        v_s_s = -u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
         return v_s_s
     
     def get_w(self, mu: float, eta: np.ndarray) -> float:
