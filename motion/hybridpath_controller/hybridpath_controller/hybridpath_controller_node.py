@@ -7,6 +7,7 @@ from hybridpath_controller.adaptive_backstep import AdaptiveBackstep
 from geometry_msgs.msg import Wrench
 from nav_msgs.msg import Odometry
 from vortex_msgs.msg import HybridpathReference
+from std_msgs.msg import String
 
 class HybridPathControllerNode(Node):
     def __init__(self):
@@ -23,6 +24,9 @@ class HybridPathControllerNode(Node):
         self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.state_callback, 1)
         self.hpref_subscriber_ = self.create_subscription(HybridpathReference, 'guidance/hybridpath/reference', self.reference_callback, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench, 'thrust/wrench_input', 1)
+
+        self.active_controller_subscriber = self.create_subscription(String, 'mission/controller', self.active_controller_callback, 10)
+        self.active_controller = True
 
         # Get parameters
         K1_diag = self.get_parameter('hybridpath_controller.K1_diag').get_parameter_value().double_array_value
@@ -59,13 +63,19 @@ class HybridPathControllerNode(Node):
         """
         Callback function for the controller timer. This function calculates the control input and publishes the control input.
         """
-        if hasattr(self, 'state_odom') and hasattr(self, 'reference'):
+        if hasattr(self, 'state_odom') and hasattr(self, 'reference') and self.active_controller:
             control_input = self.AB_controller_.control_law(self.state_odom, self.reference)
             wrench_msg = Wrench()
             wrench_msg.force.x = control_input[0]
             wrench_msg.force.y = control_input[1]
             wrench_msg.torque.z = control_input[2]
             self.wrench_publisher_.publish(wrench_msg)
+
+    def active_controller_callback(self, msg):
+        if msg.data == 'hybridpath':
+            self.active_controller = True
+        else:
+            self.active_controller = False
 
 def main(args=None):
     rclpy.init(args=args)

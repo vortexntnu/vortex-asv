@@ -2,8 +2,9 @@
 
 import rclpy
 from rclpy.node import Node
-from vortex_msgs.srv import MissionParameters
+from vortex_msgs.srv import MissionParameters#, s
 from geometry_msgs.msg import Point
+from std_msgs.msg import String, Bool
 
 class MissionPlannerClient(Node):
     """
@@ -16,9 +17,32 @@ class MissionPlannerClient(Node):
         """
         super().__init__('mission_planner_client')
         self.client = self.create_client(MissionParameters, 'mission_parameters')
-        while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting again...')
+        #while not self.client.wait_for_service(timeout_sec=1.0):
+        #    self.get_logger().info('Service not available, waiting again...')
         self.req = MissionParameters.Request()
+
+        # self.guidance_client = self.create_client(s, 's', self.switching_callback)
+        # while not self.guidance_client.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info('Service not available, waiting again...')
+        
+        self.active_controller = 'hybridpath'
+        self.get_logger().info(f'Publisher for mission/controller set up successfully')
+        self.active_controller_publisher = self.create_publisher(String, 'mission/controller', 10)
+        self.hybridpath_guidance_subscriber = self.create_subscription(Bool, 'guidance/hybridpath/finished', self.guidance_callback, 10)
+        self.active_controller_timer = self.create_timer(1.0, self.timer_callback)
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = self.active_controller
+        self.active_controller_publisher.publish(msg)
+        self.get_logger().info(f'Publishing: {self.active_controller}')
+
+    def guidance_callback(self, msg):
+        if msg.data == True:
+            self.active_controller = 'DP'
+
+    #def send_s_request(self):
+
 
     def send_request(self, obstacles: list[Point], start: Point, goal: Point, origin: Point, height: int, width: int):
         """
@@ -64,7 +88,7 @@ def main(args=None):
                 mission_planner_client.get_logger().info(f'Success: {response.success}')
             except Exception as e:
                 mission_planner_client.get_logger().info(f'Service call failed {e}')
-                break  # Break out of the loop if the service call failed
+                break  # Break out of the loop if the service call failed   
             else:
                 # This else block should be executed if no exceptions were raised
                 mission_planner_client.get_logger().info('Successfully created path')

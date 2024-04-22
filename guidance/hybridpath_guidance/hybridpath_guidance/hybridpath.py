@@ -296,7 +296,7 @@ class HybridPathGenerator:
 
         """
         signals = HybridPathSignals(path, s)
-        v_s = signals.get_vs(u_desired)
+        v_s = signals.get_vs()
         s_new = s + (v_s + w) * dt
         return s_new
 

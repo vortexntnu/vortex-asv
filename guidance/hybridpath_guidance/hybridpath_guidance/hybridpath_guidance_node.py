@@ -7,6 +7,7 @@ from vortex_msgs.msg import HybridpathReference
 from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
+from std_msgs.msg import Bool
 
 from hybridpath_guidance.hybridpath import HybridPathGenerator, HybridPathSignals
 
@@ -25,6 +26,7 @@ class Guidance(Node):
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
         self.eta_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
+        self.switching_publisher = self.create_publisher(Bool, 'guidance/hybridpath/finished', 10)
         
         # Get parameters
         self.lambda_val = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
@@ -82,15 +84,18 @@ class Guidance(Node):
             hp_msg.eta_d_ss = Pose2D(x=pos_dder[0], y=pos_dder[1], theta=psi_dder)
 
             hp_msg.w = signals.get_w(self.mu, self.eta)
-            hp_msg.v_s = signals.get_vs(self.u_desired)
-            hp_msg.v_ss = signals.get_vs_derivative(self.u_desired)
+            hp_msg.v_s = signals.get_vs()
+            hp_msg.v_ss = signals.get_vs_derivative()
 
             self.guidance_publisher.publish(hp_msg)
 
-            if self.s >= self.path.NumSubpaths:
+            if self.s >= self.path.NumSubpaths: #Guidance switching criteria
                 self.waypoints_received = False
                 self.waiting_message_printed = False
                 self.get_logger().info('Last waypoint reached')
+                #self.switching_publisher.publish(True)
+            if self.s >= self.path.NumSubpaths-1:
+                self.switching_publisher.publish(Bool(data=True))
 
         else:
             if not self.waiting_message_printed:
