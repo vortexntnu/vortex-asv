@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    lqr_controller:
+      Q: [20.0, 20.0, 1.0, 1.0, 1.0, 1.0]  # State costs for [x, y, heading, surge, sway, yaw]
+      R: [1.0, 1.0, 1.0]  # Control cost weight
