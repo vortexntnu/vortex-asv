@@ -1,6 +1,0 @@
-/**:
-  ros__parameters:
-    los_guidance:
-      p0: [0.0, 0.0] 
-      p1: [20.0, 20.0]
-      look_ahead_distance: 5.0
