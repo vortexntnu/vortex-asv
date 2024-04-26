@@ -51,16 +51,7 @@ class LQRControllerNode(Node):
         controller_period = 0.1
         self.controller_timer_ = self.create_timer(controller_period, self.controller_callback)
 
-        # TESTING STUFF
-        self.test_someMetersAhead()
-
         self.get_logger().info("lqr_controller_node started")
-
-    def test_someMetersAhead(self):
-        self.x_ref = [self.state[0] + 10, self.state[1] + 10, self.state[2]]
-        # sleep(10)
-        # self.x_ref = [self.state[0] + 10, self.state[1] - 20, self.state[2]]
-
 
     def state_cb(self, msg):
         self.state = odometrymsg_to_state(msg)
