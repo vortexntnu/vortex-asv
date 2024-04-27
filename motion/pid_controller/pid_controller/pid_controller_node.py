@@ -27,7 +27,7 @@ class PIDControllerNode(Node):
             ])
         
         self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odom/ned", self.state_cb, qos_profile=qos_profile)
-        # self.guidance_subscriber_ = self.create_subscription(Odometry, "controller/pid/reference", self.guidance_cb, 1)
+        self.guidance_subscriber_ = self.create_subscription(Odometry, "guidance/dp/reference", self.guidance_cb, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench, "thrust/wrench_input", 1)
 
         Kp = self.get_parameter('pid_controller.Kp').get_parameter_value().double_array_value
@@ -50,6 +50,9 @@ class PIDControllerNode(Node):
 
     def state_cb(self, msg):
         self.state = odometrymsg_to_state(msg)
+
+    def guidance_cb(self, msg):
+        self.x_ref = odometrymsg_to_state(msg)[:3]
 
     def controller_callback(self):
         if hasattr(self, 'state') and hasattr(self, 'x_ref'):
