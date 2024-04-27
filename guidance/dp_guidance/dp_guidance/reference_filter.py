@@ -6,10 +6,6 @@ import matplotlib.pyplot as plt
 
 class ReferenceFilter:
     def __init__(self):
-        self.init_system()
-
-    def init_system(self):
-
         zeta = 0.8
         omega_b = 0.05
         omega_n = omega_b/np.sqrt(1-2*zeta**2 + np.sqrt(4*zeta**4 - 4*zeta**2 + 2))
