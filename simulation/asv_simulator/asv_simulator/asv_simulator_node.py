@@ -51,8 +51,9 @@ class ASVSimulatorNode(Node):
 
         # subscribe to thrust input and guidance
         self.wrench_subscriber_ = self.create_subscription(Wrench, "thrust/wrench_input", self.wrench_input_cb, 1)
-        self.guidance_subscriber_ = self.create_subscription(HybridpathReference, 'guidance/hybridpath/reference', self.guidance_cb, 1)
-
+        self.guidance_hp_subscriber_ = self.create_subscription(HybridpathReference, 'guidance/hybridpath/reference', self.guidance_hp_cb, 1)
+        self.guidance_dp_subscriber_ = self.create_subscription(Odometry, 'guidance/dp/reference', self.guidance_dp_cb, 1)
+        
         # publish state (seapath)
         self.state_publisher_ = self.create_publisher(Odometry, "/sensor/seapath/odom/ned", 1)
         self.posestamped_publisher_ = self.create_publisher(PoseStamped, "/sensor/seapath/posestamped/ned", 1)
@@ -129,12 +130,19 @@ class ASVSimulatorNode(Node):
         bar = '[' + '=' * filled_length + ' ' * (10 - filled_length) + ']'
         self.get_logger().info(f"Progress: {bar} {progress:.1f}%")
 
-    def guidance_cb(self, msg):
+    def guidance_hp_cb(self, msg):
         if isinstance(msg, HybridpathReference):
             self.x_ref[:3] = np.array([msg.eta_d.x, msg.eta_d.y, msg.eta_d.theta])
             self.yaw_ref_publisher_.publish(Float32(data=self.x_ref[2]))
         else:
             self.get_logger().error(f"Received message of type {type(msg).__name__}, expected HybridpathReference")
+
+    def guidance_dp_cb(self, msg):
+        if isinstance(msg, Odometry):
+            self.x_ref[:3] = odometrymsg_to_state(msg)[:3]
+            self.yaw_ref_publisher_.publish(Float32(data=self.x_ref[2]))
+        else:
+            self.get_logger().error(f"Received message of type {type(msg).__name__}, expected Odometry")
         
     def wrench_input_cb(self, msg):
         self.tau = np.array([msg.force.x, msg.force.y, msg.torque.z])
@@ -194,8 +202,8 @@ class ASVSimulatorNode(Node):
         tau_time = np.linspace(0, self.T, len(self.tau_history))
 
         plt.figure()
-        plt.plot(state_x, state_y, label='State Path')
-        plt.plot(ref_x, ref_y, label='Reference Path')
+        plt.plot(state_x, state_y, label='State Path') 
+        plt.plot(ref_x, ref_y, label='Reference Path', linestyle='--')
         plt.title('ASV Path')
         plt.xlabel('X')
         plt.ylabel('Y')
