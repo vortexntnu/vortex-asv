@@ -7,7 +7,7 @@ from vortex_msgs.msg import HybridpathReference
 from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
-from std_msgs.msg import Bool, Int32
+from std_msgs.msg import Bool, Float32
 
 from hybridpath_guidance.hybridpath import HybridPathGenerator, HybridPathSignals
 
@@ -27,7 +27,7 @@ class Guidance(Node):
         self.eta_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
         self.switching_publisher = self.create_publisher(Bool, 'guidance/hybridpath/finished', 10)
-        self.switching_criteria_subscriber = self.create_subscription(Int32, 'guidance/hybridpath/switching', self.switching_callback, 10)
+        self.switching_criteria_subscriber = self.create_subscription(Float32, 'guidance/hybridpath/switching', self.switching_callback, 10)
         
         # Get parameters
         self.lambda_val = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
@@ -36,7 +36,9 @@ class Guidance(Node):
         self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
         self.eta = np.zeros(3)
 
-        self.switching_waypoint = 1
+        self.switching_waypoint = 1.0
+
+        self.u_desired = 0.25 # Desired velocity
 
         # Flags for logging
         self.waypoints_received = False
@@ -58,13 +60,12 @@ class Guidance(Node):
 
         self.s = 0
         signals = HybridPathSignals(self.path, self.s)
-        self.u_desired = signals.u_desired
         self.w = signals.get_w(self.mu, self.eta)
         
         response.success = True
         return response
     
-    def switching_callback(self, msg: Int32):
+    def switching_callback(self, msg: Float32):
         print(msg.data)
         self.switching_waypoint = msg.data
     
@@ -91,8 +92,8 @@ class Guidance(Node):
             hp_msg.eta_d_ss = Pose2D(x=pos_dder[0], y=pos_dder[1], theta=psi_dder)
 
             hp_msg.w = signals.get_w(self.mu, self.eta)
-            hp_msg.v_s = signals.get_vs()
-            hp_msg.v_ss = signals.get_vs_derivative()
+            hp_msg.v_s = signals.get_vs(self.u_desired)
+            hp_msg.v_ss = signals.get_vs_derivative(self.u_desired)
 
             self.guidance_publisher.publish(hp_msg)
 

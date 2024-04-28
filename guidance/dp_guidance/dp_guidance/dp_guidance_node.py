@@ -7,6 +7,7 @@ from geometry_msgs.msg import Pose2D
 from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
+from std_msgs.msg import String
 
 from dp_guidance.conversions import odometrymsg_to_state, state_to_odometrymsg
 from dp_guidance.reference_filter import ReferenceFilter
@@ -21,8 +22,10 @@ class Guidance(Node):
             ])
         
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
-        self.eta_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
+        self.eta_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
         self.guidance_publisher = self.create_publisher(Odometry, 'guidance/dp/reference', 1)
+        self.active_controller_subscriber = self.create_subscription(String, 'mission/controller', self.active_controller_callback, 10)
+        self.active_controller = False
         
         # Get parameters
         self.dt = self.get_parameter('dp_guidance.dt').get_parameter_value().double_value
@@ -52,14 +55,20 @@ class Guidance(Node):
         response.success = True
         return response
     
+    def active_controller_callback(self, msg: String):
+        if msg.data == 'DP':
+            self.active_controller = True
+        else:
+            self.active_controller = False
+    
     def eta_callback(self, msg: Odometry):
         self.eta = odometrymsg_to_state(msg)[:3]
 
     def guidance_callback(self):
-        if self.waypoints_received:
-            if not self.init_pos:
-                self.xd[0:3] = self.eta
-                self.init_pos = True
+        if self.waypoints_received and self.active_controller:
+            #if not self.init_pos:
+            self.xd[0:3] = self.eta
+            #self.init_pos = True
             last_waypoint = self.waypoints[-1]
             self.eta_ref = np.array([last_waypoint.x, last_waypoint.y, 0])
             x_next = self.reference_filter.step(self.eta_ref, self.xd)
@@ -67,6 +76,7 @@ class Guidance(Node):
             self.get_logger().info(f'x_next[0]: {x_next[0]}')
             self.get_logger().info(f'x_next[0]: {x_next[1]}')
             self.get_logger().info(f'x_next[0]: {x_next[2]}')
+            self.get_logger().info(f'eta_ref : {self.eta_ref}')
 
             odom_msg = Odometry()
             odom_msg = state_to_odometrymsg(x_next[:3])
@@ -74,7 +84,7 @@ class Guidance(Node):
 
         else:
             if not self.waiting_message_printed:
-                self.get_logger().info('Waiting for waypoints to be received')
+                self.get_logger().info('Waiting for controller switching')
                 self.waiting_message_printed = True
 
 def main(args=None):

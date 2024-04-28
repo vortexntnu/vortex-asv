@@ -67,7 +67,7 @@ class HybridPathGenerator:
     """
     def __init__(self, WP: list[Point], r: int, lambda_val: float):
         # Convert the waypoints to a numpy array
-        WP_arr = np.array([[int(wp.x), int(wp.y)] for wp in WP])
+        WP_arr = np.array([[wp.x, wp.y] for wp in WP])
 
         if len(WP_arr) == 2: # The generator must have at least 3 waypoints to work
             self.WP = np.array([WP_arr[0], [(WP_arr[0][0] + WP_arr[1][0])/2, (WP_arr[0][1] + WP_arr[1][1])/2], WP_arr[1]])
@@ -296,7 +296,7 @@ class HybridPathGenerator:
 
         """
         signals = HybridPathSignals(path, s)
-        v_s = signals.get_vs()
+        v_s = signals.get_vs(u_desired)
         s_new = s + (v_s + w) * dt
         return s_new
 
@@ -314,12 +314,11 @@ class HybridPathSignals:
         Path (Path): The path object.
         s (float): The path parameter.
     """
-    def __init__(self, path: Path, s: float, u_desired: float = 0.5):
+    def __init__(self, path: Path, s: float):
         if not isinstance(path, Path):
             raise TypeError("path must be an instance of Path")
         self.path = path
         self.s = self._clamp_s(s, self.path.NumSubpaths)
-        self.u_desired = u_desired
 
     def _clamp_s(self, s: float, num_subpaths: int) -> float:
         """
@@ -445,7 +444,7 @@ class HybridPathSignals:
         psi_dder = (p_der[0] * p_ddder[1] - p_der[1] * p_ddder[0]) / (p_der[0]**2 + p_der[1]**2) - 2 * (p_der[0] * p_dder[1] - p_dder[0] * p_der[1]) * (p_der[0] * p_dder[0] - p_dder[1] * p_der[0]) / ((p_der[0]**2 + p_der[1]**2)**2)
         return psi_dder
     
-    def get_vs(self) -> float:
+    def get_vs(self, u_desired) -> float:
         """
         Calculate the reference velocity.
 
@@ -459,10 +458,10 @@ class HybridPathSignals:
         p_der = self.get_derivatives()[0]
 
         # Calculate the reference velocity
-        v_s = self.u_desired / np.linalg.norm(p_der)
+        v_s = u_desired / np.linalg.norm(p_der)
         return v_s
     
-    def get_vs_derivative(self) -> float:
+    def get_vs_derivative(self, u_desired) -> float:
         """
         Calculate the derivative of the reference velocity.
 
@@ -477,7 +476,7 @@ class HybridPathSignals:
         p_dder = self.get_derivatives()[1]
 
         # Calculate the derivative of the reference velocity
-        v_s_s = -self.u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
+        v_s_s = -u_desired * (np.dot(p_der, p_dder)) / (np.sqrt(p_der[0]**2 + p_der[1]**2)**3)
         return v_s_s
     
     def get_w(self, mu: float, eta: np.ndarray) -> float:

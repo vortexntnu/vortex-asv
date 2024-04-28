@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from vortex_msgs.srv import MissionParameters#, s
 from geometry_msgs.msg import Point
-from std_msgs.msg import String, Bool, Int32
+from std_msgs.msg import String, Bool, Float32
 
 class MissionPlannerClient(Node):
     """
@@ -30,7 +30,7 @@ class MissionPlannerClient(Node):
         self.active_controller_publisher = self.create_publisher(String, 'mission/controller', 10)
         self.hybridpath_guidance_subscriber = self.create_subscription(Bool, 'guidance/hybridpath/finished', self.guidance_callback, 10)
         self.active_controller_timer = self.create_timer(1.0, self.timer_callback)
-        self.switching_waypoint_publisher = self.create_publisher(Int32, 'guidance/hybridpath/switching', 10)
+        self.switching_waypoint_publisher = self.create_publisher(Float32, 'guidance/hybridpath/switching', 10)
 
     def timer_callback(self):
         msg = String()
@@ -39,8 +39,8 @@ class MissionPlannerClient(Node):
         self.get_logger().info(f'Publishing: {self.active_controller}')
 
         # Switching criteria
-        msg = Int32()
-        msg.data = 1
+        msg = Float32()
+        msg.data = 1.0
         self.switching_waypoint_publisher.publish(msg)
 
     def guidance_callback(self, msg):
