@@ -39,8 +39,6 @@ class PIDControllerNode(Node):
         self.x_ref = np.array([0, 0, 0])
         self.state = np.array([0, 0, 0, 0, 0, 0])
 
-        self.x_ref = np.array([10, 10, 0])
-
         self.enabled = False
 
         self.controller_period = 0.1
