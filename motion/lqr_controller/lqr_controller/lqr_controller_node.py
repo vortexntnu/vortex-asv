@@ -56,7 +56,7 @@ class LQRControllerNode(Node):
     def state_cb(self, msg):
         self.state = odometrymsg_to_state(msg)
 
-    self.guidance_cb(self, msg):
+    def guidance_cb(self, msg):
         self.x_ref = odometrymsg_to_state(msg)[:3]
 
     def controller_callback(self):
