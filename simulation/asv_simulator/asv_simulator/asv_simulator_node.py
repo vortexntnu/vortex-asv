@@ -189,6 +189,8 @@ class ASVSimulatorNode(Node):
         state_y = [pose.pose.position.y for pose in self.state_path.poses]
         ref_x = [pose.pose.position.x for pose in self.xref_path.poses]
         ref_y = [pose.pose.position.y for pose in self.xref_path.poses]
+        waypoints_x = [point.x for point in self.waypoints]
+        waypoints_y = [point.y for point in self.waypoints]
 
         time = np.linspace(0, self.T, len(state_x))
         tau_time = np.linspace(0, self.T, len(self.tau_history))
@@ -196,6 +198,7 @@ class ASVSimulatorNode(Node):
         plt.figure()
         plt.plot(state_x, state_y, label='State Path')
         plt.plot(ref_x, ref_y, label='Reference Path')
+        plt.scatter(waypoints_x, waypoints_y, color='red', label='Waypoints')  # Plotting waypoints in red
         plt.title('ASV Path')
         plt.xlabel('X')
         plt.ylabel('Y')

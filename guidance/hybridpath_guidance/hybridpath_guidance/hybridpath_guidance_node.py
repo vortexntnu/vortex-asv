@@ -65,6 +65,7 @@ class Guidance(Node):
         return response
     
     def switching_callback(self, msg: Int32):
+        print(msg.data)
         self.switching_waypoint = msg.data
     
     def eta_callback(self, msg: Odometry):
@@ -100,7 +101,7 @@ class Guidance(Node):
                 self.waiting_message_printed = False
                 self.get_logger().info('Last waypoint reached')
                 #self.switching_publisher.publish(True)
-            if self.s >= self.path.NumSubpaths-1:
+            if self.s >= self.path.NumSubpaths-self.switching_waypoint:
                 self.switching_publisher.publish(Bool(data=True))
 
         else:
