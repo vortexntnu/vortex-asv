@@ -124,30 +124,30 @@ class HybridPathGenerator:
         return A
 
     def _calculate_subpath_coeffs(self, j: int) -> tuple[np.ndarray, np.ndarray]:
-            """
-            Calculate the subpath coefficients for a given index.
+        """
+        Calculate the subpath coefficients for a given index.
 
-            Parameters:
-            j (int): The index of the subpath.
+        Parameters:
+        j (int): The index of the subpath.
 
-            Returns:
-            tuple[np.ndarray, np.ndarray]: A tuple containing two numpy arrays representing the subpath coefficients.
-            """
-            order_plus_one = self.order + 1
-            N = self.path.NumSubpaths
+        Returns:
+        tuple[np.ndarray, np.ndarray]: A tuple containing two numpy arrays representing the subpath coefficients.
+        """
+        order_plus_one = self.order + 1
+        N = self.path.NumSubpaths
 
-            # Initialize the coefficent arrays
-            ax, bx = np.zeros(order_plus_one), np.zeros(order_plus_one)
+        # Initialize the coefficent arrays
+        ax, bx = np.zeros(order_plus_one), np.zeros(order_plus_one)
 
-            # Set the first two coefficients for each dimension directly from waypoints. See README under C^0 continuity.
-            ax[:2] = self.WP[j:j+2, 0]
-            bx[:2] = self.WP[j:j+2, 1]
+        # Set the first two coefficients for each dimension directly from waypoints. See README under C^0 continuity.
+        ax[:2] = self.WP[j:j+2, 0]
+        bx[:2] = self.WP[j:j+2, 1]
 
-            # Calculate the coefficients for subpaths when the order is greater than 2 i.e. C^1 continuity.
-            if self.order > 2:
-                self._calculate_subpaths_coeffs_if_ord_greater_than_2(ax, bx, j, N)
+        # Calculate the coefficients for subpaths when the order is greater than 2 i.e. C^1 continuity.
+        if self.order > 2:
+            self._calculate_subpaths_coeffs_if_ord_greater_than_2(ax, bx, j, N)
 
-            return ax, bx
+        return ax, bx
     
     def _calculate_subpaths_coeffs_if_ord_greater_than_2(self, ax: np.ndarray, bx: np.ndarray, j: int, N: int) -> None:
         """
@@ -243,42 +243,42 @@ class HybridPathGenerator:
             self.path.coeff.b_der.append([b])
 
     def _calculate_subpaths(self) -> None:
-            """
-            Calculates the subpaths of the hybrid path.
+        """
+        Calculates the subpaths of the hybrid path.
 
-            This method constructs the A matrix, sets it as the A matrix of the path's linear system,
-            and calculates the coefficients for each subpath. It then solves the linear system for each
-            subpath to obtain the coefficients a and b. The derivatives of a and b are also calculated
-            and appended to the path's derivatives.
+        This method constructs the A matrix, sets it as the A matrix of the path's linear system,
+        and calculates the coefficients for each subpath. It then solves the linear system for each
+        subpath to obtain the coefficients a and b. The derivatives of a and b are also calculated
+        and appended to the path's derivatives.
 
-            Returns:
-                None
-            """
-            
-            # Construct the A matrix
-            A = self._construct_A_matrix()
-            self.path.LinSys.A = A
+        Returns:
+            None
+        """
+        
+        # Construct the A matrix
+        A = self._construct_A_matrix()
+        self.path.LinSys.A = A
 
-            # Loop through each subpath
-            N = self.path.NumSubpaths
-            for j in range(N):
-                # Calculate the subpath coefficients
-                ax, bx = self._calculate_subpath_coeffs(j)
-                self.path.LinSys.bx.append(ax)
-                self.path.LinSys.by.append(bx)
+        # Loop through each subpath
+        N = self.path.NumSubpaths
+        for j in range(N):
+            # Calculate the subpath coefficients
+            ax, bx = self._calculate_subpath_coeffs(j)
+            self.path.LinSys.bx.append(ax)
+            self.path.LinSys.by.append(bx)
 
-                # Solve the linear system for the subpath
-                a_vec, b_vec = self._solve_linear_system(A, ax, bx)
-                self.path.coeff.a.append(a_vec)
-                self.path.coeff.b.append(b_vec)
+            # Solve the linear system for the subpath
+            a_vec, b_vec = self._solve_linear_system(A, ax, bx)
+            self.path.coeff.a.append(a_vec)
+            self.path.coeff.b.append(b_vec)
 
-                # Calculate the derivatives of the coefficients
-                a_derivatives = self._calculate_derivatives(a_vec)
-                b_derivatives = self._calculate_derivatives(b_vec)
+            # Calculate the derivatives of the coefficients
+            a_derivatives = self._calculate_derivatives(a_vec)
+            b_derivatives = self._calculate_derivatives(b_vec)
 
-                # Append the derivatives to the path object
-                for k, (a, b) in enumerate(zip(a_derivatives, b_derivatives)):
-                    self._append_derivatives(k, a, b)
+            # Append the derivatives to the path object
+            for k, (a, b) in enumerate(zip(a_derivatives, b_derivatives)):
+                self._append_derivatives(k, a, b)
 
     @staticmethod
     def update_s(path: Path, dt: float, u_desired: float, s: float, w: float) -> float:
@@ -339,24 +339,24 @@ class HybridPathSignals:
 
     
     def get_position(self) -> list[float]:
-            """
-            Get the position of the object along the path.
+        """
+        Get the position of the object along the path.
 
-            Returns:
-                list[float]: The x and y coordinates of the object's position.
-            """
-            # Get the index and theta. See README for what they represent.
-            index = int(self.s) + 1
-            theta = self.s - (index - 1)
+        Returns:
+            list[float]: The x and y coordinates of the object's position.
+        """
+        # Get the index and theta. See README for what they represent.
+        index = int(self.s) + 1
+        theta = self.s - (index - 1)
 
-            # Calculate the position using the coefficients for the polynomial for the given subpath
-            theta_pow = theta ** np.arange(self.path.Order + 1)
-            a = self.path.coeff.a[index - 1]
-            b = self.path.coeff.b[index - 1]
-            x_pos = np.dot(a, theta_pow)
-            y_pos = np.dot(b, theta_pow)
+        # Calculate the position using the coefficients for the polynomial for the given subpath
+        theta_pow = theta ** np.arange(self.path.Order + 1)
+        a = self.path.coeff.a[index - 1]
+        b = self.path.coeff.b[index - 1]
+        x_pos = np.dot(a, theta_pow)
+        y_pos = np.dot(b, theta_pow)
 
-            return [x_pos, y_pos]
+        return [x_pos, y_pos]
     
     def _compute_derivatives(self, theta: float, a_vec: np.ndarray, b_vec: np.ndarray) -> list[float]:
         """
