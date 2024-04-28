@@ -1,0 +1,214 @@
+{
+  "configById": {
+    "3D!45bpewl": {
+      "cameraState": {
+        "perspective": true,
+        "distance": 250.52738551722237,
+        "phi": 179.99994266987844,
+        "thetaOffset": -89.99999770360385,
+        "targetOffset": [
+          73.97173196727483,
+          0.23675590015567488,
+          1.2349479935931187e-21
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "followTf": "world",
+      "scene": {
+        "transforms": {
+          "lineWidth": 0.5
+        },
+        "meshUpAxis": "y_up"
+      },
+      "transforms": {},
+      "topics": {
+        "/sensor/seapath/path/ned": {
+          "visible": true,
+          "lineWidth": 0.5,
+          "gradient": [
+            "#ffffffff",
+            "#00be1080"
+          ]
+        },
+        "/sensor/seapath/posestamped/ned": {
+          "visible": true,
+          "axisScale": 10.2,
+          "type": "axis",
+          "arrowScale": [
+            10,
+            3.15,
+            3.15
+          ]
+        },
+        "/move_base_simple/goal": {
+          "visible": false
+        },
+        "/sensor/seapath/state_path/ned": {
+          "visible": true,
+          "lineWidth": 1,
+          "gradient": [
+            "#fafafaff",
+            "#00ff0d80"
+          ]
+        },
+        "/sensor/seapath/xref_path/ned": {
+          "visible": true,
+          "gradient": [
+            "#c750cfff",
+            "#ae19a9ff"
+          ],
+          "lineWidth": 0.5
+        }
+      },
+      "layers": {
+        "6bba1d8c-b741-42b0-901c-20e59bfe5fcc": {
+          "visible": true,
+          "frameLocked": true,
+          "label": "Grid",
+          "instanceId": "6bba1d8c-b741-42b0-901c-20e59bfe5fcc",
+          "layerId": "foxglove.Grid",
+          "size": 1000,
+          "divisions": 100,
+          "color": "#248eff",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "order": 1,
+          "lineWidth": 0.3
+        }
+      },
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {}
+    },
+    "Plot!41trey": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/sensor/seapath/posestamped/ned.pose.position.x",
+          "enabled": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controller/lqr/reference.pose.pose.position.x",
+          "enabled": true
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": false,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 30,
+      "foxglovePanelTitle": "Surge"
+    },
+    "Plot!q6f7ui": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/sensor/seapath/posestamped/ned.pose.position.y",
+          "enabled": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/controller/lqr/reference.pose.pose.position.y",
+          "enabled": true
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": false,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 30,
+      "foxglovePanelTitle": "Sway"
+    },
+    "Tab!23gzpt8": {
+      "activeTabIdx": 0,
+      "tabs": [
+        {
+          "title": "1",
+          "layout": {
+            "first": "3D!45bpewl",
+            "second": {
+              "first": "Plot!41trey",
+              "second": {
+                "first": "Plot!q6f7ui",
+                "second": "Plot!4ia1dcm",
+                "direction": "row"
+              },
+              "direction": "row",
+              "splitPercentage": 29.72972972972973
+            },
+            "direction": "column",
+            "splitPercentage": 69.86721144024514
+          }
+        }
+      ]
+    },
+    "Plot!4ia1dcm": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/sensor/seapath/yaw/ned.data",
+          "enabled": true
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/sensor/seapath/yaw_ref/ned.data",
+          "enabled": true
+        }
+      ],
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 30,
+      "foxglovePanelTitle": "Yaw"
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": "Tab!23gzpt8"
+}

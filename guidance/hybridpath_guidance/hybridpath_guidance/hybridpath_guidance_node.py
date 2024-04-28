@@ -7,7 +7,7 @@ from vortex_msgs.msg import HybridpathReference
 from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Int32
 
 from hybridpath_guidance.hybridpath import HybridPathGenerator, HybridPathSignals
 
@@ -27,6 +27,7 @@ class Guidance(Node):
         self.eta_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
         self.switching_publisher = self.create_publisher(Bool, 'guidance/hybridpath/finished', 10)
+        self.switching_criteria_subscriber = self.create_subscription(Int32, 'guidance/hybridpath/switching', self.switching_callback, 10)
         
         # Get parameters
         self.lambda_val = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
@@ -34,6 +35,8 @@ class Guidance(Node):
         self.dt = self.get_parameter('hybridpath_guidance.dt').get_parameter_value().double_value
         self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
         self.eta = np.zeros(3)
+
+        self.switching_waypoint = 1
 
         # Flags for logging
         self.waypoints_received = False
@@ -60,6 +63,9 @@ class Guidance(Node):
         
         response.success = True
         return response
+    
+    def switching_callback(self, msg: Int32):
+        self.switching_waypoint = msg.data
     
     def eta_callback(self, msg: Odometry):
         self.eta = self.odom_to_eta(msg)

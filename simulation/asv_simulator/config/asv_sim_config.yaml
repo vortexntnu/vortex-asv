@@ -1,0 +1,8 @@
+/**:
+  ros__parameters:
+    asv_sim:
+      plot_matplotlib_enabled: true
+      progress_bar_enabled: true
+      hybridpath_path_following: true
+      T: 200
+      waypoints: [0.0, 0.0, 5.0, 5.0, 5.0, 10.0] # [x1, y1, x2, y2, x3, y3]
