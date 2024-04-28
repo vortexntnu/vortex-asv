@@ -33,6 +33,8 @@ class Guidance(Node):
         self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
         self.eta = np.zeros(3)
 
+        self.u_desired = 0.25 # Desired velocity
+
         # Flags for logging
         self.waypoints_received = False
         self.waiting_message_printed = False
@@ -53,7 +55,6 @@ class Guidance(Node):
 
         self.s = 0
         signals = HybridPathSignals(self.path, self.s)
-        self.u_desired = signals.u_desired
         self.w = signals.get_w(self.mu, self.eta)
         
         response.success = True
