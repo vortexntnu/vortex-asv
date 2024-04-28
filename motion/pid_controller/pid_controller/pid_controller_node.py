@@ -23,7 +23,8 @@ class PIDControllerNode(Node):
             parameters=[
                 ('pid_controller.Kp', [1.0, 1.0, 1.0]),
                 ('pid_controller.Ki', [1.0, 1.0, 1.0]),
-                ('pid_controller.Kd', [1.0, 1.0, 1.0])
+                ('pid_controller.Kd', [1.0, 1.0, 1.0]),
+                ('physical.inertia_matrix', [90.5, 0.0, 0.0, 0.0, 167.5, 12.25, 0.0, 12.25, 42.65])
             ])
         
         self.state_subscriber_ = self.create_subscription(Odometry, "/sensor/seapath/odom/ned", self.state_cb, qos_profile=qos_profile)
@@ -33,6 +34,17 @@ class PIDControllerNode(Node):
         Kp = self.get_parameter('pid_controller.Kp').get_parameter_value().double_array_value
         Ki = self.get_parameter('pid_controller.Ki').get_parameter_value().double_array_value
         Kd = self.get_parameter('pid_controller.Kd').get_parameter_value().double_array_value
+        M = self.get_parameter('physical.inertia_matrix').get_parameter_value().double_array_value
+        
+        M = np.reshape(M, (3, 3))
+        M_diag = np.diag(M)
+
+        ## PID TUNING VALUES ## (OVERWRITES YAML FILE VALUES)
+        omega_n = 1.2
+        zeta = 0.75
+        Kp = M_diag * omega_n**2
+        Kd = M_diag * 2 * zeta * omega_n #- D_diag
+        Ki = omega_n/10 * Kp
 
         self.pid = PID(Kp, Ki, Kd)
 
