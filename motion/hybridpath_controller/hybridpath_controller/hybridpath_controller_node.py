@@ -7,6 +7,11 @@ from hybridpath_controller.adaptive_backstep import AdaptiveBackstep
 from geometry_msgs.msg import Wrench
 from nav_msgs.msg import Odometry
 from vortex_msgs.msg import HybridpathReference
+from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
+
+
+qos_profile = QoSProfile(depth=1, history=qos_profile_sensor_data.history, 
+                         reliability=QoSReliabilityPolicy.BEST_EFFORT)
 
 class HybridPathControllerNode(Node):
     def __init__(self):
@@ -20,7 +25,7 @@ class HybridPathControllerNode(Node):
                 ('physical.damping_matrix_diag', [10.0, 10.0, 5.0])
             ])
         
-        self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.state_callback, 1)
+        self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.state_callback, qos_profile=qos_profile)
         self.hpref_subscriber_ = self.create_subscription(HybridpathReference, 'guidance/hybridpath/reference', self.reference_callback, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench, 'thrust/wrench_input', 1)
 

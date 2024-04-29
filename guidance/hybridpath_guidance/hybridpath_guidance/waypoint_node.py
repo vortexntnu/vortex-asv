@@ -7,11 +7,16 @@ from geometry_msgs.msg import Point
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
 import numpy as np
+from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
+
+
+qos_profile = QoSProfile(depth=1, history=qos_profile_sensor_data.history, 
+                         reliability=QoSReliabilityPolicy.BEST_EFFORT)
 
 class WaypointClient(Node):
     def __init__(self):
         super().__init__('waypoint_client')
-        self.eta_odom = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, 1)
+        self.eta_odom = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, qos_profile=qos_profile)
 
         self.eta_received = False
 
@@ -34,7 +39,7 @@ class WaypointClient(Node):
     def send_request(self):
         if self.eta_received:
             req = Waypoint.Request()
-            wp_list = [[self.eta[0], self.eta[1]], [self.eta[0] + 3., self.eta[1] + 3]]
+            wp_list = [[self.eta[0], self.eta[1]], [self.eta[0] + 3., self.eta[1]]]
             req.waypoint = [Point(x=float(wp[0]), y=float(wp[1]), z=0.0) for wp in wp_list]
             self.get_logger().info(f'Sending request: {req}')
             self.future = self.client.call_async(req)

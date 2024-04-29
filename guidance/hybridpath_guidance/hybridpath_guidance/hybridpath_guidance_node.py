@@ -7,8 +7,12 @@ from vortex_msgs.msg import HybridpathReference
 from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
-
 from hybridpath_guidance.hybridpath import HybridPathGenerator, HybridPathSignals
+from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
+
+
+qos_profile = QoSProfile(depth=1, history=qos_profile_sensor_data.history, 
+                         reliability=QoSReliabilityPolicy.BEST_EFFORT)
 
 class Guidance(Node):
     def __init__(self):
@@ -23,7 +27,7 @@ class Guidance(Node):
             ])
         
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
-        self.eta_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, 1)
+        self.eta_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, qos_profile=qos_profile)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
         
         # Get parameters
