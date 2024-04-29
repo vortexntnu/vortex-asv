@@ -20,7 +20,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-lqr_controller/lqr_controller_node.py
+  lqr_controller/lqr_controller_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

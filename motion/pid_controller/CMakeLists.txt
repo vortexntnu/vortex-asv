@@ -20,7 +20,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-pid_controller/pid_controller_node.py
+  pid_controller/pid_controller_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

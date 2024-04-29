@@ -8,8 +8,8 @@ from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
 
-from dp_guidance.conversions import odometrymsg_to_state, state_to_odometrymsg
-from dp_guidance.reference_filter import ReferenceFilter
+from conversions import odometrymsg_to_state, state_to_odometrymsg
+from reference_filter import ReferenceFilter
 
 class Guidance(Node):
     def __init__(self):
@@ -64,9 +64,9 @@ class Guidance(Node):
             self.eta_ref = np.array([last_waypoint.x, last_waypoint.y, 0])
             x_next = self.reference_filter.step(self.eta_ref, self.xd)
             self.xd = x_next
-            self.get_logger().info(f'x_next[0]: {x_next[0]}')
-            self.get_logger().info(f'x_next[0]: {x_next[1]}')
-            self.get_logger().info(f'x_next[0]: {x_next[2]}')
+            # self.get_logger().info(f'x_next[0]: {x_next[0]}')
+            # self.get_logger().info(f'x_next[0]: {x_next[1]}')
+            # self.get_logger().info(f'x_next[0]: {x_next[2]}')
 
             odom_msg = Odometry()
             odom_msg = state_to_odometrymsg(x_next[:3])

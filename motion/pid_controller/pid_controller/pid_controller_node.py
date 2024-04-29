@@ -5,8 +5,8 @@ import numpy as np
 from rclpy.node import Node
 from geometry_msgs.msg import Wrench
 from nav_msgs.msg import Odometry
-from pid_controller.pid_controller import PID
-from pid_controller.conversions import odometrymsg_to_state
+from pid_controller import PID
+from conversions import odometrymsg_to_state
 from time import sleep
 
 from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
@@ -67,7 +67,7 @@ class PIDControllerNode(Node):
     def controller_callback(self):
         if hasattr(self, 'state') and hasattr(self, 'x_ref'):
             control_input = self.pid.calculate_control_input(self.state[:3], self.x_ref, self.state[3:], self.controller_period)
-            self.get_logger().info(f"Control input: {control_input}")
+            # self.get_logger().info(f"Control input: {control_input}")
             wrench_msg = Wrench()
             wrench_msg.force.x  = control_input[0]
             wrench_msg.force.y  = control_input[1]

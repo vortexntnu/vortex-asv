@@ -5,8 +5,8 @@ import numpy as np
 from rclpy.node import Node
 from geometry_msgs.msg import Wrench
 from nav_msgs.msg import Odometry
-from lqr_controller.lqr_controller import LQRController
-from lqr_controller.conversions import odometrymsg_to_state
+from lqr_controller import LQRController
+from conversions import odometrymsg_to_state
 from time import sleep
 
 from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
