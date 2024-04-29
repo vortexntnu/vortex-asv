@@ -19,11 +19,11 @@ class Guidance(Node):
                 ('hybridpath_guidance.lambda_val', 0.15),
                 ('hybridpath_guidance.path_generator_order', 1),
                 ('hybridpath_guidance.dt', 0.1),
-                ('hybridpath_guidance.mu', 0.03)
+                ('hybridpath_guidance.mu', 0.2)
             ])
         
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
-        self.eta_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
+        self.eta_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, 1)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
         
         # Get parameters
@@ -33,7 +33,7 @@ class Guidance(Node):
         self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
         self.eta = np.zeros(3)
 
-        self.u_desired = 0.25 # Desired velocity
+        self.u_desired = 0.2 # Desired velocity
 
         # Flags for logging
         self.waypoints_received = False

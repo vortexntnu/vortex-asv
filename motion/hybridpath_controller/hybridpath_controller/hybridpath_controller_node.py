@@ -20,7 +20,7 @@ class HybridPathControllerNode(Node):
                 ('physical.damping_matrix_diag', [10.0, 10.0, 5.0])
             ])
         
-        self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.state_callback, 1)
+        self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.state_callback, 1)
         self.hpref_subscriber_ = self.create_subscription(HybridpathReference, 'guidance/hybridpath/reference', self.reference_callback, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench, 'thrust/wrench_input', 1)
 
