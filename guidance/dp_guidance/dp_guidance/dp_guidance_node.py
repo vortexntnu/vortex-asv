@@ -10,6 +10,10 @@ from transforms3d.euler import quat2euler
 
 from conversions import odometrymsg_to_state, state_to_odometrymsg
 from reference_filter import ReferenceFilter
+from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
+
+qos_profile = QoSProfile(depth=1, history=qos_profile_sensor_data.history, 
+                         reliability=QoSReliabilityPolicy.BEST_EFFORT)
 
 class Guidance(Node):
     def __init__(self):
@@ -21,7 +25,7 @@ class Guidance(Node):
             ])
         
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
-        self.eta_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/sensor/seapath/odom/ned', self.eta_callback, 1)
+        self.eta_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, qos_profile=qos_profile)
         self.guidance_publisher = self.create_publisher(Odometry, 'guidance/dp/reference', 1)
         
         # Get parameters
@@ -32,6 +36,7 @@ class Guidance(Node):
         self.waiting_message_printed = False
 
         self.init_pos = False
+        self.eta_received = False
 
         self.eta = np.array([0, 0, 0])
         self.eta_ref = np.array([0, 0, 0])
@@ -54,11 +59,13 @@ class Guidance(Node):
     
     def eta_callback(self, msg: Odometry):
         self.eta = odometrymsg_to_state(msg)[:3]
+        self.eta_received = True
 
     def guidance_callback(self):
-        if self.waypoints_received:
+        if self.waypoints_received and self.eta_received:
             if not self.init_pos:
                 self.xd[0:3] = self.eta
+                self.get_logger().info(f"Reference initialized at {self.xd[0:3]}")
                 self.init_pos = True
             last_waypoint = self.waypoints[-1]
             self.eta_ref = np.array([last_waypoint.x, last_waypoint.y, 0])
@@ -73,6 +80,9 @@ class Guidance(Node):
             self.guidance_publisher.publish(odom_msg)
 
         else:
+            if not self.eta_received:
+                self.get_logger().info("Waiting for eta")
+
             if not self.waiting_message_printed:
                 self.get_logger().info('Waiting for waypoints to be received')
                 self.waiting_message_printed = True
