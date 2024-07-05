@@ -1,5 +1,5 @@
 /**:
   ros__parameters:
     hybridpath_controller:
-      K1_diag: [1.0, 1.0, 1.0] # First gain matrix
-      K2_diag: [40.0, 40.0, 40.0] # Second gain matrix
+      K1_diag: [0.5, 0.5, 0.5] # First gain matrix
+      K2_diag: [20.0, 20.0, 20.0] # Second gain matrix

@@ -3,6 +3,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose2D
+from std_msgs.msg import Float32
 from vortex_msgs.msg import HybridpathReference
 from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
@@ -28,6 +29,7 @@ class Guidance(Node):
         
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
         self.eta_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, qos_profile=qos_profile)
+        self.yaw_publisher = self.create_publisher(Float32, 'yaw', 1)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
         
         # Get parameters
@@ -65,7 +67,11 @@ class Guidance(Node):
         return response
     
     def eta_callback(self, msg: Odometry):
+        yaw_msg = Float32()
         self.eta = self.odom_to_eta(msg)
+        yaw = float(self.eta[2])
+        yaw_msg.data = yaw
+        self.yaw_publisher.publish(yaw_msg)
 
     def guidance_callback(self):
         if self.waypoints_received:
@@ -77,9 +83,9 @@ class Guidance(Node):
             pos_der = signals.get_derivatives()[0]
             pos_dder = signals.get_derivatives()[1]
 
-            psi = signals.get_heading()
-            psi_der = signals.get_heading_derivative()
-            psi_dder = signals.get_heading_second_derivative()
+            psi = 0.#signals.get_heading()
+            psi_der = 0.#signals.get_heading_derivative()
+            psi_dder = 0.#signals.get_heading_second_derivative()
 
             hp_msg = HybridpathReference()
             hp_msg.eta_d = Pose2D(x=pos[0], y=pos[1], theta=psi)
