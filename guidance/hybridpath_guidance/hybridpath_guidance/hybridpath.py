@@ -66,6 +66,40 @@ class HybridPathGenerator:
         path (Path): The path object.
     """
     def __init__(self, WP: list[Point], r: int, lambda_val: float):
+        self.WP = WP
+        self.r = r
+        self.lambda_val = lambda_val
+        self.order = 2*r + 1
+
+    def create_path(self, WP: list[Point]) -> None:
+        """
+        Create a path object.
+
+        Args:
+            WP (list[Point]): A list of waypoints.
+
+        Returns:
+            None
+        """
+        self.update_waypoints(WP)
+        self._initialize_path()
+        self._calculate_subpaths()
+
+    def _initialize_path(self):
+        self.path = Path()
+        
+        self.path.coeff.a = []
+        self.path.coeff.b = []
+        self.path.coeff.a_der = []
+        self.path.coeff.b_der = []
+        self.path.LinSys.A = None
+        self.path.LinSys.bx = []
+        self.path.LinSys.by = []
+
+        self.path.NumSubpaths = len(self.WP) - 1
+        self.path.Order = self.order
+
+    def update_waypoints(self, WP: list[Point]) -> None:
         # Convert the waypoints to a numpy array
         WP_arr = np.array([[wp.x, wp.y] for wp in WP])
 
@@ -77,13 +111,6 @@ class HybridPathGenerator:
         
         else:
             self.WP = WP_arr
-        self.r = r
-        self.lambda_val = lambda_val
-        self.order = 2*r + 1
-        self.path = Path()
-        self.path.NumSubpaths = len(self.WP) - 1
-        self.path.Order = self.order
-        self._calculate_subpaths()
 
     def _construct_A_matrix(self) -> np.ndarray:
         """
@@ -280,6 +307,12 @@ class HybridPathGenerator:
             for k, (a, b) in enumerate(zip(a_derivatives, b_derivatives)):
                 self._append_derivatives(k, a, b)
 
+    def get_path(self) -> Path:
+        """
+        Get the hybrid path.
+        """
+        return self.path
+
     @staticmethod
     def update_s(path: Path, dt: float, u_desired: float, s: float, w: float) -> float:
         """
@@ -295,7 +328,9 @@ class HybridPathGenerator:
             float: The updated position along the hybrid path.
 
         """
-        signals = HybridPathSignals(path, s)
+        signals = HybridPathSignals()
+        signals.update_path(path)
+        signals.update_s(s)
         v_s = signals.get_vs(u_desired)
         s_new = s + (v_s + w) * dt
         return s_new
@@ -314,13 +349,14 @@ class HybridPathSignals:
         Path (Path): The path object.
         s (float): The path parameter.
     """
-    def __init__(self, path: Path, s: float):
-        if not isinstance(path, Path):
-            raise TypeError("path must be an instance of Path")
-        self.path = path
-        self.s = self._clamp_s(s, self.path.NumSubpaths)
+    def __init__(self):
+        # if not isinstance(path, Path):
+        #     raise TypeError("path must be an instance of Path")
+        self.path = None
+        self.s = None
 
-    def _clamp_s(self, s: float, num_subpaths: int) -> float:
+    @staticmethod
+    def _clamp_s(s: float, num_subpaths: int) -> float:
         """
         Ensures s is within the valid range of [0, num_subpaths].
 
@@ -506,4 +542,29 @@ class HybridPathSignals:
         w = (mu / np.linalg.norm(eta_d_s)) * np.dot(eta_d_s, error)
         
         return w
+    
+    def update_path(self, path: Path) -> None:
+        """
+        Update the path object.
+
+        Args:
+            path (Path): The new path object.
+
+        Returns:
+            None
+        """
+        self.path = path
+        self.update_s(0.)
+
+    def update_s(self, s: float) -> None:
+        """
+        Update the path parameter.
+
+        Args:
+            s (float): The new path parameter.
+
+        Returns:
+            None
+        """
+        self.s = self._clamp_s(s, self.path.NumSubpaths)
     

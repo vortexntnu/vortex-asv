@@ -22,6 +22,7 @@ install(DIRECTORY
 install(PROGRAMS
   hybridpath_guidance/hybridpath_guidance_node.py
   hybridpath_guidance/waypoint_node.py
+  hybridpath_guidance/noisy_odom_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -4,7 +4,13 @@ from vortex_msgs.msg import HybridpathReference
 from transforms3d.euler import quat2euler
 
 class AdaptiveBackstep:
-    def __init__(self, K1: np.ndarray, K2: np.ndarray, M: np.ndarray, D: np.ndarray) -> None:
+    def __init__(self):
+        self.K_1 = np.eye(3)
+        self.K_2 = np.eye(3)
+        self.M = np.eye(3)
+        self.D = np.eye(3)
+        
+    def update_parameters(self, K1: np.ndarray, K2: np.ndarray, M: np.ndarray, D: np.ndarray) -> None:
         self.K_1 = K1
         self.K_2 = K2
         self.M = M
@@ -27,6 +33,7 @@ class AdaptiveBackstep:
 
         # Extract values from the state and reference
         eta = state[:3]
+        # eta[0] = 0.
         nu = state[3:]
         w = reference.w
         v_s = reference.v_s
@@ -54,7 +61,33 @@ class AdaptiveBackstep:
 
         tau = -self.K_2 @ z2 + self.calculate_coriolis_matrix(nu) + self.D @ nu + self.M @ sigma1 + self.M @ ds_alpha1 * (v_s + w)
 
+        self.eta_error = eta_error
+        self.z1 = z1
+        self.alpha1 = alpha1
+        self.z2 = z2
+        self.ds_alpha1 = ds_alpha1
+        self.sigma1 = sigma1
+
         return tau
+    
+    def get_eta_error(self):
+        return self.eta_error
+    
+    def get_z1(self):
+        return self.z1
+    
+    def get_alpha1(self):
+        return self.alpha1
+    
+    def get_z2(self):
+        return self.z2
+    
+    def get_sigma1(self):
+        return self.sigma1
+    
+    def get_ds_alpha1(self):
+        return self.ds_alpha1
+    
     
     @staticmethod
     def calculate_coriolis_matrix(nu: np.ndarray) -> np.ndarray: 
@@ -66,7 +99,7 @@ class AdaptiveBackstep:
             [0, 0, 5.5],
             [82.5, -5.5, 0]
         ])
-        return C_A @ nu
+        return (C_A @ nu) * 0
 
     @staticmethod
     def rotationmatrix_in_yaw_transpose(psi: float) -> np.ndarray:
@@ -117,6 +150,8 @@ class AdaptiveBackstep:
 
         # Convert quaternion to Euler angles
         yaw = quat2euler(orientation_list)[2]
+
+        # yaw = np.deg2rad(yaw)
 
         u = msg.twist.twist.linear.x
         v = msg.twist.twist.linear.y

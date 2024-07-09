@@ -37,6 +37,7 @@ class Guidance(Node):
 
         self.init_pos = False
         self.eta_received = False
+        self.eta_logger = True
 
         self.eta = np.array([0, 0, 0])
         self.eta_ref = np.array([0, 0, 0])
@@ -68,7 +69,7 @@ class Guidance(Node):
                 self.get_logger().info(f"Reference initialized at {self.xd[0:3]}")
                 self.init_pos = True
             last_waypoint = self.waypoints[-1]
-            self.eta_ref = np.array([last_waypoint.x, last_waypoint.y, 0])
+            self.eta_ref = np.array([last_waypoint.x, last_waypoint.y, self.eta[2]])
             x_next = self.reference_filter.step(self.eta_ref, self.xd)
             self.xd = x_next
             # self.get_logger().info(f'x_next[0]: {x_next[0]}')
@@ -76,12 +77,14 @@ class Guidance(Node):
             # self.get_logger().info(f'x_next[0]: {x_next[2]}')
 
             odom_msg = Odometry()
-            odom_msg = state_to_odometrymsg(x_next[:3])
+            # odom_msg = state_to_odometrymsg(x_next[:3])
+            odom_msg = state_to_odometrymsg(self.eta_ref)
             self.guidance_publisher.publish(odom_msg)
 
         else:
-            if not self.eta_received:
+            if not self.eta_received and self.eta_logger:
                 self.get_logger().info("Waiting for eta")
+                self.eta_logger = False
 
             if not self.waiting_message_printed:
                 self.get_logger().info('Waiting for waypoints to be received')
