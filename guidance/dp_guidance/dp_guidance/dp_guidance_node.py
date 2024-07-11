@@ -53,6 +53,7 @@ class Guidance(Node):
     def waypoint_callback(self, request, response):
         self.waypoints = request.waypoint
         self.get_logger().info(f'Received waypoints: {self.waypoints}')
+        self.xd = np.zeros(9)
         self.waypoints_received = True
         self.waiting_message_printed = False  # Reset this flag to handle multiple waypoint sets
         response.success = True
@@ -77,8 +78,8 @@ class Guidance(Node):
             # self.get_logger().info(f'x_next[0]: {x_next[2]}')
 
             odom_msg = Odometry()
-            # odom_msg = state_to_odometrymsg(x_next[:3])
-            odom_msg = state_to_odometrymsg(self.eta_ref)
+            odom_msg = state_to_odometrymsg(x_next[:3])
+            # odom_msg = state_to_odometrymsg(self.eta_ref)
             self.guidance_publisher.publish(odom_msg)
 
         else:
