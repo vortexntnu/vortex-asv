@@ -1,6 +1,6 @@
 /**:
   ros__parameters:
     pid_controller:
-      Kp: [23.04, 34.56, 4.032] # Proportional costs for [x, y, heading]
-      Ki: [2.76, 4.1, 0.48]  # Integral costs for [x, y, heading]
-      Kd: [28.7648, 43.1472, 5.048384]  # Derivative costs for [x, y, heading]
+      Kp: [130., 240., 60.] # Proportional costs for [x, y, heading]
+      Ki: [15., 29., 7.]  # Integral costs for [x, y, heading]
+      Kd: [160., 300., 75.]  # Derivative costs for [x, y, heading]

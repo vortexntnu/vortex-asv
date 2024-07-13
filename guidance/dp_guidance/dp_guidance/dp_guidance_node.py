@@ -7,7 +7,7 @@ from geometry_msgs.msg import Pose2D
 from vortex_msgs.srv import Waypoint
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
-
+from std_msgs.msg import Float32
 from conversions import odometrymsg_to_state, state_to_odometrymsg
 from reference_filter import ReferenceFilter
 from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
@@ -27,7 +27,9 @@ class Guidance(Node):
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
         self.eta_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, qos_profile=qos_profile)
         self.guidance_publisher = self.create_publisher(Odometry, 'guidance/dp/reference', 1)
-        
+        self.yaw_publisher = self.create_publisher(Float32, 'yaw', 1)
+        self.yaw_ref_publisher = self.create_publisher(Float32, 'yaw_ref', 1)
+
         # Get parameters
         self.dt = self.get_parameter('dp_guidance.dt').get_parameter_value().double_value
 
@@ -39,8 +41,7 @@ class Guidance(Node):
         self.eta_received = False
         self.eta_logger = True
 
-        self.eta = np.array([0, 0, 0])
-        self.eta_ref = np.array([0, 0, 0])
+        self.yaw_ref = 0
 
         self.xd = np.zeros(9)
 
@@ -62,6 +63,7 @@ class Guidance(Node):
     def eta_callback(self, msg: Odometry):
         self.eta = odometrymsg_to_state(msg)[:3]
         self.eta_received = True
+        self.yaw_publisher.publish(Float32(data=self.eta[2]))
 
     def guidance_callback(self):
         if self.waypoints_received and self.eta_received:
@@ -70,7 +72,7 @@ class Guidance(Node):
                 self.get_logger().info(f"Reference initialized at {self.xd[0:3]}")
                 self.init_pos = True
             last_waypoint = self.waypoints[-1]
-            self.eta_ref = np.array([last_waypoint.x, last_waypoint.y, self.eta[2]])
+            self.eta_ref = np.array([last_waypoint.x, last_waypoint.y, self.yaw_ref])
             x_next = self.reference_filter.step(self.eta_ref, self.xd)
             self.xd = x_next
             # self.get_logger().info(f'x_next[0]: {x_next[0]}')
