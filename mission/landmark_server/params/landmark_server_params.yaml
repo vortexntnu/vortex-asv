@@ -1,0 +1,4 @@
+landmark_server_node:
+  ros__parameters:
+    fixed_frame: world
+    target_frame: base_link

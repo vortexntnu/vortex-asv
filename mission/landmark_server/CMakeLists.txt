@@ -22,24 +22,34 @@ find_package(std_msgs REQUIRED)
 find_package(vortex_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(rclcpp_action REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED)
 
 include_directories(include)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 # Create an executable
 add_executable(landmark_server_node 
     src/landmark_server.cpp
-    src/landmark_server_main.cpp)
+    src/landmark_server_main.cpp
+    src/grid_manager.cpp)
 
 target_link_libraries( ${PROJECT_NAME}_node
-    pcl_common)
+    pcl_common
+    ${PCL_LIBRARIES}
+    Eigen3::Eigen)
 
 ament_target_dependencies(landmark_server_node
     rclcpp
     std_msgs
     vortex_msgs
+    sensor_msgs
+    pcl_conversions
     nav_msgs
     rclcpp_action
     rclcpp_components
@@ -52,6 +62,8 @@ ament_target_dependencies(landmark_server_node
   )
   
   install(DIRECTORY
+    launch
+    params
     DESTINATION share/${PROJECT_NAME}/
   )
 
