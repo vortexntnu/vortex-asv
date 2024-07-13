@@ -1,15 +1,14 @@
 #ifndef LANDMARK_SERVER_HPP
 #define LANDMARK_SERVER_HPP
 
-#include <rclcpp/rclcpp.hpp>
+#include <cstdint>
 #include <landmark_server/grid_manager.hpp>
+#include <pcl/surface/convex_hull.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <sstream>
 #include <thread>
-#include <cstdint>
-#include <pcl/surface/convex_hull.h>
-#include <pcl_conversions/pcl_conversions.h>
-
 
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <vortex_msgs/action/filtered_landmarks.hpp>
@@ -20,12 +19,11 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include "nav_msgs/srv/get_map.hpp"
 #include <tf2/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include "nav_msgs/srv/get_map.hpp"
 
 #include <sensor_msgs/msg/point_cloud2.hpp>
-
 
 namespace landmark_server {
 
@@ -72,10 +70,10 @@ protected:
   void landmarksRecievedCallback(
       const vortex_msgs::msg::LandmarkArray::SharedPtr msg);
 
+  Eigen::Array<float, 2, Eigen::Dynamic>
+  get_convex_hull(const shape_msgs::msg::SolidPrimitive &solid_primitive);
 
-Eigen::Array<float, 2, Eigen::Dynamic> get_convex_hull(const shape_msgs::msg::SolidPrimitive& solid_primitive);
-
-void get_grid();
+  void get_grid();
 
   /**
    * @brief A shared pointer to a publisher for the LandmarkArray message type.
@@ -92,16 +90,16 @@ void get_grid();
 
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr gridPublisher_;
 
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr convex_hull_publisher_;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cluster_publisher_;
-
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      convex_hull_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      cluster_publisher_;
 
   /**
    * @brief A shared pointer to a LandmarkArray message.
    * The array contains all landmarks currently stored by the server.
    */
   std::shared_ptr<vortex_msgs::msg::LandmarkArray> storedLandmarks_;
-
 
   nav_msgs::msg::OccupancyGrid grid_msg_;
 
