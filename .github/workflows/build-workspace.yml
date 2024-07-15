@@ -21,15 +21,10 @@ jobs:
       with:
         required-ros-distributions: humble
 
-    - name: Clone vortex-msgs
-      run: |
-        git clone https://github.com/vortexntnu/vortex-msgs.git
-
     - name: Create workspace
       run: |
         mkdir -p ~/ros2_ws/src
         cp -R $GITHUB_WORKSPACE ~/ros2_ws/src/
-        mv vortex-msgs ~/ros2_ws/src/
 
     - name: Install dependencies
       run: |
