@@ -2,7 +2,6 @@
 
 import numpy as np
 import control
-import matplotlib.pyplot as plt
 
 class ReferenceFilter:
     def __init__(self):
@@ -50,23 +49,3 @@ class ReferenceFilter:
                 [np.sin(psi), np.cos(psi), 0],
                 [0, 0, 1]])
         return R
-
-
-if __name__ == "__main__":
-    refFilter = ReferenceFilter()
-    ref_pos = np.array([5, 10, 0])
-    t = np.arange(0, 100, 0.1)
-    N = len(t)
-    x_d = np.zeros((N, 9))
-
-    for k in range(1,N):
-        x_d[k,:] = refFilter.step(ref_pos, x_d[k-1, :])
-
-    eta_d = refFilter.get_eta(x_d)
-    nu_d = refFilter.get_nu(x_d)
-    plt.figure()
-    plt.plot(t, eta_d[:,0])
-
-    plt.figure()
-    plt.plot(t, nu_d[:,0])
-    plt.show()

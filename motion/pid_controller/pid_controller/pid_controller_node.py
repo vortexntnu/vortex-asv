@@ -60,6 +60,8 @@ class PIDControllerNode(Node):
         self.get_logger().info("pid_controller_node started")
 
     def update_controller_parameters(self):
+        self.pid_controller.error_sum = np.zeros(3)
+
         Kp = self.get_parameter('pid_controller.Kp').get_parameter_value().double_array_value
         Ki = self.get_parameter('pid_controller.Ki').get_parameter_value().double_array_value
         Kd = self.get_parameter('pid_controller.Kd').get_parameter_value().double_array_value

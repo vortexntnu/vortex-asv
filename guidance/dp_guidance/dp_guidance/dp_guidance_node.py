@@ -41,7 +41,7 @@ class Guidance(Node):
         self.eta_received = False
         self.eta_logger = True
 
-        self.yaw_ref = 0
+        self.yaw_ref = 0.
 
         self.xd = np.zeros(9)
 
@@ -52,6 +52,7 @@ class Guidance(Node):
         self.timer = self.create_timer(timer_period, self.guidance_callback)
 
     def waypoint_callback(self, request, response):
+        self.init_pos = False
         self.waypoints = request.waypoint
         self.get_logger().info(f'Received waypoints: {self.waypoints}')
         self.xd = np.zeros(9)
@@ -64,6 +65,7 @@ class Guidance(Node):
         self.eta = odometrymsg_to_state(msg)[:3]
         self.eta_received = True
         self.yaw_publisher.publish(Float32(data=self.eta[2]))
+        self.yaw_ref_publisher.publish(Float32(data=self.yaw_ref))
 
     def guidance_callback(self):
         if self.waypoints_received and self.eta_received:
