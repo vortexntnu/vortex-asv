@@ -12,6 +12,13 @@ def generate_launch_description():
         value='[${severity}] [${time}] [${node}]: ${message}'
     )
 
+    # System Monitor launch
+    system_monitor_launch = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+            path.join(get_package_share_directory('system_monitor'),'launch','system_monitor.launch.py')
+        )
+    )
+
     # Thruster Allocator launch
     thruster_allocator_launch = IncludeLaunchDescription(
     PythonLaunchDescriptionSource(
@@ -29,6 +36,7 @@ def generate_launch_description():
     # Return launch description
     return LaunchDescription([
         set_env_var,
+        system_monitor_launch,
         thruster_allocator_launch,
-        thruster_interface_launch
+        thruster_interface_launch,
     ])

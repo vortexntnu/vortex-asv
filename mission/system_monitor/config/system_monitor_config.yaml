@@ -1,0 +1,3 @@
+system_monitor:
+  ros__parameters:
+    ip_list: ["10.24.166.212"]
