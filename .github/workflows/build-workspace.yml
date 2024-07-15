@@ -1,6 +1,7 @@
 name: Build ROS 2 Package
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
