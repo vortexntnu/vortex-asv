@@ -28,7 +28,7 @@ jobs:
     - name: Create workspace
       run: |
         mkdir -p ~/ros2_ws/src
-        mv $GITHUB_WORKSPACE ~/ros2_ws/src/
+        cp -R $GITHUB_WORKSPACE ~/ros2_ws/src/
         mv vortex-msgs ~/ros2_ws/src/
 
     - name: Install dependencies
