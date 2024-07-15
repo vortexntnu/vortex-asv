@@ -1,0 +1,50 @@
+name: Build ROS 2 Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup ROS 2
+      uses: ros-tooling/setup-ros@v0.6
+      with:
+        required-ros-distributions: humble
+
+    - name: Clone vortex-msgs
+      run: |
+        git clone https://github.com/vortexntnu/vortex-msgs.git
+
+    - name: Create workspace
+      run: |
+        mkdir -p ~/ros2_ws/src
+        cp -R $GITHUB_WORKSPACE ~/ros2_ws/src/
+        cp -R vortex-msgs ~/ros2_ws/src/
+
+    - name: Install dependencies
+      run: |
+        cd ~/ros2_ws
+        rosdep update
+        rosdep install --from-paths src --ignore-src -r -y
+
+    - name: Build with colcon
+      run: |
+        cd ~/ros2_ws
+        . /opt/ros/humble/setup.sh
+        colcon build --symlink-install
+
+    - name: Run tests
+      run: |
+        cd ~/ros2_ws
+        . /opt/ros/humble/setup.sh
+        colcon test
+        colcon test-result --verbose
