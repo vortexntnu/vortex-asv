@@ -7,6 +7,9 @@ int main(int argc, char **argv) {
    rclcpp::init(argc, argv);
    auto allocator = std::make_shared<ThrusterAllocator>();
 
+   // Usually this would be done in the launchfile. However, we only want this node
+   // to be a lifecycle-node so that it can be shut down externally. Thus, we immediately
+   // transition to activate here.
    allocator->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
    allocator->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE);
 
