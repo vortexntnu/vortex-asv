@@ -16,10 +16,10 @@ class SystemMonitor(Node):
         self.m_ip_list = self.get_parameter('ip_list').get_parameter_value().string_array_value
 
         self.declare_parameter("ping_rate", rclpy.Parameter.Type.DOUBLE)
-        ping_rate = self.get_parameter("ping_rate").get_parameter_value()
+        ping_rate = self.get_parameter("ping_rate").get_parameter_value().double_value
 
         self.m_force_publisher = self.create_publisher(Float32MultiArray, '/thrust/thruster_forces', 5)
-        self.m_timer = self.create_timer(1.0, self.timer_callback)
+        self.m_timer = self.create_timer(ping_rate, self.timer_callback)
 
         self.m_allocator_lifecycle_client = self.create_client(ChangeState, '/motion/thruster_allocator_node/change_state')
 
