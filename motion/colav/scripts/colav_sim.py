@@ -9,8 +9,6 @@ from vortex_msgs.msg import GuidanceData
 from transforms3d.euler import quat2euler, euler2quat
 
 
-
-
 class Simulator(Node):
     def __init__(self):
         super().__init__("simulator")

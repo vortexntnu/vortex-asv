@@ -6,13 +6,13 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    waypoint_manager_node = Node(
-        package='waypoint_manager',
-        executable='waypoint_manager.py',
-        name='waypoint_manager',
+    colav_sim_node = Node(
+        package='colav',
+        executable='colav_sim.py',
+        name='colav_sim',
         output='screen'
     )
- 
+
     return LaunchDescription([
-        waypoint_manager_node
+        colav_sim_node
     ])
