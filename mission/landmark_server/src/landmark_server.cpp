@@ -47,6 +47,8 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
 
   declare_parameter<std::string>("fixed_frame", "world");
   declare_parameter<std::string>("target_frame", "base_link");
+  declare_parameter<double>("wall_width", 0.1);
+  
 
   // Create the act.
   action_server_ = rclcpp_action::create_server<Action>(
@@ -61,17 +63,49 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
 }
 
 Eigen::Array<float, 2, Eigen::Dynamic> LandmarkServerNode::get_convex_hull(
-    const shape_msgs::msg::SolidPrimitive &solid_primitive) {
+    const vortex_msgs::msg::Landmark &landmark) {
+      if (landmark.landmark_type == vortex_msgs::msg::Landmark::WALL) {
+        Eigen::Array<float, 2, Eigen::Dynamic> hull(2, 4);
+        float x1 = landmark.shape.polygon.points[0].x;
+        float y1 = landmark.shape.polygon.points[0].y;
+        float x2 = landmark.shape.polygon.points[1].x;
+        float y2 = landmark.shape.polygon.points[1].y;
+
+        // Calculate the direction vector
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+
+        // Normalize the direction vector
+        float length = std::sqrt(dx * dx + dy * dy);
+        dx /= length;
+        dy /= length;
+
+        // Perpendicular vector with the given width
+        float wall_width = get_parameter("wall_width").as_double();
+        float wx = -dy * wall_width/2; // half the width to each side
+        float wy = dx * wall_width/2;
+
+        // Calculate the four points of the rectangle in clockwise order
+        hull(0, 0) = x1 + wx;
+        hull(1, 0) = y1 + wy;
+        hull(0, 1) = x2 + wx;
+        hull(1, 1) = y2 + wy;
+        hull(0, 2) = x2 - wx;
+        hull(1, 2) = y2 - wy;
+        hull(0, 3) = x1 - wx;
+        hull(1, 3) = y1 - wy;
+        return hull;
+      }
   pcl::PointCloud<pcl::PointXYZ> cluster;
-  cluster.resize(solid_primitive.polygon.points.size());
-  for (size_t i = 0; i < solid_primitive.polygon.points.size(); i++) {
-    cluster.points[i].x = solid_primitive.polygon.points[i].x;
-    cluster.points[i].y = solid_primitive.polygon.points[i].y;
+  cluster.resize(landmark.shape.polygon.points.size());
+  for (size_t i = 0; i < landmark.shape.polygon.points.size(); i++) {
+    cluster.points[i].x = landmark.shape.polygon.points[i].x;
+    cluster.points[i].y = landmark.shape.polygon.points[i].y;
     cluster.points[i].z = 1.0;
   }
   sensor_msgs::msg::PointCloud2 cluster_msg;
   pcl::toROSMsg(cluster, cluster_msg);
-  cluster_msg.header.frame_id = "world";
+  cluster_msg.header.frame_id = get_parameter("fixed_frame").as_string();
   cluster_publisher_->publish(cluster_msg);
   pcl::PointCloud<pcl::PointXYZ> convex_hull;
   pcl::ConvexHull<pcl::PointXYZ> chull;
@@ -80,16 +114,13 @@ Eigen::Array<float, 2, Eigen::Dynamic> LandmarkServerNode::get_convex_hull(
   chull.reconstruct(convex_hull);
   sensor_msgs::msg::PointCloud2 hull_msg;
   pcl::toROSMsg(convex_hull, hull_msg);
-  hull_msg.header.frame_id = "world";
+  hull_msg.header.frame_id = get_parameter("fixed_frame").as_string();
   convex_hull_publisher_->publish(hull_msg);
-  RCLCPP_INFO(this->get_logger(), "Convex hull size: %ld", convex_hull.size());
   Eigen::Array<float, 2, Eigen::Dynamic> hull(2, convex_hull.size());
   for (size_t i = 0; i < convex_hull.size(); i++) {
     hull(0, i) = convex_hull.points[i].x;
     hull(1, i) = convex_hull.points[i].y;
   }
-  RCLCPP_INFO(this->get_logger(), "Convex hull: %ld", hull.cols());
-  std::cout << "HUll" << hull << std::endl;
   return hull;
 }
 
@@ -165,12 +196,11 @@ void LandmarkServerNode::landmarksRecievedCallback(
       } else {
         // Add the new landmark
         grid_manager_->update_grid(grid_msg_.data.data(),
-                                   get_convex_hull(landmark.shape), 200);
+                                   get_convex_hull(landmark), 200);
         storedLandmarks_->landmarks.push_back(landmark);
       }
       continue;
     }
-
     if (it == storedLandmarks_->landmarks.end()) {
       RCLCPP_WARN_STREAM_THROTTLE(
           this->get_logger(), *this->get_clock(), 5000,
@@ -179,26 +209,16 @@ void LandmarkServerNode::landmarksRecievedCallback(
     }
 
     grid_manager_->update_grid(grid_msg_.data.data(),
-                               get_convex_hull((*it).shape), -200);
+                               get_convex_hull((*it)), -200);
 
     if (landmark.action == vortex_msgs::msg::Landmark::REMOVE_ACTION) {
       storedLandmarks_->landmarks.erase(it);
     } else if (landmark.action == vortex_msgs::msg::Landmark::UPDATE_ACTION) {
       grid_manager_->update_grid(grid_msg_.data.data(),
-                                 get_convex_hull(landmark.shape), 200);
+                                 get_convex_hull(landmark), 200);
       *it = landmark;
     }
   }
-  std_msgs::msg::Header header;
-
-  // header.frame_id = get_parameter("fixed_frame").as_string();
-  // header.stamp = rclcpp::Clock().now();
-
-  // // Convert the Eigen array to std::vector<int8_t>
-  //   auto grid_eigen = grid_manager_->get_grid();
-  //   std::vector<int8_t> grid_data(grid_eigen.data(), grid_eigen.data() +
-  //   grid_eigen.size()); grid_msg_.header = header; grid_msg_.data =
-  //   grid_data;
   grid_msg_.header.stamp = rclcpp::Clock().now();
 
   // Publish the landmarks

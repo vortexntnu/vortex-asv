@@ -17,7 +17,7 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
       qos_profile_transient_local);
 
   map_origin_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
-      "map_origin", qos_transient_local,
+      "/map/origin", qos_transient_local,
       std::bind(&MapManagerNode::mapOriginCallback, this,
                 std::placeholders::_1));
 
@@ -28,7 +28,7 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
   declare_parameter("map_resolution", 0.2);
   declare_parameter("map_width", 1000);
   declare_parameter("map_height", 1000);
-  declare_parameter("map_frame_id", "world");
+  declare_parameter("frame_id", "map");
 
   landmask_file_ = get_parameter("landmask_file").as_string();
   landmask_pub_ = this->create_publisher<geometry_msgs::msg::PolygonStamped>(
@@ -187,7 +187,7 @@ MapManagerNode::readPolygonFromFile(const std::string &filename) {
 geometry_msgs::msg::PolygonStamped MapManagerNode::processCoordinates(
     const std::vector<std::array<double, 2>> &coordinates) {
   geometry_msgs::msg::PolygonStamped polygon;
-  polygon.header.frame_id = get_parameter("map_frame_id").as_string();
+  polygon.header.frame_id = get_parameter("frame_id").as_string();
   polygon.header.stamp = this->now();
   std::cout << "coords size: " << coordinates.size() << "\n";
   for (const auto &coord : coordinates) {
@@ -204,7 +204,7 @@ geometry_msgs::msg::PolygonStamped MapManagerNode::processCoordinates(
 
 nav_msgs::msg::OccupancyGrid MapManagerNode::createOccupancyGrid() {
   nav_msgs::msg::OccupancyGrid grid;
-  grid.header.frame_id = get_parameter("map_frame_id").as_string();
+  grid.header.frame_id = get_parameter("frame_id").as_string();
   grid.header.stamp = this->now();
   grid.info.resolution = get_parameter("map_resolution").as_double();
   grid.info.width = get_parameter("map_width").as_int();
@@ -319,8 +319,8 @@ void MapManagerNode::fillOutsidePolygon(
   int outside_value = 50; // Set occupancy value for outside (0-100)
 
   // Iterate over each pixel in the grid
-  for (int x = 0; x < grid.info.width; x++) {
-    for (int y = 0; y < grid.info.height; y++) {
+  for (size_t x = 0; x < grid.info.width; x++) {
+    for (size_t y = 0; y < grid.info.height; y++) {
       if (!isPointInsidePolygon(x, y, polygon, grid)) {
         grid.data[y * grid.info.width + x] = outside_value;
       }

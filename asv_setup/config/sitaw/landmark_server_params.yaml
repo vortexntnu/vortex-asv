@@ -2,3 +2,4 @@ landmark_server_node:
   ros__parameters:
     fixed_frame: map
     target_frame: base_link
+    wall_width: 0.1
