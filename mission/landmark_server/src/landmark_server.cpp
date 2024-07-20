@@ -48,7 +48,6 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
   declare_parameter<std::string>("fixed_frame", "world");
   declare_parameter<std::string>("target_frame", "base_link");
   declare_parameter<double>("wall_width", 0.1);
-  
 
   // Create the act.
   action_server_ = rclcpp_action::create_server<Action>(
@@ -64,38 +63,38 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
 
 Eigen::Array<float, 2, Eigen::Dynamic> LandmarkServerNode::get_convex_hull(
     const vortex_msgs::msg::Landmark &landmark) {
-      if (landmark.landmark_type == vortex_msgs::msg::Landmark::WALL) {
-        Eigen::Array<float, 2, Eigen::Dynamic> hull(2, 4);
-        float x1 = landmark.shape.polygon.points[0].x;
-        float y1 = landmark.shape.polygon.points[0].y;
-        float x2 = landmark.shape.polygon.points[1].x;
-        float y2 = landmark.shape.polygon.points[1].y;
+  if (landmark.landmark_type == vortex_msgs::msg::Landmark::WALL) {
+    Eigen::Array<float, 2, Eigen::Dynamic> hull(2, 4);
+    float x1 = landmark.shape.polygon.points[0].x;
+    float y1 = landmark.shape.polygon.points[0].y;
+    float x2 = landmark.shape.polygon.points[1].x;
+    float y2 = landmark.shape.polygon.points[1].y;
 
-        // Calculate the direction vector
-        float dx = x2 - x1;
-        float dy = y2 - y1;
+    // Calculate the direction vector
+    float dx = x2 - x1;
+    float dy = y2 - y1;
 
-        // Normalize the direction vector
-        float length = std::sqrt(dx * dx + dy * dy);
-        dx /= length;
-        dy /= length;
+    // Normalize the direction vector
+    float length = std::sqrt(dx * dx + dy * dy);
+    dx /= length;
+    dy /= length;
 
-        // Perpendicular vector with the given width
-        float wall_width = get_parameter("wall_width").as_double();
-        float wx = -dy * wall_width/2; // half the width to each side
-        float wy = dx * wall_width/2;
+    // Perpendicular vector with the given width
+    float wall_width = get_parameter("wall_width").as_double();
+    float wx = -dy * wall_width / 2; // half the width to each side
+    float wy = dx * wall_width / 2;
 
-        // Calculate the four points of the rectangle in clockwise order
-        hull(0, 0) = x1 + wx;
-        hull(1, 0) = y1 + wy;
-        hull(0, 1) = x2 + wx;
-        hull(1, 1) = y2 + wy;
-        hull(0, 2) = x2 - wx;
-        hull(1, 2) = y2 - wy;
-        hull(0, 3) = x1 - wx;
-        hull(1, 3) = y1 - wy;
-        return hull;
-      }
+    // Calculate the four points of the rectangle in clockwise order
+    hull(0, 0) = x1 + wx;
+    hull(1, 0) = y1 + wy;
+    hull(0, 1) = x2 + wx;
+    hull(1, 1) = y2 + wy;
+    hull(0, 2) = x2 - wx;
+    hull(1, 2) = y2 - wy;
+    hull(0, 3) = x1 - wx;
+    hull(1, 3) = y1 - wy;
+    return hull;
+  }
   pcl::PointCloud<pcl::PointXYZ> cluster;
   cluster.resize(landmark.shape.polygon.points.size());
   for (size_t i = 0; i < landmark.shape.polygon.points.size(); i++) {
@@ -208,8 +207,8 @@ void LandmarkServerNode::landmarksRecievedCallback(
       continue;
     }
 
-    grid_manager_->update_grid(grid_msg_.data.data(),
-                               get_convex_hull((*it)), -200);
+    grid_manager_->update_grid(grid_msg_.data.data(), get_convex_hull((*it)),
+                               -200);
 
     if (landmark.action == vortex_msgs::msg::Landmark::REMOVE_ACTION) {
       storedLandmarks_->landmarks.erase(it);

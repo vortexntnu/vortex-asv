@@ -3,7 +3,6 @@
 
 namespace landmark_server {
 
-
 GridManager::GridManager(float resolution, uint32_t height, uint32_t width)
     : resolution_(resolution), height_(height), width_(width) {}
 

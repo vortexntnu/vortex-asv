@@ -71,7 +71,7 @@ protected:
       const vortex_msgs::msg::LandmarkArray::SharedPtr msg);
 
   Eigen::Array<float, 2, Eigen::Dynamic>
-  get_convex_hull(const vortex_msgs::msg::Landmark& landmark);
+  get_convex_hull(const vortex_msgs::msg::Landmark &landmark);
 
   void get_grid();
 
