@@ -12,17 +12,19 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
   // Define the quality of service profile for publisher and subscriber
   rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
   qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  auto qos_best_effort = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 1),
-                         qos_profile);
+  auto qos_best_effort = rclcpp::QoS(
+      rclcpp::QoSInitialization(qos_profile.history, 1), qos_profile);
 
-   // Set QoS profile
-    rmw_qos_profile_t qos_profile_sub = rmw_qos_profile_default;
-    qos_profile_sub.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
-    qos_profile_sub.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-    qos_profile_sub.depth = 10; // You can adjust this depth as needed for your use case
+  // Set QoS profile
+  rmw_qos_profile_t qos_profile_sub = rmw_qos_profile_default;
+  qos_profile_sub.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  qos_profile_sub.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  qos_profile_sub.depth =
+      10; // You can adjust this depth as needed for your use case
 
-    auto qos_reliable = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile_sub.history, qos_profile_sub.depth), qos_profile_sub);
-
+  auto qos_reliable = rclcpp::QoS(
+      rclcpp::QoSInitialization(qos_profile_sub.history, qos_profile_sub.depth),
+      qos_profile_sub);
 
   storedLandmarks_ = std::make_shared<LandmarkArray>();
 
@@ -36,8 +38,8 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
   posePublisher_ = this->create_publisher<geometry_msgs::msg::PoseArray>(
       "landmark_poses_out", qos_best_effort);
 
-  gridPublisher_ =
-      this->create_publisher<nav_msgs::msg::OccupancyGrid>("grid", qos_best_effort);
+  gridPublisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
+      "grid", qos_best_effort);
 
   rmw_qos_profile_t qos_profile_sensor = rmw_qos_profile_sensor_data;
   qos_profile_sensor.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
