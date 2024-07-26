@@ -51,11 +51,19 @@ def generate_launch_description():
         )
     )
 
+    # Controller
+    controller_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            path.join(get_package_share_directory('asv_setup'), 'launch', 'hybridpath.launch.py')
+        )
+    )
+
     # Return launch description
     return LaunchDescription([
         set_env_var,
         thruster_allocator_launch,
         joy_node,
         joystick_interface_launch,
+        controller_launch,
         vortex_sim_interface_launch, 
     ])
