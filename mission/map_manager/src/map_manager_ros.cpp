@@ -37,17 +37,17 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
   // map_origin_lat_ = 63.41490901857848;
   // map_origin_lon_ = 10.398215601285054;
   // office bag still
-  // map_origin_lat_ = 63.414660884931976;
-  // map_origin_lon_ = 10.398554661537544;
-  // map_origin_set_ = true;
-  // auto grid = createOccupancyGrid();
-  // auto polygon = readPolygonFromFile(landmask_file_);
-  // landmask_pub_->publish(polygon);
-  // fillOutsidePolygon(grid, polygon);
-  // insert_landmask(grid, polygon);
+  map_origin_lat_ = 63.414660884931976;
+  map_origin_lon_ = 10.398554661537544;
+  map_origin_set_ = true;
+  auto grid = createOccupancyGrid();
+  auto polygon = readPolygonFromFile(landmask_file_);
+  landmask_pub_->publish(polygon);
+  fillOutsidePolygon(grid, polygon);
+  insert_landmask(grid, polygon);
 
-  // map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("map",
-  // qos_transient_local); map_pub_->publish(grid);
+  map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("map",
+  qos_transient_local); map_pub_->publish(grid);
 
   grid_service_ = this->create_service<nav_msgs::srv::GetMap>(
       "get_map",

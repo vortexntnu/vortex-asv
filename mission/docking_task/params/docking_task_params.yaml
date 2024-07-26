@@ -1,0 +1,32 @@
+docking_task_node:
+  ros__parameters:
+    map_origin_lat: 63.4411585867919
+    map_origin_lon: 10.419400373255625
+    map_origin_set: true
+    gps_start_lat: 63.44097054434422
+    gps_start_lon: 10.419997767413607
+    gps_end_lat: 63.44125901804796
+    gps_end_lon: 10.41857835889424
+    gps_start_x: 0.0
+    gps_start_y: 0.0
+    gps_end_x: 0.0
+    gps_end_y: 0.0
+    gps_frame_coords_set: false
+    dock_width: 4.13 # width of available docking space
+    dock_width_tolerance: 0.5
+    dock_length: 2.0  # length of available docking space
+    dock_length_tolerance: 0.5
+    dock_edge_width: 0.13   # width of the dock edge
+    dock_edge_width_tolerance: 0.05
+    dock_search_offset: 0.2   # offset in forward direction to begin search for dock
+    task_nr: 2 # possible values 1 and 2 corresponding to task 4.1 and 4.2
+    models:
+      dynmod_stddev: 0.01
+      senmod_stddev: 0.01
+
+
+    map_origin_topic: "/map/origin"
+    grid_topic: "grid"
+    odom_topic: "/seapath/odom/ned"
+    landmark_pose_topic: "landmarks_out"
+    
