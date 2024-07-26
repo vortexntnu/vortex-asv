@@ -526,7 +526,8 @@ DockingTaskNode::auction_algorithm(const Eigen::MatrixXd &reward_matrix) {
   return assignment;
 }
 
-std::pair<uint32_t, uint32_t> DockingTaskNode::navigate_formation(Eigen::Array<double, 2, 6> &predicted_positions) {
+std::pair<uint32_t, uint32_t> DockingTaskNode::navigate_formation(
+    Eigen::Array<double, 2, 6> &predicted_positions) {
   RCLCPP_INFO(this->get_logger(), "Navigating though formation");
   std::vector<uint32_t> prev_assignment;
   std::vector<uint32_t> landmark_ids;
@@ -626,23 +627,25 @@ std::pair<uint32_t, uint32_t> DockingTaskNode::navigate_formation(Eigen::Array<d
             landmark_poses_odom_frame.poses.at(assignment(3)).position.x;
         buoy_right_y =
             landmark_poses_odom_frame.poses.at(assignment(3)).position.y;
-        Eigen::Vector2d direction_vector
-            ((buoy_left_x - landmark_poses_odom_frame.poses.at(assignment(4)).position.x +
-             buoy_right_x - landmark_poses_odom_frame.poses.at(assignment(5)).position.x) /
-            2, (buoy_left_y - landmark_poses_odom_frame.poses.at(assignment(4)).position.y +
-             buoy_right_y - landmark_poses_odom_frame.poses.at(assignment(5)).position.y) /2);
+        Eigen::Vector2d direction_vector(
+            (buoy_left_x -
+             landmark_poses_odom_frame.poses.at(assignment(4)).position.x +
+             buoy_right_x -
+             landmark_poses_odom_frame.poses.at(assignment(5)).position.x) /
+                2,
+            (buoy_left_y -
+             landmark_poses_odom_frame.poses.at(assignment(4)).position.y +
+             buoy_right_y -
+             landmark_poses_odom_frame.poses.at(assignment(5)).position.y) /
+                2);
         direction_vector.normalize();
         // Update the predicted positions
         predicted_positions << buoy_left_x + direction_vector.x() * 5,
-            buoy_right_x + direction_vector.x() * 5,
-            buoy_left_x,
-            buoy_right_x,
+            buoy_right_x + direction_vector.x() * 5, buoy_left_x, buoy_right_x,
             buoy_left_x - direction_vector.x() * 5,
             buoy_right_x - direction_vector.x() * 5,
             buoy_left_y + direction_vector.y() * 5,
-            buoy_right_y + direction_vector.y() * 5,
-            buoy_left_y,
-            buoy_right_y,
+            buoy_right_y + direction_vector.y() * 5, buoy_left_y, buoy_right_y,
             buoy_left_y - direction_vector.y() * 5,
             buoy_right_y - direction_vector.y() * 5;
       } else {
