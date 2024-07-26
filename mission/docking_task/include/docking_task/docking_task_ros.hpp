@@ -100,9 +100,10 @@ public:
    * buoy pair.
    *
    * @param predicted_positions The predicted positions of the buoys
+   * @return The ids of the last pair of buoys in the formation
    */
-  void
-  navigate_formation(const Eigen::Array<double, 2, 6> &predicted_positions);
+  std::pair<uint32_t, uint32_t>
+  navigate_formation(Eigen::Array<double, 2, 6> &predicted_positions);
 
   /**
    * @brief Calculate the coordinates of a gps point in the map frame

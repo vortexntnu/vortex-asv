@@ -124,7 +124,7 @@ void DockingTaskNode::main_task() {
 
   auto formation = predict_buoy_formation(landmark1, landmark2);
 
-  navigate_formation(formation);
+  auto [buoy_left_id, buoy_right_id] = navigate_formation(formation);
 }
 
 std::pair<LandmarkWithID, LandmarkWithID> DockingTaskNode::initial_waypoint() {
@@ -526,8 +526,7 @@ DockingTaskNode::auction_algorithm(const Eigen::MatrixXd &reward_matrix) {
   return assignment;
 }
 
-void DockingTaskNode::navigate_formation(
-    const Eigen::Array<double, 2, 6> &predicted_positions) {
+std::pair<uint32_t, uint32_t> DockingTaskNode::navigate_formation(Eigen::Array<double, 2, 6> &predicted_positions) {
   RCLCPP_INFO(this->get_logger(), "Navigating though formation");
   std::vector<uint32_t> prev_assignment;
   std::vector<uint32_t> landmark_ids;
@@ -627,6 +626,25 @@ void DockingTaskNode::navigate_formation(
             landmark_poses_odom_frame.poses.at(assignment(3)).position.x;
         buoy_right_y =
             landmark_poses_odom_frame.poses.at(assignment(3)).position.y;
+        Eigen::Vector2d direction_vector
+            ((buoy_left_x - landmark_poses_odom_frame.poses.at(assignment(4)).position.x +
+             buoy_right_x - landmark_poses_odom_frame.poses.at(assignment(5)).position.x) /
+            2, (buoy_left_y - landmark_poses_odom_frame.poses.at(assignment(4)).position.y +
+             buoy_right_y - landmark_poses_odom_frame.poses.at(assignment(5)).position.y) /2);
+        direction_vector.normalize();
+        // Update the predicted positions
+        predicted_positions << buoy_left_x + direction_vector.x() * 5,
+            buoy_right_x + direction_vector.x() * 5,
+            buoy_left_x,
+            buoy_right_x,
+            buoy_left_x - direction_vector.x() * 5,
+            buoy_right_x - direction_vector.x() * 5,
+            buoy_left_y + direction_vector.y() * 5,
+            buoy_right_y + direction_vector.y() * 5,
+            buoy_left_y,
+            buoy_right_y,
+            buoy_left_y - direction_vector.y() * 5,
+            buoy_right_y - direction_vector.y() * 5;
       } else {
         buoy_left_x =
             landmark_poses_odom_frame.poses.at(assignment(0)).position.x;
@@ -676,7 +694,7 @@ void DockingTaskNode::navigate_formation(
       } else {
         // Return from function when the asv is close to the second waypoint
         reach_waypoint(0.2);
-        return;
+        return {landmark_ids.at(assignment(0)), landmark_ids.at(assignment(1))};
       }
     }
   }
