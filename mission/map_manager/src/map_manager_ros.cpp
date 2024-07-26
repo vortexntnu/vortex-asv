@@ -46,8 +46,9 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
   fillOutsidePolygon(grid, polygon);
   insert_landmask(grid, polygon);
 
-  map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("map",
-  qos_transient_local); map_pub_->publish(grid);
+  map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
+      "map", qos_transient_local);
+  map_pub_->publish(grid);
 
   grid_service_ = this->create_service<nav_msgs::srv::GetMap>(
       "get_map",
