@@ -216,14 +216,17 @@ NjordTaskBaseNode::get_landmarks_odom_frame() {
   return landmarks_msg_;
 }
 
-Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions,
-                         const Eigen::Array<double, 2, Eigen::Dynamic> &measured_positions){
+Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
+    const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions,
+    const Eigen::Array<double, 2, Eigen::Dynamic> &measured_positions) {
   int num_predicted = predicted_positions.cols();
   int num_measured = measured_positions.cols();
   Eigen::MatrixXd reward_matrix(num_measured, num_predicted);
 
-  if(num_predicted > num_measured){
-    RCLCPP_ERROR(this->get_logger(), "Number of predicted positions is greater than number of measured positions in auction algorithm");
+  if (num_predicted > num_measured) {
+    RCLCPP_ERROR(this->get_logger(),
+                 "Number of predicted positions is greater than number of "
+                 "measured positions in auction algorithm");
   }
 
   double epsilon = 1e-6; // Small positive number to prevent division by zero
@@ -232,7 +235,7 @@ Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(const Eigen::Array<double, 2
       double dx = measured_positions(0, i) - predicted_positions(0, j);
       double dy = measured_positions(1, i) - predicted_positions(1, j);
       double distance = std::sqrt(dx * dx + dy * dy);
-      reward_matrix(i, j) = 1/(distance + epsilon);
+      reward_matrix(i, j) = 1 / (distance + epsilon);
     }
   }
 
