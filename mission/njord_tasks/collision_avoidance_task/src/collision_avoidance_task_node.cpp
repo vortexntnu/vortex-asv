@@ -4,7 +4,8 @@
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
 
-  auto node = std::make_shared<collision_avoidance_task::CollisionAvoidanceTaskNode>();
+  auto node =
+      std::make_shared<collision_avoidance_task::CollisionAvoidanceTaskNode>();
 
   rclcpp::spin(node);
 

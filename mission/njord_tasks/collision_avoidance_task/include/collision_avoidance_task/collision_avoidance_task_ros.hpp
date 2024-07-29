@@ -19,9 +19,8 @@ public:
 
 private:
   geometry_msgs::msg::Point previous_waypoint_odom_frame_;
-
 };
-    
+
 } // namespace collision_avoidance_task
 
 #endif // COLLISION_AVOIDANCE_TASK_ROS_HPP

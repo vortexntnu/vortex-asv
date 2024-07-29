@@ -5,7 +5,6 @@ namespace docking_task {
 DockingTaskNode::DockingTaskNode(const rclcpp::NodeOptions &options)
     : NjordTaskBaseNode("dock_localization_node", options) {
 
- 
   declare_parameter<double>("dock_width", 0.0);
   declare_parameter<double>("dock_width_tolerance", 0.0);
   declare_parameter<double>("dock_length", 0.0);
@@ -23,16 +22,16 @@ DockingTaskNode::DockingTaskNode(const rclcpp::NodeOptions &options)
 
 void DockingTaskNode::main_task() {
   // Sleep for 5 seconds to allow system to initialize and tracks to be aquired
-  RCLCPP_INFO(this->get_logger(),
-              "Waiting 3 seconds for system to initialize before starting main task");
+  RCLCPP_INFO(
+      this->get_logger(),
+      "Waiting 3 seconds for system to initialize before starting main task");
   rclcpp::sleep_for(std::chrono::seconds(3));
 
-  while(true) {
+  while (true) {
     rclcpp::sleep_for(std::chrono::milliseconds(100));
     std::unique_lock<std::mutex> setup_lock(setup_mutex_);
     if (!(this->get_parameter("map_origin_set").as_bool())) {
-      RCLCPP_INFO(this->get_logger(),
-                  "Map origin not set, sleeping for 100ms");
+      RCLCPP_INFO(this->get_logger(), "Map origin not set, sleeping for 100ms");
       setup_lock.unlock();
       continue;
     }
@@ -62,7 +61,7 @@ std::pair<LandmarkWithID, LandmarkWithID> DockingTaskNode::initial_waypoint() {
   RCLCPP_INFO(this->get_logger(), "Initial waypoint running");
 
   while (true) {
-    
+
     // std::unique_lock<std::mutex> odom_lock(odom_mutex_);
     // if (odom_msg_ == nullptr) {
     //   RCLCPP_INFO(this->get_logger(), "Odometry message not received, exiting
@@ -180,7 +179,7 @@ std::pair<LandmarkWithID, LandmarkWithID> DockingTaskNode::initial_waypoint() {
                      2));
 
         // Check if the landmarks are on opposite sides of the drone and within
-        // the desired distance range. 
+        // the desired distance range.
         // Base link is NED frame, x is forward, y is right
         if ((landmark1.pose_base_link_frame.position.x > 0 &&
              landmark2.pose_base_link_frame.position.x > 0) &&
@@ -195,7 +194,7 @@ std::pair<LandmarkWithID, LandmarkWithID> DockingTaskNode::initial_waypoint() {
                                       landmark2.pose_odom_frame.position.y) /
                                      2;
           std::pair<int32_t, int32_t> id_pair_sample = {landmark1.id,
-                                                          landmark2.id};
+                                                        landmark2.id};
           // Check if this is the first valid pair of landmarks
           if (result == 0) {
             x_waypoint = x_waypoint_sample;
@@ -239,7 +238,7 @@ std::pair<LandmarkWithID, LandmarkWithID> DockingTaskNode::initial_waypoint() {
     waypoint_odom_frame.x = x_waypoint;
     waypoint_odom_frame.y = y_waypoint;
     waypoint_odom_frame.z = 0.0;
-    
+
     auto request = std::make_shared<vortex_msgs::srv::Waypoint::Request>();
     request->waypoint.push_back(waypoint_odom_frame);
     auto result_future = waypoint_client_->async_send_request(request);
@@ -291,17 +290,18 @@ DockingTaskNode::predict_buoy_formation(const LandmarkWithID &buoy1,
   geometry_msgs::msg::Point previous_waypoint_map_frame;
   geometry_msgs::msg::TransformStamped odom_map_tf;
   try {
-  // Compute the inverse transform from the stored map_odom_tf_
-  tf2::Transform tf2_transform;
-  tf2::fromMsg(map_odom_tf_.transform, tf2_transform);
-  tf2::Transform tf2_inverse_transform = tf2_transform.inverse();
-  odom_map_tf.transform = tf2::toMsg(tf2_inverse_transform);
+    // Compute the inverse transform from the stored map_odom_tf_
+    tf2::Transform tf2_transform;
+    tf2::fromMsg(map_odom_tf_.transform, tf2_transform);
+    tf2::Transform tf2_inverse_transform = tf2_transform.inverse();
+    odom_map_tf.transform = tf2::toMsg(tf2_inverse_transform);
 
-  // Use the inverse transform
-  tf2::doTransform(previous_waypoint_odom_frame_, previous_waypoint_map_frame, odom_map_tf);
-} catch (tf2::TransformException &ex) {
-  RCLCPP_ERROR(this->get_logger(), "Transform error: %s", ex.what());
-}
+    // Use the inverse transform
+    tf2::doTransform(previous_waypoint_odom_frame_, previous_waypoint_map_frame,
+                     odom_map_tf);
+  } catch (tf2::TransformException &ex) {
+    RCLCPP_ERROR(this->get_logger(), "Transform error: %s", ex.what());
+  }
   Eigen::Vector2d direction_vector(
       previous_waypoint_map_frame.x -
           this->get_parameter("gps_start_x").as_double(),
@@ -400,7 +400,8 @@ std::pair<int32_t, int32_t> DockingTaskNode::navigate_formation(
           landmark_poses_odom_frame.poses.at(i).position.y;
     }
 
-    Eigen::VectorXi assignment = assign_landmarks(predicted_positions, measured_positions);
+    Eigen::VectorXi assignment =
+        assign_landmarks(predicted_positions, measured_positions);
 
     if (result == 0) {
       for (Eigen::Index i = 0; i < assignment.size(); i++) {
@@ -412,11 +413,11 @@ std::pair<int32_t, int32_t> DockingTaskNode::navigate_formation(
     bool valied = true;
     // Check that the assigned landmarks matches the previous assignment by id
     if (first_half) {
-        if (assignment(2) == -1 || assignment(3) == -1 || assignment(4) == -1 ||
-        assignment(5) == -1) {
+      if (assignment(2) == -1 || assignment(3) == -1 || assignment(4) == -1 ||
+          assignment(5) == -1) {
         valied = false;
-        }
-    
+      }
+
       // Check index 2,3,4,5
       if (landmark_ids.at(assignment(2)) != prev_assignment.at(2) ||
           landmark_ids.at(assignment(3)) != prev_assignment.at(3) ||

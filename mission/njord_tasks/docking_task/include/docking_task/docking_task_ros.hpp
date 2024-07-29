@@ -1,9 +1,9 @@
 #ifndef DOCKING_TASK_ROS_HPP
 #define DOCKING_TASK_ROS_HPP
 
-#include <njord_task_base/njord_task_base_ros.hpp>
 #include <Eigen/Dense>
 #include <nav_msgs/msg/occupancy_grid.hpp>
+#include <njord_task_base/njord_task_base_ros.hpp>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>

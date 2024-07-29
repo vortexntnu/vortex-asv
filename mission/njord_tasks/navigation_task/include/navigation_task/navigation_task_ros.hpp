@@ -19,9 +19,8 @@ public:
 
 private:
   geometry_msgs::msg::Point previous_waypoint_odom_frame_;
-
 };
-    
+
 } // namespace navigation_task
 
 #endif // NAVIGATION_TASK_ROS_HPP

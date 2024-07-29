@@ -18,10 +18,9 @@ public:
   void main_task();
 
 private:
-    geometry_msgs::msg::Point previous_waypoint_odom_frame_;
-
+  geometry_msgs::msg::Point previous_waypoint_odom_frame_;
 };
-    
+
 } // namespace maneuvering_task
 
 #endif // MANEUVERING_TASK_ROS_HPP
