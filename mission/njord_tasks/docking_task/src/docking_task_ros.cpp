@@ -399,6 +399,11 @@ std::pair<int32_t, int32_t> DockingTaskNode::navigate_formation(
       measured_positions(1, i) =
           landmark_poses_odom_frame.poses.at(i).position.y;
     }
+    
+    if(predicted_positions.cols() > measured_positions.cols()){
+      result = 0;
+      continue;
+    }
 
     Eigen::VectorXi assignment =
         assign_landmarks(predicted_positions, measured_positions);

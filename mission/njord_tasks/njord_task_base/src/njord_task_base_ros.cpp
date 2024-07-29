@@ -216,16 +216,15 @@ NjordTaskBaseNode::get_landmarks_odom_frame() {
   return landmarks_msg_;
 }
 
-Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
-    const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions,
-    const Eigen::Array<double, 2, Eigen::Dynamic> &measured_positions) {
+Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions,
+                         const Eigen::Array<double, 2, Eigen::Dynamic> &measured_positions){
   int num_predicted = predicted_positions.cols();
   int num_measured = measured_positions.cols();
-  int higher = std::max(num_predicted, num_measured);
+  Eigen::MatrixXd reward_matrix(num_measured, num_predicted);
 
-  // Add dummy items to allow algorithm to converge
-  Eigen::MatrixXd reward_matrix(num_measured, higher);
-  reward_matrix.fill(-1.0);
+  if(num_predicted > num_measured){
+    RCLCPP_ERROR(this->get_logger(), "Number of predicted positions is greater than number of measured positions in auction algorithm");
+  }
 
   double epsilon = 1e-6; // Small positive number to prevent division by zero
   for (Eigen::Index i = 0; i < num_measured; ++i) {
@@ -233,19 +232,19 @@ Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
       double dx = measured_positions(0, i) - predicted_positions(0, j);
       double dy = measured_positions(1, i) - predicted_positions(1, j);
       double distance = std::sqrt(dx * dx + dy * dy);
-      reward_matrix(i, j) = 1 / (distance + epsilon);
+      reward_matrix(i, j) = 1/(distance + epsilon);
     }
   }
 
-  Eigen::VectorXi assignment = Eigen::VectorXi::Constant(higher, -1);
-  Eigen::VectorXd prices = Eigen::VectorXd::Zero(higher);
+  Eigen::VectorXi assignment = Eigen::VectorXi::Constant(num_predicted, -1);
+  Eigen::VectorXd prices = Eigen::VectorXd::Zero(num_measured);
 
   std::vector<int> unassigned;
-  for (int i = 0; i < num_measured; ++i) {
+  for (int i = 0; i < num_predicted; ++i) {
     unassigned.push_back(i);
   }
 
-  epsilon = 1.0 / (num_measured + 1);
+  epsilon = 1.0 / (num_measured + num_predicted + 1);
 
   while (!unassigned.empty()) {
     int customer = unassigned.back();
@@ -255,8 +254,8 @@ Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
     double second_max_value = std::numeric_limits<double>::lowest();
     int max_item = -1;
 
-    for (int item = 0; item < higher; ++item) {
-      double value = reward_matrix.coeff(customer, item) - prices[item];
+    for (int item = 0; item < num_measured; ++item) {
+      double value = reward_matrix.coeff(item, customer) - prices[item];
       if (value > max_value) {
         second_max_value = max_value;
         max_value = value;
@@ -266,17 +265,19 @@ Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
       }
     }
 
-    int current_owner = assignment[max_item];
+    int current_owner = -1;
+    for (int i = 0; i < num_predicted; ++i) {
+      if (assignment[i] == max_item) {
+        current_owner = i;
+        break;
+      }
+    }
     if (current_owner != -1) {
       unassigned.push_back(current_owner);
     }
 
-    assignment[max_item] = customer;
+    assignment[customer] = max_item;
     prices[max_item] += max_value - second_max_value + epsilon;
   }
-
-  // Extract the final assignment for real predicted positions, ignoring dummy
-  // items
-  Eigen::VectorXi final_assignment = assignment.head(num_predicted);
   return assignment;
 }

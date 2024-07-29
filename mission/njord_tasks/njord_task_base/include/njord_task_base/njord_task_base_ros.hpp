@@ -34,7 +34,7 @@ protected:
   std::shared_ptr<vortex_msgs::msg::LandmarkArray> get_landmarks_odom_frame();
 
   /**
-   * @brief Assign landmarks to buoys based on the predicted and measured
+   * @brief Assign buoys to landmarks based on the predicted and measured
    * positions using the auction algorithm.
    *
    * @param predicted_positions The predicted positions of the buoys
