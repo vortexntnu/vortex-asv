@@ -15,6 +15,7 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
   declare_parameter<double>("gps_end_x", 0.0);
   declare_parameter<double>("gps_end_y", 0.0);
   declare_parameter<bool>("gps_frame_coords_set", false);
+  declare_parameter<int>("assignment_confidence", 10);
 
   declare_parameter<std::string>("map_origin_topic", "/map/origin");
   declare_parameter<std::string>("odom_topic", "/seapath/odom/ned");
@@ -52,6 +53,8 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
 
   waypoint_client_ =
       this->create_client<vortex_msgs::srv::Waypoint>("/waypoint");
+
+  
 }
 
 void NjordTaskBaseNode::setup_map_odom_tf_and_subs() {
@@ -88,37 +91,49 @@ void NjordTaskBaseNode::setup_map_odom_tf_and_subs() {
                 std::placeholders::_1));
 }
 
-void NjordTaskBaseNode::set_gps_frame_coords() {
+void NjordTaskBaseNode::set_gps_odom_points() {
   auto [gps_start_x, gps_start_y] =
       lla2flat(this->get_parameter("gps_start_lat").as_double(),
                this->get_parameter("gps_start_lon").as_double());
   auto [gps_end_x, gps_end_y] =
       lla2flat(this->get_parameter("gps_end_lat").as_double(),
                this->get_parameter("gps_end_lon").as_double());
-  this->set_parameter(rclcpp::Parameter("gps_start_x", gps_start_x));
-  this->set_parameter(rclcpp::Parameter("gps_start_y", gps_start_y));
-  this->set_parameter(rclcpp::Parameter("gps_end_x", gps_end_x));
-  this->set_parameter(rclcpp::Parameter("gps_end_y", gps_end_y));
+
+  geometry_msgs::msg::PoseStamped gps_start_map_frame;
+  gps_start_map_frame.header.frame_id = "map";
+  gps_start_map_frame.pose.position.x = gps_start_x;
+  gps_start_map_frame.pose.position.y = gps_start_y;
+  geometry_msgs::msg::PoseStamped gps_end_map_frame;
+  gps_end_map_frame.header.frame_id = "map";
+  gps_end_map_frame.pose.position.x = gps_end_x;
+  gps_end_map_frame.pose.position.y = gps_end_y;
+  geometry_msgs::msg::PoseStamped gps_start_odom_frame;
+  geometry_msgs::msg::PoseStamped gps_end_odom_frame;
+  try {
+    tf2::doTransform(gps_start_map_frame, gps_start_odom_frame, map_odom_tf_);
+    tf2::doTransform(gps_end_map_frame, gps_end_odom_frame, map_odom_tf_);
+  } catch (tf2::TransformException &ex) {
+    RCLCPP_ERROR(this->get_logger(), "Transform error: %s", ex.what());
+    return;
+  }
+
+  this->set_parameter(rclcpp::Parameter("gps_start_x", gps_start_odom_frame.pose.position.x));
+  this->set_parameter(rclcpp::Parameter("gps_start_y", gps_start_odom_frame.pose.position.y));
+  this->set_parameter(rclcpp::Parameter("gps_end_x", gps_end_odom_frame.pose.position.x));
+  this->set_parameter(rclcpp::Parameter("gps_end_y", gps_end_odom_frame.pose.position.y));
   this->set_parameter(rclcpp::Parameter("gps_frame_coords_set", true));
   RCLCPP_INFO(this->get_logger(),
-              "GPS map frame coordinates set to: %f, %f, %f, %f", gps_start_x,
-              gps_start_y, gps_end_x, gps_end_y);
+              "GPS oodm frame coordinates set to: %f, %f, %f, %f", 
+              gps_start_odom_frame.pose.position.x, gps_start_odom_frame.pose.position.y,
+              gps_end_odom_frame.pose.position.x, gps_end_odom_frame.pose.position.y);
 
-  geometry_msgs::msg::PoseArray gps_points;
-  gps_points.header.frame_id = "map";
+  geometry_msgs::msg::PoseArray gps_points_odom_frame;
+  gps_points_odom_frame.header.frame_id = "odom";
+  
+  gps_points_odom_frame.poses.push_back(gps_start_odom_frame.pose);
+  gps_points_odom_frame.poses.push_back(gps_end_odom_frame.pose);
 
-  // Convert GPS points to geometry poses
-  geometry_msgs::msg::Pose start_pose;
-  start_pose.position.x = gps_start_x;
-  start_pose.position.y = gps_start_y;
-  gps_points.poses.push_back(start_pose);
-
-  geometry_msgs::msg::Pose end_pose;
-  end_pose.position.x = gps_end_x;
-  end_pose.position.y = gps_end_y;
-  gps_points.poses.push_back(end_pose);
-
-  gps_map_coord_visualization_pub_->publish(gps_points);
+  gps_map_coord_visualization_pub_->publish(gps_points_odom_frame);
 }
 
 std::pair<double, double> NjordTaskBaseNode::lla2flat(double lat,
@@ -170,7 +185,7 @@ void NjordTaskBaseNode::map_origin_callback(
   // Set the map to odom transform
   setup_map_odom_tf_and_subs();
   // Set GPS frame coordinates
-  set_gps_frame_coords();
+  set_gps_odom_points();
 
   map_origin_sub_.reset();
   setup_lock.unlock();
@@ -216,7 +231,7 @@ NjordTaskBaseNode::get_landmarks_odom_frame() {
   return landmarks_msg_;
 }
 
-Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
+Eigen::VectorXi NjordTaskBaseNode::auction_algorithm(
     const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions,
     const Eigen::Array<double, 2, Eigen::Dynamic> &measured_positions) {
   int num_predicted = predicted_positions.cols();
@@ -227,6 +242,7 @@ Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
     RCLCPP_ERROR(this->get_logger(),
                  "Number of predicted positions is greater than number of "
                  "measured positions in auction algorithm");
+    return Eigen::VectorXi::Constant(num_predicted, -1);
   }
 
   double epsilon = 1e-6; // Small positive number to prevent division by zero
@@ -283,4 +299,140 @@ Eigen::VectorXi NjordTaskBaseNode::assign_landmarks(
     prices[max_item] += max_value - second_max_value + epsilon;
   }
   return assignment;
+}
+
+std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(const Eigen::Array<double, 2, Eigen::Dynamic>& predicted_positions){
+  std::vector<int32_t> landmark_ids;
+  std::vector<int32_t> expected_assignment;
+  Eigen::Array<double, 2, Eigen::Dynamic> measured_buoy_positions(2, predicted_positions.cols());
+  int confidence_threshold = this->get_parameter("assignment_confidence").as_int();
+  int result = 0;
+  while (result < confidence_threshold) {
+    landmark_ids.clear();
+    auto landmark_msg = get_landmarks_odom_frame();
+    
+    // Extract measured positions and corresponding landmark ids
+    Eigen::Array<double, 2, Eigen::Dynamic> measured_positions(2, landmark_msg->landmarks.size());
+    for (size_t i = 0; i < landmark_msg->landmarks.size(); i++) {
+      landmark_ids.push_back(landmark_msg->landmarks[i].id);
+      measured_positions(0, i) = landmark_msg->landmarks[i].odom.pose.pose.position.x;
+      measured_positions(1, i) = landmark_msg->landmarks[i].odom.pose.pose.position.y;
+    }
+
+    // Check if there are enough landmarks detected to perform auction algorithm
+    if (predicted_positions.cols() > measured_positions.cols()) {
+      RCLCPP_ERROR(this->get_logger(),
+                   "Not enough landmarks detected to perform auction algorithm");
+      result = 0;
+      continue;
+    }
+    // Perform auction algorithm
+    Eigen::VectorXi assignment = auction_algorithm(predicted_positions, measured_positions);
+
+    // Extract measured positions of assigned buoys
+    for (Eigen::Index i = 0; i < assignment.size(); i++) {
+      measured_buoy_positions(0, i) = measured_positions(0, assignment(i));
+      measured_buoy_positions(1, i) = measured_positions(1, assignment(i));
+    }
+    
+    // Check if any buoys are unassigned
+    // Should never happen as long as the number of landmarks detected is greater than or equal to the number of buoys
+    bool unassigned_buoy = false;
+    for (Eigen::Index i = 0; i < assignment.size(); i++) {
+      if (assignment(i) == -1) {
+        unassigned_buoy = true;
+        break;
+      }
+    }
+
+    // If any buoys are unassigned, restart assignment process
+    if(unassigned_buoy){
+      result = 0;
+      continue;
+    }
+
+    // If this is the first iteration, save the assignment and continue
+    if (result == 0) {
+      expected_assignment.clear();
+      for (Eigen::Index i = 0; i < assignment.size(); i++) {
+        expected_assignment.push_back(landmark_ids.at(assignment(i)));
+      }
+      result++;
+      continue;
+    }
+
+    // Check if the assignment is consistent with the previous assignment
+    bool consistent_assignment = true;
+    for (Eigen::Index i = 0; i < assignment.size(); i++) {
+      if (landmark_ids.at(assignment(i)) != expected_assignment.at(i)) {
+        consistent_assignment = false;
+        break;
+      }
+    }
+   
+    // If the assignment is consistent, increment the result counter
+    // Otherwise, reset the result counter
+    if (consistent_assignment) {
+      result++;
+      continue;
+    } else {
+      result = 0;
+      continue;
+    }
+
+  }
+  // Loop has completed, return the id and pose of the landmarks assigned to buoys
+  std::vector<LandmarkPoseID> buoys;
+  for (size_t i = 0; i < expected_assignment.size(); i++) {
+    LandmarkPoseID landmark;
+    landmark.id = expected_assignment.at(i);
+    landmark.pose_odom_frame.position.x = measured_buoy_positions(0, i);
+    landmark.pose_odom_frame.position.y = measured_buoy_positions(1, i);
+    buoys.push_back(landmark);
+  }
+  return buoys;
+}
+
+void NjordTaskBaseNode::send_waypoint(const geometry_msgs::msg::Point &waypoint) {
+  auto request = std::make_shared<vortex_msgs::srv::Waypoint::Request>();
+    request->waypoint.push_back(waypoint);
+    auto result_future = waypoint_client_->async_send_request(request);
+    RCLCPP_INFO(this->get_logger(), "Waypoint(odom frame) sent: %f, %f",
+                waypoint.x, waypoint.y);
+    // Check if the service was successful
+
+    auto status = result_future.wait_for(std::chrono::seconds(5));
+    while (status == std::future_status::timeout) {
+      RCLCPP_INFO(this->get_logger(), "Waypoint service timed out");
+      status = result_future.wait_for(std::chrono::seconds(5));
+    }
+    if (!result_future.get()->success) {
+      RCLCPP_INFO(this->get_logger(), "Waypoint service failed");
+    }
+
+    geometry_msgs::msg::PoseStamped waypoint_vis;
+    waypoint_vis.header.frame_id = "odom";
+    waypoint_vis.pose.position.x = waypoint.x;
+    waypoint_vis.pose.position.y = waypoint.y;
+    waypoint_visualization_pub_->publish(waypoint_vis);
+
+    previous_waypoint_odom_frame_ = waypoint;
+}
+
+void NjordTaskBaseNode::reach_waypoint(const double distance_threshold) {
+  RCLCPP_INFO(this->get_logger(), "Reach waypoint running");
+
+  auto get_current_position = [&]() {
+    auto odom_msg = get_odom();
+    return std::make_pair(odom_msg->pose.pose.position.x, odom_msg->pose.pose.position.y);
+  };
+
+  auto [x, y] = get_current_position();
+
+  while (std::hypot(x - previous_waypoint_odom_frame_.x, y - previous_waypoint_odom_frame_.y) > distance_threshold) {
+    rclcpp::sleep_for(std::chrono::milliseconds(100));
+    std::tie(x, y) = get_current_position();
+  }
+
+  RCLCPP_INFO(this->get_logger(), "Reached waypoint");
 }

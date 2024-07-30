@@ -24,7 +24,7 @@ void ManeuveringTaskNode::main_task() {
       continue;
     }
     if (!(this->get_parameter("gps_frame_coords_set").as_bool())) {
-      set_gps_frame_coords();
+      set_gps_odom_points();
       setup_map_odom_tf_and_subs();
       setup_lock.unlock();
       break;

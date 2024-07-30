@@ -36,7 +36,7 @@ void DockingTaskNode::main_task() {
       continue;
     }
     if (!(this->get_parameter("gps_frame_coords_set").as_bool())) {
-      set_gps_frame_coords();
+      set_gps_odom_points();
       setup_map_odom_tf_and_subs();
       setup_lock.unlock();
       break;
@@ -406,7 +406,7 @@ std::pair<int32_t, int32_t> DockingTaskNode::navigate_formation(
     }
 
     Eigen::VectorXi assignment =
-        assign_landmarks(predicted_positions, measured_positions);
+        auction_algorithm(predicted_positions, measured_positions);
 
     if (result == 0) {
       for (Eigen::Index i = 0; i < assignment.size(); i++) {

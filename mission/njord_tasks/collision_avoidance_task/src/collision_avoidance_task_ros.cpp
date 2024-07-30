@@ -26,7 +26,7 @@ void CollisionAvoidanceTaskNode::main_task() {
     }
     if (!(this->get_parameter("gps_frame_coords_set").as_bool())) {
       setup_map_odom_tf_and_subs();
-      set_gps_frame_coords();
+      set_gps_odom_points();
       setup_lock.unlock();
       break;
     }
