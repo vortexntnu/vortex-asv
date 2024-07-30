@@ -53,8 +53,6 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
 
   waypoint_client_ =
       this->create_client<vortex_msgs::srv::Waypoint>("/waypoint");
-
-  
 }
 
 void NjordTaskBaseNode::setup_map_odom_tf_and_subs() {
@@ -117,19 +115,24 @@ void NjordTaskBaseNode::set_gps_odom_points() {
     return;
   }
 
-  this->set_parameter(rclcpp::Parameter("gps_start_x", gps_start_odom_frame.pose.position.x));
-  this->set_parameter(rclcpp::Parameter("gps_start_y", gps_start_odom_frame.pose.position.y));
-  this->set_parameter(rclcpp::Parameter("gps_end_x", gps_end_odom_frame.pose.position.x));
-  this->set_parameter(rclcpp::Parameter("gps_end_y", gps_end_odom_frame.pose.position.y));
+  this->set_parameter(
+      rclcpp::Parameter("gps_start_x", gps_start_odom_frame.pose.position.x));
+  this->set_parameter(
+      rclcpp::Parameter("gps_start_y", gps_start_odom_frame.pose.position.y));
+  this->set_parameter(
+      rclcpp::Parameter("gps_end_x", gps_end_odom_frame.pose.position.x));
+  this->set_parameter(
+      rclcpp::Parameter("gps_end_y", gps_end_odom_frame.pose.position.y));
   this->set_parameter(rclcpp::Parameter("gps_frame_coords_set", true));
-  RCLCPP_INFO(this->get_logger(),
-              "GPS oodm frame coordinates set to: %f, %f, %f, %f", 
-              gps_start_odom_frame.pose.position.x, gps_start_odom_frame.pose.position.y,
-              gps_end_odom_frame.pose.position.x, gps_end_odom_frame.pose.position.y);
+  RCLCPP_INFO(
+      this->get_logger(), "GPS oodm frame coordinates set to: %f, %f, %f, %f",
+      gps_start_odom_frame.pose.position.x,
+      gps_start_odom_frame.pose.position.y, gps_end_odom_frame.pose.position.x,
+      gps_end_odom_frame.pose.position.y);
 
   geometry_msgs::msg::PoseArray gps_points_odom_frame;
   gps_points_odom_frame.header.frame_id = "odom";
-  
+
   gps_points_odom_frame.poses.push_back(gps_start_odom_frame.pose);
   gps_points_odom_frame.poses.push_back(gps_end_odom_frame.pose);
 
@@ -301,42 +304,51 @@ Eigen::VectorXi NjordTaskBaseNode::auction_algorithm(
   return assignment;
 }
 
-std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(const Eigen::Array<double, 2, Eigen::Dynamic>& predicted_positions){
+std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(
+    const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions) {
   std::vector<int32_t> landmark_ids;
   std::vector<int32_t> expected_assignment;
-  Eigen::Array<double, 2, Eigen::Dynamic> measured_buoy_positions(2, predicted_positions.cols());
-  int confidence_threshold = this->get_parameter("assignment_confidence").as_int();
+  Eigen::Array<double, 2, Eigen::Dynamic> measured_buoy_positions(
+      2, predicted_positions.cols());
+  int confidence_threshold =
+      this->get_parameter("assignment_confidence").as_int();
   int result = 0;
   while (result < confidence_threshold) {
     landmark_ids.clear();
     auto landmark_msg = get_landmarks_odom_frame();
-    
+
     // Extract measured positions and corresponding landmark ids
-    Eigen::Array<double, 2, Eigen::Dynamic> measured_positions(2, landmark_msg->landmarks.size());
+    Eigen::Array<double, 2, Eigen::Dynamic> measured_positions(
+        2, landmark_msg->landmarks.size());
     for (size_t i = 0; i < landmark_msg->landmarks.size(); i++) {
       landmark_ids.push_back(landmark_msg->landmarks[i].id);
-      measured_positions(0, i) = landmark_msg->landmarks[i].odom.pose.pose.position.x;
-      measured_positions(1, i) = landmark_msg->landmarks[i].odom.pose.pose.position.y;
+      measured_positions(0, i) =
+          landmark_msg->landmarks[i].odom.pose.pose.position.x;
+      measured_positions(1, i) =
+          landmark_msg->landmarks[i].odom.pose.pose.position.y;
     }
 
     // Check if there are enough landmarks detected to perform auction algorithm
     if (predicted_positions.cols() > measured_positions.cols()) {
-      RCLCPP_ERROR(this->get_logger(),
-                   "Not enough landmarks detected to perform auction algorithm");
+      RCLCPP_ERROR(
+          this->get_logger(),
+          "Not enough landmarks detected to perform auction algorithm");
       result = 0;
       continue;
     }
     // Perform auction algorithm
-    Eigen::VectorXi assignment = auction_algorithm(predicted_positions, measured_positions);
+    Eigen::VectorXi assignment =
+        auction_algorithm(predicted_positions, measured_positions);
 
     // Extract measured positions of assigned buoys
     for (Eigen::Index i = 0; i < assignment.size(); i++) {
       measured_buoy_positions(0, i) = measured_positions(0, assignment(i));
       measured_buoy_positions(1, i) = measured_positions(1, assignment(i));
     }
-    
+
     // Check if any buoys are unassigned
-    // Should never happen as long as the number of landmarks detected is greater than or equal to the number of buoys
+    // Should never happen as long as the number of landmarks detected is
+    // greater than or equal to the number of buoys
     bool unassigned_buoy = false;
     for (Eigen::Index i = 0; i < assignment.size(); i++) {
       if (assignment(i) == -1) {
@@ -346,7 +358,7 @@ std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(const Eigen::A
     }
 
     // If any buoys are unassigned, restart assignment process
-    if(unassigned_buoy){
+    if (unassigned_buoy) {
       result = 0;
       continue;
     }
@@ -369,7 +381,7 @@ std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(const Eigen::A
         break;
       }
     }
-   
+
     // If the assignment is consistent, increment the result counter
     // Otherwise, reset the result counter
     if (consistent_assignment) {
@@ -379,9 +391,9 @@ std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(const Eigen::A
       result = 0;
       continue;
     }
-
   }
-  // Loop has completed, return the id and pose of the landmarks assigned to buoys
+  // Loop has completed, return the id and pose of the landmarks assigned to
+  // buoys
   std::vector<LandmarkPoseID> buoys;
   for (size_t i = 0; i < expected_assignment.size(); i++) {
     LandmarkPoseID landmark;
@@ -393,30 +405,31 @@ std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(const Eigen::A
   return buoys;
 }
 
-void NjordTaskBaseNode::send_waypoint(const geometry_msgs::msg::Point &waypoint) {
+void NjordTaskBaseNode::send_waypoint(
+    const geometry_msgs::msg::Point &waypoint) {
   auto request = std::make_shared<vortex_msgs::srv::Waypoint::Request>();
-    request->waypoint.push_back(waypoint);
-    auto result_future = waypoint_client_->async_send_request(request);
-    RCLCPP_INFO(this->get_logger(), "Waypoint(odom frame) sent: %f, %f",
-                waypoint.x, waypoint.y);
-    // Check if the service was successful
+  request->waypoint.push_back(waypoint);
+  auto result_future = waypoint_client_->async_send_request(request);
+  RCLCPP_INFO(this->get_logger(), "Waypoint(odom frame) sent: %f, %f",
+              waypoint.x, waypoint.y);
+  // Check if the service was successful
 
-    auto status = result_future.wait_for(std::chrono::seconds(5));
-    while (status == std::future_status::timeout) {
-      RCLCPP_INFO(this->get_logger(), "Waypoint service timed out");
-      status = result_future.wait_for(std::chrono::seconds(5));
-    }
-    if (!result_future.get()->success) {
-      RCLCPP_INFO(this->get_logger(), "Waypoint service failed");
-    }
+  auto status = result_future.wait_for(std::chrono::seconds(5));
+  while (status == std::future_status::timeout) {
+    RCLCPP_INFO(this->get_logger(), "Waypoint service timed out");
+    status = result_future.wait_for(std::chrono::seconds(5));
+  }
+  if (!result_future.get()->success) {
+    RCLCPP_INFO(this->get_logger(), "Waypoint service failed");
+  }
 
-    geometry_msgs::msg::PoseStamped waypoint_vis;
-    waypoint_vis.header.frame_id = "odom";
-    waypoint_vis.pose.position.x = waypoint.x;
-    waypoint_vis.pose.position.y = waypoint.y;
-    waypoint_visualization_pub_->publish(waypoint_vis);
+  geometry_msgs::msg::PoseStamped waypoint_vis;
+  waypoint_vis.header.frame_id = "odom";
+  waypoint_vis.pose.position.x = waypoint.x;
+  waypoint_vis.pose.position.y = waypoint.y;
+  waypoint_visualization_pub_->publish(waypoint_vis);
 
-    previous_waypoint_odom_frame_ = waypoint;
+  previous_waypoint_odom_frame_ = waypoint;
 }
 
 void NjordTaskBaseNode::reach_waypoint(const double distance_threshold) {
@@ -424,12 +437,14 @@ void NjordTaskBaseNode::reach_waypoint(const double distance_threshold) {
 
   auto get_current_position = [&]() {
     auto odom_msg = get_odom();
-    return std::make_pair(odom_msg->pose.pose.position.x, odom_msg->pose.pose.position.y);
+    return std::make_pair(odom_msg->pose.pose.position.x,
+                          odom_msg->pose.pose.position.y);
   };
 
   auto [x, y] = get_current_position();
 
-  while (std::hypot(x - previous_waypoint_odom_frame_.x, y - previous_waypoint_odom_frame_.y) > distance_threshold) {
+  while (std::hypot(x - previous_waypoint_odom_frame_.x,
+                    y - previous_waypoint_odom_frame_.y) > distance_threshold) {
     rclcpp::sleep_for(std::chrono::milliseconds(100));
     std::tie(x, y) = get_current_position();
   }

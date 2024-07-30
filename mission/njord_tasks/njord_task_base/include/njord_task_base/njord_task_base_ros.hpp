@@ -17,10 +17,10 @@
 #include <thread>
 #include <utility>
 
-  /**
-   * @brief A struct representing a landmark with id and pose in the odom frame
-   */
-  struct LandmarkPoseID {
+/**
+ * @brief A struct representing a landmark with id and pose in the odom frame
+ */
+struct LandmarkPoseID {
   geometry_msgs::msg::Pose pose_odom_frame;
   int32_t id;
 };
@@ -31,7 +31,6 @@ public:
                     const rclcpp::NodeOptions &options);
 
 protected:
-
   std::pair<double, double> lla2flat(double lat, double lon) const;
 
   void map_origin_callback(const sensor_msgs::msg::NavSatFix::SharedPtr msg);
@@ -46,21 +45,22 @@ protected:
   void setup_map_odom_tf_and_subs();
 
   /**
-   * @brief Set the gps_start_odom_frame_ and gps_end_odom_frame_ member variables
-   * Requires that the map_origin_ member variable is correctly set
+   * @brief Set the gps_start_odom_frame_ and gps_end_odom_frame_ member
+   * variables Requires that the map_origin_ member variable is correctly set
    */
   void set_gps_odom_points();
 
   /**
    * @brief Get the odometry message
-   * If no odometry message is available, the function will wait for a new message
+   * If no odometry message is available, the function will wait for a new
+   * message
    *
    * @return A shared pointer to the odometry message
    */
   std::shared_ptr<nav_msgs::msg::Odometry> get_odom();
 
   /**
-   * @brief Get the landmarks in the odom frame 
+   * @brief Get the landmarks in the odom frame
    * If no landmarks are available, the function will wait for a new message
    *
    * @return A shared pointer to the landmarks in the odom frame
@@ -84,15 +84,16 @@ protected:
       const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions,
       const Eigen::Array<double, 2, Eigen::Dynamic> &measured_positions);
 
-
   /**
-   * @brief Use predicted positions of buoys to get the landmarks with id and pose
-   * corresponding to the buoys.
+   * @brief Use predicted positions of buoys to get the landmarks with id and
+   * pose corresponding to the buoys.
    * @param predicted_positions The predicted positions of the buoys
-   * @return A vector of landmarks with id and pose where the index in the vector 
-   * corresponds to the index of the predicted position in the predicted_positions array.
+   * @return A vector of landmarks with id and pose where the index in the
+   * vector corresponds to the index of the predicted position in the
+   * predicted_positions array.
    */
-  std::vector<LandmarkPoseID> get_buoy_landmarks(const Eigen::Array<double, 2, Eigen::Dynamic>& predicted_positions);
+  std::vector<LandmarkPoseID> get_buoy_landmarks(
+      const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions);
 
   /**
    * @brief Send a waypoint to the waypoint service
@@ -101,14 +102,14 @@ protected:
    */
   void send_waypoint(const geometry_msgs::msg::Point &waypoint);
 
-   /**
-   * @brief Utility function that returns when within distance_threshold of the waypoint.
-   * The reference waypoint is the member variable previous_waypoint_odom_frame_ set by the send_waypoint function.
+  /**
+   * @brief Utility function that returns when within distance_threshold of the
+   * waypoint. The reference waypoint is the member variable
+   * previous_waypoint_odom_frame_ set by the send_waypoint function.
    *
    * @param distance_threshold The distance threshold for reaching the waypoint
    */
   void reach_waypoint(const double distance_threshold);
-
 
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
       gps_map_coord_visualization_pub_;
@@ -135,7 +136,6 @@ protected:
   std::shared_ptr<vortex_msgs::msg::LandmarkArray> landmarks_msg_;
   bool new_odom_msg_ = false;
   bool new_landmark_msg_ = false;
-
 
   geometry_msgs::msg::Point previous_waypoint_odom_frame_;
 };

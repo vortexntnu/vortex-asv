@@ -17,7 +17,6 @@ public:
    */
   void main_task();
 
-
   /**
    * @brief Predict the positions of the first two buoys
    *
@@ -26,18 +25,17 @@ public:
    */
   Eigen::Array<double, 2, 2> predict_first_buoy_pair();
 
-    /**
+  /**
    * @brief Predict the positions of the first two buoys pairs
    *
    * @return An Eigen::Array<double, 2, 4> representing the predicted positions
    * of the first two buoy pairs
    */
-  Eigen::Array<double, 2, 4> predict_first_and_second_buoy_pair(const geometry_msgs::msg::Point &buoy_0, const geometry_msgs::msg::Point &buoy_1);
-
+  Eigen::Array<double, 2, 4>
+  predict_first_and_second_buoy_pair(const geometry_msgs::msg::Point &buoy_0,
+                                     const geometry_msgs::msg::Point &buoy_1);
 
 private:
-
-
 };
 
 } // namespace navigation_task

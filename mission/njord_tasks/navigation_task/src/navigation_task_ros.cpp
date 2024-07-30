@@ -6,7 +6,7 @@ NavigationTaskNode::NavigationTaskNode(const rclcpp::NodeOptions &options)
     : NjordTaskBaseNode("navigation_task_node", options) {
 
   declare_parameter<double>("distance_to_first_buoy_pair", 2.0);
-  
+
   std::thread(&NavigationTaskNode::main_task, this).detach();
 }
 
@@ -35,27 +35,44 @@ void NavigationTaskNode::main_task() {
   }
   // First pair of buoys
   Eigen::Array22d predicted_first_buoy_pair = predict_first_buoy_pair();
-  std::vector<LandmarkPoseID> buoy_landmarks_0_to_1 = get_buoy_landmarks(predicted_first_buoy_pair);
-  if(buoy_landmarks_0_to_1.size() != 2) {
+  std::vector<LandmarkPoseID> buoy_landmarks_0_to_1 =
+      get_buoy_landmarks(predicted_first_buoy_pair);
+  if (buoy_landmarks_0_to_1.size() != 2) {
     RCLCPP_ERROR(this->get_logger(), "Could not find two buoys");
   }
   geometry_msgs::msg::Point waypoint_first_pair;
-  waypoint_first_pair.x = (buoy_landmarks_0_to_1[0].pose_odom_frame.position.x + buoy_landmarks_0_to_1[1].pose_odom_frame.position.x) / 2;
-  waypoint_first_pair.y = (buoy_landmarks_0_to_1[0].pose_odom_frame.position.y + buoy_landmarks_0_to_1[1].pose_odom_frame.position.y) / 2;
+  waypoint_first_pair.x =
+      (buoy_landmarks_0_to_1[0].pose_odom_frame.position.x +
+       buoy_landmarks_0_to_1[1].pose_odom_frame.position.x) /
+      2;
+  waypoint_first_pair.y =
+      (buoy_landmarks_0_to_1[0].pose_odom_frame.position.y +
+       buoy_landmarks_0_to_1[1].pose_odom_frame.position.y) /
+      2;
   waypoint_first_pair.z = 0.0;
   send_waypoint(waypoint_first_pair);
   reach_waypoint(1.0);
 
   // Second pair of buoys
-  Eigen::Array<double, 2, 4> predicted_first_and_second_pair = predict_first_and_second_buoy_pair(buoy_landmarks_0_to_1[0].pose_odom_frame.position, buoy_landmarks_0_to_1[1].pose_odom_frame.position);
-  std::vector<LandmarkPoseID> buoy_landmarks_0_to_3 = get_buoy_landmarks(predicted_first_and_second_pair);
-  if(buoy_landmarks_0_to_3.size() != 4) {
+  Eigen::Array<double, 2, 4> predicted_first_and_second_pair =
+      predict_first_and_second_buoy_pair(
+          buoy_landmarks_0_to_1[0].pose_odom_frame.position,
+          buoy_landmarks_0_to_1[1].pose_odom_frame.position);
+  std::vector<LandmarkPoseID> buoy_landmarks_0_to_3 =
+      get_buoy_landmarks(predicted_first_and_second_pair);
+  if (buoy_landmarks_0_to_3.size() != 4) {
     RCLCPP_ERROR(this->get_logger(), "Could not find four buoys");
   }
   geometry_msgs::msg::Point waypoint_second_pair;
-  waypoint_second_pair.x = (buoy_landmarks_0_to_3[2].pose_odom_frame.position.x + buoy_landmarks_0_to_3[3].pose_odom_frame.position.x) / 2;
-  waypoint_second_pair.y = (buoy_landmarks_0_to_3[2].pose_odom_frame.position.y + buoy_landmarks_0_to_3[3].pose_odom_frame.position.y) / 2;
-  waypoint_second_pair.z = 0.0; 
+  waypoint_second_pair.x =
+      (buoy_landmarks_0_to_3[2].pose_odom_frame.position.x +
+       buoy_landmarks_0_to_3[3].pose_odom_frame.position.x) /
+      2;
+  waypoint_second_pair.y =
+      (buoy_landmarks_0_to_3[2].pose_odom_frame.position.y +
+       buoy_landmarks_0_to_3[3].pose_odom_frame.position.y) /
+      2;
+  waypoint_second_pair.z = 0.0;
   send_waypoint(waypoint_second_pair);
   reach_waypoint(1.0);
 
@@ -69,7 +86,8 @@ Eigen::Array<double, 2, 2> NavigationTaskNode::predict_first_buoy_pair() {
   buoy_0_base_link_frame.header.frame_id = "base_link";
   buoy_1_base_link_frame.header.frame_id = "base_link";
 
-  double distance_to_first_buoy_pair = this->get_parameter("distance_to_first_buoy_pair").as_double();
+  double distance_to_first_buoy_pair =
+      this->get_parameter("distance_to_first_buoy_pair").as_double();
 
   buoy_0_base_link_frame.pose.position.x = distance_to_first_buoy_pair;
   buoy_0_base_link_frame.pose.position.y = -2.5;
@@ -82,8 +100,8 @@ Eigen::Array<double, 2, 2> NavigationTaskNode::predict_first_buoy_pair() {
   geometry_msgs::msg::PoseStamped buoy_1_odom_frame;
 
   try {
-    auto transform = tf_buffer_->lookupTransform("odom", "base_link", tf2::TimePointZero,
-                                tf2::durationFromSec(1.0));
+    auto transform = tf_buffer_->lookupTransform(
+        "odom", "base_link", tf2::TimePointZero, tf2::durationFromSec(1.0));
     tf2::doTransform(buoy_0_base_link_frame, buoy_0_base_link_frame, transform);
     tf2::doTransform(buoy_1_base_link_frame, buoy_1_base_link_frame, transform);
   } catch (tf2::TransformException &ex) {
@@ -99,10 +117,15 @@ Eigen::Array<double, 2, 2> NavigationTaskNode::predict_first_buoy_pair() {
   return predicted_positions;
 }
 
-Eigen::Array<double, 2, 4> NavigationTaskNode::predict_first_and_second_buoy_pair(const geometry_msgs::msg::Point &buoy_0, const geometry_msgs::msg::Point &buoy_1){
+Eigen::Array<double, 2, 4>
+NavigationTaskNode::predict_first_and_second_buoy_pair(
+    const geometry_msgs::msg::Point &buoy_0,
+    const geometry_msgs::msg::Point &buoy_1) {
   Eigen::Vector2d direction_vector;
-  direction_vector << previous_waypoint_odom_frame_.x - this->get_parameter("gps_start_x").as_double(),
-                      previous_waypoint_odom_frame_.y - this->get_parameter("gps_start_y").as_double();
+  direction_vector << previous_waypoint_odom_frame_.x -
+                          this->get_parameter("gps_start_x").as_double(),
+      previous_waypoint_odom_frame_.y -
+          this->get_parameter("gps_start_y").as_double();
   direction_vector.normalize();
 
   Eigen::Array<double, 2, 4> predicted_positions;
