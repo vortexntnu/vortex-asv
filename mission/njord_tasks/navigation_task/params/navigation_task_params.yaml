@@ -19,3 +19,4 @@ navigation_task_node:
     
     # Task specific parameters
     distance_to_first_buoy_pair: 2.0 # Distance in x-direction to first buoy pair in meters from current postition (not gps) position in base_link frame
+    # If the distance is greater than 6.0 we drive distance-4m towards the first buoy pair before trying to find it
