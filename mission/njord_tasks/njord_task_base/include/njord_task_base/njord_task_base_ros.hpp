@@ -38,11 +38,20 @@ protected:
   void landmark_callback(const vortex_msgs::msg::LandmarkArray::SharedPtr msg);
 
   /**
+   * @brief Runs until the navigation systeam required for task completion is ready.
+   * This includes setting the map origin, getting the map to odom tf, and
+   * and getting the odom coordinates of the start and end GPS points.
+   */
+  void navigation_ready();
+
+  /**
    * @brief Spins until the map to odom tf is available.
    * Stores the tf in the member variable map_odom_tf_
    * Then initializes the odom and landmark subscribers
    */
-  void setup_map_odom_tf_and_subs();
+  void get_map_odom_tf();
+
+  void initialize_subscribers();
 
   /**
    * @brief Set the gps_start_odom_frame_ and gps_end_odom_frame_ member
@@ -125,7 +134,7 @@ protected:
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   geometry_msgs::msg::TransformStamped map_odom_tf_;
 
-  mutable std::mutex setup_mutex_;
+  mutable std::mutex navigation_mutex_;
   mutable std::mutex odom_mutex_;
   mutable std::mutex landmark_mutex_;
 
@@ -136,6 +145,7 @@ protected:
   std::shared_ptr<vortex_msgs::msg::LandmarkArray> landmarks_msg_;
   bool new_odom_msg_ = false;
   bool new_landmark_msg_ = false;
+  bool navigation_ready_ = false;
 
   geometry_msgs::msg::Point previous_waypoint_odom_frame_;
 };

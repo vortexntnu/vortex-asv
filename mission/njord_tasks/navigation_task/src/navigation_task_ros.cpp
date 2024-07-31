@@ -11,28 +11,9 @@ NavigationTaskNode::NavigationTaskNode(const rclcpp::NodeOptions &options)
 }
 
 void NavigationTaskNode::main_task() {
-  // Sleep for 3 seconds to allow system to initialize and tracks to be aquired
-  RCLCPP_INFO(
-      this->get_logger(),
-      "Waiting 3 seconds for system to initialize before starting main task");
-  rclcpp::sleep_for(std::chrono::seconds(3));
-
-  while (true) {
-    rclcpp::sleep_for(std::chrono::milliseconds(100));
-    std::unique_lock<std::mutex> setup_lock(setup_mutex_);
-    if (!(this->get_parameter("map_origin_set").as_bool())) {
-      RCLCPP_INFO(this->get_logger(), "Map origin not set, sleeping for 100ms");
-      setup_lock.unlock();
-      continue;
-    }
-    if (!(this->get_parameter("gps_frame_coords_set").as_bool())) {
-      setup_map_odom_tf_and_subs();
-      set_gps_odom_points();
-      setup_lock.unlock();
-      break;
-    }
-    setup_lock.unlock();
-  }
+  
+  navigation_ready();
+  RCLCPP_INFO(this->get_logger(), "Navigation task started");
   // First pair of buoys
   Eigen::Array22d predicted_first_buoy_pair = predict_first_buoy_pair();
   std::vector<LandmarkPoseID> buoy_landmarks_0_to_1 =
@@ -311,13 +292,17 @@ Eigen::Array<double, 2, 2> NavigationTaskNode::predict_first_buoy_pair() {
   geometry_msgs::msg::PoseStamped buoy_0_odom_frame;
   geometry_msgs::msg::PoseStamped buoy_1_odom_frame;
 
-  try {
-    auto transform = tf_buffer_->lookupTransform(
-        "odom", "base_link", tf2::TimePointZero, tf2::durationFromSec(1.0));
-    tf2::doTransform(buoy_0_base_link_frame, buoy_0_base_link_frame, transform);
-    tf2::doTransform(buoy_1_base_link_frame, buoy_1_base_link_frame, transform);
-  } catch (tf2::TransformException &ex) {
-    RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
+  bool transform_success = false;
+  while (!transform_success){
+    try {
+      auto transform = tf_buffer_->lookupTransform(
+          "odom", "base_link", tf2::TimePointZero, tf2::durationFromSec(1.0));
+      tf2::doTransform(buoy_0_base_link_frame, buoy_0_base_link_frame, transform);
+      tf2::doTransform(buoy_1_base_link_frame, buoy_1_base_link_frame, transform);
+      transform_success = true;
+    } catch (tf2::TransformException &ex) {
+      RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
+    }
   }
 
   Eigen::Array<double, 2, 2> predicted_positions;

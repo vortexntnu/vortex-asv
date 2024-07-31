@@ -29,7 +29,7 @@ void DockingTaskNode::main_task() {
 
   while (true) {
     rclcpp::sleep_for(std::chrono::milliseconds(100));
-    std::unique_lock<std::mutex> setup_lock(setup_mutex_);
+    std::unique_lock<std::mutex> setup_lock(navigation_mutex_);
     if (!(this->get_parameter("map_origin_set").as_bool())) {
       RCLCPP_INFO(this->get_logger(), "Map origin not set, sleeping for 100ms");
       setup_lock.unlock();
@@ -37,7 +37,7 @@ void DockingTaskNode::main_task() {
     }
     if (!(this->get_parameter("gps_frame_coords_set").as_bool())) {
       set_gps_odom_points();
-      setup_map_odom_tf_and_subs();
+      get_map_odom_tf();
       setup_lock.unlock();
       break;
     }

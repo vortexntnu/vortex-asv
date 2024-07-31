@@ -93,8 +93,6 @@ private:
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr grid_sub_;
 
   nav_msgs::msg::OccupancyGrid::SharedPtr grid_msg_;
-
-  geometry_msgs::msg::Point previous_waypoint_odom_frame_;
 };
 
 } // namespace docking_task

@@ -18,7 +18,6 @@ public:
   void main_task();
 
 private:
-  geometry_msgs::msg::Point previous_waypoint_odom_frame_;
 };
 
 } // namespace collision_avoidance_task

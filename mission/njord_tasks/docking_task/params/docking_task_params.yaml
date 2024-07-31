@@ -28,5 +28,5 @@ docking_task_node:
     map_origin_topic: "/map/origin"
     grid_topic: "grid"
     odom_topic: "/seapath/odom/ned"
-    landmark_pose_topic: "landmarks_out"
+    landmark_topic: "landmarks_out"
     

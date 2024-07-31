@@ -17,8 +17,10 @@ public:
    */
   void main_task();
 
+  Eigen::Array<double, 2, 2> predict_first_buoy_pair();
+
+
 private:
-  geometry_msgs::msg::Point previous_waypoint_odom_frame_;
 };
 
 } // namespace maneuvering_task

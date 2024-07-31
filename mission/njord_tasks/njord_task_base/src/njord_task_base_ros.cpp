@@ -19,7 +19,7 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
 
   declare_parameter<std::string>("map_origin_topic", "/map/origin");
   declare_parameter<std::string>("odom_topic", "/seapath/odom/ned");
-  declare_parameter<std::string>("landmark_pose_topic", "/landmark/pose");
+  declare_parameter<std::string>("landmark_topic", "landmarks_out");
 
   // Sensor data QoS profile
   rmw_qos_profile_t qos_profile_sensor_data = rmw_qos_profile_sensor_data;
@@ -39,23 +39,33 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
       this->create_publisher<geometry_msgs::msg::PoseArray>(
           "/gps_map_coord_visualization", qos_sensor_data);
 
-  map_origin_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
-      get_parameter("map_origin_topic").as_string(), qos_transient_local,
-      std::bind(&NjordTaskBaseNode::map_origin_callback, this,
-                std::placeholders::_1));
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
+  if(this->get_parameter("map_origin_set").as_bool()) {
+    get_map_odom_tf();
+    set_gps_odom_points();
+    initialize_subscribers();
+    std::unique_lock<std::mutex> setup_lock(navigation_mutex_);
+    navigation_ready_ = true;
+    setup_lock.unlock();
+  } else {
+    map_origin_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
+        get_parameter("map_origin_topic").as_string(), qos_transient_local,
+        std::bind(&NjordTaskBaseNode::map_origin_callback, this,
+                  std::placeholders::_1));
+  }
 
   waypoint_visualization_pub_ =
       this->create_publisher<geometry_msgs::msg::PoseStamped>(
           "/waypoint_visualization", qos_sensor_data);
 
-  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   waypoint_client_ =
       this->create_client<vortex_msgs::srv::Waypoint>("/waypoint");
 }
 
-void NjordTaskBaseNode::setup_map_odom_tf_and_subs() {
+void NjordTaskBaseNode::get_map_odom_tf() {
   // Get the transform between the map and odom frames to avoid the overhead
   // from continuously looking up the static transform between map and odom
   bool tf_set = false;
@@ -71,7 +81,9 @@ void NjordTaskBaseNode::setup_map_odom_tf_and_subs() {
     }
     tf_set = true;
   }
+}
 
+void NjordTaskBaseNode::initialize_subscribers() {
   // Sensor data QoS profile
   rmw_qos_profile_t qos_profile_sensor_data = rmw_qos_profile_sensor_data;
   auto qos_sensor_data =
@@ -84,12 +96,16 @@ void NjordTaskBaseNode::setup_map_odom_tf_and_subs() {
                 std::placeholders::_1));
 
   landmarks_sub_ = this->create_subscription<vortex_msgs::msg::LandmarkArray>(
-      get_parameter("landmark_pose_topic").as_string(), qos_sensor_data,
+      get_parameter("landmark_topic").as_string(), qos_sensor_data,
       std::bind(&NjordTaskBaseNode::landmark_callback, this,
                 std::placeholders::_1));
 }
 
 void NjordTaskBaseNode::set_gps_odom_points() {
+  if (this->get_parameter("gps_frame_coords_set").as_bool()) {
+    RCLCPP_INFO(this->get_logger(), "Using predefined GPS frame coordinates");
+    return;
+  }
   auto [gps_start_x, gps_start_y] =
       lla2flat(this->get_parameter("gps_start_lat").as_double(),
                this->get_parameter("gps_start_lon").as_double());
@@ -125,7 +141,7 @@ void NjordTaskBaseNode::set_gps_odom_points() {
       rclcpp::Parameter("gps_end_y", gps_end_odom_frame.pose.position.y));
   this->set_parameter(rclcpp::Parameter("gps_frame_coords_set", true));
   RCLCPP_INFO(
-      this->get_logger(), "GPS oodm frame coordinates set to: %f, %f, %f, %f",
+      this->get_logger(), "GPS odom frame coordinates set to: %f, %f, %f, %f",
       gps_start_odom_frame.pose.position.x,
       gps_start_odom_frame.pose.position.y, gps_end_odom_frame.pose.position.x,
       gps_end_odom_frame.pose.position.y);
@@ -178,7 +194,6 @@ std::pair<double, double> NjordTaskBaseNode::lla2flat(double lat,
 
 void NjordTaskBaseNode::map_origin_callback(
     const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
-  std::unique_lock<std::mutex> setup_lock(setup_mutex_);
   this->set_parameter(rclcpp::Parameter("map_origin_lat", msg->latitude));
   this->set_parameter(rclcpp::Parameter("map_origin_lon", msg->longitude));
   this->set_parameter(rclcpp::Parameter("map_origin_set", true));
@@ -186,12 +201,26 @@ void NjordTaskBaseNode::map_origin_callback(
               msg->longitude);
 
   // Set the map to odom transform
-  setup_map_odom_tf_and_subs();
+  get_map_odom_tf();
   // Set GPS frame coordinates
   set_gps_odom_points();
-
+  initialize_subscribers();
   map_origin_sub_.reset();
+  std::unique_lock<std::mutex> setup_lock(navigation_mutex_);
+  navigation_ready_ = true;
   setup_lock.unlock();
+}
+
+void NjordTaskBaseNode::navigation_ready() {
+  bool ready = false;
+  while (!ready) {
+    std::unique_lock<std::mutex> setup_lock(navigation_mutex_);
+    ready = navigation_ready_;
+    setup_lock.unlock();
+    RCLCPP_INFO_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+                                "Waiting for navigation system to be ready");
+    rclcpp::sleep_for(std::chrono::milliseconds(100));
+  }
 }
 
 void NjordTaskBaseNode::odom_callback(
@@ -308,7 +337,7 @@ std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(
     const Eigen::Array<double, 2, Eigen::Dynamic> &predicted_positions) {
   std::vector<int32_t> landmark_ids;
   std::vector<int32_t> expected_assignment;
-  Eigen::Array<double, 2, Eigen::Dynamic> measured_buoy_positions(
+  Eigen::Array<double, 2, Eigen::Dynamic> returned_buoy_positions(
       2, predicted_positions.cols());
   int confidence_threshold =
       this->get_parameter("assignment_confidence").as_int();
@@ -342,8 +371,8 @@ std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(
 
     // Extract measured positions of assigned buoys
     for (Eigen::Index i = 0; i < assignment.size(); i++) {
-      measured_buoy_positions(0, i) = measured_positions(0, assignment(i));
-      measured_buoy_positions(1, i) = measured_positions(1, assignment(i));
+      returned_buoy_positions(0, i) = measured_positions(0, assignment(i));
+      returned_buoy_positions(1, i) = measured_positions(1, assignment(i));
     }
 
     // Check if any buoys are unassigned
@@ -398,8 +427,8 @@ std::vector<LandmarkPoseID> NjordTaskBaseNode::get_buoy_landmarks(
   for (size_t i = 0; i < expected_assignment.size(); i++) {
     LandmarkPoseID landmark;
     landmark.id = expected_assignment.at(i);
-    landmark.pose_odom_frame.position.x = measured_buoy_positions(0, i);
-    landmark.pose_odom_frame.position.y = measured_buoy_positions(1, i);
+    landmark.pose_odom_frame.position.x = returned_buoy_positions(0, i);
+    landmark.pose_odom_frame.position.y = returned_buoy_positions(1, i);
     buoys.push_back(landmark);
   }
   return buoys;
