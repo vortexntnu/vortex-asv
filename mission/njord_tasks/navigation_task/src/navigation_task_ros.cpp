@@ -18,9 +18,10 @@ void NavigationTaskNode::main_task() {
   Eigen::Array22d predicted_first_buoy_pair = predict_first_buoy_pair();
   double distance_to_first_buoy_pair =
       this->get_parameter("distance_to_first_buoy_pair").as_double();
-  if (distance_to_first_buoy_pair > 6.0){
+  if (distance_to_first_buoy_pair > 6.0) {
     geometry_msgs::msg::Point waypoint_to_approach_first_pair_base_link;
-    waypoint_to_approach_first_pair_base_link.x = distance_to_first_buoy_pair-4.0;
+    waypoint_to_approach_first_pair_base_link.x =
+        distance_to_first_buoy_pair - 4.0;
     waypoint_to_approach_first_pair_base_link.y = 0.0;
     waypoint_to_approach_first_pair_base_link.z = 0.0;
     try {
@@ -34,7 +35,6 @@ void NavigationTaskNode::main_task() {
     } catch (tf2::TransformException &ex) {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
     }
-
   }
   std::vector<LandmarkPoseID> buoy_landmarks_0_to_1 =
       get_buoy_landmarks(predicted_first_buoy_pair);
@@ -317,10 +317,8 @@ Eigen::Array<double, 2, 2> NavigationTaskNode::predict_first_buoy_pair() {
     try {
       auto transform = tf_buffer_->lookupTransform(
           "odom", "base_link", tf2::TimePointZero, tf2::durationFromSec(1.0));
-      tf2::doTransform(buoy_0_base_link_frame, buoy_0_odom_frame,
-                       transform);
-      tf2::doTransform(buoy_1_base_link_frame, buoy_1_odom_frame,
-                       transform);
+      tf2::doTransform(buoy_0_base_link_frame, buoy_0_odom_frame, transform);
+      tf2::doTransform(buoy_1_base_link_frame, buoy_1_odom_frame, transform);
       transform_success = true;
     } catch (tf2::TransformException &ex) {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
