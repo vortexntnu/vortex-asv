@@ -38,9 +38,9 @@ protected:
   void landmark_callback(const vortex_msgs::msg::LandmarkArray::SharedPtr msg);
 
   /**
-   * @brief Runs until the navigation systeam required for task completion is ready.
-   * This includes setting the map origin, getting the map to odom tf, and
-   * and getting the odom coordinates of the start and end GPS points.
+   * @brief Runs until the navigation systeam required for task completion is
+   * ready. This includes setting the map origin, getting the map to odom tf,
+   * and and getting the odom coordinates of the start and end GPS points.
    */
   void navigation_ready();
 

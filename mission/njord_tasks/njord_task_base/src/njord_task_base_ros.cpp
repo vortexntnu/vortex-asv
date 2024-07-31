@@ -42,7 +42,7 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-  if(this->get_parameter("map_origin_set").as_bool()) {
+  if (this->get_parameter("map_origin_set").as_bool()) {
     get_map_odom_tf();
     set_gps_odom_points();
     initialize_subscribers();
@@ -59,7 +59,6 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
   waypoint_visualization_pub_ =
       this->create_publisher<geometry_msgs::msg::PoseStamped>(
           "/waypoint_visualization", qos_sensor_data);
-
 
   waypoint_client_ =
       this->create_client<vortex_msgs::srv::Waypoint>("/waypoint");

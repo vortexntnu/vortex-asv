@@ -11,7 +11,7 @@ NavigationTaskNode::NavigationTaskNode(const rclcpp::NodeOptions &options)
 }
 
 void NavigationTaskNode::main_task() {
-  
+
   navigation_ready();
   RCLCPP_INFO(this->get_logger(), "Navigation task started");
   // First pair of buoys
@@ -293,12 +293,14 @@ Eigen::Array<double, 2, 2> NavigationTaskNode::predict_first_buoy_pair() {
   geometry_msgs::msg::PoseStamped buoy_1_odom_frame;
 
   bool transform_success = false;
-  while (!transform_success){
+  while (!transform_success) {
     try {
       auto transform = tf_buffer_->lookupTransform(
           "odom", "base_link", tf2::TimePointZero, tf2::durationFromSec(1.0));
-      tf2::doTransform(buoy_0_base_link_frame, buoy_0_base_link_frame, transform);
-      tf2::doTransform(buoy_1_base_link_frame, buoy_1_base_link_frame, transform);
+      tf2::doTransform(buoy_0_base_link_frame, buoy_0_base_link_frame,
+                       transform);
+      tf2::doTransform(buoy_1_base_link_frame, buoy_1_base_link_frame,
+                       transform);
       transform_success = true;
     } catch (tf2::TransformException &ex) {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());

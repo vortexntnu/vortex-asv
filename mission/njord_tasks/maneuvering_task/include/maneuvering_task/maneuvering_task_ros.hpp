@@ -19,7 +19,6 @@ public:
 
   Eigen::Array<double, 2, 2> predict_first_buoy_pair();
 
-
 private:
 };
 
