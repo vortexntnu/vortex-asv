@@ -12,7 +12,6 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
       rclcpp::QoSInitialization(qos_profile_transient_local.history, 1),
       qos_profile_transient_local);
 
-
   declare_parameter("use_predef_landmask", false);
   declare_parameter(
       "landmask_file",
@@ -30,14 +29,14 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
       "landmask", qos_transient_local);
   map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
       "map", qos_transient_local);
-  
-  if(this->get_parameter("use_predef_map_origin").as_bool()){
+
+  if (this->get_parameter("use_predef_map_origin").as_bool()) {
     map_origin_lat_ = this->get_parameter("map_origin_lat").as_double();
     map_origin_lon_ = this->get_parameter("map_origin_lon").as_double();
     map_origin_set_ = true;
 
     auto grid = createOccupancyGrid();
-    if(this->get_parameter("use_predef_landmask").as_bool()){
+    if (this->get_parameter("use_predef_landmask").as_bool()) {
       auto polygon = readPolygonFromFile(landmask_file_);
       landmask_pub_->publish(polygon);
       fillOutsidePolygon(grid, polygon);
@@ -68,14 +67,15 @@ void MapManagerNode::mapOriginCallback(
   map_origin_lon_ = msg->longitude;
   map_origin_set_ = true;
   map_origin_sub_ = nullptr;
-  if(this->get_parameter("use_predef_landmask").as_bool()){
+  if (this->get_parameter("use_predef_landmask").as_bool()) {
     landmask_pub_->publish(readPolygonFromFile(landmask_file_));
   }
 }
 
 void MapManagerNode::handle_get_map_request(
     [[maybe_unused]] const std::shared_ptr<rmw_request_id_t> request_header,
-    [[maybe_unused]] const std::shared_ptr<nav_msgs::srv::GetMap::Request> request,
+    [[maybe_unused]] const std::shared_ptr<nav_msgs::srv::GetMap::Request>
+        request,
     const std::shared_ptr<nav_msgs::srv::GetMap::Response> response) {
   if (!map_origin_set_) {
     RCLCPP_WARN(this->get_logger(), "Map origin not set, cannot provide map");
@@ -84,7 +84,7 @@ void MapManagerNode::handle_get_map_request(
   RCLCPP_INFO(this->get_logger(), "Received request for map");
 
   nav_msgs::msg::OccupancyGrid grid = createOccupancyGrid();
-  if(this->get_parameter("use_predef_landmask").as_bool()){
+  if (this->get_parameter("use_predef_landmask").as_bool()) {
     auto polygon = readPolygonFromFile(landmask_file_);
     fillOutsidePolygon(grid, polygon);
     insert_landmask(grid, polygon);

@@ -17,7 +17,6 @@ void CollisionAvoidanceTaskNode::main_task() {
   rclcpp::sleep_for(std::chrono::seconds(3));
 
   while (true) {
-    
   }
 }
 

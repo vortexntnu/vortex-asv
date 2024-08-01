@@ -30,9 +30,10 @@ void DockingTaskNode::main_task() {
   Eigen::Array<double, 2, 2> predicted_first_pair = predict_first_buoy_pair();
   double distance_to_first_buoy_pair =
       this->get_parameter("distance_to_first_buoy_pair").as_double();
-  if (distance_to_first_buoy_pair > 6.0){
+  if (distance_to_first_buoy_pair > 6.0) {
     geometry_msgs::msg::Point waypoint_to_approach_first_pair_base_link;
-    waypoint_to_approach_first_pair_base_link.x = distance_to_first_buoy_pair-4.0;
+    waypoint_to_approach_first_pair_base_link.x =
+        distance_to_first_buoy_pair - 4.0;
     waypoint_to_approach_first_pair_base_link.y = 0.0;
     waypoint_to_approach_first_pair_base_link.z = 0.0;
     try {
@@ -47,7 +48,8 @@ void DockingTaskNode::main_task() {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
     }
   }
-  std::vector<LandmarkPoseID> buoy_landmarks_0_to_1 = get_buoy_landmarks(predicted_first_pair);
+  std::vector<LandmarkPoseID> buoy_landmarks_0_to_1 =
+      get_buoy_landmarks(predicted_first_pair);
   if (buoy_landmarks_0_to_1.size() != 2) {
     RCLCPP_ERROR(this->get_logger(), "Could not find two buoys");
   }
@@ -104,13 +106,13 @@ void DockingTaskNode::main_task() {
       (buoy_landmarks_2_to_5[2].pose_odom_frame.position.x +
        buoy_landmarks_2_to_5[3].pose_odom_frame.position.x) /
       2;
-  waypoint_third_pair.y = (buoy_landmarks_2_to_5[2].pose_odom_frame.position.y +
-                           buoy_landmarks_2_to_5[3].pose_odom_frame.position.y) /
-                          2;
+  waypoint_third_pair.y =
+      (buoy_landmarks_2_to_5[2].pose_odom_frame.position.y +
+       buoy_landmarks_2_to_5[3].pose_odom_frame.position.y) /
+      2;
   waypoint_third_pair.z = 0.0;
   send_waypoint(waypoint_third_pair);
   reach_waypoint(1.0);
-
 }
 
 Eigen::Array<double, 2, 2> DockingTaskNode::predict_first_buoy_pair() {
@@ -140,10 +142,8 @@ Eigen::Array<double, 2, 2> DockingTaskNode::predict_first_buoy_pair() {
     try {
       auto transform = tf_buffer_->lookupTransform(
           "odom", "base_link", tf2::TimePointZero, tf2::durationFromSec(1.0));
-      tf2::doTransform(buoy_0_base_link_frame, buoy_0_odom_frame,
-                       transform);
-      tf2::doTransform(buoy_1_base_link_frame, buoy_1_odom_frame,
-                       transform);
+      tf2::doTransform(buoy_0_base_link_frame, buoy_0_odom_frame, transform);
+      tf2::doTransform(buoy_1_base_link_frame, buoy_1_odom_frame, transform);
       transform_success = true;
     } catch (tf2::TransformException &ex) {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
@@ -159,8 +159,7 @@ Eigen::Array<double, 2, 2> DockingTaskNode::predict_first_buoy_pair() {
   return predicted_positions;
 }
 
-Eigen::Array<double, 2, 4>
-DockingTaskNode::predict_second_buoy_pair(
+Eigen::Array<double, 2, 4> DockingTaskNode::predict_second_buoy_pair(
     const geometry_msgs::msg::Point &buoy_0,
     const geometry_msgs::msg::Point &buoy_1) {
   Eigen::Vector2d direction_vector;
@@ -189,8 +188,8 @@ Eigen::Array<double, 2, 4> DockingTaskNode::predict_third_buoy_pair(
     const geometry_msgs::msg::Point &buoy_2,
     const geometry_msgs::msg::Point &buoy_3) {
   Eigen::Vector2d direction_vector_first_to_second_pair;
-  direction_vector_first_to_second_pair << (buoy_2.x + buoy_3.x) / 2 -
-                                               (buoy_0.x + buoy_1.x) / 2,
+  direction_vector_first_to_second_pair
+      << (buoy_2.x + buoy_3.x) / 2 - (buoy_0.x + buoy_1.x) / 2,
       (buoy_2.y + buoy_3.y) / 2 - (buoy_0.y + buoy_1.y) / 2;
   direction_vector_first_to_second_pair.normalize();
 
@@ -199,10 +198,14 @@ Eigen::Array<double, 2, 4> DockingTaskNode::predict_third_buoy_pair(
   predicted_positions(1, 0) = buoy_2.y;
   predicted_positions(0, 1) = buoy_3.x;
   predicted_positions(1, 1) = buoy_3.y;
-  predicted_positions(0, 2) = buoy_2.x + direction_vector_first_to_second_pair(0) * 5;
-  predicted_positions(1, 2) = buoy_2.y + direction_vector_first_to_second_pair(1) * 5;
-  predicted_positions(0, 3) = buoy_3.x + direction_vector_first_to_second_pair(0) * 5;
-  predicted_positions(1, 3) = buoy_3.y + direction_vector_first_to_second_pair(1) * 5;
+  predicted_positions(0, 2) =
+      buoy_2.x + direction_vector_first_to_second_pair(0) * 5;
+  predicted_positions(1, 2) =
+      buoy_2.y + direction_vector_first_to_second_pair(1) * 5;
+  predicted_positions(0, 3) =
+      buoy_3.x + direction_vector_first_to_second_pair(0) * 5;
+  predicted_positions(1, 3) =
+      buoy_3.y + direction_vector_first_to_second_pair(1) * 5;
 
   return predicted_positions;
 }
@@ -214,7 +217,8 @@ void DockingTaskNode::initialize_grid_sub() {
                   qos_profile_sensor_data);
   std::string grid_topic = this->get_parameter("grid_topic").as_string();
   grid_sub_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
-      grid_topic, qos_sensor_data, std::bind(&DockingTaskNode::grid_callback, this, std::placeholders::_1));
+      grid_topic, qos_sensor_data,
+      std::bind(&DockingTaskNode::grid_callback, this, std::placeholders::_1));
 }
 
 void DockingTaskNode::grid_callback(
