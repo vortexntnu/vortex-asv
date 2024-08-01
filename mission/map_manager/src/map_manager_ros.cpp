@@ -5,10 +5,6 @@ namespace map_manager {
 MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
     : Node("map_manager_node", options) {
 
-  //    rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
-  //     auto qos_sensor_data =
-  //     rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 1),
-  //     qos_profile);
   rmw_qos_profile_t qos_profile_transient_local = rmw_qos_profile_parameters;
   qos_profile_transient_local.durability =
       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
@@ -16,10 +12,6 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
       rclcpp::QoSInitialization(qos_profile_transient_local.history, 1),
       qos_profile_transient_local);
 
-  map_origin_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
-      "/map/origin", qos_transient_local,
-      std::bind(&MapManagerNode::mapOriginCallback, this,
-                std::placeholders::_1));
 
   declare_parameter("use_predef_landmask", false);
   declare_parameter(
@@ -29,26 +21,36 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
   declare_parameter("map_width", 1000);
   declare_parameter("map_height", 1000);
   declare_parameter("frame_id", "map");
+  declare_parameter("map_origin_lat", 0.0);
+  declare_parameter("map_origin_lon", 0.0);
+  declare_parameter("use_predef_map_origin", false);
 
   landmask_file_ = get_parameter("landmask_file").as_string();
   landmask_pub_ = this->create_publisher<geometry_msgs::msg::PolygonStamped>(
       "landmask", qos_transient_local);
-  // traffic centre
-  // map_origin_lat_ = 63.41490901857848;
-  // map_origin_lon_ = 10.398215601285054;
-  // office bag still
-  map_origin_lat_ = 63.414660884931976;
-  map_origin_lon_ = 10.398554661537544;
-  map_origin_set_ = true;
-  auto grid = createOccupancyGrid();
-  auto polygon = readPolygonFromFile(landmask_file_);
-  landmask_pub_->publish(polygon);
-  fillOutsidePolygon(grid, polygon);
-  insert_landmask(grid, polygon);
-
   map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
       "map", qos_transient_local);
-  map_pub_->publish(grid);
+  
+  if(this->get_parameter("use_predef_map_origin").as_bool()){
+    map_origin_lat_ = this->get_parameter("map_origin_lat").as_double();
+    map_origin_lon_ = this->get_parameter("map_origin_lon").as_double();
+    map_origin_set_ = true;
+
+    auto grid = createOccupancyGrid();
+    if(this->get_parameter("use_predef_landmask").as_bool()){
+      auto polygon = readPolygonFromFile(landmask_file_);
+      landmask_pub_->publish(polygon);
+      fillOutsidePolygon(grid, polygon);
+      insert_landmask(grid, polygon);
+    }
+
+    map_pub_->publish(grid);
+  } else {
+    map_origin_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
+        "/map/origin", qos_transient_local,
+        std::bind(&MapManagerNode::mapOriginCallback, this,
+                  std::placeholders::_1));
+  }
 
   grid_service_ = this->create_service<nav_msgs::srv::GetMap>(
       "get_map",
@@ -66,26 +68,27 @@ void MapManagerNode::mapOriginCallback(
   map_origin_lon_ = msg->longitude;
   map_origin_set_ = true;
   map_origin_sub_ = nullptr;
-
-  landmask_pub_->publish(readPolygonFromFile(landmask_file_));
+  if(this->get_parameter("use_predef_landmask").as_bool()){
+    landmask_pub_->publish(readPolygonFromFile(landmask_file_));
+  }
 }
 
 void MapManagerNode::handle_get_map_request(
-    const std::shared_ptr<rmw_request_id_t> request_header,
-    const std::shared_ptr<nav_msgs::srv::GetMap::Request> request,
+    [[maybe_unused]] const std::shared_ptr<rmw_request_id_t> request_header,
+    [[maybe_unused]] const std::shared_ptr<nav_msgs::srv::GetMap::Request> request,
     const std::shared_ptr<nav_msgs::srv::GetMap::Response> response) {
   if (!map_origin_set_) {
     RCLCPP_WARN(this->get_logger(), "Map origin not set, cannot provide map");
     return;
   }
-  // Your logic to fill the map data
   RCLCPP_INFO(this->get_logger(), "Received request for map");
 
-  // Example: You could fill this with actual map data
   nav_msgs::msg::OccupancyGrid grid = createOccupancyGrid();
-  auto polygon = readPolygonFromFile(landmask_file_);
-  fillOutsidePolygon(grid, polygon);
-  insert_landmask(grid, polygon);
+  if(this->get_parameter("use_predef_landmask").as_bool()){
+    auto polygon = readPolygonFromFile(landmask_file_);
+    fillOutsidePolygon(grid, polygon);
+    insert_landmask(grid, polygon);
+  }
   response->map = grid;
   RCLCPP_INFO(this->get_logger(), "Map sent");
 }
@@ -210,7 +213,7 @@ nav_msgs::msg::OccupancyGrid MapManagerNode::createOccupancyGrid() {
   grid.info.resolution = get_parameter("map_resolution").as_double();
   grid.info.width = get_parameter("map_width").as_int();
   grid.info.height = get_parameter("map_height").as_int();
-  grid.info.origin = calculate_map_origin();
+  // grid.info.origin = calculate_map_origin();
   grid.info.map_load_time = this->now();
   // 0 represents unoccupied, 1 represents definitely occupied, and
   // -1 represents unknown.

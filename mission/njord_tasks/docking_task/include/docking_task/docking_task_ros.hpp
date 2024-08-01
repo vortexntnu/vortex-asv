@@ -11,12 +11,6 @@
 
 namespace docking_task {
 
-struct LandmarkWithID {
-  geometry_msgs::msg::Pose pose_odom_frame;
-  geometry_msgs::msg::Pose pose_base_link_frame;
-  int32_t id;
-};
-
 /**
  * @class DockingTaskNode
  * @brief A class representing a node for handling dock localization in a ROS 2
@@ -45,54 +39,34 @@ public:
    */
   void main_task();
 
-  /**
-   * @brief Detect the closest buoy pair and set a waypoint between them
-   *
-   * @return A pair of landmarks representing the closest buoy pair
-   */
-  std::pair<LandmarkWithID, LandmarkWithID> initial_waypoint();
+  Eigen::Array<double, 2, 2> predict_first_buoy_pair();
 
-  /**
-   * @brief Predict the 6-tuple formation of buoys
-   *
-   * @param landmark1 The first landmark/buoy used for initial waypoint
-   * @param landmark2 The second landmark/buoy used for initial waypoint
-   *
-   * @return The predicted posistion of the 6-tuple formation of buoys in odom
-   * frame
-   */
-  Eigen::Array<double, 2, 6>
-  predict_buoy_formation(const LandmarkWithID &buoy1,
-                         const LandmarkWithID &buoy2);
+  Eigen::Array<double, 2, 4>
+predict_second_buoy_pair(
+    const geometry_msgs::msg::Point &buoy_0,
+    const geometry_msgs::msg::Point &buoy_1);
 
-  /**
-   * @brief Navigate the ASV through the formation of buoys. First travels to
-   * waypoint between second pair of buoys, then navigates through the formation
-   * of buoys and returns control when asv is 0.2m away from crossing the last
-   * buoy pair.
-   *
-   * @param predicted_positions The predicted positions of the buoys
-   * @return The ids of the last pair of buoys in the formation
-   */
-  std::pair<int32_t, int32_t>
-  navigate_formation(Eigen::Array<double, 2, 6> &predicted_positions);
+  Eigen::Array<double, 2, 4> predict_third_buoy_pair(
+    const geometry_msgs::msg::Point &buoy_0,
+    const geometry_msgs::msg::Point &buoy_1,
+    const geometry_msgs::msg::Point &buoy_2,
+    const geometry_msgs::msg::Point &buoy_3);
 
-  /**
-   * @brief Utility function that runs until waypoint is reached.
-   * Function returns when within distance_threshold of the waypoint.
-   *
-   * @param distance_threshold The distance threshold for reaching the waypoint
-   */
-  void reach_waypoint(const double distance_threshold);
+  void grid_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
 
+  std::shared_ptr<nav_msgs::msg::OccupancyGrid> get_grid();
+
+  void initialize_grid_sub();
+  
 private:
   mutable std::mutex grid_mutex_;
   bool new_grid_msg_ = false;
   std::condition_variable grid_cond_var_;
-
+  nav_msgs::msg::OccupancyGrid::SharedPtr grid_msg_;
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr grid_sub_;
 
-  nav_msgs::msg::OccupancyGrid::SharedPtr grid_msg_;
+
+
 };
 
 } // namespace docking_task

@@ -21,5 +21,5 @@ maneuvering_task_node:
     distance_to_first_buoy_pair: 2.0 # Distance in x-direction to first buoy pair in meters from current postition (not gps) position in base_link frame.
     # If the distance is greater than five we drive distance-3m towards end before trying to find the first buoy pair
     initial_offset: 1.0 # The vertical offset from the second and third buoy pair in meters
-    nr_of_pair_in_formation: 11 # Number of buoy pairs in formation, excluding the start and end gate at gps points
+    nr_of_pair_in_formation: 11 # Number of buoy pairs in formation, excluding the start and end gate at gps points (NB! pdf is not accurate)
     

@@ -15,6 +15,12 @@ def generate_launch_description():
         default_value='True',
         description='enable tf launch file',
     )
+    enable_seapath = LaunchConfiguration('enable_seapath')
+    enable_seapath_arg = DeclareLaunchArgument(
+        'enable_seapath',
+        default_value='True',
+        description='enable seapath launch file',
+    )
   
     seapath_ros_driver_node = Node(
             package='seapath_ros_driver',
@@ -22,6 +28,8 @@ def generate_launch_description():
             name='seapath_ros_driver_node',
             parameters=[os.path.join(get_package_share_directory('asv_setup'),'config','sitaw','seapath_params.yaml')],
             output='screen',
+            condition=IfCondition(enable_seapath),
+            
         )
     map_manager_node = Node(
             package='map_manager',
@@ -45,6 +53,7 @@ def generate_launch_description():
     return LaunchDescription([
         enable_tf_arg,
         tf_launch,
+        enable_seapath_arg,
         seapath_ros_driver_node,
         map_manager_node,
         landmark_server_node

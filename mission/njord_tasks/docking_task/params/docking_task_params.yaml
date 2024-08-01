@@ -12,6 +12,16 @@ docking_task_node:
     gps_end_x: 0.0
     gps_end_y: 0.0
     gps_frame_coords_set: false
+    map_origin_topic: "/map/origin"
+    odom_topic: "/seapath/odom/ned"
+    landmark_topic: "landmarks_out"
+    assignment_confidence: 10  # Number of consequtive identical assignments from auction algorithm before we consider the assignment as correct
+
+    # Task specific parameters (not derived from base class)
+    distance_to_first_buoy_pair: 2.0 # Distance in x-direction to first buoy pair in meters from current postition (not gps) position in base_link frame
+    # If the distance is greater than 6.0 we drive distance-4m towards the first buoy pair before trying to find it
+    distance_between_buoys_in_pair: 5.0 # Distance between the two buoys in a pair
+    grid_topic: "grid"
     dock_width: 4.13 # width of available docking space
     dock_width_tolerance: 0.5
     dock_length: 2.0  # length of available docking space
@@ -23,10 +33,4 @@ docking_task_node:
     models:
       dynmod_stddev: 0.01
       senmod_stddev: 0.01
-
-
-    map_origin_topic: "/map/origin"
-    grid_topic: "grid"
-    odom_topic: "/seapath/odom/ned"
-    landmark_topic: "landmarks_out"
     

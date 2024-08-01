@@ -6,3 +6,10 @@ map_manager_node:
     map_width: 1000
     map_height: 1000
     frame_id: "world"
+    # Map origin for office rosbag
+    # map_origin_lat: 63.414660884931976 
+    # map_origin_lon: 10.398554661537544
+    # use_predef_map_origin: true
+    map_origin_lat: 0.0
+    map_origin_lon: 0.0
+    use_predef_map_origin: false
