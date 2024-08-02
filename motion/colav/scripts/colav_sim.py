@@ -22,7 +22,7 @@ class Simulator(Node):
         self.speed = 0.5
         self.obstacle_pos_x = 5
         self.obstacle_pos_y = 5
-        self.obstacle_speed = 0.1
+        self.obstacle_speed = 0.5
         self.obstacle_heading = 5*np.pi/4
         self.goal_pos_x = 8
         self.goal_pos_y = 8
@@ -51,12 +51,13 @@ class Simulator(Node):
         odom_msg.pose.pose.orientation.y = quat[1]
         odom_msg.pose.pose.orientation.z = quat[2]
         odom_msg.pose.pose.orientation.w = quat[3]
+        #print(f"Simulator heading: {heading}")
         self.vessel_pub.publish(odom_msg)
 
     def colav_callback(self, msg: GuidanceData):
         if msg.is_colav:
             speed = msg.u
-            heading = msg.psi
+            heading = msg.psi_d   #msg.psi_d
             self.step(speed, heading)
         else:
             speed = self.speed
@@ -73,7 +74,7 @@ class Simulator(Node):
         obs_msg.pose.pose.position.y = self.obstacle_pos_y
         obs_msg.twist.twist.linear.x = obs_speed_x
         obs_msg.twist.twist.linear.y = obs_speed_y
-        quaternion = euler2quat(0, 0, self.obstacle_heading)
+        quaternion = self.heading_to_quaternion(self.obstacle_heading)
         # self.get_logger().info(f"Quat: {quaternion}")
         obs_msg.pose.pose.orientation.x = quaternion[0]
         obs_msg.pose.pose.orientation.y = quaternion[1]

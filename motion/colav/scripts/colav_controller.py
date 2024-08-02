@@ -40,6 +40,7 @@ class ColavController(Node):
     def vessel_callback(self, msg):
         self.vessel_odom = msg
         self.vessel = self.odometry_to_obstacle(msg)
+        #print("vessel odometry: ", self.vessel_odom)
         self.t = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
 
     def obst_callback(self, msg):
@@ -91,6 +92,8 @@ class ColavController(Node):
         # self.get_logger().info(f'Vessel at {self.vessel.x}, {self.vessel.y}')
         # self.get_logger().info(f'VO Angles: Left {VO.left_angle}, Right {VO.right_angle}')
 
+        #self.get_logger().info(f'Heading Angle: Left {self.vessel.heading}')
+
         zone = self.get_zone(closest_obst, self.vessel)
         self.get_logger().info(f'Zone: {zone}')
 
@@ -99,17 +102,22 @@ class ColavController(Node):
         elif zone == Zones.STOPNOW:
             return self.create_guidance_data(0, 0, self.vessel.heading, self.vessel_odom)
         elif zone == Zones.COLIMM and not VO.check_if_collision():
-            return self.create_guidance_data(self.vessel.speed, self.vessel.heading, self.vessel.heading, self.vessel_odom)
+            self.get_logger().info(f'No collision detected!')
+            return self.create_guidance_data(self.vessel.speed, self.vessel.heading, self.vessel.heading, self.vessel_odom, is_colav=True)
 
         approach = self.gen_approach(closest_obst, self.vessel)
+        self.get_logger().info(f'Collition Detected!!!!')
 
         if approach in [Approaches.FRONT, Approaches.RIGHT]:
             buffer = math.pi / 6  # 30 degrees
             new_heading = VO.right_angle - buffer
+            #self.get_logger().info(f'New heading: {new_heading}, current heading: {self.vessel.heading}, VO right angle: {VO.right_angle}, buffer: {buffer}')
             return self.create_guidance_data(self.vessel.speed, new_heading, self.vessel.heading, self.vessel_odom)
         elif approach in [Approaches.BEHIND, Approaches.LEFT]:
             return None
         return None
+    
+        # TODO: Calculate proper psi_d
 
     def create_guidance_data(self, speed, psi_d, vessel_heading, vessel_odom, is_colav=True):
         data = GuidanceData()
@@ -123,10 +131,10 @@ class ColavController(Node):
         #     z=vessel_odom.pose.pose.orientation.z,
         #     w=vessel_odom.pose.pose.orientation.w)
         orientation_list = [
-            vessel_odom.pose.pose.orientation.w,
             vessel_odom.pose.pose.orientation.x,
             vessel_odom.pose.pose.orientation.y,
-            vessel_odom.pose.pose.orientation.z
+            vessel_odom.pose.pose.orientation.z,
+            vessel_odom.pose.pose.orientation.w
         ]
         # _, _, yaw = self.quaternion_to_euler(orientation_q)
         yaw = quat2euler(orientation_list)[2]
@@ -134,18 +142,22 @@ class ColavController(Node):
         data.psi = float(yaw)
         data.is_colav = is_colav
         return data
+    
+    def normalize_angle(self, angle):
+        """Normalize angle to be within the range [0, 2*pi)"""
+        return angle % (2 * math.pi)
 
     def gen_approach(self, obstacle: Obstacle, vessel: Obstacle):
         dx = obstacle.x - vessel.x
         dy = obstacle.y - vessel.y
-        buffer = 10 * math.pi / 180  # 10 degrees in radians
+        buffer = 30 * math.pi / 180  # 10 degrees in radians
         phi = math.atan2(dy, dx)
 
         if vessel.heading + buffer > phi > vessel.heading - buffer:
             return Approaches.FRONT
-        elif phi < vessel.heading - buffer:
+        elif self.normalize_angle(math.pi - (vessel.heading - buffer)) < phi < self.normalize_angle(vessel.heading - buffer):
             return Approaches.RIGHT
-        elif phi > vessel.heading + buffer:
+        elif self.normalize_angle(math.pi - (vessel.heading + buffer)) > phi > self.normalize_angle(vessel.heading + buffer):
             return Approaches.LEFT
         return Approaches.BEHIND
 
@@ -157,6 +169,8 @@ class ColavController(Node):
             return Zones.COLIMM
         return Zones.STOPNOW
 
+
+# TODO: add actual controller and not just generate references
 
 def main(args=None):
     rclpy.init()
