@@ -18,8 +18,8 @@ class ColavController(Node):
         super().__init__("colav_controller")
 
         self.declare_parameter('guidance_interface/colav_data_topic', 'guidance/collision_avoidance')    
-        self.declare_parameter('stop_zone_radius', 0.9)
-        self.declare_parameter('colimm_max_radius', 2.0)
+        self.declare_parameter('stop_zone_radius', 1.5)
+        self.declare_parameter('colimm_max_radius', 7.0)
 
         stop_zone_radius = self.get_parameter('stop_zone_radius').value
         colimm_max_radius = self.get_parameter('colimm_max_radius').value
@@ -109,8 +109,8 @@ class ColavController(Node):
         self.get_logger().info(f'Collition Detected!!!!')
 
         if approach in [Approaches.FRONT, Approaches.RIGHT]:
-            buffer = math.pi / 6  # 30 degrees
-            new_heading = VO.right_angle - buffer
+            buffer = 20 * math.pi / 180  # 20 degrees
+            new_heading = VO.right_angle + buffer
             return self.create_guidance_data(self.vessel.speed, new_heading, self.vessel.heading, self.vessel_odom)
         elif approach in [Approaches.BEHIND, Approaches.LEFT]:
             return None
@@ -141,7 +141,7 @@ class ColavController(Node):
     def gen_approach(self, obstacle: Obstacle, vessel: Obstacle):
         dx = obstacle.x - vessel.x
         dy = obstacle.y - vessel.y
-        buffer = 30 * math.pi / 180  # 10 degrees in radians
+        buffer = math.pi / 6 # 30 degrees in radians
         phi = math.atan2(dy, dx)
 
         if vessel.heading + buffer > phi > vessel.heading - buffer:
