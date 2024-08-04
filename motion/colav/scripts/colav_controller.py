@@ -103,7 +103,7 @@ class ColavController(Node):
             return self.create_guidance_data(0, 0, self.vessel.heading, self.vessel_odom)
         elif zone == Zones.COLIMM and not VO.check_if_collision():
             self.get_logger().info(f'No collision detected!')
-            return self.create_guidance_data(self.vessel.speed, self.vessel.heading, self.vessel.heading, self.vessel_odom, is_colav=True)
+            return self.create_guidance_data(self.vessel.speed, self.vessel.heading, self.vessel.heading, self.vessel_odom)
 
         approach = self.gen_approach(closest_obst, self.vessel)
         self.get_logger().info(f'Collition Detected!!!!')
@@ -111,7 +111,6 @@ class ColavController(Node):
         if approach in [Approaches.FRONT, Approaches.RIGHT]:
             buffer = math.pi / 6  # 30 degrees
             new_heading = VO.right_angle - buffer
-            #self.get_logger().info(f'New heading: {new_heading}, current heading: {self.vessel.heading}, VO right angle: {VO.right_angle}, buffer: {buffer}')
             return self.create_guidance_data(self.vessel.speed, new_heading, self.vessel.heading, self.vessel_odom)
         elif approach in [Approaches.BEHIND, Approaches.LEFT]:
             return None
@@ -125,27 +124,19 @@ class ColavController(Node):
         data.psi_d = float(psi_d)
         data.u = float(speed)  # Assuming this is the desired speed
         data.t = float(self.get_clock().now().seconds_nanoseconds()[0]) + float(self.get_clock().now().seconds_nanoseconds()[1]) * 1e-9
-        # orientation_q = Quaternion(
-        #     x=vessel_odom.pose.pose.orientation.x,
-        #     y=vessel_odom.pose.pose.orientation.y,
-        #     z=vessel_odom.pose.pose.orientation.z,
-        #     w=vessel_odom.pose.pose.orientation.w)
-        orientation_list = [
+
+        orientation_quat = [
             vessel_odom.pose.pose.orientation.x,
             vessel_odom.pose.pose.orientation.y,
             vessel_odom.pose.pose.orientation.z,
             vessel_odom.pose.pose.orientation.w
         ]
         # _, _, yaw = self.quaternion_to_euler(orientation_q)
-        yaw = quat2euler(orientation_list)[2]
+        yaw = quat2euler(orientation_quat)[2]
         self.get_logger().info(f'Current yaw: {yaw}')
         data.psi = float(yaw)
         data.is_colav = is_colav
         return data
-    
-    def normalize_angle(self, angle):
-        """Normalize angle to be within the range [0, 2*pi)"""
-        return angle % (2 * math.pi)
 
     def gen_approach(self, obstacle: Obstacle, vessel: Obstacle):
         dx = obstacle.x - vessel.x
@@ -155,9 +146,9 @@ class ColavController(Node):
 
         if vessel.heading + buffer > phi > vessel.heading - buffer:
             return Approaches.FRONT
-        elif self.normalize_angle(math.pi - (vessel.heading - buffer)) < phi < self.normalize_angle(vessel.heading - buffer):
+        elif (math.pi + vessel.heading - buffer) > phi > (vessel.heading + buffer):
             return Approaches.RIGHT
-        elif self.normalize_angle(math.pi - (vessel.heading + buffer)) > phi > self.normalize_angle(vessel.heading + buffer):
+        elif (vessel.heading - math.pi + buffer) < phi < (vessel.heading - buffer):
             return Approaches.LEFT
         return Approaches.BEHIND
 

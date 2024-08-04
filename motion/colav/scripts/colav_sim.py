@@ -21,11 +21,11 @@ class Simulator(Node):
         self.pos_y = 0
         self.speed = 0.5
         self.obstacle_pos_x = 5
-        self.obstacle_pos_y = 5
+        self.obstacle_pos_y = 0
         self.obstacle_speed = 0.5
-        self.obstacle_heading = 5*np.pi/4
+        self.obstacle_heading = 4*np.pi/4
         self.goal_pos_x = 8
-        self.goal_pos_y = 8
+        self.goal_pos_y = 0
 
         self.dt = 0.1
 

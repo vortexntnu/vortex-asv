@@ -57,8 +57,8 @@ class VelocityObstacle:
         """
         Calculates the largest and smallest heading-angle where a collision can occur 
         """
-        theta_ro = math.atan2(self.vessel.y - self.obstacle.y,
-                              self.vessel.x - self.obstacle.x)
+        theta_ro = math.atan2(self.obstacle.y - self.vessel.y, 
+                              self.obstacle.x - self.vessel.x)
         print("ob", self.vessel.radius, self.obstacle.radius)
         distance = np.linalg.norm([self.obstacle.x - self.vessel.x, self.obstacle.y - self.vessel.y])
 
@@ -79,10 +79,10 @@ class VelocityObstacle:
 
         """
 
-        buffer = 0
+        buffer = math.pi / 12
         dvx = self.vessel.vx - self.obstacle.vx
         dvy = self.vessel.vy - self.obstacle.vy
         angle = math.atan2(dvy, dvx)
-        print(f"VO left angle: {self.left_angle}, VO right angle: {self.right_angle}, Velocity angle: {angle}")
+        # print(f"VO left angle: {self.left_angle}, VO right angle: {self.right_angle}, Velocity angle: {angle}")
 
         return angle > self.right_angle - buffer and angle < self.left_angle + buffer
