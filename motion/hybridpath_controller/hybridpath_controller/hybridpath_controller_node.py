@@ -7,7 +7,7 @@ from hybridpath_controller.adaptive_backstep import AdaptiveBackstep
 from geometry_msgs.msg import Wrench
 from nav_msgs.msg import Odometry
 from vortex_msgs.msg import HybridpathReference
-from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Float64MultiArray, String, Bool
 from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
 from rcl_interfaces.msg import SetParametersResult
 
@@ -28,10 +28,15 @@ class HybridPathControllerNode(Node):
             ])
         
         self.parameters_updated = False
+
+        self.killswitch_active = False
+        self.operational_mode = 'autonomous mode'
         
         self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.state_callback, qos_profile=qos_profile)
         self.hpref_subscriber_ = self.create_subscription(HybridpathReference, 'guidance/hybridpath/reference', self.reference_callback, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench, 'thrust/wrench_input', 1)
+        self.operational_mode_subscriber = self.create_subscription(String, 'softWareOperationMode', self.operation_mode_callback, 10)
+        self.killswitch_subscriber = self.create_subscription(Bool, 'softWareKillSwitch', self.killswitch_callback, 10)
 
         # Debug publishers
         self.eta_error_publisher = self.create_publisher(Float64MultiArray, 'eta_error', 10)
@@ -51,6 +56,12 @@ class HybridPathControllerNode(Node):
         self.add_on_set_parameters_callback(self.parameter_callback)
 
         self.get_logger().info("hybridpath_controller_node started")
+
+    def operation_mode_callback(self, msg: String):
+        self.operational_mode = msg.data
+
+    def killswitch_callback(self, msg: Bool):
+        self.killswitch_active = msg.data
 
     def update_controller_parameters(self):
 
@@ -96,6 +107,9 @@ class HybridPathControllerNode(Node):
         """
         Callback function for the controller timer. This function calculates the control input and publishes the control input.
         """
+        if self.killswitch_active or self.operational_mode != 'autonomous mode':
+            return
+
         if self.parameters_updated:
                 self.update_controller_parameters()
                 self.parameters_updated = False
