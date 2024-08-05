@@ -7,7 +7,6 @@
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
-
 namespace navigation_task {
 
 class NavigationTaskNode : public NjordTaskBaseNode {
@@ -38,7 +37,7 @@ public:
    */
   Eigen::Array<double, 2, 2>
   predict_second_buoy_pair(const geometry_msgs::msg::Point &buoy_0,
-                                     const geometry_msgs::msg::Point &buoy_1);
+                           const geometry_msgs::msg::Point &buoy_1);
 
   /**
    * @brief Predict the positions of the west buoy by using the two first buoy
@@ -118,7 +117,7 @@ public:
    * pair and the direction vector from the second to the third buoy pair
    *
    * @return An Eigen::Array<double, 2, 2> representing the predicted positions
-   * of the fifth buoy pair 
+   * of the fifth buoy pair
    */
   Eigen::Array<double, 2, 2> predict_fifth_buoy_pair(
       const geometry_msgs::msg::Point &buoy_9,

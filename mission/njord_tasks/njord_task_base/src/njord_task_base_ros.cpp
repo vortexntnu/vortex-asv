@@ -38,7 +38,7 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
   gps_map_coord_visualization_pub_ =
       this->create_publisher<geometry_msgs::msg::PoseArray>(
           "/gps_map_coord_visualization", qos_sensor_data);
-  
+
   buoy_visualization_pub_ =
       this->create_publisher<sensor_msgs::msg::PointCloud2>(
           "/buoy_visualization", qos_sensor_data);
@@ -462,7 +462,6 @@ void NjordTaskBaseNode::send_waypoint(
   if (!result_future.get()->success) {
     RCLCPP_INFO(this->get_logger(), "Waypoint service failed");
   }
-
 
   previous_waypoint_odom_frame_ = waypoint;
 }

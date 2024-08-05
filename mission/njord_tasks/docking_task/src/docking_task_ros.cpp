@@ -19,7 +19,6 @@ DockingTaskNode::DockingTaskNode(const rclcpp::NodeOptions &options)
   declare_parameter<double>("models.dynmod_stddev", 0.0);
   declare_parameter<double>("models.sen_stddev", 0.0);
 
-
   std::thread(&DockingTaskNode::main_task, this).detach();
 }
 
@@ -61,8 +60,8 @@ void DockingTaskNode::main_task() {
     waypoint_to_approach_first_pair_base_link.y = 0.0;
     waypoint_to_approach_first_pair_base_link.z = 0.0;
     try {
-      auto transform = tf_buffer_->lookupTransform(
-          "odom", "base_link", tf2::TimePointZero);
+      auto transform =
+          tf_buffer_->lookupTransform("odom", "base_link", tf2::TimePointZero);
       geometry_msgs::msg::Point waypoint_to_approach_first_pair_odom;
       tf2::doTransform(waypoint_to_approach_first_pair_base_link,
                        waypoint_to_approach_first_pair_odom, transform);
@@ -122,7 +121,7 @@ void DockingTaskNode::main_task() {
       predict_second_buoy_pair(
           buoy_landmarks_0_to_1[0].pose_odom_frame.position,
           buoy_landmarks_0_to_1[1].pose_odom_frame.position);
-    
+
   buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
   buoy_vis_msg = sensor_msgs::msg::PointCloud2();
   buoy_red_0 = pcl::PointXYZRGB();
@@ -190,12 +189,11 @@ void DockingTaskNode::main_task() {
   reach_waypoint(1.0);
 
   // Third pair of buoys
-  Eigen::Array<double, 2, 2> predicted_third_pair =
-      predict_third_buoy_pair(
-          buoy_landmarks_0_to_1[0].pose_odom_frame.position,
-          buoy_landmarks_0_to_1[1].pose_odom_frame.position,
-          buoy_landmarks_2_to_3[2].pose_odom_frame.position,
-          buoy_landmarks_2_to_3[3].pose_odom_frame.position);
+  Eigen::Array<double, 2, 2> predicted_third_pair = predict_third_buoy_pair(
+      buoy_landmarks_0_to_1[0].pose_odom_frame.position,
+      buoy_landmarks_0_to_1[1].pose_odom_frame.position,
+      buoy_landmarks_2_to_3[2].pose_odom_frame.position,
+      buoy_landmarks_2_to_3[3].pose_odom_frame.position);
 
   buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
   buoy_vis_msg = sensor_msgs::msg::PointCloud2();
@@ -262,7 +260,7 @@ void DockingTaskNode::main_task() {
   send_waypoint(waypoint_third_pair);
   set_desired_heading(odom_start_point_, waypoint_third_pair);
   reach_waypoint(1.0);
-  
+
   std::thread(&DockingTaskNode::initialize_grid_sub, this).detach();
 }
 
@@ -314,10 +312,8 @@ Eigen::Array<double, 2, 2> DockingTaskNode::predict_second_buoy_pair(
     const geometry_msgs::msg::Point &buoy_0,
     const geometry_msgs::msg::Point &buoy_1) {
   Eigen::Vector2d direction_vector;
-  direction_vector << previous_waypoint_odom_frame_.x -
-                          odom_start_point_.x,
-      previous_waypoint_odom_frame_.y -
-          odom_start_point_.y;
+  direction_vector << previous_waypoint_odom_frame_.x - odom_start_point_.x,
+      previous_waypoint_odom_frame_.y - odom_start_point_.y;
   direction_vector.normalize();
 
   Eigen::Array<double, 2, 2> predicted_positions;

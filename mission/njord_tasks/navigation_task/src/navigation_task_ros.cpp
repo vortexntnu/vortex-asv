@@ -41,7 +41,7 @@ void NavigationTaskNode::main_task() {
   buoy_vis_msg.header.frame_id = "odom";
   buoy_vis_msg.header.stamp = this->now();
   buoy_visualization_pub_->publish(buoy_vis_msg);
-  
+
   double distance_to_first_buoy_pair =
       this->get_parameter("distance_to_first_buoy_pair").as_double();
   if (distance_to_first_buoy_pair > 6.0) {
@@ -57,7 +57,8 @@ void NavigationTaskNode::main_task() {
       tf2::doTransform(waypoint_to_approach_first_pair_base_link,
                        waypoint_to_approach_first_pair_odom, transform);
       send_waypoint(waypoint_to_approach_first_pair_odom);
-      set_desired_heading(odom_start_point_, waypoint_to_approach_first_pair_odom);
+      set_desired_heading(odom_start_point_,
+                          waypoint_to_approach_first_pair_odom);
       reach_waypoint(1.0);
     } catch (tf2::TransformException &ex) {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
@@ -87,7 +88,7 @@ void NavigationTaskNode::main_task() {
   buoy_green_1.b = 0;
   buoy_vis.push_back(buoy_green_1);
   pcl::toROSMsg(buoy_vis, buoy_vis_msg);
-   buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.frame_id = "odom";
   buoy_vis_msg.header.stamp = this->now();
   buoy_visualization_pub_->publish(buoy_vis_msg);
 
@@ -106,10 +107,9 @@ void NavigationTaskNode::main_task() {
   reach_waypoint(1.0);
 
   // Second pair of buoys
-  Eigen::Array<double, 2, 2> predicted_second_pair =
-      predict_second_buoy_pair(
-          buoy_landmarks_0_to_1[0].pose_odom_frame.position,
-          buoy_landmarks_0_to_1[1].pose_odom_frame.position);
+  Eigen::Array<double, 2, 2> predicted_second_pair = predict_second_buoy_pair(
+      buoy_landmarks_0_to_1[0].pose_odom_frame.position,
+      buoy_landmarks_0_to_1[1].pose_odom_frame.position);
 
   buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
   buoy_vis_msg = sensor_msgs::msg::PointCloud2();
@@ -198,7 +198,7 @@ void NavigationTaskNode::main_task() {
   buoy_vis_msg.header.frame_id = "odom";
   buoy_vis_msg.header.stamp = this->now();
   buoy_visualization_pub_->publish(buoy_vis_msg);
-  
+
   std::vector<LandmarkPoseID> buoy_landmarks_4 =
       get_buoy_landmarks(predicted_west_buoy);
   if (buoy_landmarks_4.size() != 1) {
@@ -218,7 +218,7 @@ void NavigationTaskNode::main_task() {
   buoy_vis_msg.header.frame_id = "odom";
   buoy_vis_msg.header.stamp = this->now();
   buoy_visualization_pub_->publish(buoy_vis_msg);
-  
+
   Eigen::Vector2d direction_vector_upwards;
   direction_vector_upwards
       << buoy_landmarks_2_to_3[0].pose_odom_frame.position.x -
@@ -412,11 +412,11 @@ void NavigationTaskNode::main_task() {
 
   geometry_msgs::msg::Point waypoint_south_buoy;
   waypoint_south_buoy.x = buoy_landmarks_8[0].pose_odom_frame.position.x -
-                          direction_vector_second_to_third_pair(0) * 3
-                          + direction_vector_downwards(0) * 1;
+                          direction_vector_second_to_third_pair(0) * 3 +
+                          direction_vector_downwards(0) * 1;
   waypoint_south_buoy.y = buoy_landmarks_8[0].pose_odom_frame.position.y -
-                          direction_vector_second_to_third_pair(1) * 3
-                          + direction_vector_downwards(1) * 1;
+                          direction_vector_second_to_third_pair(1) * 3 +
+                          direction_vector_downwards(1) * 1;
   waypoint_south_buoy.z = 0.0;
   send_waypoint(waypoint_south_buoy);
   set_desired_heading(waypoint_north_buoy, waypoint_south_buoy);
@@ -632,7 +632,7 @@ void NavigationTaskNode::main_task() {
           buoy_landmarks_9_to_10[1].pose_odom_frame.position,
           buoy_landmarks_12_to_13[0].pose_odom_frame.position,
           buoy_landmarks_12_to_13[1].pose_odom_frame.position);
-  
+
   buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
   buoy_vis_msg = sensor_msgs::msg::PointCloud2();
   pcl::PointXYZRGB buoy_red_14;
@@ -750,15 +750,12 @@ Eigen::Array<double, 2, 2> NavigationTaskNode::predict_first_buoy_pair() {
   return predicted_positions;
 }
 
-Eigen::Array<double, 2, 2>
-NavigationTaskNode::predict_second_buoy_pair(
+Eigen::Array<double, 2, 2> NavigationTaskNode::predict_second_buoy_pair(
     const geometry_msgs::msg::Point &buoy_0,
     const geometry_msgs::msg::Point &buoy_1) {
   Eigen::Vector2d direction_vector;
-  direction_vector << previous_waypoint_odom_frame_.x -
-                          odom_start_point_.x,
-      previous_waypoint_odom_frame_.y -
-          odom_start_point_.y;
+  direction_vector << previous_waypoint_odom_frame_.x - odom_start_point_.x,
+      previous_waypoint_odom_frame_.y - odom_start_point_.y;
   direction_vector.normalize();
 
   Eigen::Array<double, 2, 2> predicted_positions;

@@ -11,8 +11,8 @@
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
 #include "vortex_msgs/msg/landmark_array.hpp"
-#include "vortex_msgs/srv/waypoint.hpp"
 #include "vortex_msgs/srv/desired_velocity.hpp"
+#include "vortex_msgs/srv/waypoint.hpp"
 #include <Eigen/Dense>
 #include <condition_variable>
 #include <mutex>
@@ -122,7 +122,8 @@ protected:
    */
   void reach_waypoint(const double distance_threshold);
 
-  void set_desired_heading(const geometry_msgs::msg::Point &prev_waypoint, const geometry_msgs::msg::Point &next_waypoint);
+  void set_desired_heading(const geometry_msgs::msg::Point &prev_waypoint,
+                           const geometry_msgs::msg::Point &next_waypoint);
 
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
       gps_map_coord_visualization_pub_;
@@ -135,8 +136,7 @@ protected:
   rclcpp::Subscription<vortex_msgs::msg::LandmarkArray>::SharedPtr
       landmarks_sub_;
   rclcpp::Client<vortex_msgs::srv::Waypoint>::SharedPtr waypoint_client_;
-  rclcpp::Client<vortex_msgs::srv::DesiredVelocity>::SharedPtr
-      heading_client_;
+  rclcpp::Client<vortex_msgs::srv::DesiredVelocity>::SharedPtr heading_client_;
 
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;

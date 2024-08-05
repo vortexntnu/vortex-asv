@@ -22,32 +22,33 @@ void ManeuveringTaskNode::main_task() {
   sensor_msgs::msg::PointCloud2 buoy_vis_msg;
   pcl::PointCloud<pcl::PointXYZRGB> buoy_vis;
   pcl::PointXYZRGB buoy_red_0;
-    buoy_red_0.x = predicted_first_buoy_pair(0, 0);
-    buoy_red_0.y = predicted_first_buoy_pair(1, 0);
-    buoy_red_0.z = 0.0;
-    buoy_red_0.r = 255;
-    buoy_red_0.g = 0;
-    buoy_red_0.b = 0;
-    buoy_vis.push_back(buoy_red_0);
-    pcl::PointXYZRGB buoy_green_1;
-    buoy_green_1.x = predicted_first_buoy_pair(0, 1);
-    buoy_green_1.y = predicted_first_buoy_pair(1, 1);
-    buoy_green_1.z = 0.0;
-    buoy_green_1.r = 0;
-    buoy_green_1.g = 255;
-    buoy_green_1.b = 0;
-    buoy_vis.push_back(buoy_green_1);
-    pcl::toROSMsg(buoy_vis, buoy_vis_msg);
-    buoy_vis_msg.header.frame_id = "odom";
-    buoy_vis_msg.header.stamp = this->now();
-    buoy_visualization_pub_->publish(buoy_vis_msg);
+  buoy_red_0.x = predicted_first_buoy_pair(0, 0);
+  buoy_red_0.y = predicted_first_buoy_pair(1, 0);
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  pcl::PointXYZRGB buoy_green_1;
+  buoy_green_1.x = predicted_first_buoy_pair(0, 1);
+  buoy_green_1.y = predicted_first_buoy_pair(1, 1);
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
 
   // First first buoy pair is far away, should be closer before trying to
   // measure it.
   double gps_end_x = this->get_parameter("gps_end_x").as_double();
   double gps_end_y = this->get_parameter("gps_end_y").as_double();
   Eigen::Vector2d direction_vector_to_end;
-  direction_vector_to_end << gps_end_x - odom_start_point_.x, gps_end_y - odom_start_point_.y;
+  direction_vector_to_end << gps_end_x - odom_start_point_.x,
+      gps_end_y - odom_start_point_.y;
   direction_vector_to_end.normalize();
 
   double distance =
@@ -67,29 +68,29 @@ void ManeuveringTaskNode::main_task() {
   std::vector<LandmarkPoseID> measured_first_buoy_pair =
       get_buoy_landmarks(predicted_first_buoy_pair);
 
-    buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
-    buoy_vis_msg = sensor_msgs::msg::PointCloud2();
-    buoy_red_0 = pcl::PointXYZRGB();
-    buoy_green_1 = pcl::PointXYZRGB();
-    buoy_red_0.x = measured_first_buoy_pair[0].pose_odom_frame.position.x;
-    buoy_red_0.y = measured_first_buoy_pair[0].pose_odom_frame.position.y;
-    buoy_red_0.z = 0.0;
-    buoy_red_0.r = 255;
-    buoy_red_0.g = 0;
-    buoy_red_0.b = 0;
-    buoy_vis.push_back(buoy_red_0);
-    buoy_green_1.x = measured_first_buoy_pair[1].pose_odom_frame.position.x;
-    buoy_green_1.y = measured_first_buoy_pair[1].pose_odom_frame.position.y;
-    buoy_green_1.z = 0.0;
-    buoy_green_1.r = 0;
-    buoy_green_1.g = 255;
-    buoy_green_1.b = 0;
-    buoy_vis.push_back(buoy_green_1);
-    pcl::toROSMsg(buoy_vis, buoy_vis_msg);
-    buoy_vis_msg.header.frame_id = "odom";
-    buoy_vis_msg.header.stamp = this->now();
-    buoy_visualization_pub_->publish(buoy_vis_msg);
-    
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = measured_first_buoy_pair[0].pose_odom_frame.position.x;
+  buoy_red_0.y = measured_first_buoy_pair[0].pose_odom_frame.position.y;
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = measured_first_buoy_pair[1].pose_odom_frame.position.x;
+  buoy_green_1.y = measured_first_buoy_pair[1].pose_odom_frame.position.y;
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
+
   geometry_msgs::msg::Point waypoint_first_pair;
   waypoint_first_pair.x =
       (measured_first_buoy_pair[0].pose_odom_frame.position.x +
@@ -122,53 +123,53 @@ void ManeuveringTaskNode::main_task() {
           measured_first_buoy_pair[1].pose_odom_frame.position);
 
   buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
-    buoy_vis_msg = sensor_msgs::msg::PointCloud2();
-    buoy_red_0 = pcl::PointXYZRGB();
-    buoy_green_1 = pcl::PointXYZRGB();
-    buoy_red_0.x = predicted_second_buoy_pair(0, 0);
-    buoy_red_0.y = predicted_second_buoy_pair(1, 0);
-    buoy_red_0.z = 0.0;
-    buoy_red_0.r = 255;
-    buoy_red_0.g = 0;
-    buoy_red_0.b = 0;
-    buoy_vis.push_back(buoy_red_0);
-    buoy_green_1.x = predicted_second_buoy_pair(0, 1);
-    buoy_green_1.y = predicted_second_buoy_pair(1, 1);
-    buoy_green_1.z = 0.0;
-    buoy_green_1.r = 0;
-    buoy_green_1.g = 255;
-    buoy_green_1.b = 0;
-    buoy_vis.push_back(buoy_green_1);
-    pcl::toROSMsg(buoy_vis, buoy_vis_msg);
-    buoy_vis_msg.header.frame_id = "odom";
-    buoy_vis_msg.header.stamp = this->now();
-    buoy_visualization_pub_->publish(buoy_vis_msg);
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = predicted_second_buoy_pair(0, 0);
+  buoy_red_0.y = predicted_second_buoy_pair(1, 0);
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = predicted_second_buoy_pair(0, 1);
+  buoy_green_1.y = predicted_second_buoy_pair(1, 1);
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
 
   std::vector<LandmarkPoseID> measured_buoy_2_to_3 =
       get_buoy_landmarks(predicted_second_buoy_pair);
 
-    buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
-    buoy_vis_msg = sensor_msgs::msg::PointCloud2();
-    buoy_red_0 = pcl::PointXYZRGB();
-    buoy_green_1 = pcl::PointXYZRGB();
-    buoy_red_0.x = measured_buoy_2_to_3[0].pose_odom_frame.position.x;
-    buoy_red_0.y = measured_buoy_2_to_3[0].pose_odom_frame.position.y;
-    buoy_red_0.z = 0.0;
-    buoy_red_0.r = 255;
-    buoy_red_0.g = 0;
-    buoy_red_0.b = 0;
-    buoy_vis.push_back(buoy_red_0);
-    buoy_green_1.x = measured_buoy_2_to_3[1].pose_odom_frame.position.x;
-    buoy_green_1.y = measured_buoy_2_to_3[1].pose_odom_frame.position.y;
-    buoy_green_1.z = 0.0;
-    buoy_green_1.r = 0;
-    buoy_green_1.g = 255;
-    buoy_green_1.b = 0;
-    buoy_vis.push_back(buoy_green_1);
-    pcl::toROSMsg(buoy_vis, buoy_vis_msg);
-    buoy_vis_msg.header.frame_id = "odom";
-    buoy_vis_msg.header.stamp = this->now();
-    buoy_visualization_pub_->publish(buoy_vis_msg);
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = measured_buoy_2_to_3[0].pose_odom_frame.position.x;
+  buoy_red_0.y = measured_buoy_2_to_3[0].pose_odom_frame.position.y;
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = measured_buoy_2_to_3[1].pose_odom_frame.position.x;
+  buoy_green_1.y = measured_buoy_2_to_3[1].pose_odom_frame.position.y;
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
 
   geometry_msgs::msg::Point waypoint_second_pair;
   waypoint_second_pair.x =
@@ -186,8 +187,7 @@ void ManeuveringTaskNode::main_task() {
 
   // Setup variable to navigate formation
   Eigen::Vector2d direction_vector_forwards;
-  direction_vector_forwards
-      << (waypoint_second_pair.x - waypoint_first_pair.x),
+  direction_vector_forwards << (waypoint_second_pair.x - waypoint_first_pair.x),
       (waypoint_second_pair.y - waypoint_first_pair.y);
   direction_vector_forwards.normalize();
 
@@ -212,7 +212,7 @@ void ManeuveringTaskNode::main_task() {
       measured_buoy_2_to_3[0].pose_odom_frame.position;
   geometry_msgs::msg::Point green_buoy =
       measured_buoy_2_to_3[1].pose_odom_frame.position;
-    geometry_msgs::msg::Point waypoint_prev_pair = waypoint_second_pair;
+  geometry_msgs::msg::Point waypoint_prev_pair = waypoint_second_pair;
   // ASV is at first buoy pair in formation.
   // Run loop for the rest of the formation excluding the first pair.
   int num_iterations =
@@ -285,8 +285,7 @@ void ManeuveringTaskNode::main_task() {
     reach_waypoint(1.0);
     red_buoy = measured_next_pair[0].pose_odom_frame.position;
     green_buoy = measured_next_pair[1].pose_odom_frame.position;
-    vector_to_next_pair
-        << waypoint_next_pair.x - waypoint_prev_pair.x,
+    vector_to_next_pair << waypoint_next_pair.x - waypoint_prev_pair.x,
         waypoint_next_pair.y - waypoint_prev_pair.y;
     waypoint_prev_pair = waypoint_next_pair;
   }
@@ -320,54 +319,54 @@ void ManeuveringTaskNode::main_task() {
   predicted_last_buoy_pair(1, 1) =
       gps_end_y + direction_vector_downwards(1) * 2.5;
 
-    buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
-    buoy_vis_msg = sensor_msgs::msg::PointCloud2();
-    buoy_red_0 = pcl::PointXYZRGB();
-    buoy_green_1 = pcl::PointXYZRGB();
-    buoy_red_0.x = predicted_last_buoy_pair(0, 0);
-    buoy_red_0.y = predicted_last_buoy_pair(1, 0);
-    buoy_red_0.z = 0.0;
-    buoy_red_0.r = 255;
-    buoy_red_0.g = 0;
-    buoy_red_0.b = 0;
-    buoy_vis.push_back(buoy_red_0);
-    buoy_green_1.x = predicted_last_buoy_pair(0, 1);
-    buoy_green_1.y = predicted_last_buoy_pair(1, 1);
-    buoy_green_1.z = 0.0;
-    buoy_green_1.r = 0;
-    buoy_green_1.g = 255;
-    buoy_green_1.b = 0;
-    buoy_vis.push_back(buoy_green_1);
-    pcl::toROSMsg(buoy_vis, buoy_vis_msg);
-    buoy_vis_msg.header.frame_id = "odom";
-    buoy_vis_msg.header.stamp = this->now();
-    buoy_visualization_pub_->publish(buoy_vis_msg);
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = predicted_last_buoy_pair(0, 0);
+  buoy_red_0.y = predicted_last_buoy_pair(1, 0);
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = predicted_last_buoy_pair(0, 1);
+  buoy_green_1.y = predicted_last_buoy_pair(1, 1);
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
 
   std::vector<LandmarkPoseID> measured_last_buoy_pair =
       get_buoy_landmarks(predicted_last_buoy_pair);
 
-    buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
-    buoy_vis_msg = sensor_msgs::msg::PointCloud2();
-    buoy_red_0 = pcl::PointXYZRGB();
-    buoy_green_1 = pcl::PointXYZRGB();
-    buoy_red_0.x = measured_last_buoy_pair[0].pose_odom_frame.position.x;
-    buoy_red_0.y = measured_last_buoy_pair[0].pose_odom_frame.position.y;
-    buoy_red_0.z = 0.0;
-    buoy_red_0.r = 255;
-    buoy_red_0.g = 0;
-    buoy_red_0.b = 0;
-    buoy_vis.push_back(buoy_red_0);
-    buoy_green_1.x = measured_last_buoy_pair[1].pose_odom_frame.position.x;
-    buoy_green_1.y = measured_last_buoy_pair[1].pose_odom_frame.position.y;
-    buoy_green_1.z = 0.0;
-    buoy_green_1.r = 0;
-    buoy_green_1.g = 255;
-    buoy_green_1.b = 0;
-    buoy_vis.push_back(buoy_green_1);
-    pcl::toROSMsg(buoy_vis, buoy_vis_msg);
-    buoy_vis_msg.header.frame_id = "odom";
-    buoy_vis_msg.header.stamp = this->now();
-    buoy_visualization_pub_->publish(buoy_vis_msg);
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = measured_last_buoy_pair[0].pose_odom_frame.position.x;
+  buoy_red_0.y = measured_last_buoy_pair[0].pose_odom_frame.position.y;
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = measured_last_buoy_pair[1].pose_odom_frame.position.x;
+  buoy_green_1.y = measured_last_buoy_pair[1].pose_odom_frame.position.y;
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
 
   geometry_msgs::msg::Point waypoint_last_pair;
   waypoint_last_pair.x =
@@ -440,10 +439,8 @@ Eigen::Array<double, 2, 2> ManeuveringTaskNode::predict_second_buoy_pair(
     const geometry_msgs::msg::Point &buoy_0,
     const geometry_msgs::msg::Point &buoy_1) {
   Eigen::Vector2d direction_vector;
-  direction_vector << previous_waypoint_odom_frame_.x -
-                          odom_start_point_.x,
-      previous_waypoint_odom_frame_.y -
-          odom_start_point_.y;
+  direction_vector << previous_waypoint_odom_frame_.x - odom_start_point_.x,
+      previous_waypoint_odom_frame_.y - odom_start_point_.y;
   direction_vector.normalize();
 
   Eigen::Array<double, 2, 2> predicted_positions;
