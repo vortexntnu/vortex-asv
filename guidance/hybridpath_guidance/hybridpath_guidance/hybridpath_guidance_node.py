@@ -69,6 +69,7 @@ class Guidance(Node):
         # Flags for logging
         self.waypoints_received = False
         self.waiting_message_printed = False
+        self.stationkeeping_flag = False
         self.first_pos_flag = False
         self.eta_received = False
         self.initial_pos = False
@@ -94,6 +95,8 @@ class Guidance(Node):
     def yaw_ref_callback(self, request, response):
         self.yaw_ref = request.u_desired # xd
 
+        self.get_logger().info(f"Received desired heading: {self.yaw_ref}")
+
         response.success = True
         return response
 
@@ -108,7 +111,10 @@ class Guidance(Node):
                 new_waypoints = request.waypoint
 
                 for point in new_waypoints:
+
                     self.waypoints.append(point)
+
+                self.last_waypoint = [self.waypoints[-1].x, self.waypoints[-1].y]
 
                 self.generator.create_path(self.waypoints)
                 self.path = self.generator.get_path()
@@ -136,7 +142,7 @@ class Guidance(Node):
         self.yaw = float(self.eta[2])
 
         if not self.initial_pos:
-            self.eta_initial = self.eta
+            self.eta_stationkeeping = self.eta
             self.yaw_ref = self.yaw
             self.initial_pos = True
 
@@ -151,7 +157,11 @@ class Guidance(Node):
             
             if self.initial_pos:
                 if self.path is None and not self.waypoints_received:
-                    pos = [self.eta_initial[0], self.eta_initial[1]]
+                    if not self.stationkeeping_flag:
+                        self.get_logger().info(f'No waypoints received, stationkeeping at {np.round(self.eta_stationkeeping, 3)}')
+                        self.stationkeeping_flag = True
+
+                    pos = [self.eta_stationkeeping[0], self.eta_stationkeeping[1]]
                     pos_der = [0., 0.]
                     pos_dder = [0., 0.]
 
@@ -190,9 +200,9 @@ class Guidance(Node):
                 if self.path is not None and self.s >= self.path.NumSubpaths:
                     self.waypoints_received = False
                     self.waiting_message_printed = False
+                    self.stationkeeping_flag = False
                     self.path = None
-                    self.eta_initial = self.eta
-                    self.get_logger().info('Last waypoint reached')
+                    self.eta_stationkeeping = np.array([self.last_waypoint[0], self.last_waypoint[1], self.yaw_ref])
 
             else:
                 if not self.waiting_message_printed:
