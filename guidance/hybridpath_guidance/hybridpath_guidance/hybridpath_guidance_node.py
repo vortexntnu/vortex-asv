@@ -11,6 +11,7 @@ from transforms3d.euler import quat2euler
 from hybridpath_guidance.hybridpath import HybridPathGenerator, HybridPathSignals
 from rclpy.qos import QoSProfile, qos_profile_sensor_data, QoSReliabilityPolicy
 import threading
+from std_srvs.srv import Empty
 
 
 qos_profile = QoSProfile(depth=1, history=qos_profile_sensor_data.history, 
@@ -39,6 +40,8 @@ class Guidance(Node):
         self.yaw_server = self.create_service(DesiredVelocity,'yaw_reference', self.yaw_ref_callback)
         self.operational_mode_subscriber = self.create_subscription(String, 'softWareOperationMode', self.operation_mode_callback, 10)
         self.killswitch_subscriber = self.create_subscription(Bool, 'softWareKillSwitch', self.killswitch_callback, 10)
+
+        self.set_stationkeeping_pose_service = self.create_service(Empty, 'set_stationkeeping_pose', self.set_stationkeeping_pose_callback)
 
         # Get parameters
         self.lambda_val = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
@@ -98,6 +101,7 @@ class Guidance(Node):
         self.get_logger().info(f"Received desired heading: {self.yaw_ref}")
 
         response.success = True
+
         return response
 
     def waypoint_callback(self, request, response):
@@ -149,6 +153,16 @@ class Guidance(Node):
         yaw_msg.data = self.yaw
         self.yaw_publisher.publish(yaw_msg)
         self.eta_received = True
+
+    def set_stationkeeping_pose_callback(self, request, response):
+        if self.eta_received:
+            self.eta_stationkeeping = self.eta
+            self.get_logger().info(f'Set stationkeeping pose to {self.eta_stationkeeping}')
+
+        else:
+            self.get_logger().info('No eta received, cannot set stationkeeping pose')
+        
+        return response
 
     def guidance_callback(self):
         with self.lock:

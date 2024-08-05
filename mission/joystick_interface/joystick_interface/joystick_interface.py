@@ -5,6 +5,7 @@ from geometry_msgs.msg import Wrench
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool
 from std_msgs.msg import String
+from std_srvs.srv import Empty
 
 
 class States:
@@ -92,6 +93,8 @@ class JoystickInterface(Node):
         self.wrench_publisher_ = self.create_publisher(Wrench,
                                                       "thrust/wrench_input",
                                                       1)
+        
+        self.set_stationkeeping_pose_client = self.create_client(Empty, 'set_stationkeeping_pose')
 
         self.declare_parameter('surge_scale_factor', 50.0)
         self.declare_parameter('sway_scale_factor', 50.0)
@@ -183,12 +186,24 @@ class JoystickInterface(Node):
         self.previous_state_ = States.AUTONOMOUS_MODE
         self.mode_logger_done_ = False
 
-    def set_home_position(self):
+    def set_stationkeeping_pose(self):
         """
         Calls a service that communicates to the guidance system to set the current
-        position as the home position.
+        position as the stationkeeping position.
         """
-        pass
+        request = Empty.Request()
+        future = self.set_stationkeeping_pose_client.call_async(request)
+        future.add_done_callback(self.set_stationkeeping_pose_callback)
+
+    def set_stationkeeping_pose_callback(self, future):
+        """
+        Callback function for the set_stationkeeping_pose service.
+        """
+        try:
+            response = future.result()
+        except Exception as e:
+            self.get_logger().info(
+                f"Service call failed {str(e)}")
 
     def joystick_cb(self, msg : Joy) -> Wrench:
         """
@@ -248,9 +263,10 @@ class JoystickInterface(Node):
             software_control_mode_button = False
             xbox_control_mode_button = False
             software_killswitch_button = False
+            software_set_home_button = False
 
         # If any button is pressed, update the last button press time
-        if software_control_mode_button or xbox_control_mode_button or software_killswitch_button:
+        if software_control_mode_button or xbox_control_mode_button or software_killswitch_button or software_set_home_button:
             self.last_button_press_time_ = current_time
 
         # Toggle ks on and off
@@ -289,6 +305,9 @@ class JoystickInterface(Node):
 
             if software_control_mode_button:
                 self.transition_to_autonomous_mode()
+
+            if software_set_home_button:
+                self.set_stationkeeping_pose()
 
         elif self.state_ == States.AUTONOMOUS_MODE:
             if not self.mode_logger_done_:
