@@ -3,7 +3,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose2D, Point
-from std_msgs.msg import Float32, Float64MultiArray
+from std_msgs.msg import Float32, Float64MultiArray, String, Bool
 from vortex_msgs.msg import HybridpathReference
 from vortex_msgs.srv import Waypoint, DesiredVelocity
 from nav_msgs.msg import Odometry
@@ -36,7 +36,10 @@ class Guidance(Node):
         self.w_publisher = self.create_publisher(Float32, 'w', 1)
         self.wp_arr_publisher = self.create_publisher(Float64MultiArray, 'waypoints', 1)
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
-        
+        self.yaw_server = self.create_service(DesiredVelocity,'yaw_reference', self.yaw_ref_callback)
+        self.operational_mode_subscriber = self.create_subscription(String, 'softWareOperationMode', self.operation_mode_callback, 10)
+        self.killswitch_subscriber = self.create_subscription(Bool, 'softWareKillSwitch', self.killswitch_callback, 10)
+
         # Get parameters
         self.lambda_val = self.get_parameter('hybridpath_guidance.lambda_val').get_parameter_value().double_value
         self.path_generator_order = self.get_parameter('hybridpath_guidance.path_generator_order').get_parameter_value().integer_value
@@ -44,12 +47,18 @@ class Guidance(Node):
         self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
         self.eta = np.zeros(3)
 
-        self.u_desired = 0.3 # Desired velocity
+        self.u_desired = 1.1 # Desired velocity
+
+        self.yaw_ref = 0. # Desired heading, 100 if hybridpath heading, else can be set by service call
 
         self.waypoints = []
         self.path = None
         self.s = 0.
         self.w = 0.
+        self.v_s = 0.
+        self.v_ss = 0.
+        self.operational_mode = 'autonomous mode'
+        self.killswitch_active = False
 
         # Initialize path generator
         self.generator = HybridPathGenerator(self.waypoints, self.path_generator_order, self.lambda_val)
@@ -62,6 +71,7 @@ class Guidance(Node):
         self.waiting_message_printed = False
         self.first_pos_flag = False
         self.eta_received = False
+        self.initial_pos = False
 
         # Timer for guidance
         timer_period = 0.1
@@ -69,12 +79,23 @@ class Guidance(Node):
 
         self.lock = threading.Lock()
 
+    def operation_mode_callback(self, msg: String):
+        self.operational_mode = msg.data
+
+    def killswitch_callback(self, msg: Bool):
+        self.killswitch_active = msg.data
+
     def u_desired_callback(self, request, response):
         self.u_desired = request.u_desired
         self.get_logger().info(f"Received desired velocity: {self.u_desired}")
         response.success = True
         return response
 
+    def yaw_ref_callback(self, request, response):
+        self.yaw_ref = request.u_desired # xd
+
+        response.success = True
+        return response
 
     def waypoint_callback(self, request, response):
 
@@ -113,28 +134,45 @@ class Guidance(Node):
         yaw_msg = Float32()
         self.eta = self.odom_to_eta(msg)
         self.yaw = float(self.eta[2])
+
+        if not self.initial_pos:
+            self.eta_initial = self.eta
+            self.yaw_ref = self.yaw
+            self.initial_pos = True
+
         yaw_msg.data = self.yaw
         self.yaw_publisher.publish(yaw_msg)
         self.eta_received = True
 
     def guidance_callback(self):
         with self.lock:
-            if self.waypoints_received:
-                self.s = self.generator.update_s(self.path, self.dt, self.u_desired, self.s, self.w)
-                self.signals.update_s(self.s)
-                self.w = self.signals.get_w(self.mu, self.eta)
+            if self.killswitch_active or self.operational_mode != 'autonomous mode':
+                return
+            
+            if self.initial_pos:
+                if self.path is None and not self.waypoints_received:
+                    pos = [self.eta_initial[0], self.eta_initial[1]]
+                    pos_der = [0., 0.]
+                    pos_dder = [0., 0.]
 
-                pos = self.signals.get_position()
+                else:
+                    self.s = self.generator.update_s(self.path, self.dt, self.u_desired, self.s, self.w)
+                    self.signals.update_s(self.s)
+                    self.w = self.signals.get_w(self.mu, self.eta)
+                    self.v_s = self.signals.get_vs(self.u_desired)
+                    self.v_ss = self.signals.get_vs_derivative(self.u_desired)
 
-                if not self.first_pos_flag:
-                    self.get_logger().info(f"First position: {pos}")
-                    self.first_pos_flag = True
+                    pos = self.signals.get_position()
 
-                # pos[0] = self.eta[0]
-                pos_der = self.signals.get_derivatives()[0]
-                pos_dder = self.signals.get_derivatives()[1]
+                    pos_der = self.signals.get_derivatives()[0]
+                    pos_dder = self.signals.get_derivatives()[1]
 
-                psi = 0. #signals.get_heading()
+                if self.yaw_ref == 100.:
+                    psi = self.signals.get_heading()
+
+                else:
+                    psi = self.yaw_ref
+
                 psi_der = 0.#signals.get_heading_derivative()
                 psi_dder = 0.#signals.get_heading_second_derivative()
 
@@ -143,20 +181,22 @@ class Guidance(Node):
                 hp_msg.eta_d_s = Pose2D(x=pos_der[0], y=pos_der[1], theta=psi_der)
                 hp_msg.eta_d_ss = Pose2D(x=pos_dder[0], y=pos_dder[1], theta=psi_dder)
 
-                hp_msg.w = self.signals.get_w(self.mu, self.eta)
-                hp_msg.v_s = self.signals.get_vs(self.u_desired)
-                hp_msg.v_ss = self.signals.get_vs_derivative(self.u_desired)
+                hp_msg.w = self.w
+                hp_msg.v_s = self.v_s
+                hp_msg.v_ss = self.v_ss
 
                 self.guidance_publisher.publish(hp_msg)
 
-                if self.s >= self.path.NumSubpaths:
+                if self.path is not None and self.s >= self.path.NumSubpaths:
                     self.waypoints_received = False
                     self.waiting_message_printed = False
+                    self.path = None
+                    self.eta_initial = self.eta
                     self.get_logger().info('Last waypoint reached')
 
             else:
                 if not self.waiting_message_printed:
-                    self.get_logger().info('Waiting for waypoints to be received')
+                    self.get_logger().info('Waiting for eta')
                     self.waiting_message_printed = True
 
         s_msg = Float32()
