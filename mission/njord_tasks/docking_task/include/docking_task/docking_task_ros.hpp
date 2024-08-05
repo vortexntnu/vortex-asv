@@ -4,10 +4,10 @@
 #include <Eigen/Dense>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <njord_task_base/njord_task_base_ros.hpp>
-#include <tf2/LinearMath/Matrix3x3.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
+#include <pcl/PointIndices.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 namespace docking_task {
 
@@ -41,11 +41,11 @@ public:
 
   Eigen::Array<double, 2, 2> predict_first_buoy_pair();
 
-  Eigen::Array<double, 2, 4>
+  Eigen::Array<double, 2, 2>
   predict_second_buoy_pair(const geometry_msgs::msg::Point &buoy_0,
                            const geometry_msgs::msg::Point &buoy_1);
 
-  Eigen::Array<double, 2, 4>
+  Eigen::Array<double, 2, 2>
   predict_third_buoy_pair(const geometry_msgs::msg::Point &buoy_0,
                           const geometry_msgs::msg::Point &buoy_1,
                           const geometry_msgs::msg::Point &buoy_2,

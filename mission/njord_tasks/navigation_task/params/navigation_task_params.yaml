@@ -1,17 +1,17 @@
 navigation_task_node:
   ros__parameters:
-    map_origin_lat: 63.4411585867919
-    map_origin_lon: 10.419400373255625
+    map_origin_lat: -33.72242824301795
+    map_origin_lon: 150.6740063854522
     map_origin_set: true
-    gps_start_lat: 63.44097054434422
-    gps_start_lon: 10.419997767413607
-    gps_end_lat: 63.44125901804796
-    gps_end_lon: 10.41857835889424
+    gps_start_lat: -33.722553423946906
+    gps_start_lon: 150.67394210456843
+    gps_end_lat: -33.72253671663162
+    gps_end_lon: 150.67413245758723
     gps_start_x: 0.0
     gps_start_y: 0.0
-    gps_end_x: 0.0
-    gps_end_y: 0.0
-    gps_frame_coords_set: false
+    gps_end_x: 1.1791211357704299
+    gps_end_y: 17.485397720327114
+    gps_frame_coords_set: true
     map_origin_topic: "/map/origin"
     odom_topic: "/seapath/odom/ned"
     landmark_topic: "landmarks_out"

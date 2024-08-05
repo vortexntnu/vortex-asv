@@ -6,11 +6,13 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
 #include "vortex_msgs/msg/landmark_array.hpp"
 #include "vortex_msgs/srv/waypoint.hpp"
+#include "vortex_msgs/srv/desired_velocity.hpp"
 #include <Eigen/Dense>
 #include <condition_variable>
 #include <mutex>
@@ -120,15 +122,21 @@ protected:
    */
   void reach_waypoint(const double distance_threshold);
 
+  void set_desired_heading(const geometry_msgs::msg::Point &prev_waypoint, const geometry_msgs::msg::Point &next_waypoint);
+
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
       gps_map_coord_visualization_pub_;
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr
       waypoint_visualization_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      buoy_visualization_pub_;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr map_origin_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
   rclcpp::Subscription<vortex_msgs::msg::LandmarkArray>::SharedPtr
       landmarks_sub_;
   rclcpp::Client<vortex_msgs::srv::Waypoint>::SharedPtr waypoint_client_;
+  rclcpp::Client<vortex_msgs::srv::DesiredVelocity>::SharedPtr
+      heading_client_;
 
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -148,6 +156,7 @@ protected:
   bool navigation_ready_ = false;
 
   geometry_msgs::msg::Point previous_waypoint_odom_frame_;
+  geometry_msgs::msg::Point odom_start_point_;
 };
 
 #endif // NJORD_TASK_BASE_ROS_HPP

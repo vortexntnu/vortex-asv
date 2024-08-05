@@ -19,7 +19,6 @@ DockingTaskNode::DockingTaskNode(const rclcpp::NodeOptions &options)
   declare_parameter<double>("models.dynmod_stddev", 0.0);
   declare_parameter<double>("models.sen_stddev", 0.0);
 
-  initialize_grid_sub();
 
   std::thread(&DockingTaskNode::main_task, this).detach();
 }
@@ -27,7 +26,32 @@ DockingTaskNode::DockingTaskNode(const rclcpp::NodeOptions &options)
 void DockingTaskNode::main_task() {
   navigation_ready();
   // Starting docking task
+  odom_start_point_ = get_odom()->pose.pose.position;
   Eigen::Array<double, 2, 2> predicted_first_pair = predict_first_buoy_pair();
+
+  sensor_msgs::msg::PointCloud2 buoy_vis_msg;
+  pcl::PointCloud<pcl::PointXYZRGB> buoy_vis;
+  pcl::PointXYZRGB buoy_red_0;
+  buoy_red_0.x = predicted_first_pair(0, 0);
+  buoy_red_0.y = predicted_first_pair(1, 0);
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  pcl::PointXYZRGB buoy_green_1;
+  buoy_green_1.x = predicted_first_pair(0, 1);
+  buoy_green_1.y = predicted_first_pair(1, 1);
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
+
   double distance_to_first_buoy_pair =
       this->get_parameter("distance_to_first_buoy_pair").as_double();
   if (distance_to_first_buoy_pair > 6.0) {
@@ -38,11 +62,13 @@ void DockingTaskNode::main_task() {
     waypoint_to_approach_first_pair_base_link.z = 0.0;
     try {
       auto transform = tf_buffer_->lookupTransform(
-          "odom", "base_link", tf2::TimePointZero, tf2::durationFromSec(1.0));
+          "odom", "base_link", tf2::TimePointZero);
       geometry_msgs::msg::Point waypoint_to_approach_first_pair_odom;
       tf2::doTransform(waypoint_to_approach_first_pair_base_link,
                        waypoint_to_approach_first_pair_odom, transform);
       send_waypoint(waypoint_to_approach_first_pair_odom);
+      set_desired_heading(odom_start_point_,
+                          waypoint_to_approach_first_pair_odom);
       reach_waypoint(1.0);
     } catch (tf2::TransformException &ex) {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
@@ -53,6 +79,30 @@ void DockingTaskNode::main_task() {
   if (buoy_landmarks_0_to_1.size() != 2) {
     RCLCPP_ERROR(this->get_logger(), "Could not find two buoys");
   }
+
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = buoy_landmarks_0_to_1[0].pose_odom_frame.position.x;
+  buoy_red_0.y = buoy_landmarks_0_to_1[0].pose_odom_frame.position.y;
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = buoy_landmarks_0_to_1[1].pose_odom_frame.position.x;
+  buoy_green_1.y = buoy_landmarks_0_to_1[1].pose_odom_frame.position.y;
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
+
   geometry_msgs::msg::Point waypoint_first_pair;
   waypoint_first_pair.x =
       (buoy_landmarks_0_to_1[0].pose_odom_frame.position.x +
@@ -64,55 +114,156 @@ void DockingTaskNode::main_task() {
       2;
   waypoint_first_pair.z = 0.0;
   send_waypoint(waypoint_first_pair);
+  set_desired_heading(odom_start_point_, waypoint_first_pair);
   reach_waypoint(1.0);
 
   // Second pair of buoys
-  Eigen::Array<double, 2, 4> predicted_first_and_second_pair =
+  Eigen::Array<double, 2, 2> predicted_first_and_second_pair =
       predict_second_buoy_pair(
           buoy_landmarks_0_to_1[0].pose_odom_frame.position,
           buoy_landmarks_0_to_1[1].pose_odom_frame.position);
-  std::vector<LandmarkPoseID> buoy_landmarks_0_to_3 =
+    
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = predicted_first_and_second_pair(0, 0);
+  buoy_red_0.y = predicted_first_and_second_pair(1, 0);
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = predicted_first_and_second_pair(0, 1);
+  buoy_green_1.y = predicted_first_and_second_pair(1, 1);
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
+
+  std::vector<LandmarkPoseID> buoy_landmarks_2_to_3 =
       get_buoy_landmarks(predicted_first_and_second_pair);
-  if (buoy_landmarks_0_to_3.size() != 4) {
+  if (buoy_landmarks_2_to_3.size() != 2) {
     RCLCPP_ERROR(this->get_logger(), "Could not find four buoys");
   }
+
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = buoy_landmarks_2_to_3[0].pose_odom_frame.position.x;
+  buoy_red_0.y = buoy_landmarks_2_to_3[0].pose_odom_frame.position.y;
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = buoy_landmarks_2_to_3[1].pose_odom_frame.position.x;
+  buoy_green_1.y = buoy_landmarks_2_to_3[1].pose_odom_frame.position.y;
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
+
   geometry_msgs::msg::Point waypoint_second_pair;
   waypoint_second_pair.x =
-      (buoy_landmarks_0_to_3[2].pose_odom_frame.position.x +
-       buoy_landmarks_0_to_3[3].pose_odom_frame.position.x) /
+      (buoy_landmarks_2_to_3[0].pose_odom_frame.position.x +
+       buoy_landmarks_2_to_3[1].pose_odom_frame.position.x) /
       2;
   waypoint_second_pair.y =
-      (buoy_landmarks_0_to_3[2].pose_odom_frame.position.y +
-       buoy_landmarks_0_to_3[3].pose_odom_frame.position.y) /
+      (buoy_landmarks_2_to_3[0].pose_odom_frame.position.y +
+       buoy_landmarks_2_to_3[1].pose_odom_frame.position.y) /
       2;
   waypoint_second_pair.z = 0.0;
   send_waypoint(waypoint_second_pair);
+  set_desired_heading(odom_start_point_, waypoint_second_pair);
   reach_waypoint(1.0);
 
   // Third pair of buoys
-  Eigen::Array<double, 2, 4> predicted_second_and_third_pair =
+  Eigen::Array<double, 2, 2> predicted_third_pair =
       predict_third_buoy_pair(
           buoy_landmarks_0_to_1[0].pose_odom_frame.position,
           buoy_landmarks_0_to_1[1].pose_odom_frame.position,
-          buoy_landmarks_0_to_3[2].pose_odom_frame.position,
-          buoy_landmarks_0_to_3[3].pose_odom_frame.position);
-  std::vector<LandmarkPoseID> buoy_landmarks_2_to_5 =
-      get_buoy_landmarks(predicted_second_and_third_pair);
-  if (buoy_landmarks_2_to_5.size() != 4) {
+          buoy_landmarks_2_to_3[2].pose_odom_frame.position,
+          buoy_landmarks_2_to_3[3].pose_odom_frame.position);
+
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = predicted_third_pair(0, 0);
+  buoy_red_0.y = predicted_third_pair(1, 0);
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = predicted_third_pair(0, 1);
+  buoy_green_1.y = predicted_third_pair(1, 1);
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
+
+  std::vector<LandmarkPoseID> buoy_landmarks_4_to_5 =
+      get_buoy_landmarks(predicted_third_pair);
+  if (buoy_landmarks_4_to_5.size() != 2) {
     RCLCPP_ERROR(this->get_logger(), "Could not find four buoys");
   }
+
+  buoy_vis = pcl::PointCloud<pcl::PointXYZRGB>();
+  buoy_vis_msg = sensor_msgs::msg::PointCloud2();
+  buoy_red_0 = pcl::PointXYZRGB();
+  buoy_green_1 = pcl::PointXYZRGB();
+  buoy_red_0.x = buoy_landmarks_4_to_5[0].pose_odom_frame.position.x;
+  buoy_red_0.y = buoy_landmarks_4_to_5[0].pose_odom_frame.position.y;
+  buoy_red_0.z = 0.0;
+  buoy_red_0.r = 255;
+  buoy_red_0.g = 0;
+  buoy_red_0.b = 0;
+  buoy_vis.push_back(buoy_red_0);
+  buoy_green_1.x = buoy_landmarks_4_to_5[1].pose_odom_frame.position.x;
+  buoy_green_1.y = buoy_landmarks_4_to_5[1].pose_odom_frame.position.y;
+  buoy_green_1.z = 0.0;
+  buoy_green_1.r = 0;
+  buoy_green_1.g = 255;
+  buoy_green_1.b = 0;
+  buoy_vis.push_back(buoy_green_1);
+  pcl::toROSMsg(buoy_vis, buoy_vis_msg);
+  buoy_vis_msg.header.frame_id = "odom";
+  buoy_vis_msg.header.stamp = this->now();
+  buoy_visualization_pub_->publish(buoy_vis_msg);
+
   geometry_msgs::msg::Point waypoint_third_pair;
   waypoint_third_pair.x =
-      (buoy_landmarks_2_to_5[2].pose_odom_frame.position.x +
-       buoy_landmarks_2_to_5[3].pose_odom_frame.position.x) /
+      (buoy_landmarks_4_to_5[0].pose_odom_frame.position.x +
+       buoy_landmarks_4_to_5[1].pose_odom_frame.position.x) /
       2;
   waypoint_third_pair.y =
-      (buoy_landmarks_2_to_5[2].pose_odom_frame.position.y +
-       buoy_landmarks_2_to_5[3].pose_odom_frame.position.y) /
+      (buoy_landmarks_4_to_5[0].pose_odom_frame.position.y +
+       buoy_landmarks_4_to_5[1].pose_odom_frame.position.y) /
       2;
   waypoint_third_pair.z = 0.0;
   send_waypoint(waypoint_third_pair);
+  set_desired_heading(odom_start_point_, waypoint_third_pair);
   reach_waypoint(1.0);
+  
+  std::thread(&DockingTaskNode::initialize_grid_sub, this).detach();
 }
 
 Eigen::Array<double, 2, 2> DockingTaskNode::predict_first_buoy_pair() {
@@ -159,30 +310,26 @@ Eigen::Array<double, 2, 2> DockingTaskNode::predict_first_buoy_pair() {
   return predicted_positions;
 }
 
-Eigen::Array<double, 2, 4> DockingTaskNode::predict_second_buoy_pair(
+Eigen::Array<double, 2, 2> DockingTaskNode::predict_second_buoy_pair(
     const geometry_msgs::msg::Point &buoy_0,
     const geometry_msgs::msg::Point &buoy_1) {
   Eigen::Vector2d direction_vector;
   direction_vector << previous_waypoint_odom_frame_.x -
-                          this->get_parameter("gps_start_x").as_double(),
+                          odom_start_point_.x,
       previous_waypoint_odom_frame_.y -
-          this->get_parameter("gps_start_y").as_double();
+          odom_start_point_.y;
   direction_vector.normalize();
 
-  Eigen::Array<double, 2, 4> predicted_positions;
-  predicted_positions(0, 0) = buoy_0.x;
-  predicted_positions(1, 0) = buoy_0.y;
-  predicted_positions(0, 1) = buoy_1.x;
-  predicted_positions(1, 1) = buoy_1.y;
-  predicted_positions(0, 2) = buoy_0.x + direction_vector(0) * 5;
-  predicted_positions(1, 2) = buoy_0.y + direction_vector(1) * 5;
-  predicted_positions(0, 3) = buoy_1.x + direction_vector(0) * 5;
-  predicted_positions(1, 3) = buoy_1.y + direction_vector(1) * 5;
+  Eigen::Array<double, 2, 2> predicted_positions;
+  predicted_positions(0, 0) = buoy_0.x + direction_vector(0) * 5;
+  predicted_positions(1, 0) = buoy_0.y + direction_vector(1) * 5;
+  predicted_positions(0, 1) = buoy_1.x + direction_vector(0) * 5;
+  predicted_positions(1, 1) = buoy_1.y + direction_vector(1) * 5;
 
   return predicted_positions;
 }
 
-Eigen::Array<double, 2, 4> DockingTaskNode::predict_third_buoy_pair(
+Eigen::Array<double, 2, 2> DockingTaskNode::predict_third_buoy_pair(
     const geometry_msgs::msg::Point &buoy_0,
     const geometry_msgs::msg::Point &buoy_1,
     const geometry_msgs::msg::Point &buoy_2,
@@ -193,18 +340,14 @@ Eigen::Array<double, 2, 4> DockingTaskNode::predict_third_buoy_pair(
       (buoy_2.y + buoy_3.y) / 2 - (buoy_0.y + buoy_1.y) / 2;
   direction_vector_first_to_second_pair.normalize();
 
-  Eigen::Array<double, 2, 4> predicted_positions;
-  predicted_positions(0, 0) = buoy_2.x;
-  predicted_positions(1, 0) = buoy_2.y;
-  predicted_positions(0, 1) = buoy_3.x;
-  predicted_positions(1, 1) = buoy_3.y;
-  predicted_positions(0, 2) =
+  Eigen::Array<double, 2, 2> predicted_positions;
+  predicted_positions(0, 0) =
       buoy_2.x + direction_vector_first_to_second_pair(0) * 5;
-  predicted_positions(1, 2) =
+  predicted_positions(1, 0) =
       buoy_2.y + direction_vector_first_to_second_pair(1) * 5;
-  predicted_positions(0, 3) =
+  predicted_positions(0, 1) =
       buoy_3.x + direction_vector_first_to_second_pair(0) * 5;
-  predicted_positions(1, 3) =
+  predicted_positions(1, 1) =
       buoy_3.y + direction_vector_first_to_second_pair(1) * 5;
 
   return predicted_positions;

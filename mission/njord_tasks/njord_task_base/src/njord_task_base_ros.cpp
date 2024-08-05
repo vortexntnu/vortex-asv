@@ -38,6 +38,10 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
   gps_map_coord_visualization_pub_ =
       this->create_publisher<geometry_msgs::msg::PoseArray>(
           "/gps_map_coord_visualization", qos_sensor_data);
+  
+  buoy_visualization_pub_ =
+      this->create_publisher<sensor_msgs::msg::PointCloud2>(
+          "/buoy_visualization", qos_sensor_data);
 
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -61,7 +65,10 @@ NjordTaskBaseNode::NjordTaskBaseNode(const std::string &node_name,
           "/waypoint_visualization", qos_sensor_data);
 
   waypoint_client_ =
-      this->create_client<vortex_msgs::srv::Waypoint>("/waypoint");
+      this->create_client<vortex_msgs::srv::Waypoint>("waypoint_list");
+
+  heading_client_ =
+      this->create_client<vortex_msgs::srv::DesiredVelocity>("yaw_reference");
 }
 
 void NjordTaskBaseNode::get_map_odom_tf() {
@@ -442,6 +449,11 @@ void NjordTaskBaseNode::send_waypoint(
               waypoint.x, waypoint.y);
   // Check if the service was successful
 
+  geometry_msgs::msg::PoseStamped waypoint_vis;
+  waypoint_vis.header.frame_id = "odom";
+  waypoint_vis.pose.position.x = waypoint.x;
+  waypoint_vis.pose.position.y = waypoint.y;
+  waypoint_visualization_pub_->publish(waypoint_vis);
   auto status = result_future.wait_for(std::chrono::seconds(5));
   while (status == std::future_status::timeout) {
     RCLCPP_INFO(this->get_logger(), "Waypoint service timed out");
@@ -451,11 +463,6 @@ void NjordTaskBaseNode::send_waypoint(
     RCLCPP_INFO(this->get_logger(), "Waypoint service failed");
   }
 
-  geometry_msgs::msg::PoseStamped waypoint_vis;
-  waypoint_vis.header.frame_id = "odom";
-  waypoint_vis.pose.position.x = waypoint.x;
-  waypoint_vis.pose.position.y = waypoint.y;
-  waypoint_visualization_pub_->publish(waypoint_vis);
 
   previous_waypoint_odom_frame_ = waypoint;
 }
@@ -478,4 +485,24 @@ void NjordTaskBaseNode::reach_waypoint(const double distance_threshold) {
   }
 
   RCLCPP_INFO(this->get_logger(), "Reached waypoint");
+}
+
+void NjordTaskBaseNode::set_desired_heading(
+    const geometry_msgs::msg::Point &prev_waypoint,
+    const geometry_msgs::msg::Point &next_waypoint) {
+  auto request = std::make_shared<vortex_msgs::srv::DesiredVelocity::Request>();
+  double dx = next_waypoint.x - prev_waypoint.x;
+  double dy = next_waypoint.y - prev_waypoint.y;
+  double desired_heading = std::atan2(dy, dx);
+  request->u_desired = desired_heading;
+  auto result_future = heading_client_->async_send_request(request);
+  RCLCPP_INFO(this->get_logger(), "Desired heading sent: %f", desired_heading);
+  auto status = result_future.wait_for(std::chrono::seconds(5));
+  while (status == std::future_status::timeout) {
+    RCLCPP_INFO(this->get_logger(), "Desired heading service timed out");
+    status = result_future.wait_for(std::chrono::seconds(5));
+  }
+  if (!result_future.get()->success) {
+    RCLCPP_INFO(this->get_logger(), "Desired heading service failed");
+  }
 }

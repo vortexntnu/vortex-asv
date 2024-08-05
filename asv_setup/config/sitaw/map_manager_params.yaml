@@ -1,7 +1,8 @@
 map_manager_node:
   ros__parameters:
-    use_predef_landmask: false
-    landmask_file: "src/vortex-asv/asv_setup/config/sitaw/land_polygon_office.yaml"
+    use_predef_landmask: true
+    landmask_file: "src/vortex-asv/asv_setup/config/sitaw/land_polygon_sim_navigation.yaml"
+    # landmask_file: "src/vortex-asv/asv_setup/config/sitaw/land_polygon_office.yaml"
     map_resolution: 0.2
     map_width: 1000
     map_height: 1000
@@ -10,6 +11,6 @@ map_manager_node:
     # map_origin_lat: 63.414660884931976 
     # map_origin_lon: 10.398554661537544
     # use_predef_map_origin: true
-    map_origin_lat: 0.0
-    map_origin_lon: 0.0
-    use_predef_map_origin: false
+    map_origin_lat: -33.72242824301795
+    map_origin_lon: 150.6740063854522
+    use_predef_map_origin: true
