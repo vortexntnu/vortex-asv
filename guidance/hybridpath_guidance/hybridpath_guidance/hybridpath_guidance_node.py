@@ -60,6 +60,7 @@ class Guidance(Node):
         self.w = 0.
         self.v_s = 0.
         self.v_ss = 0.
+        self.mu = 0.
         self.operational_mode = 'autonomous mode'
         self.killswitch_active = False
 
@@ -114,8 +115,14 @@ class Guidance(Node):
 
                 new_waypoints = request.waypoint
 
-                for point in new_waypoints:
+                self.get_logger().info(f"Received {len(new_waypoints)} waypoints")
 
+                for i, point in enumerate(new_waypoints):
+                    
+                    wp = [point.x, point.y]
+
+                    self.get_logger().info(f"Waypoint {i+1}: {wp}")
+                    
                     self.waypoints.append(point)
 
                 self.last_waypoint = [self.waypoints[-1].x, self.waypoints[-1].y]
