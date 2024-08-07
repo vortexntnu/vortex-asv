@@ -2,6 +2,10 @@
 #define MANEUVERING_TASK_ROS_HPP
 
 #include <njord_task_base/njord_task_base_ros.hpp>
+#include <pcl/PointIndices.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 namespace maneuvering_task {
 
@@ -19,17 +23,11 @@ public:
 
   Eigen::Array<double, 2, 2> predict_first_buoy_pair();
 
-  Eigen::Array<double, 2, 4>
+  Eigen::Array<double, 2, 2>
   predict_second_buoy_pair(const geometry_msgs::msg::Point &buoy_0,
                            const geometry_msgs::msg::Point &buoy_1);
 
-  Eigen::Array<double, 2, 4>
-  predict_third_buoy_pair(const geometry_msgs::msg::Point &buoy_0,
-                          const geometry_msgs::msg::Point &buoy_1,
-                          const geometry_msgs::msg::Point &buoy_2,
-                          const geometry_msgs::msg::Point &buoy_3);
-
-  Eigen::Array<double, 2, 4>
+  Eigen::Array<double, 2, 2>
   predict_next_pair_in_formation(const geometry_msgs::msg::Point &buoy_red,
                                  const geometry_msgs::msg::Point &buoy_green,
                                  Eigen::Vector2d direction_vector);
