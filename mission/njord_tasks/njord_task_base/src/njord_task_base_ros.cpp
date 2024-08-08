@@ -118,14 +118,17 @@ void NjordTaskBaseNode::set_gps_odom_points() {
     gps_start_odom_frame.position.y =
         this->get_parameter("gps_start_y").as_double();
     geometry_msgs::msg::Pose gps_end_odom_frame;
-    gps_end_odom_frame.position.x = this->get_parameter("gps_end_x").as_double();
-    gps_end_odom_frame.position.y = this->get_parameter("gps_end_y").as_double();
+    gps_end_odom_frame.position.x =
+        this->get_parameter("gps_end_x").as_double();
+    gps_end_odom_frame.position.y =
+        this->get_parameter("gps_end_y").as_double();
     gps_points_odom_frame.poses.push_back(gps_start_odom_frame);
     gps_points_odom_frame.poses.push_back(gps_end_odom_frame);
     gps_map_coord_visualization_pub_->publish(gps_points_odom_frame);
-    RCLCPP_INFO(this->get_logger(), "GPS odom frame coordinates set to: %f, %f, %f, %f",
-                gps_start_odom_frame.position.x, gps_start_odom_frame.position.y,
-                gps_end_odom_frame.position.x, gps_end_odom_frame.position.y);
+    RCLCPP_INFO(
+        this->get_logger(), "GPS odom frame coordinates set to: %f, %f, %f, %f",
+        gps_start_odom_frame.position.x, gps_start_odom_frame.position.y,
+        gps_end_odom_frame.position.x, gps_end_odom_frame.position.y);
     return;
   }
   auto [gps_start_x, gps_start_y] =
