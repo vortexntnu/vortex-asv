@@ -57,9 +57,9 @@ void ManeuveringTaskNode::main_task() {
     auto odom = get_odom();
     geometry_msgs::msg::Point waypoint_toward_start;
     waypoint_toward_start.x =
-        odom->pose.pose.position.x + direction_vector_to_end(0) * distance - 3;
+        odom->pose.pose.position.x + direction_vector_to_end(0) * (distance - 3);
     waypoint_toward_start.y =
-        odom->pose.pose.position.y + direction_vector_to_end(1) * distance - 3;
+        odom->pose.pose.position.y + direction_vector_to_end(1) * (distance - 3);
     waypoint_toward_start.z = 0.0;
     send_waypoint(waypoint_toward_start);
     reach_waypoint(2.0);
