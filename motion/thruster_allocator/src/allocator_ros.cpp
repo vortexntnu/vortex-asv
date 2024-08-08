@@ -68,9 +68,6 @@ ThrusterAllocator::on_deactivate(const rclcpp_lifecycle::State &) {
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ThrusterAllocator::on_cleanup(const rclcpp_lifecycle::State &) {
-  thruster_forces_publisher_.reset();
-  wrench_subscriber_.reset();
-  calculate_thrust_timer_.reset();
   RCLCPP_INFO(get_logger(), "Thruster allocator cleaned up");
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
       CallbackReturn::SUCCESS;
@@ -78,6 +75,9 @@ ThrusterAllocator::on_cleanup(const rclcpp_lifecycle::State &) {
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ThrusterAllocator::on_shutdown(const rclcpp_lifecycle::State &) {
+  thruster_forces_publisher_.reset();
+  wrench_subscriber_.reset();
+  calculate_thrust_timer_.reset();
   RCLCPP_INFO(get_logger(), "Thruster allocator shutting down");
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
       CallbackReturn::SUCCESS;
