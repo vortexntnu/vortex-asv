@@ -1,3 +1,10 @@
+/**
+ * @file allocator_ros.hpp
+ * @brief ThrusterAllocator class, which
+ * allocates thrust to the ASV's thrusters based on the desired body frame
+ * forces.
+ */
+
 #ifndef VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
 #define VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
 
@@ -30,6 +37,12 @@ public:
   on_shutdown(const rclcpp_lifecycle::State &);
 
 private:
+  /**
+   * @brief Calculates the allocated
+   * thrust based on the body frame forces. It then saturates the output vector
+   * between min and max values and publishes the thruster forces to the topic
+   * "thrust/thruster_forces".
+   */
   void calculate_thrust_timer_cb();
   void wrench_callback(const geometry_msgs::msg::Wrench &msg);
 
