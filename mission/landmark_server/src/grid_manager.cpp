@@ -25,6 +25,40 @@ void GridManager::handle_polygon(
 
     draw_line(x0, y0, x1, y1, grid, value);
   }
+  if ( vertices.cols() > 1){
+  fill_polygon(grid, vertices, value);
+  }
+}
+
+void GridManager::fill_polygon(int8_t *grid,
+                               const Eigen::Array<float, 2, Eigen::Dynamic> &polygon,
+                               int value) {
+      double max_x = polygon.row(0).maxCoeff();
+      double min_x = polygon.row(0).minCoeff();
+      double max_y = polygon.row(1).maxCoeff();
+      double min_y = polygon.row(1).minCoeff();
+      
+      for (int x = min_x; x < max_x; x++) {
+          for (int y = min_y; y < max_y; y++) {
+            if (x >= 0 && x < static_cast<int>(width_) && y >= 0 && y < static_cast<int>(height_)) {
+                if (point_in_polygon(x, y, polygon)) {
+                    grid[y * width_ + x] += value;
+                }
+          }
+        }  
+      }
+}
+
+bool GridManager::point_in_polygon(int x, int y, const Eigen::Array<float, 2, Eigen::Dynamic> &polygon) {
+    int i, j;
+    bool c = false;
+    for (i = 0, j = polygon.cols() - 1; i < polygon.cols(); j = i++) {
+        if (((polygon(1, i) > y) != (polygon(1, j) > y)) &&
+            (x < (polygon(0, j) - polygon(0, i)) * (y - polygon(1, i)) / (polygon(1, j) - polygon(1, i)) + polygon(0, i))
+            )
+            c = !c;
+    }
+    return c;
 }
 
 void GridManager::draw_line(int x0, int y0, int x1, int y1, int8_t *grid,

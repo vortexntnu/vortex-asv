@@ -57,6 +57,22 @@ public:
 
   void initialize_grid_sub();
 
+  void find_dock_structure_edges();
+
+  /**
+   * @brief Iterate over line in grid map. Returns a vector of booleans
+   * representing occupied cells along the line.
+   *
+   * @param grid The grid map.
+   * @param x0 The x-coordinate of the start point.
+   * @param y0 The y-coordinate of the start point.
+   * @param x1 The x-coordinate of the end point.
+   * @param y1 The y-coordinate of the end point.
+   * @return A vector of booleans representing occupied cells along the line.
+   */
+  std::vector<bool> search_line(const nav_msgs::msg::OccupancyGrid &grid, double x0, double y0, double x1, double y1);
+
+
 private:
   mutable std::mutex grid_mutex_;
   bool new_grid_msg_ = false;

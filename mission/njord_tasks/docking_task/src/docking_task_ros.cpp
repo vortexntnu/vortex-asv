@@ -247,15 +247,24 @@ void DockingTaskNode::main_task() {
   buoy_vis_msg.header.stamp = this->now();
   buoy_visualization_pub_->publish(buoy_vis_msg);
 
+  Eigen::Vector2d direction_vector_up;
+  direction_vector_up << (buoy_landmarks_4_to_5[0].pose_odom_frame.position.x +
+       buoy_landmarks_4_to_5[1].pose_odom_frame.position.x) /
+      2 - odom_start_point_.x,
+      (buoy_landmarks_4_to_5[0].pose_odom_frame.position.y +
+       buoy_landmarks_4_to_5[1].pose_odom_frame.position.y) /
+      2 - odom_start_point_.y;
+  direction_vector_up.normalize();
+
   geometry_msgs::msg::Point waypoint_third_pair;
   waypoint_third_pair.x =
       (buoy_landmarks_4_to_5[0].pose_odom_frame.position.x +
        buoy_landmarks_4_to_5[1].pose_odom_frame.position.x) /
-      2;
+      2 + direction_vector_up(0) * 2;
   waypoint_third_pair.y =
       (buoy_landmarks_4_to_5[0].pose_odom_frame.position.y +
        buoy_landmarks_4_to_5[1].pose_odom_frame.position.y) /
-      2;
+      2 + direction_vector_up(1) * 2;
   waypoint_third_pair.z = 0.0;
   send_waypoint(waypoint_third_pair);
   set_desired_heading(odom_start_point_, waypoint_third_pair);
@@ -375,6 +384,65 @@ std::shared_ptr<nav_msgs::msg::OccupancyGrid> DockingTaskNode::get_grid() {
   new_grid_msg_ = false;
   lock.unlock();
   return grid_msg_;
+}
+
+std::vector<bool> DockingTaskNode::search_line(const nav_msgs::msg::OccupancyGrid &grid, double dx0, double dy0,
+                                               double dx1, double dy1) {
+  int x0 = x0 / grid.info.resolution + grid.info.width / 2;
+  int y0 = y0 / grid.info.resolution + grid.info.height / 2;
+  int x1 = x1 / grid.info.resolution + grid.info.width / 2;
+  int y1 = y1 / grid.info.resolution + grid.info.height / 2;
+
+  std::vector<bool> occupied_cells;
+  bool steep = std::abs(y1 - y0) > std::abs(x1 - x0);
+  if (steep) {
+    occupied_cells.reserve(std::abs(y1 - y0));
+  } else {
+    occupied_cells.reserve(std::abs(x1 - x0));
+  }
+  if (steep) {
+    std::swap(x0, y0);
+    std::swap(x1, y1);
+  }
+  bool swap = x0 > x1;
+  if (swap) {
+    std::swap(x0, x1);
+    std::swap(y0, y1);
+  }
+  int dx = x1 - x0;
+  int dy = std::abs(y1 - y0);
+  int error = 2 * dy - dx;
+  int ystep = (y0 < y1) ? 1 : -1;
+  int xbounds = steep ? grid.info.height : grid.info.width;
+  int ybounds = steep ? grid.info.width : grid.info.height;
+  int y = y0;
+
+  for (int x = x0; x <= x1; x++) {
+    if (steep) {
+      if (x >= 0 && x < xbounds && y >= 0 && y < ybounds) {
+        occupied_cells.push_back(grid.data[y + x * grid.info.width] > 0);
+      }
+    } else {
+      if (y >= 0 && y < ybounds && x >= 0 && x < xbounds) {
+        occupied_cells.push_back(grid.data[y * grid.info.width + x] > 0);
+      }
+    }
+    if (error > 0) {
+      y += ystep;
+      error -= 2 * (dx - dy);
+    } else {
+      error += 2 * dy;
+    }
+  }
+  if (swap) {
+    std::reverse(occupied_cells.begin(), occupied_cells.end());
+  }
+  return occupied_cells;
+
+}
+
+void DockingTaskNode::find_dock_structure_edges(){
+
 }
 
 } // namespace docking_task

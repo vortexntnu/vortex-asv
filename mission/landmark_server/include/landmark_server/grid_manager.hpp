@@ -26,6 +26,13 @@ public:
 
   void draw_line(int x0, int y0, int x1, int y1, int8_t *grid, int value);
 
+  void fill_polygon(int8_t *grid,
+                               const Eigen::Array<float, 2, Eigen::Dynamic> &polygon,
+                               int value);
+
+  bool point_in_polygon(int x, int y, const Eigen::Array<float, 2, Eigen::Dynamic> &polygon);
+
+
 private:
   float resolution_;
   uint32_t height_;

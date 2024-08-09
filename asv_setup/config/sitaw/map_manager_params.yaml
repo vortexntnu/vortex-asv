@@ -16,6 +16,10 @@ map_manager_node:
     # map_origin_lon: 150.6740063854522
     # use_predef_map_origin: true
     # Map origin for sim_maneuvering
-    map_origin_lat: -33.72213985487166
-    map_origin_lon: 150.67413507552098
+    # map_origin_lat: -33.72213985487166
+    # map_origin_lon: 150.67413507552098
+    # use_predef_map_origin: true
+    #colav
+    map_origin_lat: -33.72213988382845
+    map_origin_lon: 150.67413500672993
     use_predef_map_origin: true

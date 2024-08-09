@@ -23,7 +23,14 @@ docking_task_node:
     distance_to_first_buoy_pair: 2.0 # Distance in x-direction to first buoy pair in meters from current postition (not gps) position in base_link frame
     # If the distance is greater than 6.0 we drive distance-4m towards the first buoy pair before trying to find it
     distance_between_buoys_in_pair: 5.0 # Distance between the two buoys in a pair
-    grid_topic: "grid"
+    grid_topic: "pcl_grid"
+    dock_structure_absolute_width: 4.39 # Width of the dock structure in meters 4.39 for task 4.2 and 4.52 for task 4.1
+    dock_structure_absolute_width_padding: 0.5 # Padding on each side of the dock structure for line search start and end
+
+
+
+
+
     dock_width: 4.13 # width of available docking space
     dock_width_tolerance: 0.5
     dock_length: 2.0  # length of available docking space

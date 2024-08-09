@@ -213,7 +213,7 @@ nav_msgs::msg::OccupancyGrid MapManagerNode::createOccupancyGrid() {
   grid.info.resolution = get_parameter("map_resolution").as_double();
   grid.info.width = get_parameter("map_width").as_int();
   grid.info.height = get_parameter("map_height").as_int();
-  // grid.info.origin = calculate_map_origin();
+  grid.info.origin = calculate_map_origin();
   grid.info.map_load_time = this->now();
   // 0 represents unoccupied, 1 represents definitely occupied, and
   // -1 represents unknown.
