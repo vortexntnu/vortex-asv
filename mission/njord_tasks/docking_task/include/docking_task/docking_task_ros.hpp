@@ -70,8 +70,8 @@ public:
    * @param y1 The y-coordinate of the end point.
    * @return A vector of booleans representing occupied cells along the line.
    */
-  std::vector<bool> search_line(const nav_msgs::msg::OccupancyGrid &grid, double x0, double y0, double x1, double y1);
-
+  std::vector<bool> search_line(const nav_msgs::msg::OccupancyGrid &grid,
+                                double x0, double y0, double x1, double y1);
 
 private:
   mutable std::mutex grid_mutex_;
