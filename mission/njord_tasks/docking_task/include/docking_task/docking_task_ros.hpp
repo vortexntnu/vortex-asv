@@ -57,8 +57,9 @@ public:
 
   void initialize_grid_sub();
 
-  std::pair<Eigen::Vector2d, Eigen::Vector2d> find_dock_structure_edges(const geometry_msgs::msg::Point &waypoint_third_pair,
-  Eigen::Vector2d &direction_vector_up);
+  std::pair<Eigen::Vector2d, Eigen::Vector2d> find_dock_structure_edges(
+      const geometry_msgs::msg::Point &waypoint_third_pair,
+      Eigen::Vector2d &direction_vector_up);
 
   /**
    * @brief Iterate over line in grid map. Returns a vector
@@ -71,8 +72,8 @@ public:
    * @param y1 The y-coordinate of the end point.
    * @return A vector representing occupied cells along the line.
    */
-  std::vector<int8_t> search_line(const nav_msgs::msg::OccupancyGrid &grid, double x0, double y0, double x1, double y1);
-
+  std::vector<int8_t> search_line(const nav_msgs::msg::OccupancyGrid &grid,
+                                  double x0, double y0, double x1, double y1);
 
 private:
   mutable std::mutex grid_mutex_;

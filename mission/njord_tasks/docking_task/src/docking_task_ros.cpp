@@ -14,8 +14,6 @@ DockingTaskNode::DockingTaskNode(const rclcpp::NodeOptions &options)
   declare_parameter<double>("line_search_distance", 0.0);
   declare_parameter<double>("dock_search_offset", 0.0);
 
-
-
   declare_parameter<double>("dock_width", 0.0);
   declare_parameter<double>("dock_width_tolerance", 0.0);
   declare_parameter<double>("dock_length", 0.0);
@@ -32,7 +30,8 @@ void DockingTaskNode::main_task() {
   navigation_ready();
   // Starting docking task
   odom_start_point_ = get_odom()->pose.pose.position;
-  // Eigen::Array<double, 2, 2> predicted_first_pair = predict_first_buoy_pair();
+  // Eigen::Array<double, 2, 2> predicted_first_pair =
+  // predict_first_buoy_pair();
 
   // sensor_msgs::msg::PointCloud2 buoy_vis_msg;
   // pcl::PointCloud<pcl::PointXYZRGB> buoy_vis;
@@ -67,7 +66,8 @@ void DockingTaskNode::main_task() {
   //   waypoint_to_approach_first_pair_base_link.z = 0.0;
   //   try {
   //     auto transform =
-  //         tf_buffer_->lookupTransform("odom", "base_link", tf2::TimePointZero);
+  //         tf_buffer_->lookupTransform("odom", "base_link",
+  //         tf2::TimePointZero);
   //     geometry_msgs::msg::Point waypoint_to_approach_first_pair_odom;
   //     tf2::doTransform(waypoint_to_approach_first_pair_base_link,
   //                      waypoint_to_approach_first_pair_odom, transform);
@@ -254,7 +254,8 @@ void DockingTaskNode::main_task() {
   // buoy_visualization_pub_->publish(buoy_vis_msg);
 
   // Eigen::Vector2d direction_vector_up;
-  // direction_vector_up << (buoy_landmarks_4_to_5[0].pose_odom_frame.position.x +
+  // direction_vector_up << (buoy_landmarks_4_to_5[0].pose_odom_frame.position.x
+  // +
   //      buoy_landmarks_4_to_5[1].pose_odom_frame.position.x) /
   //     2 - odom_start_point_.x,
   //     (buoy_landmarks_4_to_5[0].pose_odom_frame.position.y +
@@ -289,31 +290,30 @@ void DockingTaskNode::main_task() {
   // set_desired_heading(odom_start_point_, waypoint_through_third_pair);
   // reach_waypoint(1.0);
 
-
-
   geometry_msgs::msg::Point direction_vector_up_base_link;
   direction_vector_up_base_link.x = 1.0;
   direction_vector_up_base_link.y = 0.0;
   direction_vector_up_base_link.z = 0.0;
   Eigen::Vector2d direction_vector_up_test;
   try {
-    auto transform = tf_buffer_->lookupTransform(
-        "odom", "base_link", tf2::TimePointZero);
+    auto transform =
+        tf_buffer_->lookupTransform("odom", "base_link", tf2::TimePointZero);
     geometry_msgs::msg::Point direction_vector_up_odom;
-    tf2::doTransform(direction_vector_up_base_link,
-                     direction_vector_up_odom, transform);
-    direction_vector_up_test << direction_vector_up_odom.x, direction_vector_up_odom.y;
+    tf2::doTransform(direction_vector_up_base_link, direction_vector_up_odom,
+                     transform);
+    direction_vector_up_test << direction_vector_up_odom.x,
+        direction_vector_up_odom.y;
   } catch (tf2::TransformException &ex) {
     RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
   }
 
-
   std::thread(&DockingTaskNode::initialize_grid_sub, this).detach();
   Eigen::Vector2d edge1, edge2;
-  // std::tie(edge1, edge2) = find_dock_structure_edges(waypoint_third_pair, direction_vector_up);
+  // std::tie(edge1, edge2) = find_dock_structure_edges(waypoint_third_pair,
+  // direction_vector_up);
 
-
-  std::tie(edge1, edge2) = find_dock_structure_edges(odom_start_point_, direction_vector_up_test);
+  std::tie(edge1, edge2) =
+      find_dock_structure_edges(odom_start_point_, direction_vector_up_test);
   RCLCPP_INFO(this->get_logger(), "Edge 1: %f, %f", edge1(0), edge1(1));
   RCLCPP_INFO(this->get_logger(), "Edge 2: %f, %f", edge2(0), edge2(1));
   sensor_msgs::msg::PointCloud2 buoy_vis_msg;
@@ -340,8 +340,6 @@ void DockingTaskNode::main_task() {
   buoy_vis_msg.header.frame_id = "odom";
   buoy_vis_msg.header.stamp = this->now();
   buoy_visualization_pub_->publish(buoy_vis_msg);
-
-
 }
 
 Eigen::Array<double, 2, 2> DockingTaskNode::predict_first_buoy_pair() {
@@ -457,8 +455,9 @@ std::shared_ptr<nav_msgs::msg::OccupancyGrid> DockingTaskNode::get_grid() {
   return grid_msg_;
 }
 
-std::vector<int8_t> DockingTaskNode::search_line(const nav_msgs::msg::OccupancyGrid &grid, double dx0, double dy0,
-                                               double dx1, double dy1) {
+std::vector<int8_t>
+DockingTaskNode::search_line(const nav_msgs::msg::OccupancyGrid &grid,
+                             double dx0, double dy0, double dx1, double dy1) {
   int x0 = dx0 / grid.info.resolution + grid.info.width / 2;
   int y0 = dy0 / grid.info.resolution + grid.info.height / 2;
   int x1 = dx1 / grid.info.resolution + grid.info.width / 2;
@@ -511,11 +510,17 @@ std::vector<int8_t> DockingTaskNode::search_line(const nav_msgs::msg::OccupancyG
   return occupied_cells;
 }
 
-std::pair<Eigen::Vector2d, Eigen::Vector2d> DockingTaskNode::find_dock_structure_edges(const geometry_msgs::msg::Point &waypoint_third_pair,
-  Eigen::Vector2d &direction_vector_up){
-  double dock_width_structure_absolute_width = this->get_parameter("dock_structure_absolute_width").as_double();
-  double dock_width_structure_absolute_width_tolerance = this->get_parameter("dock_structure_absolute_width_tolerance").as_double();
-  double dock_search_offset = this->get_parameter("dock_search_offset").as_double();
+std::pair<Eigen::Vector2d, Eigen::Vector2d>
+DockingTaskNode::find_dock_structure_edges(
+    const geometry_msgs::msg::Point &waypoint_third_pair,
+    Eigen::Vector2d &direction_vector_up) {
+  double dock_width_structure_absolute_width =
+      this->get_parameter("dock_structure_absolute_width").as_double();
+  double dock_width_structure_absolute_width_tolerance =
+      this->get_parameter("dock_structure_absolute_width_tolerance")
+          .as_double();
+  double dock_search_offset =
+      this->get_parameter("dock_search_offset").as_double();
   Eigen::Vector2d direction_vector_right;
   // Rotate direction vector 90 degrees to the right
   direction_vector_right << direction_vector_up(1), -direction_vector_up(0);
@@ -523,48 +528,73 @@ std::pair<Eigen::Vector2d, Eigen::Vector2d> DockingTaskNode::find_dock_structure
   bool transform_success = false;
   while (!transform_success) {
     try {
-      auto transform = tf_buffer_->lookupTransform(
-          "map", "odom", tf2::TimePointZero);
-      tf2::doTransform(waypoint_third_pair,
-                       waypoint_third_pair_map, transform);
+      auto transform =
+          tf_buffer_->lookupTransform("map", "odom", tf2::TimePointZero);
+      tf2::doTransform(waypoint_third_pair, waypoint_third_pair_map, transform);
       transform_success = true;
     } catch (tf2::TransformException &ex) {
       RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
     }
   }
   Eigen::Vector2d line_start, line_end;
-  line_start << waypoint_third_pair_map.x - (direction_vector_right(0) * (dock_width_structure_absolute_width / 2 + dock_width_structure_absolute_width_tolerance))
-  + (direction_vector_up(0) * dock_search_offset),
-      waypoint_third_pair_map.y - (direction_vector_right(1) * (dock_width_structure_absolute_width / 2 + dock_width_structure_absolute_width_tolerance))
-      + (direction_vector_up(1) * dock_search_offset);
-  line_end << waypoint_third_pair_map.x + (direction_vector_right(0) * (dock_width_structure_absolute_width / 2 + dock_width_structure_absolute_width_tolerance))
-  + (direction_vector_up(0) * dock_search_offset),
-      waypoint_third_pair_map.y + (direction_vector_right(1) * (dock_width_structure_absolute_width / 2 + dock_width_structure_absolute_width_tolerance))
-      + (direction_vector_up(1) * dock_search_offset);
-  // double line_length = std::sqrt(std::pow(line_end(0) - line_start(0), 2) + std::pow(line_end(1) - line_start(1), 2));
+  line_start << waypoint_third_pair_map.x -
+                    (direction_vector_right(0) *
+                     (dock_width_structure_absolute_width / 2 +
+                      dock_width_structure_absolute_width_tolerance)) +
+                    (direction_vector_up(0) * dock_search_offset),
+      waypoint_third_pair_map.y -
+          (direction_vector_right(1) *
+           (dock_width_structure_absolute_width / 2 +
+            dock_width_structure_absolute_width_tolerance)) +
+          (direction_vector_up(1) * dock_search_offset);
+  line_end << waypoint_third_pair_map.x +
+                  (direction_vector_right(0) *
+                   (dock_width_structure_absolute_width / 2 +
+                    dock_width_structure_absolute_width_tolerance)) +
+                  (direction_vector_up(0) * dock_search_offset),
+      waypoint_third_pair_map.y +
+          (direction_vector_right(1) *
+           (dock_width_structure_absolute_width / 2 +
+            dock_width_structure_absolute_width_tolerance)) +
+          (direction_vector_up(1) * dock_search_offset);
+  // double line_length = std::sqrt(std::pow(line_end(0) - line_start(0), 2) +
+  // std::pow(line_end(1) - line_start(1), 2));
   double dock_edge_width = this->get_parameter("dock_edge_width").as_double();
   double dock_width = dock_width_structure_absolute_width - 2 * dock_edge_width;
   nav_msgs::msg::MapMetaData grid_info = get_grid()->info;
-  double line_search_distance = this->get_parameter("line_search_distance").as_double();
-  int search_iterations = static_cast<int> (line_search_distance / grid_info.resolution);
+  double line_search_distance =
+      this->get_parameter("line_search_distance").as_double();
+  int search_iterations =
+      static_cast<int>(line_search_distance / grid_info.resolution);
   int result_index = -1;
   // int line_vector_size = -1;
-  while (true){
+  while (true) {
     std::shared_ptr<nav_msgs::msg::OccupancyGrid> grid = get_grid();
-    std::vector<int8_t> occupied_cells = search_line(*grid, line_start(0), line_start(1), line_end(0), line_end(1));
+    std::vector<int8_t> occupied_cells = search_line(
+        *grid, line_start(0), line_start(1), line_end(0), line_end(1));
     int max_result = std::numeric_limits<int>::min();
     int max_index = -1;
-    for(int i = 0; i < search_iterations; i++){
+    for (int i = 0; i < search_iterations; i++) {
       int left_edge_left = i;
-      int left_edge_right = left_edge_left + static_cast<int> (dock_edge_width / grid->info.resolution);
-      int right_edge_left = left_edge_right + static_cast<int> (dock_width / grid->info.resolution);
-      int right_edge_right = right_edge_left + static_cast<int> (dock_edge_width / grid->info.resolution);
-      int left_edge_occupied_cells = std::accumulate(occupied_cells.begin() + left_edge_left, occupied_cells.begin() + left_edge_right, 0);
-      int right_edge_occupied_cells = std::accumulate(occupied_cells.begin() + right_edge_left, occupied_cells.begin() + right_edge_right, 0);
-      if (left_edge_occupied_cells == 0 || right_edge_occupied_cells == 0){
+      int left_edge_right =
+          left_edge_left +
+          static_cast<int>(dock_edge_width / grid->info.resolution);
+      int right_edge_left =
+          left_edge_right +
+          static_cast<int>(dock_width / grid->info.resolution);
+      int right_edge_right =
+          right_edge_left +
+          static_cast<int>(dock_edge_width / grid->info.resolution);
+      int left_edge_occupied_cells =
+          std::accumulate(occupied_cells.begin() + left_edge_left,
+                          occupied_cells.begin() + left_edge_right, 0);
+      int right_edge_occupied_cells =
+          std::accumulate(occupied_cells.begin() + right_edge_left,
+                          occupied_cells.begin() + right_edge_right, 0);
+      if (left_edge_occupied_cells == 0 || right_edge_occupied_cells == 0) {
         continue;
       }
-      if (left_edge_occupied_cells + right_edge_occupied_cells > max_result){
+      if (left_edge_occupied_cells + right_edge_occupied_cells > max_result) {
         max_result = left_edge_occupied_cells + right_edge_occupied_cells;
         max_index = i;
       }
@@ -573,19 +603,33 @@ std::pair<Eigen::Vector2d, Eigen::Vector2d> DockingTaskNode::find_dock_structure
       result_index = max_index;
       // line_vector_size = occupied_cells.size();
     }
-    line_start(0) = line_start(0) + direction_vector_up(0) * grid_info.resolution;
-    line_start(1) = line_start(1) + direction_vector_up(1) * grid_info.resolution;
+    line_start(0) =
+        line_start(0) + direction_vector_up(0) * grid_info.resolution;
+    line_start(1) =
+        line_start(1) + direction_vector_up(1) * grid_info.resolution;
     line_end(0) = line_end(0) + direction_vector_up(0) * grid_info.resolution;
     line_end(1) = line_end(1) + direction_vector_up(1) * grid_info.resolution;
   }
-  int right_edge_left_index = result_index + static_cast<int> (dock_edge_width / grid_info.resolution) 
-  + static_cast<int> (dock_width / grid_info.resolution);
+  int right_edge_left_index =
+      result_index + static_cast<int>(dock_edge_width / grid_info.resolution) +
+      static_cast<int>(dock_width / grid_info.resolution);
 
   Eigen::Vector2d dock_edge_left, dock_edge_right;
-  dock_edge_left << line_start(0) + (direction_vector_right(0) * result_index * grid_info.resolution) + dock_edge_width / 2,
-      line_start(1) + (direction_vector_right(1) * result_index * grid_info.resolution) + dock_edge_width / 2;
-  dock_edge_right << line_start(0) + (direction_vector_right(0) * right_edge_left_index * grid_info.resolution) + dock_edge_width / 2,
-      line_start(1) + (direction_vector_right(1) * right_edge_left_index * grid_info.resolution) + dock_edge_width / 2;
+  dock_edge_left << line_start(0) +
+                        (direction_vector_right(0) * result_index *
+                         grid_info.resolution) +
+                        dock_edge_width / 2,
+      line_start(1) +
+          (direction_vector_right(1) * result_index * grid_info.resolution) +
+          dock_edge_width / 2;
+  dock_edge_right << line_start(0) +
+                         (direction_vector_right(0) * right_edge_left_index *
+                          grid_info.resolution) +
+                         dock_edge_width / 2,
+      line_start(1) +
+          (direction_vector_right(1) * right_edge_left_index *
+           grid_info.resolution) +
+          dock_edge_width / 2;
 
   return std::make_pair(dock_edge_left, dock_edge_right);
 }
