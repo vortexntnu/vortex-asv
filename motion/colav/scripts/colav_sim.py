@@ -86,7 +86,10 @@ class Simulator(Node):
     def get_heading(msg: Odometry):
         orientation_q = msg.pose.pose.orientation
         orientation_list = [
-            orientation_q.w, orientation_q.x, orientation_q.y, orientation_q.z
+            orientation_q.w, 
+            orientation_q.x, 
+            orientation_q.y, 
+            orientation_q.z
         ]
         heading = quat2euler(orientation_list)[2]
         return heading
