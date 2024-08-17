@@ -30,8 +30,8 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
   map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
       "map", qos_transient_local);
 
-  map_origin_pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>("/map/origin", qos_transient_local);
-
+  map_origin_pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(
+      "/map/origin", qos_transient_local);
 
   if (this->get_parameter("use_predef_map_origin").as_bool()) {
     map_origin_lat_ = this->get_parameter("map_origin_lat").as_double();
@@ -140,53 +140,51 @@ std::array<double, 2> MapManagerNode::lla2flat(double lat, double lon) const {
   return {px, py};
 }
 
- void MapManagerNode::publish_map_to_odom_tf(double map_lat, double map_lon, const rclcpp::Time& time) const
-        {
-        // Setup the transform
-        geometry_msgs::msg::TransformStamped transformStamped;
+void MapManagerNode::publish_map_to_odom_tf(double map_lat, double map_lon,
+                                            const rclcpp::Time &time) const {
+  // Setup the transform
+  geometry_msgs::msg::TransformStamped transformStamped;
 
-        transformStamped.header.stamp = time;
-        transformStamped.header.frame_id = "map";
-        transformStamped.child_frame_id = "odom";
+  transformStamped.header.stamp = time;
+  transformStamped.header.frame_id = "map";
+  transformStamped.child_frame_id = "odom";
 
-        auto [x, y] = lla2flat(map_lat, map_lon);
+  auto [x, y] = lla2flat(map_lat, map_lon);
 
-        transformStamped.transform.translation.x = -x;
-        transformStamped.transform.translation.y = -y;
-        transformStamped.transform.translation.z = 0;
+  transformStamped.transform.translation.x = -x;
+  transformStamped.transform.translation.y = -y;
+  transformStamped.transform.translation.z = 0;
 
-        transformStamped.transform.rotation.x = 0.0;
-        transformStamped.transform.rotation.y = 0.0;
-        transformStamped.transform.rotation.z = 0.0;
-        transformStamped.transform.rotation.w = 1.0;
+  transformStamped.transform.rotation.x = 0.0;
+  transformStamped.transform.rotation.y = 0.0;
+  transformStamped.transform.rotation.z = 0.0;
+  transformStamped.transform.rotation.w = 1.0;
 
-        // Broadcast the static transform
-        static_tf_broadcaster_->sendTransform(transformStamped);
+  // Broadcast the static transform
+  static_tf_broadcaster_->sendTransform(transformStamped);
+}
 
-    }
+void MapManagerNode::publish_foxglove_vis_frame(
+    const rclcpp::Time &time) const {
+  // Setup the transform
+  geometry_msgs::msg::TransformStamped transformStamped;
 
-  void MapManagerNode::publish_foxglove_vis_frame(const rclcpp::Time& time) const
-        {
-        // Setup the transform
-        geometry_msgs::msg::TransformStamped transformStamped;
+  transformStamped.header.stamp = time;
+  transformStamped.header.frame_id = "map";
+  transformStamped.child_frame_id = "map_visualization";
 
-        transformStamped.header.stamp = time;
-        transformStamped.header.frame_id = "map";
-        transformStamped.child_frame_id = "map_visualization";
+  transformStamped.transform.translation.x = 0.0;
+  transformStamped.transform.translation.y = 0.0;
+  transformStamped.transform.translation.z = 0.0;
+  // NED to SEU
+  transformStamped.transform.rotation.x = 0.0;
+  transformStamped.transform.rotation.y = 1.0;
+  transformStamped.transform.rotation.z = 0.0;
+  transformStamped.transform.rotation.w = 0.0;
 
-        transformStamped.transform.translation.x = 0.0;
-        transformStamped.transform.translation.y = 0.0;
-        transformStamped.transform.translation.z = 0.0;
-        // NED to SEU
-        transformStamped.transform.rotation.x = 0.0;
-        transformStamped.transform.rotation.y = 1.0;
-        transformStamped.transform.rotation.z = 0.0;
-        transformStamped.transform.rotation.w = 0.0;
-
-        // Broadcast the static transform
-        static_tf_broadcaster_->sendTransform(transformStamped);
-
-    }
+  // Broadcast the static transform
+  static_tf_broadcaster_->sendTransform(transformStamped);
+}
 
 std::array<double, 2> MapManagerNode::flat2lla(double px, double py) const {
   // Earth constants

@@ -36,7 +36,7 @@ void GridManager::fill_polygon(
     for (int y = min_y; y < max_y; y++) {
       if (x >= 0 && x < static_cast<int>(width_) && y >= 0 &&
           y < static_cast<int>(height_) && point_in_polygon(x, y, polygon)) {
-          grid[y * width_ + x] += value;
+        grid[y * width_ + x] += value;
       }
     }
   }

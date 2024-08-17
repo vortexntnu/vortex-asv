@@ -1,12 +1,12 @@
 #ifndef MAP_MANAGER_HPP
 #define MAP_MANAGER_HPP
 
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "nav_msgs/srv/get_map.hpp"
 #include <geometry_msgs/msg/polygon_stamped.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include "geometry_msgs/msg/transform_stamped.hpp"
 #include <tf2_ros/static_transform_broadcaster.h>
 
 #include <pcl/PointIndices.h>
@@ -47,13 +47,15 @@ private:
   constexpr double deg2rad(double degrees) const;
   std::array<double, 2> lla2flat(double lat, double lon) const;
   std::array<double, 2> flat2lla(double px, double py) const;
-   /**
-       * @brief Publishes static transform from world NED to world SEU to use for foxglove visualization.
-       *
-       */
-      void publish_foxglove_vis_frame(const rclcpp::Time& time) const;
+  /**
+   * @brief Publishes static transform from world NED to world SEU to use for
+   * foxglove visualization.
+   *
+   */
+  void publish_foxglove_vis_frame(const rclcpp::Time &time) const;
 
-      void publish_map_to_odom_tf(double map_lat, double map_lon, const rclcpp::Time& time) const;
+  void publish_map_to_odom_tf(double map_lat, double map_lon,
+                              const rclcpp::Time &time) const;
 
   geometry_msgs::msg::PolygonStamped
   processCoordinates(const std::vector<std::array<double, 2>> &coordinates);
@@ -76,7 +78,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::PolygonStamped>::SharedPtr
       landmask_pub_;
   rclcpp::Service<nav_msgs::srv::GetMap>::SharedPtr grid_service_;
-        rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr map_origin_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr map_origin_pub_;
   bool map_origin_set_ = false;
   bool use_predef_landmask_;
   double map_origin_lat_;
