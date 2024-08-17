@@ -167,60 +167,61 @@ class Guidance(Node):
         if self.killswitch_active or self.operational_mode != 'autonomous mode':
             return
         
-        if self.initial_pos:
-            if self.path is None and not self.waypoints_received:
-                if not self.stationkeeping_flag:
-                    self.get_logger().info(f'No waypoints received, stationkeeping at {np.round(self.eta_stationkeeping, 3)}')
-                    self.stationkeeping_flag = True
-
-                pos = [self.eta_stationkeeping[0], self.eta_stationkeeping[1]]
-                pos_der = [0., 0.]
-                pos_dder = [0., 0.]
-
-            else:
-                self.s = self.generator.update_s(self.path, self.dt, self.u_desired, self.s, self.w)
-                self.signals.update_s(self.s)
-                self.w = self.signals.get_w(self.mu, self.eta)
-                self.v_s = self.signals.get_vs(self.u_desired)
-                self.v_ss = self.signals.get_vs_derivative(self.u_desired)
-
-                pos = self.signals.get_position()
-
-                pos_der = self.signals.get_derivatives()[0]
-                pos_dder = self.signals.get_derivatives()[1]
-
-            if self.use_hybridpath_heading and self.path is not None:
-                psi = self.signals.get_heading()
-                self.heading_ref = psi
-
-            else:
-                psi = self.heading_ref
-
-            psi_der = 0.#signals.get_heading_derivative()
-            psi_dder = 0.#signals.get_heading_second_derivative()
-
-            hp_msg = HybridpathReference()
-            hp_msg.eta_d = Pose2D(x=pos[0], y=pos[1], theta=psi)
-            hp_msg.eta_d_s = Pose2D(x=pos_der[0], y=pos_der[1], theta=psi_der)
-            hp_msg.eta_d_ss = Pose2D(x=pos_dder[0], y=pos_dder[1], theta=psi_dder)
-
-            hp_msg.w = self.w
-            hp_msg.v_s = self.v_s
-            hp_msg.v_ss = self.v_ss
-
-            self.guidance_publisher.publish(hp_msg)
-
-            if self.path is not None and self.s >= self.path.NumSubpaths:
-                self.waypoints_received = False
-                self.waiting_message_printed = False
-                self.stationkeeping_flag = False
-                self.path = None
-                self.eta_stationkeeping = np.array([self.last_waypoint[0], self.last_waypoint[1], self.heading_ref])
-
-        else:
+        if not self.initial_pos:
             if not self.waiting_message_printed:
                 self.get_logger().info('Waiting for eta')
                 self.waiting_message_printed = True
+            
+            return
+        
+        if self.path is None and not self.waypoints_received:
+            if not self.stationkeeping_flag:
+                self.get_logger().info(f'No waypoints received, stationkeeping at {np.round(self.eta_stationkeeping, 3)}')
+                self.stationkeeping_flag = True
+
+            pos = [self.eta_stationkeeping[0], self.eta_stationkeeping[1]]
+            pos_der = [0., 0.]
+            pos_dder = [0., 0.]
+
+        else:
+            self.s = self.generator.update_s(self.path, self.dt, self.u_desired, self.s, self.w)
+            self.signals.update_s(self.s)
+            self.w = self.signals.get_w(self.mu, self.eta)
+            self.v_s = self.signals.get_vs(self.u_desired)
+            self.v_ss = self.signals.get_vs_derivative(self.u_desired)
+
+            pos = self.signals.get_position()
+
+            pos_der = self.signals.get_derivatives()[0]
+            pos_dder = self.signals.get_derivatives()[1]
+
+        if self.use_hybridpath_heading and self.path is not None:
+            psi = self.signals.get_heading()
+            self.heading_ref = psi
+
+        else:
+            psi = self.heading_ref
+
+        psi_der = 0.#signals.get_heading_derivative()
+        psi_dder = 0.#signals.get_heading_second_derivative()
+
+        hp_msg = HybridpathReference()
+        hp_msg.eta_d = Pose2D(x=pos[0], y=pos[1], theta=psi)
+        hp_msg.eta_d_s = Pose2D(x=pos_der[0], y=pos_der[1], theta=psi_der)
+        hp_msg.eta_d_ss = Pose2D(x=pos_dder[0], y=pos_dder[1], theta=psi_dder)
+
+        hp_msg.w = self.w
+        hp_msg.v_s = self.v_s
+        hp_msg.v_ss = self.v_ss
+
+        self.guidance_publisher.publish(hp_msg)
+
+        if self.path is not None and self.s >= self.path.NumSubpaths:
+            self.waypoints_received = False
+            self.waiting_message_printed = False
+            self.stationkeeping_flag = False
+            self.path = None
+            self.eta_stationkeeping = np.array([self.last_waypoint[0], self.last_waypoint[1], self.heading_ref])
 
 
     @staticmethod
