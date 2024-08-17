@@ -86,6 +86,9 @@ class HybridPathGenerator:
         self._calculate_subpaths()
 
     def _initialize_path(self):
+        """
+        Initialize the path object.
+        """
         self.path = Path()
         
         self.path.coeff.a = []
@@ -100,6 +103,12 @@ class HybridPathGenerator:
         self.path.Order = self.order
 
     def update_waypoints(self, WP: list[Point]) -> None:
+        """
+        Updates the waypoints for the path.
+
+        Args:
+            WP (list[Point]): A list of waypoints.
+        """
         # Convert the waypoints to a numpy array
         WP_arr = np.array([[wp.x, wp.y] for wp in WP])
 
