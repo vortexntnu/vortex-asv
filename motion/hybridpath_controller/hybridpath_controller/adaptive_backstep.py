@@ -99,7 +99,7 @@ class AdaptiveBackstep:
             [0, 0, 5.5],
             [82.5, -5.5, 0]
         ])
-        return (C_A @ nu) * 0
+        return (C_A @ nu)
 
     @staticmethod
     def rotationmatrix_in_yaw_transpose(psi: float) -> np.ndarray:
