@@ -5,7 +5,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Pose2D, Point
 from std_msgs.msg import Float32, Float64MultiArray, String, Bool
 from vortex_msgs.msg import HybridpathReference
-from vortex_msgs.srv import Waypoint, DesiredVelocity
+from vortex_msgs.srv import Waypoint, DesiredVelocity, DesiredHeading
 from nav_msgs.msg import Odometry
 from transforms3d.euler import quat2euler
 from hybridpath_guidance.hybridpath import HybridPathGenerator, HybridPathSignals
@@ -29,15 +29,15 @@ class Guidance(Node):
                 ('hybridpath_guidance.mu', 0.2)
             ])
         
+        # Create services, subscribers and publishers
         self.waypoint_server = self.create_service(Waypoint, 'waypoint_list', self.waypoint_callback)
         self.u_desired_server = self.create_service(DesiredVelocity, 'u_desired', self.u_desired_callback)
         self.eta_subscriber_ = self.create_subscription(Odometry, '/seapath/odom/ned', self.eta_callback, qos_profile=qos_profile)
-        self.yaw_publisher = self.create_publisher(Float32, 'yaw', 1)
-        self.s_publisher = self.create_publisher(Float32, 's', 1)
-        self.w_publisher = self.create_publisher(Float32, 'w', 1)
-        self.wp_arr_publisher = self.create_publisher(Float64MultiArray, 'waypoints', 1)
+        self.heading_publisher = self.create_publisher(Float32, 'heading', 1)
+        
         self.guidance_publisher = self.create_publisher(HybridpathReference, 'guidance/hybridpath/reference', 1)
-        self.yaw_server = self.create_service(DesiredVelocity,'yaw_reference', self.yaw_ref_callback)
+        self.heading_server = self.create_service(DesiredHeading,'heading_reference', self.heading_ref_callback)
+
         self.operational_mode_subscriber = self.create_subscription(String, 'softWareOperationMode', self.operation_mode_callback, 10)
         self.killswitch_subscriber = self.create_subscription(Bool, 'softWareKillSwitch', self.killswitch_callback, 10)
 
@@ -48,19 +48,20 @@ class Guidance(Node):
         self.path_generator_order = self.get_parameter('hybridpath_guidance.path_generator_order').get_parameter_value().integer_value
         self.dt = self.get_parameter('hybridpath_guidance.dt').get_parameter_value().double_value
         self.mu = self.get_parameter('hybridpath_guidance.mu').get_parameter_value().double_value
+
         self.eta = np.zeros(3)
 
         self.u_desired = 1.1 # Desired velocity
 
-        self.yaw_ref = 0. # Desired heading, 100 if hybridpath heading, else can be set by service call
+        self.heading_ref = 0. # Desired heading, 100 if hybridpath heading, else can be set by service call
 
+        # Initialize variables
         self.waypoints = []
         self.path = None
         self.s = 0.
         self.w = 0.
         self.v_s = 0.
         self.v_ss = 0.
-        self.mu = 0.
         self.operational_mode = 'autonomous mode'
         self.killswitch_active = False
 
@@ -79,10 +80,7 @@ class Guidance(Node):
         self.initial_pos = False
 
         # Timer for guidance
-        timer_period = 0.1
-        self.timer = self.create_timer(timer_period, self.guidance_callback)
-
-        self.lock = threading.Lock()
+        self.timer = self.create_timer(self.dt, self.guidance_callback)
 
     def operation_mode_callback(self, msg: String):
         self.operational_mode = msg.data
@@ -96,69 +94,62 @@ class Guidance(Node):
         response.success = True
         return response
 
-    def yaw_ref_callback(self, request, response):
-        self.yaw_ref = request.u_desired # xd
+    def heading_ref_callback(self, request, response):
+        self.heading_ref = request.heading
 
-        self.get_logger().info(f"Received desired heading: {self.yaw_ref}")
+        self.get_logger().info(f"Received desired heading: {self.heading_ref}")
 
         response.success = True
 
         return response
 
     def waypoint_callback(self, request, response):
+        if self.eta_received:
+            self.waypoints = [Point(x=self.eta[0], y=self.eta[1])]
 
-        with self.lock:
-            if self.eta_received:
-                self.waypoints = [Point(x=self.eta[0], y=self.eta[1])]
+            self.get_logger().info('Received waypoints, generating path...')
 
-                self.get_logger().info('Received waypoints, generating path...')
+            new_waypoints = request.waypoint
 
-                new_waypoints = request.waypoint
+            self.get_logger().info(f"Received {len(new_waypoints)} waypoints")
 
-                self.get_logger().info(f"Received {len(new_waypoints)} waypoints")
+            for i, point in enumerate(new_waypoints):
+                
+                wp = [point.x, point.y]
 
-                for i, point in enumerate(new_waypoints):
-                    
-                    wp = [point.x, point.y]
+                self.get_logger().info(f"Waypoint {i+1}: {wp}")
+                
+                self.waypoints.append(point)
 
-                    self.get_logger().info(f"Waypoint {i+1}: {wp}")
-                    
-                    self.waypoints.append(point)
+            self.last_waypoint = [self.waypoints[-1].x, self.waypoints[-1].y]
 
-                self.last_waypoint = [self.waypoints[-1].x, self.waypoints[-1].y]
+            self.generator.create_path(self.waypoints)
+            self.path = self.generator.get_path()
 
-                self.generator.create_path(self.waypoints)
-                self.path = self.generator.get_path()
+            self.waypoints_received = True
+            self.waiting_message_printed = False  # Reset this flag to handle multiple waypoint sets
+            self.first_pos_flag = False
 
-                self.waypoints_received = True
-                self.waiting_message_printed = False  # Reset this flag to handle multiple waypoint sets
-                self.first_pos_flag = False
-
-                self.s = 0.
-                self.signals.update_path(self.path)
-                self.w = self.signals.get_w(self.mu, self.eta)
-
-                wp_arr = Float64MultiArray()
-                wp_list = self.generator.WP.tolist()
-                wp_arr.data = [coordinate for wp in wp_list for coordinate in wp]
-                self.wp_arr_publisher.publish(wp_arr)
+            self.s = 0.
+            self.signals.update_path(self.path)
+            self.w = self.signals.get_w(self.mu, self.eta)
             
         response.success = True
 
         return response
     
     def eta_callback(self, msg: Odometry):
-        yaw_msg = Float32()
+        heading_msg = Float32()
         self.eta = self.odom_to_eta(msg)
-        self.yaw = float(self.eta[2])
+        self.heading = float(self.eta[2])
 
         if not self.initial_pos:
             self.eta_stationkeeping = self.eta
-            self.yaw_ref = self.yaw
+            self.heading_ref = self.heading
             self.initial_pos = True
 
-        yaw_msg.data = self.yaw
-        self.yaw_publisher.publish(yaw_msg)
+        heading_msg.data = self.heading
+        self.heading_publisher.publish(heading_msg)
         self.eta_received = True
 
     def set_stationkeeping_pose_callback(self, request, response):
@@ -172,71 +163,63 @@ class Guidance(Node):
         return response
 
     def guidance_callback(self):
-        with self.lock:
-            if self.killswitch_active or self.operational_mode != 'autonomous mode':
-                return
-            
-            if self.initial_pos:
-                if self.path is None and not self.waypoints_received:
-                    if not self.stationkeeping_flag:
-                        self.get_logger().info(f'No waypoints received, stationkeeping at {np.round(self.eta_stationkeeping, 3)}')
-                        self.stationkeeping_flag = True
+        if self.killswitch_active or self.operational_mode != 'autonomous mode':
+            return
+        
+        if self.initial_pos:
+            if self.path is None and not self.waypoints_received:
+                if not self.stationkeeping_flag:
+                    self.get_logger().info(f'No waypoints received, stationkeeping at {np.round(self.eta_stationkeeping, 3)}')
+                    self.stationkeeping_flag = True
 
-                    pos = [self.eta_stationkeeping[0], self.eta_stationkeeping[1]]
-                    pos_der = [0., 0.]
-                    pos_dder = [0., 0.]
-
-                else:
-                    self.s = self.generator.update_s(self.path, self.dt, self.u_desired, self.s, self.w)
-                    self.signals.update_s(self.s)
-                    self.w = self.signals.get_w(self.mu, self.eta)
-                    self.v_s = self.signals.get_vs(self.u_desired)
-                    self.v_ss = self.signals.get_vs_derivative(self.u_desired)
-
-                    pos = self.signals.get_position()
-
-                    pos_der = self.signals.get_derivatives()[0]
-                    pos_dder = self.signals.get_derivatives()[1]
-
-                if self.yaw_ref == 100.:
-                    psi = self.signals.get_heading()
-
-                else:
-                    psi = self.yaw_ref
-
-                psi_der = 0.#signals.get_heading_derivative()
-                psi_dder = 0.#signals.get_heading_second_derivative()
-
-                hp_msg = HybridpathReference()
-                hp_msg.eta_d = Pose2D(x=pos[0], y=pos[1], theta=psi)
-                hp_msg.eta_d_s = Pose2D(x=pos_der[0], y=pos_der[1], theta=psi_der)
-                hp_msg.eta_d_ss = Pose2D(x=pos_dder[0], y=pos_dder[1], theta=psi_dder)
-
-                hp_msg.w = self.w
-                hp_msg.v_s = self.v_s
-                hp_msg.v_ss = self.v_ss
-
-                self.guidance_publisher.publish(hp_msg)
-
-                if self.path is not None and self.s >= self.path.NumSubpaths:
-                    self.waypoints_received = False
-                    self.waiting_message_printed = False
-                    self.stationkeeping_flag = False
-                    self.path = None
-                    self.eta_stationkeeping = np.array([self.last_waypoint[0], self.last_waypoint[1], self.yaw_ref])
+                pos = [self.eta_stationkeeping[0], self.eta_stationkeeping[1]]
+                pos_der = [0., 0.]
+                pos_dder = [0., 0.]
 
             else:
-                if not self.waiting_message_printed:
-                    self.get_logger().info('Waiting for eta')
-                    self.waiting_message_printed = True
+                self.s = self.generator.update_s(self.path, self.dt, self.u_desired, self.s, self.w)
+                self.signals.update_s(self.s)
+                self.w = self.signals.get_w(self.mu, self.eta)
+                self.v_s = self.signals.get_vs(self.u_desired)
+                self.v_ss = self.signals.get_vs_derivative(self.u_desired)
 
-        s_msg = Float32()
-        s_msg.data = self.s
-        self.s_publisher.publish(s_msg)
+                pos = self.signals.get_position()
 
-        w_msg = Float32()
-        w_msg.data = self.w
-        self.w_publisher.publish(w_msg)
+                pos_der = self.signals.get_derivatives()[0]
+                pos_dder = self.signals.get_derivatives()[1]
+
+            if self.heading_ref == 100.:
+                psi = self.signals.get_heading()
+
+            else:
+                psi = self.heading_ref
+
+            psi_der = 0.#signals.get_heading_derivative()
+            psi_dder = 0.#signals.get_heading_second_derivative()
+
+            hp_msg = HybridpathReference()
+            hp_msg.eta_d = Pose2D(x=pos[0], y=pos[1], theta=psi)
+            hp_msg.eta_d_s = Pose2D(x=pos_der[0], y=pos_der[1], theta=psi_der)
+            hp_msg.eta_d_ss = Pose2D(x=pos_dder[0], y=pos_dder[1], theta=psi_dder)
+
+            hp_msg.w = self.w
+            hp_msg.v_s = self.v_s
+            hp_msg.v_ss = self.v_ss
+
+            self.guidance_publisher.publish(hp_msg)
+
+            if self.path is not None and self.s >= self.path.NumSubpaths:
+                self.waypoints_received = False
+                self.waiting_message_printed = False
+                self.stationkeeping_flag = False
+                self.path = None
+                self.eta_stationkeeping = np.array([self.last_waypoint[0], self.last_waypoint[1], self.heading_ref])
+
+        else:
+            if not self.waiting_message_printed:
+                self.get_logger().info('Waiting for eta')
+                self.waiting_message_printed = True
+
 
     @staticmethod
     def odom_to_eta(msg: Odometry) -> np.ndarray:
@@ -257,11 +240,9 @@ class Guidance(Node):
         ]
 
         # Convert quaternion to Euler angles
-        yaw = quat2euler(orientation_list)[2]
+        heading = quat2euler(orientation_list)[2]
 
-        # yaw = np.deg2rad(yaw)
-
-        state = np.array([x, y, yaw])
+        state = np.array([x, y, heading])
 
         return state
 
