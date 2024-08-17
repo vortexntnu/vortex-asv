@@ -3,3 +3,4 @@ landmark_server_node:
     fixed_frame: map
     target_frame: base_link
     wall_width: 0.1
+    use_grid: false

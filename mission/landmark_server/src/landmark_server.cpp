@@ -59,6 +59,7 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
   declare_parameter<std::string>("fixed_frame", "world");
   declare_parameter<std::string>("target_frame", "base_link");
   declare_parameter<double>("wall_width", 0.1);
+  declare_parameter<bool>("use_grid", "false");
 
   // Create the act.
   action_server_ = rclcpp_action::create_server<Action>(
@@ -113,19 +114,13 @@ Eigen::Array<float, 2, Eigen::Dynamic> LandmarkServerNode::get_convex_hull(
     cluster.points[i].y = landmark.shape.polygon.points[i].y;
     cluster.points[i].z = 1.0;
   }
-  sensor_msgs::msg::PointCloud2 cluster_msg;
-  pcl::toROSMsg(cluster, cluster_msg);
-  cluster_msg.header.frame_id = get_parameter("fixed_frame").as_string();
-  cluster_publisher_->publish(cluster_msg);
+  // Compute the convex hull of the cluster
   pcl::PointCloud<pcl::PointXYZ> convex_hull;
   pcl::ConvexHull<pcl::PointXYZ> chull;
   chull.setDimension(2);
   chull.setInputCloud(cluster.makeShared());
   chull.reconstruct(convex_hull);
-  sensor_msgs::msg::PointCloud2 hull_msg;
-  pcl::toROSMsg(convex_hull, hull_msg);
-  hull_msg.header.frame_id = get_parameter("fixed_frame").as_string();
-  convex_hull_publisher_->publish(hull_msg);
+
   Eigen::Array<float, 2, Eigen::Dynamic> hull(2, convex_hull.size());
   for (size_t i = 0; i < convex_hull.size(); i++) {
     hull(0, i) = convex_hull.points[i].x;
@@ -184,7 +179,7 @@ void LandmarkServerNode::landmarksRecievedCallback(
     return;
   }
 
-  if (grid_manager_ == nullptr) {
+  if (this->get_parameter("use_grid").as_bool() && grid_manager_ == nullptr) {
     RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
                                 "Grid manager not initialized");
     return;
@@ -205,8 +200,11 @@ void LandmarkServerNode::landmarksRecievedCallback(
             "Requested to add already existing landmark");
       } else {
         // Add the new landmark
-        grid_manager_->update_grid(grid_msg_.data.data(),
-                                   get_convex_hull(landmark), 200);
+
+        if (this->get_parameter("use_grid").as_bool()) {
+          grid_manager_->update_grid(grid_msg_.data.data(),
+                                     get_convex_hull(landmark), 200);
+        }
         storedLandmarks_->landmarks.push_back(landmark);
       }
       continue;
@@ -218,14 +216,18 @@ void LandmarkServerNode::landmarksRecievedCallback(
       continue;
     }
 
-    grid_manager_->update_grid(grid_msg_.data.data(), get_convex_hull((*it)),
-                               -200);
+    if (this->get_parameter("use_grid").as_bool()) {
+      grid_manager_->update_grid(grid_msg_.data.data(),
+                                 get_convex_hull(landmark), -200);
+    }
 
     if (landmark.action == vortex_msgs::msg::Landmark::REMOVE_ACTION) {
       storedLandmarks_->landmarks.erase(it);
     } else if (landmark.action == vortex_msgs::msg::Landmark::UPDATE_ACTION) {
-      grid_manager_->update_grid(grid_msg_.data.data(),
-                                 get_convex_hull(landmark), 200);
+      if (this->get_parameter("use_grid").as_bool()) {
+        grid_manager_->update_grid(grid_msg_.data.data(),
+                                   get_convex_hull(landmark), 200);
+      }
       *it = landmark;
     }
   }
@@ -354,9 +356,10 @@ vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
 
   for (const auto &landmark : storedLandmarks_->landmarks) {
 
-    if (filter_type == 6 && distance == 0.0) {
+    // filter_type 0 returns all landmarks
+    if (filter_type == 0 && distance == 0.0) {
       filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-    } else if (filter_type == 6) {
+    } else if (filter_type == 0) {
 
       if (calculateDistance(landmark.odom.pose.pose.position,
                             landmark.odom.header) <= distance) {

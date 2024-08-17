@@ -30,6 +30,9 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
   map_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
       "map", qos_transient_local);
 
+  map_origin_pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(
+      "/map/origin", qos_transient_local);
+
   if (this->get_parameter("use_predef_map_origin").as_bool()) {
     map_origin_lat_ = this->get_parameter("map_origin_lat").as_double();
     map_origin_lon_ = this->get_parameter("map_origin_lon").as_double();
@@ -45,8 +48,8 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
 
     map_pub_->publish(grid);
   } else {
-    map_origin_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
-        "/map/origin", qos_transient_local,
+    odom_origin_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
+        "/oodm/origin", qos_transient_local,
         std::bind(&MapManagerNode::mapOriginCallback, this,
                   std::placeholders::_1));
   }
@@ -63,10 +66,12 @@ MapManagerNode::MapManagerNode(const rclcpp::NodeOptions &options)
 
 void MapManagerNode::mapOriginCallback(
     const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
-  map_origin_lat_ = msg->latitude;
-  map_origin_lon_ = msg->longitude;
+  double odom_origin_lat = msg->latitude;
+  double odom_origin_lon = msg->longitude;
   map_origin_set_ = true;
-  map_origin_sub_ = nullptr;
+  odom_origin_sub_ = nullptr;
+  publish_map_to_odom_tf(odom_origin_lat, odom_origin_lon, msg->header.stamp);
+  publish_foxglove_vis_frame(msg->header.stamp);
   if (this->get_parameter("use_predef_landmask").as_bool()) {
     landmask_pub_->publish(readPolygonFromFile(landmask_file_));
   }
@@ -133,6 +138,52 @@ std::array<double, 2> MapManagerNode::lla2flat(double lat, double lon) const {
   const double py = sin(psi_rad) * dN + cos(psi_rad) * dE;
 
   return {px, py};
+}
+
+void MapManagerNode::publish_map_to_odom_tf(double map_lat, double map_lon,
+                                            const rclcpp::Time &time) const {
+  // Setup the transform
+  geometry_msgs::msg::TransformStamped transformStamped;
+
+  transformStamped.header.stamp = time;
+  transformStamped.header.frame_id = "map";
+  transformStamped.child_frame_id = "odom";
+
+  auto [x, y] = lla2flat(map_lat, map_lon);
+
+  transformStamped.transform.translation.x = -x;
+  transformStamped.transform.translation.y = -y;
+  transformStamped.transform.translation.z = 0;
+
+  transformStamped.transform.rotation.x = 0.0;
+  transformStamped.transform.rotation.y = 0.0;
+  transformStamped.transform.rotation.z = 0.0;
+  transformStamped.transform.rotation.w = 1.0;
+
+  // Broadcast the static transform
+  static_tf_broadcaster_->sendTransform(transformStamped);
+}
+
+void MapManagerNode::publish_foxglove_vis_frame(
+    const rclcpp::Time &time) const {
+  // Setup the transform
+  geometry_msgs::msg::TransformStamped transformStamped;
+
+  transformStamped.header.stamp = time;
+  transformStamped.header.frame_id = "map";
+  transformStamped.child_frame_id = "map_visualization";
+
+  transformStamped.transform.translation.x = 0.0;
+  transformStamped.transform.translation.y = 0.0;
+  transformStamped.transform.translation.z = 0.0;
+  // NED to SEU
+  transformStamped.transform.rotation.x = 0.0;
+  transformStamped.transform.rotation.y = 1.0;
+  transformStamped.transform.rotation.z = 0.0;
+  transformStamped.transform.rotation.w = 0.0;
+
+  // Broadcast the static transform
+  static_tf_broadcaster_->sendTransform(transformStamped);
 }
 
 std::array<double, 2> MapManagerNode::flat2lla(double px, double py) const {
@@ -215,19 +266,12 @@ nav_msgs::msg::OccupancyGrid MapManagerNode::createOccupancyGrid() {
   grid.info.height = get_parameter("map_height").as_int();
   grid.info.origin = calculate_map_origin();
   grid.info.map_load_time = this->now();
-  // 0 represents unoccupied, 1 represents definitely occupied, and
-  // -1 represents unknown.
-  // Set all to unoccupied
+  // initialize grid with zeros
   grid.data.resize(grid.info.width * grid.info.height, 0);
   return grid;
 }
 
 geometry_msgs::msg::Pose MapManagerNode::calculate_map_origin() {
-  // 63.44098584906518, 10.42304390021551
-  // 63.41490901857848, 10.398215601285054
-  // Office traffic centre origin
-  // map_origin_lat_ = 63.41490901857848;
-  // map_origin_lon_ = 10.398215601285054;
 
   // Map centre is (0,0) in map frame, origin is bottom left corner
   double half_width_meters = -(get_parameter("map_width").as_int() *
@@ -236,7 +280,6 @@ geometry_msgs::msg::Pose MapManagerNode::calculate_map_origin() {
   double half_height_meters = -(get_parameter("map_height").as_int() *
                                 get_parameter("map_resolution").as_double()) /
                               2.0;
-  // auto [lat, lon] = flat2lla(half_width_meters, half_height_meters);
   geometry_msgs::msg::Pose map_origin;
   map_origin.position.x = half_width_meters;
   map_origin.position.y = half_height_meters;
@@ -338,22 +381,16 @@ void MapManagerNode::insert_landmask(
   int value = 100; // Set this to the desired occupancy value for land (0-100)
   for (uint i = 0; i < polygon.polygon.points.size(); i++) {
 
-    // if(i > 1){break;}
     const geometry_msgs::msg::Point32 &current = polygon.polygon.points[i];
     const geometry_msgs::msg::Point32 &next =
         polygon.polygon
             .points[(i + 1) % polygon.polygon.points.size()]; // Loop back to
                                                               // the first point
-    // std::cout << "current: " << current.x << " " << current.y << " next: " <<
-    // next.x << " " << next.y << "\n";
-
     // Convert map xy to grid indices
     int x0 = current.x / grid.info.resolution + grid.info.width / 2;
     int y0 = current.y / grid.info.resolution + grid.info.height / 2;
     int x1 = next.x / grid.info.resolution + grid.info.width / 2;
     int y1 = next.y / grid.info.resolution + grid.info.height / 2;
-    // std::cout << "x0: " << x0 << " y0: " << y0 << " x1: " << x1 << " y1: " <<
-    // y1 << "\n"; grid.data[x0 + y0 * grid.info.width] = value;
 
     // Draw line on the grid
     drawLine(x0, y0, x1, y1, grid, value);

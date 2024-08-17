@@ -7,12 +7,6 @@ GridManager::GridManager(float resolution, uint32_t height, uint32_t width)
     : resolution_(resolution), height_(height), width_(width) {}
 
 void GridManager::update_grid(
-    int8_t *grid, const Eigen::Array<float, 2, Eigen::Dynamic> &polygon,
-    int value) {
-  handle_polygon(grid, polygon, value);
-}
-
-void GridManager::handle_polygon(
     int8_t *grid, const Eigen::Array<float, 2, Eigen::Dynamic> &vertices,
     int value) {
   // Convert to grid coordinates
@@ -41,10 +35,8 @@ void GridManager::fill_polygon(
   for (int x = min_x; x < max_x; x++) {
     for (int y = min_y; y < max_y; y++) {
       if (x >= 0 && x < static_cast<int>(width_) && y >= 0 &&
-          y < static_cast<int>(height_)) {
-        if (point_in_polygon(x, y, polygon)) {
-          grid[y * width_ + x] += value;
-        }
+          y < static_cast<int>(height_) && point_in_polygon(x, y, polygon)) {
+        grid[y * width_ + x] += value;
       }
     }
   }

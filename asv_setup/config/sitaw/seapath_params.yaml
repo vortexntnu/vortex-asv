@@ -1,7 +1,4 @@
 seapath_ros_driver_node:
   ros__parameters:
     UDP_IP: "10.0.1.10"  # Source IP of the host sender
-    UDP_PORT: 31421  # Port at which to receive UDP semgents
-    use_predef_map_origin: false
-    map_origin_lat: 0.0
-    map_origin_lon: 0.0
+    UDP_PORT: 31421  # Port at which to receive UDP segment

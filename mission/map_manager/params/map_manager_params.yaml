@@ -1,15 +1,10 @@
 map_manager_node:
   ros__parameters:
-    use_predef_landmask: true
-    landmask_file: "src/vortex-asv/mission/map_manager/params/land_polygon.yaml"
+    use_predef_landmask: false
     map_resolution: 0.2
     map_width: 1000
     map_height: 1000
     frame_id: "world"
-    # Map origin for office rosbag
-    map_origin_lat: 63.414660884931976 
-    map_origin_lon: 10.398554661537544
-    use_predef_map_origin: true
-    # map_origin_lat: 0.0
-    # map_origin_lon: 0.0
-    # use_predef_map_origin: false
+    map_origin_lat: 0.0
+    map_origin_lon: 0.0
+    use_predef_map_origin: false
