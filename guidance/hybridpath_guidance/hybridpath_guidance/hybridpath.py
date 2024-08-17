@@ -359,8 +359,6 @@ class HybridPathSignals:
         s (float): The path parameter.
     """
     def __init__(self):
-        # if not isinstance(path, Path):
-        #     raise TypeError("path must be an instance of Path")
         self.path = None
         self.s = None
 
