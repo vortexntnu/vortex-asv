@@ -53,7 +53,8 @@ class Guidance(Node):
 
         self.u_desired = 1.1 # Desired velocity
 
-        self.heading_ref = 0. # Desired heading, 100 if hybridpath heading, else can be set by service call
+        self.use_hybridpath_heading = True
+        self.heading_ref = 0. 
 
         # Initialize variables
         self.waypoints = []
@@ -188,8 +189,9 @@ class Guidance(Node):
                 pos_der = self.signals.get_derivatives()[0]
                 pos_dder = self.signals.get_derivatives()[1]
 
-            if self.heading_ref == 100.:
+            if self.use_hybridpath_heading and self.path is not None:
                 psi = self.signals.get_heading()
+                self.heading_ref = psi
 
             else:
                 psi = self.heading_ref
