@@ -36,9 +36,9 @@ def generate_launch_description():
     )
 
     # base_link (NED) to seapath_frame (NED) tf.
-    tf_base_link_to_seapath = Node(
+    tf_seapath_to_base_link = Node(
         package='tf2_ros',
-        name='base_link_ned_to_seapath_frame',
+        name='seapath_to_base_link',
         executable='static_transform_publisher',
         arguments=['--x'              , '0',
                    '--y'              , '0',
@@ -50,8 +50,23 @@ def generate_launch_description():
                    '--child-frame-id' , 'base_link'],
     )
 
+    os_sensor_to_os_lidar = Node(
+        package='tf2_ros',
+        name='os_sensor_to_os_lidar',
+        executable='static_transform_publisher',
+        arguments=['--x'              , '0',
+                   '--y'              , '0',
+                   '--z'              , '0.036180000000000004',
+                   '--roll'           , '0',
+                   '--pitch'          , '0',
+                   '--yaw'            , str(math.pi),
+                   '--frame-id'       , 'os_sensor',
+                   '--child-frame-id' , 'os_lidar'],
+    )
+
     return LaunchDescription([
         tf_base_link_to_lidar,
         tf_base_link_to_zed_camera_link,
-        tf_base_link_to_seapath,
+        tf_seapath_to_base_link,
+        os_sensor_to_os_lidar,
     ])

@@ -1,6 +1,10 @@
 #ifndef LANDMARK_SERVER_HPP
 #define LANDMARK_SERVER_HPP
 
+#include <cstdint>
+#include <landmark_server/grid_manager.hpp>
+#include <pcl/surface/convex_hull.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <sstream>
@@ -15,8 +19,11 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include "nav_msgs/srv/get_map.hpp"
 #include <tf2/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 namespace landmark_server {
 
@@ -63,6 +70,11 @@ protected:
   void landmarksRecievedCallback(
       const vortex_msgs::msg::LandmarkArray::SharedPtr msg);
 
+  Eigen::Array<float, 2, Eigen::Dynamic>
+  get_convex_hull(const vortex_msgs::msg::Landmark &landmark);
+
+  void get_grid();
+
   /**
    * @brief A shared pointer to a publisher for the LandmarkArray message type.
    * Publishes all landmarks currently stored in the server.
@@ -76,11 +88,20 @@ protected:
    */
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr posePublisher_;
 
+  rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr gridPublisher_;
+
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      convex_hull_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      cluster_publisher_;
+
   /**
    * @brief A shared pointer to a LandmarkArray message.
    * The array contains all landmarks currently stored by the server.
    */
   std::shared_ptr<vortex_msgs::msg::LandmarkArray> storedLandmarks_;
+
+  nav_msgs::msg::OccupancyGrid grid_msg_;
 
   /**
    * @brief A shared pointer to an rclcpp_action server for handling filtered
@@ -88,6 +109,10 @@ protected:
    */
   rclcpp_action::Server<vortex_msgs::action::FilteredLandmarks>::SharedPtr
       action_server_;
+
+  rclcpp::Client<nav_msgs::srv::GetMap>::SharedPtr grid_client_;
+
+  std::unique_ptr<GridManager> grid_manager_ = nullptr;
 
   /**
    * @brief Handles the goal request for the `handle_goal` function.

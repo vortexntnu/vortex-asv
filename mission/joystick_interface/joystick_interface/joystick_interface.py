@@ -5,6 +5,7 @@ from geometry_msgs.msg import Wrench
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool
 from std_msgs.msg import String
+from std_srvs.srv import Empty
 
 
 class States:
@@ -79,6 +80,9 @@ class JoystickInterface(Node):
         self.last_button_press_time_ = 0
         self.debounce_duration_ = 0.25
         self.state_ = States.NO_GO
+        self.previous_state_ = None
+
+        self.mode_logger_done_ = False
 
         self.joystick_buttons_map_ = []
 
@@ -89,6 +93,8 @@ class JoystickInterface(Node):
         self.wrench_publisher_ = self.create_publisher(Wrench,
                                                       "thrust/wrench_input",
                                                       1)
+        
+        self.set_stationkeeping_pose_client = self.create_client(Empty, 'set_stationkeeping_pose')
 
         self.declare_parameter('surge_scale_factor', 50.0)
         self.declare_parameter('sway_scale_factor', 50.0)
@@ -160,8 +166,12 @@ class JoystickInterface(Node):
         """
         Turns off the controller and signals that the operational mode has switched to Xbox mode.
         """
-        self.operational_mode_signal_publisher_.publish(String(data="XBOX"))
+        msg = String()
+        msg.data = "XBOX"
+        self.operational_mode_signal_publisher_.publish(msg)
         self.state_ = States.XBOX_MODE
+        self.previous_state_ = States.XBOX_MODE
+        self.mode_logger_done_ = False
 
     def transition_to_autonomous_mode(self):
         """
@@ -169,8 +179,31 @@ class JoystickInterface(Node):
         """
         wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
         self.wrench_publisher_.publish(wrench_msg)
-        self.operational_mode_signal_publisher_.publish(String(data="autonomous mode"))
+        msg = String()
+        msg.data = "autonomous mode"
+        self.operational_mode_signal_publisher_.publish(msg)
         self.state_ = States.AUTONOMOUS_MODE
+        self.previous_state_ = States.AUTONOMOUS_MODE
+        self.mode_logger_done_ = False
+
+    def set_stationkeeping_pose(self):
+        """
+        Calls a service that communicates to the guidance system to set the current
+        position as the stationkeeping position.
+        """
+        request = Empty.Request()
+        future = self.set_stationkeeping_pose_client.call_async(request)
+        future.add_done_callback(self.set_stationkeeping_pose_callback)
+
+    def set_stationkeeping_pose_callback(self, future):
+        """
+        Callback function for the set_stationkeeping_pose service.
+        """
+        try:
+            response = future.result()
+        except Exception as e:
+            self.get_logger().info(
+                f"Service call failed {str(e)}")
 
     def joystick_cb(self, msg : Joy) -> Wrench:
         """
@@ -217,6 +250,7 @@ class JoystickInterface(Node):
         xbox_control_mode_button = buttons.get("A", 0)
         software_killswitch_button = buttons.get("B", 0)
         software_control_mode_button = buttons.get("X", 0)
+        software_set_home_button = buttons.get("Y", 0)
         left_trigger = self.left_trigger_linear_converter(axes.get('LT', 0.0))
         right_trigger = self.right_trigger_linear_converter(axes.get('RT', 0.0))
 
@@ -229,9 +263,10 @@ class JoystickInterface(Node):
             software_control_mode_button = False
             xbox_control_mode_button = False
             software_killswitch_button = False
+            software_set_home_button = False
 
         # If any button is pressed, update the last button press time
-        if software_control_mode_button or xbox_control_mode_button or software_killswitch_button:
+        if software_control_mode_button or xbox_control_mode_button or software_killswitch_button or software_set_home_button:
             self.last_button_press_time_ = current_time
 
         # Toggle ks on and off
@@ -240,7 +275,12 @@ class JoystickInterface(Node):
                 # signal that killswitch is not blocking
                 self.software_killswitch_signal_publisher_.publish(
                     Bool(data=False))
-                self.transition_to_xbox_mode()
+                
+                if self.previous_state_ == States.XBOX_MODE:
+                    self.transition_to_xbox_mode()
+                
+                else:
+                    self.transition_to_autonomous_mode()
                 return
 
             else:
@@ -257,17 +297,31 @@ class JoystickInterface(Node):
         wrench_msg = self.create_2d_wrench_message(surge, sway, yaw)
 
         if self.state_ == States.XBOX_MODE:
-            self.get_logger().info("XBOX mode", throttle_duration_sec=1)
+            if not self.mode_logger_done_:
+                self.get_logger().info("XBOX mode")
+                self.mode_logger_done_ = True
+
             self.wrench_publisher_.publish(wrench_msg)
 
             if software_control_mode_button:
                 self.transition_to_autonomous_mode()
 
-        if self.state_ == States.AUTONOMOUS_MODE:
-            self.get_logger().info("autonomous mode", throttle_duration_sec=1)
+            if software_set_home_button:
+                self.set_stationkeeping_pose()
+
+        elif self.state_ == States.AUTONOMOUS_MODE:
+            if not self.mode_logger_done_:
+                self.get_logger().info("autonomous mode")
+                self.mode_logger_done_ = True
 
             if xbox_control_mode_button:
                 self.transition_to_xbox_mode()
+
+        else:
+            if not self.mode_logger_done_:
+                self.get_logger().info("Killswitch is active")
+                self.mode_logger_done_ = True
+            return
 
         return wrench_msg
 

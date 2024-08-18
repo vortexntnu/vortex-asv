@@ -34,8 +34,8 @@
           yaw:   true
       thrusters:
         num: 4
-        min: -200
-        max: 200
+        min: -1000
+        max: 1000
         configuration_matrix: #NED
           [0.70711, 0.70711, 0.70711, 0.70711, 
           -0.70711, 0.70711, -0.70711, 0.70711, 

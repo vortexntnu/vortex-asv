@@ -1,4 +1,4 @@
-#include "landmark_server/landmark_server.hpp"
+#include <landmark_server/landmark_server.hpp>
 
 using std::placeholders::_1, std::placeholders::_2;
 using LandmarkArray = vortex_msgs::msg::LandmarkArray;
@@ -12,26 +12,54 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
   // Define the quality of service profile for publisher and subscriber
   rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
   qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 1),
-                         qos_profile);
+  auto qos_best_effort = rclcpp::QoS(
+      rclcpp::QoSInitialization(qos_profile.history, 1), qos_profile);
+
+  // Set QoS profile
+  rmw_qos_profile_t qos_profile_sub = rmw_qos_profile_default;
+  qos_profile_sub.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  qos_profile_sub.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  qos_profile_sub.depth =
+      10; // You can adjust this depth as needed for your use case
+
+  auto qos_reliable = rclcpp::QoS(
+      rclcpp::QoSInitialization(qos_profile_sub.history, qos_profile_sub.depth),
+      qos_profile_sub);
 
   storedLandmarks_ = std::make_shared<LandmarkArray>();
 
   landmark_sub_ = this->create_subscription<LandmarkArray>(
-      "target_tracking/landmarks", qos,
+      "target_tracking/landmarks", qos_reliable,
       std::bind(&LandmarkServerNode::landmarksRecievedCallback, this, _1));
 
   landmarkPublisher_ =
-      this->create_publisher<LandmarkArray>("landmarks_out", qos);
+      this->create_publisher<LandmarkArray>("landmarks_out", qos_best_effort);
 
   posePublisher_ = this->create_publisher<geometry_msgs::msg::PoseArray>(
-      "landmark_poses_out", qos);
+      "landmark_poses_out", qos_best_effort);
+
+  gridPublisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
+      "grid", qos_best_effort);
+
+  rmw_qos_profile_t qos_profile_sensor = rmw_qos_profile_sensor_data;
+  qos_profile_sensor.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  auto qos_sensor =
+      rclcpp::QoS(rclcpp::QoSInitialization(qos_profile_sensor.history, 1),
+                  qos_profile_sensor);
+
+  convex_hull_publisher_ =
+      this->create_publisher<sensor_msgs::msg::PointCloud2>("landmark/hull",
+                                                            qos_sensor);
+  cluster_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+      "landmark/cluster", qos_sensor);
 
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
   tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_);
 
+  declare_parameter<std::string>("fixed_frame", "world");
   declare_parameter<std::string>("target_frame", "base_link");
-  declare_parameter<std::string>("world_frame", "world_frame");
+  declare_parameter<double>("wall_width", 0.1);
+  declare_parameter<bool>("use_grid", "false");
 
   // Create the act.
   action_server_ = rclcpp_action::create_server<Action>(
@@ -39,6 +67,108 @@ LandmarkServerNode::LandmarkServerNode(const rclcpp::NodeOptions &options)
       std::bind(&LandmarkServerNode::handle_goal, this, _1, _2),
       std::bind(&LandmarkServerNode::handle_cancel, this, _1),
       std::bind(&LandmarkServerNode::handle_accepted, this, _1));
+
+  grid_client_ = create_client<nav_msgs::srv::GetMap>("get_map");
+
+  std::thread(&LandmarkServerNode::get_grid, this).detach();
+}
+
+Eigen::Array<float, 2, Eigen::Dynamic> LandmarkServerNode::get_convex_hull(
+    const vortex_msgs::msg::Landmark &landmark) {
+  if (landmark.landmark_type == vortex_msgs::msg::Landmark::WALL) {
+    Eigen::Array<float, 2, Eigen::Dynamic> hull(2, 4);
+    float x1 = landmark.shape.polygon.points[0].x;
+    float y1 = landmark.shape.polygon.points[0].y;
+    float x2 = landmark.shape.polygon.points[1].x;
+    float y2 = landmark.shape.polygon.points[1].y;
+
+    // Calculate the direction vector
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+
+    // Normalize the direction vector
+    float length = std::sqrt(dx * dx + dy * dy);
+    dx /= length;
+    dy /= length;
+
+    // Perpendicular vector with the given width
+    float wall_width = get_parameter("wall_width").as_double();
+    float wx = -dy * wall_width / 2; // half the width to each side
+    float wy = dx * wall_width / 2;
+
+    // Calculate the four points of the rectangle in clockwise order
+    hull(0, 0) = x1 + wx;
+    hull(1, 0) = y1 + wy;
+    hull(0, 1) = x2 + wx;
+    hull(1, 1) = y2 + wy;
+    hull(0, 2) = x2 - wx;
+    hull(1, 2) = y2 - wy;
+    hull(0, 3) = x1 - wx;
+    hull(1, 3) = y1 - wy;
+    return hull;
+  }
+  pcl::PointCloud<pcl::PointXYZ> cluster;
+  cluster.resize(landmark.shape.polygon.points.size());
+  for (size_t i = 0; i < landmark.shape.polygon.points.size(); i++) {
+    cluster.points[i].x = landmark.shape.polygon.points[i].x;
+    cluster.points[i].y = landmark.shape.polygon.points[i].y;
+    cluster.points[i].z = 1.0;
+  }
+  // Compute the convex hull of the cluster
+  pcl::PointCloud<pcl::PointXYZ> convex_hull;
+  pcl::ConvexHull<pcl::PointXYZ> chull;
+  chull.setDimension(2);
+  chull.setInputCloud(cluster.makeShared());
+  chull.reconstruct(convex_hull);
+
+  Eigen::Array<float, 2, Eigen::Dynamic> hull(2, convex_hull.size());
+  for (size_t i = 0; i < convex_hull.size(); i++) {
+    hull(0, i) = convex_hull.points[i].x;
+    hull(1, i) = convex_hull.points[i].y;
+  }
+  return hull;
+}
+
+void LandmarkServerNode::get_grid() {
+  while (true) {
+    rclcpp::sleep_for(std::chrono::seconds(1));
+    if (!grid_client_->wait_for_service(std::chrono::seconds(5))) {
+      RCLCPP_ERROR(this->get_logger(), "Service not available after waiting");
+      continue;
+    }
+
+    auto request = std::make_shared<nav_msgs::srv::GetMap::Request>();
+    auto result_future = grid_client_->async_send_request(request);
+
+    // Wait for the result within a specified timeout period
+    auto status = result_future.wait_for(std::chrono::seconds(5));
+    if (status == std::future_status::ready) {
+      try {
+        auto result = result_future.get();
+        if (result->map.data.empty()) {
+          RCLCPP_ERROR(this->get_logger(),
+                       "Received empty map from grid client");
+          continue;
+        }
+        grid_msg_ = result->map;
+
+        grid_manager_ = std::make_unique<GridManager>(grid_msg_.info.resolution,
+                                                      grid_msg_.info.height,
+                                                      grid_msg_.info.width);
+        RCLCPP_INFO(this->get_logger(),
+                    "Successfully received map from grid client");
+        return;
+      } catch (const std::exception &e) {
+        RCLCPP_ERROR(this->get_logger(),
+                     "Exception while getting result from future: %s",
+                     e.what());
+      }
+    } else {
+      RCLCPP_ERROR(this->get_logger(),
+                   "Failed to get map from grid client within timeout period");
+      continue;
+    }
+  }
 }
 
 void LandmarkServerNode::landmarksRecievedCallback(
@@ -49,39 +179,62 @@ void LandmarkServerNode::landmarksRecievedCallback(
     return;
   }
 
-  for (const auto &landmark : msg->landmarks) {
-
-    if (landmark.action == 0) {
-      // Remove landmarks with matching id and landmark_type
-      storedLandmarks_->landmarks.erase(
-          std::remove_if(storedLandmarks_->landmarks.begin(),
-                         storedLandmarks_->landmarks.end(),
-                         [&](const auto &storedLandmark) {
-                           return storedLandmark.id == landmark.id &&
-                                  storedLandmark.landmark_type ==
-                                      landmark.landmark_type;
-                         }),
-          storedLandmarks_->landmarks.end());
-    } else if (landmark.action == 1) {
-      // Find the landmark if it already exists
-      auto it = std::find_if(
-          storedLandmarks_->landmarks.begin(),
-          storedLandmarks_->landmarks.end(), [&](const auto &storedLandmark) {
-            return storedLandmark.landmark_type == landmark.landmark_type &&
-                   storedLandmark.id == landmark.id;
-          });
-
-      if (it != storedLandmarks_->landmarks.end()) {
-        // Update the existing landmark
-        *it = landmark;
-      } else {
-        // Add the new landmark
-        storedLandmarks_->landmarks.push_back(landmark);
-      }
-    }
+  if (this->get_parameter("use_grid").as_bool() && grid_manager_ == nullptr) {
+    RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                                "Grid manager not initialized");
+    return;
   }
 
+  for (const auto &landmark : msg->landmarks) {
+    auto it = std::find_if(
+        storedLandmarks_->landmarks.begin(), storedLandmarks_->landmarks.end(),
+        [&](const auto &storedLandmark) {
+          return storedLandmark.landmark_type == landmark.landmark_type &&
+                 storedLandmark.id == landmark.id;
+        });
+
+    if (landmark.action == vortex_msgs::msg::Landmark::ADD_ACTION) {
+      if (it != storedLandmarks_->landmarks.end()) {
+        RCLCPP_WARN_STREAM_THROTTLE(
+            this->get_logger(), *this->get_clock(), 5000,
+            "Requested to add already existing landmark");
+      } else {
+        // Add the new landmark
+
+        if (this->get_parameter("use_grid").as_bool()) {
+          grid_manager_->update_grid(grid_msg_.data.data(),
+                                     get_convex_hull(landmark), 200);
+        }
+        storedLandmarks_->landmarks.push_back(landmark);
+      }
+      continue;
+    }
+    if (it == storedLandmarks_->landmarks.end()) {
+      RCLCPP_WARN_STREAM_THROTTLE(
+          this->get_logger(), *this->get_clock(), 5000,
+          "Requested to remove or update non-existing landmark");
+      continue;
+    }
+
+    if (this->get_parameter("use_grid").as_bool()) {
+      grid_manager_->update_grid(grid_msg_.data.data(),
+                                 get_convex_hull(landmark), -200);
+    }
+
+    if (landmark.action == vortex_msgs::msg::Landmark::REMOVE_ACTION) {
+      storedLandmarks_->landmarks.erase(it);
+    } else if (landmark.action == vortex_msgs::msg::Landmark::UPDATE_ACTION) {
+      if (this->get_parameter("use_grid").as_bool()) {
+        grid_manager_->update_grid(grid_msg_.data.data(),
+                                   get_convex_hull(landmark), 200);
+      }
+      *it = landmark;
+    }
+  }
+  grid_msg_.header.stamp = rclcpp::Clock().now();
+
   // Publish the landmarks
+  gridPublisher_->publish(grid_msg_);
   landmarkPublisher_->publish(*storedLandmarks_);
   posePublisher_->publish(poseArrayCreater(*storedLandmarks_));
 }
@@ -94,8 +247,7 @@ geometry_msgs::msg::PoseArray LandmarkServerNode::poseArrayCreater(
   if (!landmarks.landmarks.empty()) {
     poseArray.header.frame_id = landmarks.landmarks.at(0).odom.header.frame_id;
   } else {
-    poseArray.header.frame_id = get_parameter("world_frame").as_string();
-    poseArray.header.stamp = rclcpp::Clock().now();
+    poseArray.header.frame_id = get_parameter("fixed_frame").as_string();
   }
   // Timestamps for stored landmarks may vary so use current time for
   // visualization
@@ -199,31 +351,29 @@ vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
         goal_handle) {
   const auto goal = goal_handle->get_goal();
   _Float32 distance = goal->distance;
+  uint8_t filter_type = goal->landmark_types;
   vortex_msgs::msg::OdometryArray filteredLandmarksOdoms;
 
   for (const auto &landmark : storedLandmarks_->landmarks) {
 
-    if (goal->landmark_types.empty() && distance == 0.0) {
+    // filter_type 0 returns all landmarks
+    if (filter_type == 0 && distance == 0.0) {
       filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-    } else if (goal->landmark_types.empty()) {
+    } else if (filter_type == 0) {
 
       if (calculateDistance(landmark.odom.pose.pose.position,
                             landmark.odom.header) <= distance) {
         filteredLandmarksOdoms.odoms.push_back(landmark.odom);
       }
     } else if (distance == 0.0) {
-      for (const auto &type : goal->landmark_types) {
-        if (landmark.landmark_type == type) {
-          filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-        }
+      if (landmark.landmark_type == filter_type) {
+        filteredLandmarksOdoms.odoms.push_back(landmark.odom);
       }
     } else {
-      for (const auto &type : goal->landmark_types) {
-        if (landmark.landmark_type == type &&
-            calculateDistance(landmark.odom.pose.pose.position,
-                              landmark.odom.header) <= distance) {
-          filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-        }
+      if (landmark.landmark_type == filter_type &&
+          calculateDistance(landmark.odom.pose.pose.position,
+                            landmark.odom.header) <= distance) {
+        filteredLandmarksOdoms.odoms.push_back(landmark.odom);
       }
     }
   }
@@ -237,13 +387,14 @@ void LandmarkServerNode::requestLogger(
   const auto goal = goal_handle->get_goal();
   double distance = goal->distance;
 
-  if (distance == 0.0 && goal->landmark_types.empty()) {
+  if (distance == 0.0 &&
+      goal->landmark_types == vortex_msgs::msg::Landmark::NONE) {
     RCLCPP_INFO_STREAM(this->get_logger(),
                        "Received request to return all landmarks.");
     return;
   }
 
-  if (goal->landmark_types.empty()) {
+  if (goal->landmark_types == vortex_msgs::msg::Landmark::NONE) {
     RCLCPP_INFO_STREAM(
         this->get_logger(),
         "Received request to return all landmarks within distance " << distance
@@ -253,12 +404,14 @@ void LandmarkServerNode::requestLogger(
 
   std::stringstream types_log;
   types_log << "Received request to return landmarks by type filter: [";
-  for (auto it = goal->landmark_types.begin(); it != goal->landmark_types.end();
-       it++) {
-    types_log << *it;
-    if (std::next(it) != goal->landmark_types.end()) {
-      types_log << ", ";
-    }
+  if (goal->landmark_types & vortex_msgs::msg::Landmark::BUOY) {
+    types_log << "BUOY, ";
+  }
+  if (goal->landmark_types & vortex_msgs::msg::Landmark::BOAT) {
+    types_log << "BOAT, ";
+  }
+  if (goal->landmark_types & vortex_msgs::msg::Landmark::WALL) {
+    types_log << "WALL, ";
   }
   types_log << "].";
   RCLCPP_INFO_STREAM(this->get_logger(), types_log.str());
@@ -274,8 +427,8 @@ LandmarkServerNode::calculateDistance(const geometry_msgs::msg::Point &point,
   try {
     // Lookup the transformation
     geometry_msgs::msg::TransformStamped transform_stamped =
-        tf2_buffer_->lookupTransform("base_link", header.frame_id, header.stamp,
-                                     rclcpp::Duration(1, 0));
+        tf2_buffer_->lookupTransform(target_frame, header.frame_id,
+                                     header.stamp, rclcpp::Duration(1, 0));
 
     // Transform the point cloud
     geometry_msgs::msg::Point transformed_point;
