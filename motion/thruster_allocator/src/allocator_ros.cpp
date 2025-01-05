@@ -1,7 +1,7 @@
 #include "thruster_allocator/allocator_ros.hpp"
 #include "thruster_allocator/allocator_utils.hpp"
 #include "thruster_allocator/pseudoinverse_allocator.hpp"
-#include <std_msgs/msg/float32_multi_array.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 
 #include <chrono>
 #include <functional>
@@ -34,7 +34,7 @@ ThrusterAllocator::ThrusterAllocator()
                 std::placeholders::_1));
 
   thruster_forces_publisher_ =
-      this->create_publisher<std_msgs::msg::Float32MultiArray>(
+      this->create_publisher<std_msgs::msg::Float64MultiArray>(
           "freya/thrust/thruster_forces", 1);
 
   calculate_thrust_timer_ = this->create_wall_timer(
@@ -59,7 +59,7 @@ void ThrusterAllocator::calculate_thrust_timer_cb() {
     RCLCPP_WARN(get_logger(), "Thruster forces vector required saturation.");
   }
 
-  std_msgs::msg::Float32MultiArray msg_out;
+  std_msgs::msg::Float64MultiArray msg_out;
   array_eigen_to_msg(thruster_forces, msg_out);
   thruster_forces_publisher_->publish(msg_out);
 }
