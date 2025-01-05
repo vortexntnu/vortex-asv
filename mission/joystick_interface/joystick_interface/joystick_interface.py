@@ -84,10 +84,10 @@ class JoystickInterface(Node):
 
         self.joystick_axes_map_ = []
 
-        self.joy_subscriber_ = self.create_subscription(Joy, "joystick/joy",
+        self.joy_subscriber_ = self.create_subscription(Joy, "freya/joy",
                                                        self.joystick_cb, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench,
-                                                      "thrust/wrench_input",
+                                                      "freya/thrust/wrench_input",
                                                       1)
 
         self.declare_parameter('surge_scale_factor', 50.0)

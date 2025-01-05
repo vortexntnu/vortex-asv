@@ -29,13 +29,13 @@ ThrusterAllocator::ThrusterAllocator()
       num_dof_, num_thrusters_);
 
   wrench_subscriber_ = this->create_subscription<geometry_msgs::msg::Wrench>(
-      "thrust/wrench_input", 1,
+      "freya/thrust/wrench_input", 1,
       std::bind(&ThrusterAllocator::wrench_callback, this,
                 std::placeholders::_1));
 
   thruster_forces_publisher_ =
       this->create_publisher<std_msgs::msg::Float32MultiArray>(
-          "thrust/thruster_forces", 1);
+          "freya/thrust/thruster_forces", 1);
 
   calculate_thrust_timer_ = this->create_wall_timer(
       100ms, std::bind(&ThrusterAllocator::calculate_thrust_timer_cb, this));
