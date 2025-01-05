@@ -9,9 +9,9 @@
 
 #include <eigen3/Eigen/Eigen>
 #include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 #include <string>
 #include <vector>
-#include <std_msgs/msg/float64_multi_array.hpp>
 
 /**
  * @brief Check if the matrix has any NaN or INF elements.
