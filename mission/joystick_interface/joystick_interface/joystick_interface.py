@@ -161,6 +161,7 @@ class JoystickInterface(Node):
         Turns off the controller and signals that the operational mode has switched to Xbox mode.
         """
         self.operational_mode_signal_publisher_.publish(String(data="XBOX"))
+        self.get_logger().info("XBOX mode")
         self.state_ = States.XBOX_MODE
 
     def transition_to_autonomous_mode(self):
@@ -170,6 +171,7 @@ class JoystickInterface(Node):
         wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
         self.wrench_publisher_.publish(wrench_msg)
         self.operational_mode_signal_publisher_.publish(String(data="autonomous mode"))
+        self.get_logger().info("Autonomous mode")
         self.state_ = States.AUTONOMOUS_MODE
 
     def joystick_cb(self, msg : Joy) -> Wrench:
@@ -257,14 +259,12 @@ class JoystickInterface(Node):
         wrench_msg = self.create_2d_wrench_message(surge, sway, yaw)
 
         if self.state_ == States.XBOX_MODE:
-            self.get_logger().info("XBOX mode", throttle_duration_sec=1)
             self.wrench_publisher_.publish(wrench_msg)
 
             if software_control_mode_button:
                 self.transition_to_autonomous_mode()
 
         if self.state_ == States.AUTONOMOUS_MODE:
-            self.get_logger().info("autonomous mode", throttle_duration_sec=1)
 
             if xbox_control_mode_button:
                 self.transition_to_xbox_mode()
