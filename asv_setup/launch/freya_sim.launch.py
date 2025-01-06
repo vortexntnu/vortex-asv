@@ -20,7 +20,7 @@ def generate_launch_description():
         parameters=[{
             'deadzone': 0.15,
             'autorepeat_rate': 100.0,
-            'device_name': 'Wireless Controller',
+            'device_name': 'Xbox 360 Controller',
         }],
         remappings=[
             ('/joy', '/freya/joy'),
