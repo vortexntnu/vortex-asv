@@ -1,10 +1,4 @@
 repositories:
-  ouster_example:
+  vortex_msgs:
     type: git
-    url: https://github.com/vortexntnu/ouster_example.git
-    version: master
-  stim300:
-    type: git
-    url: https://github.com/vortexntnu/stim300.git
-    version: master
-    
+    url: https://github.com/vortexntnu/vortex-msgs.git
