@@ -5,7 +5,7 @@
 IMAGE="asv-image:latest" \
 BASE_IMAGE="rwthika/ros2:humble" \
 TARGET="dev" \
-PLATFORM="linux/arm64,linux/amd64" \
+# PLATFORM="linux/arm64" \
 ./docker/docker-ros/scripts/build.sh
 
 # Run the built Docker image with appropriate flags
