@@ -28,16 +28,16 @@ git submodule update --init --recursive
 
 ### Troubleshooting
 #### Platform Compatibility (e.g, ARM64 vs AMD64)
-If you're encountering issues with Docker due to platform incompatibilities (like arm64 vs. amd64), follow these steps:
+[docker-ros](https://github.com/ika-rwth-aachen/docker-ros) will automatically detect the platform, but if you're encountering issues with Docker due to platform incompatibilities (like arm64 vs. amd64), follow these steps:
 1. Check Your Computers Architecture
 2. In ```entrypoint.sh```, uncomment and adjust the PLATFORM variable:
 - For AMD64:
 ```bash
-PLATFORM="amd64"
+export PLATFORM="amd64"
 ```
 - For ARM64:
 ```bash
-PLATFORM="linux/arm64"
+export PLATFORM="linux/arm64"
 ```
 3. After adjusting the platform, rebuild the Docker image and run the container:
 ```bash
