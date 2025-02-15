@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>thruster_allocator</name>
+  <name>thrust_allocator_asv</name>
   <version>0.0.0</version>
-  <description>Thurster allocator for ASV</description>
+  <description>Thrust allocator for ASV</description>
   <maintainer email="martiniuss.wan@gmail.com">martin</maintainer>
   <license>MIT</license>
 

@@ -1,6 +1,6 @@
-#include "thruster_allocator/allocator_ros.hpp"
-#include "thruster_allocator/allocator_utils.hpp"
-#include "thruster_allocator/pseudoinverse_allocator.hpp"
+#include "thrust_allocator_asv/allocator_ros.hpp"
+#include "thrust_allocator_asv/allocator_utils.hpp"
+#include "thrust_allocator_asv/pseudoinverse_allocator.hpp"
 #include <std_msgs/msg/float32_multi_array.hpp>
 
 #include <chrono>
@@ -8,8 +8,8 @@
 
 using namespace std::chrono_literals;
 
-ThrusterAllocator::ThrusterAllocator()
-    : Node("thruster_allocator_node"),
+ThrustAllocator::ThrustAllocator()
+    : Node("thrust_allocator_asv_node"),
       pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
   declare_parameter("propulsion.dofs.num", 3);
   declare_parameter("propulsion.thrusters.num", 4);
@@ -30,7 +30,7 @@ ThrusterAllocator::ThrusterAllocator()
 
   wrench_subscriber_ = this->create_subscription<geometry_msgs::msg::Wrench>(
       "thrust/wrench_input", 1,
-      std::bind(&ThrusterAllocator::wrench_callback, this,
+      std::bind(&ThrustAllocator::wrench_callback, this,
                 std::placeholders::_1));
 
   thruster_forces_publisher_ =
@@ -38,7 +38,7 @@ ThrusterAllocator::ThrusterAllocator()
           "thrust/thruster_forces", 1);
 
   calculate_thrust_timer_ = this->create_wall_timer(
-      100ms, std::bind(&ThrusterAllocator::calculate_thrust_timer_cb, this));
+      100ms, std::bind(&ThrustAllocator::calculate_thrust_timer_cb, this));
 
   pseudoinverse_allocator_.T_pinv =
       calculate_right_pseudoinverse(thrust_configuration);
@@ -46,7 +46,7 @@ ThrusterAllocator::ThrusterAllocator()
   body_frame_forces_.setZero();
 }
 
-void ThrusterAllocator::calculate_thrust_timer_cb() {
+void ThrustAllocator::calculate_thrust_timer_cb() {
   Eigen::VectorXd thruster_forces =
       pseudoinverse_allocator_.calculate_allocated_thrust(body_frame_forces_);
 
@@ -64,7 +64,7 @@ void ThrusterAllocator::calculate_thrust_timer_cb() {
   thruster_forces_publisher_->publish(msg_out);
 }
 
-void ThrusterAllocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
+void ThrustAllocator::wrench_callback(const geometry_msgs::msg::Wrench &msg) {
   Eigen::Vector3d msg_vector;
   msg_vector(0) = msg.force.x;  // surge
   msg_vector(1) = msg.force.y;  // sway

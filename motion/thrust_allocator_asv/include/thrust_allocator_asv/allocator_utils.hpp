@@ -4,8 +4,8 @@
  * module.
  */
 
-#ifndef VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
-#define VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
+#ifndef VORTEX_ALLOCATOR_UTILS_HPP
+#define VORTEX_ALLOCATOR_UTILS_HPP
 
 #include <eigen3/Eigen/Eigen>
 #include <rclcpp/rclcpp.hpp>

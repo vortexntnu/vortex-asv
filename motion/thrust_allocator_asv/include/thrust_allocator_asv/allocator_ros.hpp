@@ -1,15 +1,15 @@
 /**
  * @file allocator_ros.hpp
- * @brief ThrusterAllocator class, which
+ * @brief ThrustAllocator class, which
  * allocates thrust to the ASV's thrusters based on the desired body frame
  * forces.
  */
 
-#ifndef VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
-#define VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
+#ifndef VORTEX_ALLOCATOR_ROS_HPP
+#define VORTEX_ALLOCATOR_ROS_HPP
 
-#include "thruster_allocator/allocator_utils.hpp"
-#include "thruster_allocator/pseudoinverse_allocator.hpp"
+#include "thrust_allocator_asv/allocator_utils.hpp"
+#include "thrust_allocator_asv/pseudoinverse_allocator.hpp"
 #include <eigen3/Eigen/Eigen>
 #include <rclcpp/rclcpp.hpp>
 
@@ -18,9 +18,9 @@
 
 using namespace std::chrono_literals;
 
-class ThrusterAllocator : public rclcpp::Node {
+class ThrustAllocator : public rclcpp::Node {
 public:
-  explicit ThrusterAllocator();
+  explicit ThrustAllocator();
 
   /**
    * @brief Calculates the allocated
@@ -54,4 +54,4 @@ private:
   PseudoinverseAllocator pseudoinverse_allocator_;
 };
 
-#endif // VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
+#endif // VORTEX_ALLOCATOR_ROS_HPP

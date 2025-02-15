@@ -6,14 +6,15 @@ from launch_ros.actions import Node
 def generate_launch_description():
     config = path.join(get_package_share_directory('asv_setup'),'config','robots','freya.yaml')
 
-    thruster_allocator_node = Node(
-        package='thruster_allocator',
-        executable='thruster_allocator_node',
-        name='thruster_allocator_node',
+    thrust_allocator_asv_node = Node(
+        package='thrust_allocator_asv',
+        executable='thrust_allocator_asv_node',
+        name='thrust_allocator_asv_node',
+        namespace='freya',
         parameters=[config],
         output='screen'
     )
     
     return LaunchDescription([
-        thruster_allocator_node
+        thrust_allocator_asv_node
     ])

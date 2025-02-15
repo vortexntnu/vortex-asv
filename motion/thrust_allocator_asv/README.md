@@ -1,4 +1,4 @@
-## Thruster allocator
+## Thrust allocator
 
 This package takes a thrust vector and calculates the corresponding thrust required from each individual thruster. The resulting calculation is published as a std_msgs::msg::Float32MultiArray.
 
