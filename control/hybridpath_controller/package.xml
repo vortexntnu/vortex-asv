@@ -10,13 +10,9 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>rclpy</depend>
-  <depend>python-transforms3d-pip</depend>
   <depend>geometry_msgs</depend>
   <depend>vortex_msgs</depend>
-
-  <test_depend>python3-pytest</test_depend>
   
-
   <export>
     <build_type>ament_cmake</build_type>
   </export>

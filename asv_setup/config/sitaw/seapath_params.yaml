@@ -1,4 +1,0 @@
-seapath_ros_driver_node:
-  ros__parameters:
-    UDP_IP: "10.0.1.10"  # Source IP of the host sender
-    UDP_PORT: 31421  # Port at which to receive UDP segment
