@@ -1,71 +1,45 @@
 # Vortex-ASV
 Vortex ASV software. Purpose built for competing in ASV competitions. 
 
+## Docker
+This project uses the [docker-ros](https://github.com/ika-rwth-aachen/docker-ros) repository for building and managing Docker images. The docker-ros repository is included as a Git submodule and is configured to build images locally.
 
-# Docker, user guide
-Docker is a tool for creating a virtual environment with predetermined dependencies, much like a VM with fixed installation steps. In this case, we are using the the ROS noetic image as a base, and adding our own dependencies on top of it.
-To use Docker, make sure you have downloaded the [Docker Engine](https://docs.docker.com/engine/install/ubuntu/) and [Docker compose](https://docs.docker.com/compose/install/).
+### Prerequisites
+- Install [Docker](https://www.docker.com/get-started)
 
-We use Docker to be able to run the code on *any* PC that has the Docker installed. This first part is the basics of how to run a docker container on your PC. For developing, skip to the [next part](https://github.com/vortexntnu/Vortex-ASV/tree/improvement/update_readme#docker-developer-guide)
+### Cloning
+To clone this repository with the docker-ros submodule, use the following command:
+```bash
+git clone --recurse-submodules https://github.com/vortexntnu/vortex-asv.git
+```
+Alternatively, if you have already cloned the repository, run the following command to initialize the submodule:
+```bash
+git submodule update --init --recursive
+```
+### Building and Running
+1. Run the following command from the root of this repository to build the Docker image, its called ```asv-image:latest```, and start a container:
+```bash
+./entrypoint.sh
+```
+2. The Docker container will start with the following configurations:
+- The source code from this repository is mounted to ```/docker-ros/ws/src/target``` inside the container. This means any changes made locally will also be reflected inside the container, and any changes made inside the container will appear locally. 
+- Any dependencies listed in ```dependencies.repositories``` will be added to ```/docker-ros/ws/src/upstream```. For instance, the repository vortex-msgs will be added to this directory but will not be mounted.
+3. The Docker container runs with the --network host option. This enables the container to see other ROS 2 topics and nodes on the host network. However, note that this functionality is not supported on macOS.
 
-To run a service, navigate to Vortex-ASV where docker-compose.yml is located and run
+### Troubleshooting
+#### Platform Compatibility (e.g, ARM64 vs AMD64)
+[docker-ros](https://github.com/ika-rwth-aachen/docker-ros) will automatically detect the platform, but if you're encountering issues with Docker due to platform incompatibilities (like arm64 vs. amd64), follow these steps:
+1. Check Your Computers Architecture
+2. In ```entrypoint.sh```, uncomment and adjust the PLATFORM variable:
+- For AMD64:
+```bash
+export PLATFORM="amd64"
 ```
-sudo docker-compose up -d <service_name>
+- For ARM64:
+```bash
+export PLATFORM="linux/arm64"
 ```
-Where <service name> is a name from the list:
-```
-asv
-lidar
-simulator
-```
-The -d flag (detatch) runs the services in the background instead of taking up your terminal.
-These are defined in [docker-compose.yml](docker-compose.yml). Alternatively you could run all services simultaneously. The services will run in different containers, but because of how they are defined they share their output between containers and the host. This means a ROS instance in any container can communicate with a ROS instance on the host or another container. Note that the first time you run a service it might take a few minutes.
-
-Running the services in this way launches the programs associated with the services. For instance, running the "simulator" service launches the gazebo simulator with the GUI disabled. This makes it so any PC can run the simulator. Some PCs could not run the simulator, but with the GUI disabled, it should run fine. To get some visualization, use rviz:
-
-```
-rosrun rviz rviz -d sim_config.rviz
-```
-
-When you are finished using the container, run
-
-```
-sudo docker-compose down <service_name>
-```
-# Docker, developer guide
-
-If you are altering the code, running the services listed above is cumbersome. The way you would run the code after making new changes new changes would be:
-* Push your code
-* The image is then rebuilt on a git cloud
-* Run the container
-Rather than going through this, we can used a feature in docker called volumes. A volume is a folder which is linked between the container and the host the container the running on.  /home/vortex/asv_ws/ is a volume, meaning making any changes in the volume from the container also changes the asv_ws folder in the host and vice versa.
-
-Now the workflow is like this:
-* Navigate to Vortex-ASV/
-* Build the image locally using
-```
-sudo docker-compose build Dockerfile.dev
-```
-(You only need to do this once, unless changes have been made to (Dockerfile.dev)(Dockerfile.dev))
-* Run the container using the developer services, ie a service in [docker-compose.yml](docker-compose.yml) ending in "-dev"
-* Enter the terminal of the container you created:
-```
-sudo docker-compose exec <service name> /bin/bash
-```
-You can open as many terminals as you want. If you plan on opening many terminals, consider [creating an alias](https://www.cyberciti.biz/faq/create-permanent-bash-alias-linux-unix/)
-* Run the code inside the container
-
-The most common use of this will be running the simulator in one container and running the asv-dev in another for testing of new code. You might need to build the catkin workspace inside the container. This is no different from normal:
-``` 
-cd ~/asv_ws && catkin build 
-source ~/asv_ws/devel/setup.bash
-```
-Now you can run and test any changes made, and make as many new ones as you'd like. to exit the container, run 
-```
-exit
-```
-When you are finished using the container, run
-
-```
-sudo docker-compose down <service_name>
+3. After adjusting the platform, rebuild the Docker image and run the container:
+```bash
+./entrypoint.sh
 ```
