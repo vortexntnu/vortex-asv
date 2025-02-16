@@ -57,7 +57,7 @@ rm $SERVICE_FILE_NAME_TEMPERATURE # Temperature
 rm $SERVICE_FILE_NAME_INTERNAL_STATUS # Internal Status
 rm $SERVICE_FILE_NAME_BLACKBOX # Blackbox
 
-# Change permision of the .service files
+# Change permission of the .service files
 sudo chmod 777 $SYSTEMD_PATH$SERVICE_FILE_NAME_BMS # BMS
 sudo chmod 777 $SYSTEMD_PATH$SERVICE_FILE_NAME_TEMPERATURE # Temperature
 sudo chmod 777 $SYSTEMD_PATH$SERVICE_FILE_NAME_INTERNAL_STATUS # Internal Status

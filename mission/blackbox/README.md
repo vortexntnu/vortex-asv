@@ -1,4 +1,4 @@
-## Balackbox
+## Blackbox
 
 Logs data of all the important topics such as:
 /asv/power_sense_module/current
@@ -17,7 +17,7 @@ internal/status/bms1
 
 ## Service file bootup
 
-To start the blackbox loging automaticaly every time on bootup just run this command:
+To start the blackbox loging automatically every time on boot up just run this command:
 ```
 ./vortex-asv/add_service_files_to_bootup_sequence.sh
 ```

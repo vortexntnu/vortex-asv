@@ -17,14 +17,14 @@ find_package(Eigen3 REQUIRED)
 
 include_directories(include)
 
-add_executable(${PROJECT_NAME}_node 
-  src/thrust_allocator_asv_node.cpp 
-  src/allocator_ros.cpp 
+add_executable(${PROJECT_NAME}_node
+  src/thrust_allocator_asv_node.cpp
+  src/allocator_ros.cpp
   src/pseudoinverse_allocator.cpp
   )
 
-ament_target_dependencies(${PROJECT_NAME}_node 
-  rclcpp 
+ament_target_dependencies(${PROJECT_NAME}_node
+  rclcpp
   geometry_msgs
   std_msgs
   Eigen3

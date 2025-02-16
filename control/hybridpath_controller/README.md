@@ -5,11 +5,11 @@ This package provides the implementation of hybrid path controller for the Vorte
 ## Usage
 
 To use the hybrid path guidance launch it using: `ros2 launch hybridpath_controller hybridpath_controller.launch`
-Or alternatively, run it together with the hybridpath guidance using the launch file `hybridpath.launch.py` in asv_setup 
+Or alternatively, run it together with the hybridpath guidance using the launch file `hybridpath.launch.py` in asv_setup
 
 ## Configuration
 
-You can configure the behavior of the hybrid path controller by modifying the parameters in the `config` directory. 
+You can configure the behavior of the hybrid path controller by modifying the parameters in the `config` directory.
 
 ## Theory
 
@@ -33,7 +33,7 @@ The control input $\tau$ contains the thrust forces acting on the vessel:
 \tau = \begin{bmatrix} \tau_X \\ \tau_Y \\ \tau_N \end{bmatrix} = \begin{bmatrix} F_X \\ F_Y \\ l_x F_Y - l_y F_X \end{bmatrix}
 ```
 
-where $F_X$ and $F_Y$ are the forces in the respective indexed directions and $l_x$ and $l_y$ are the arms from which $\tau_N$ are acting on. 
+where $F_X$ and $F_Y$ are the forces in the respective indexed directions and $l_x$ and $l_y$ are the arms from which $\tau_N$ are acting on.
 
 ### The maneuvering problem
 The maneuvering problem for an ASV is comprimised of two tasks:
@@ -46,9 +46,9 @@ The maneuvering problem for an ASV is comprimised of two tasks:
     2. $\textbf{Time assignment:}$ Force the path variable $s$ to converge to a desired time signal $v_t(t)$:
     $$\lim_{{t \to \infty}} [s(t) - v_t()t,s(t)] = 0$$
 
-The maneuvering problem highlights the superior goal of convergence to the path and to fulfill the dynamic assignment. We will be considering only the geometric task and the speed assignment. 
+The maneuvering problem highlights the superior goal of convergence to the path and to fulfill the dynamic assignment. We will be considering only the geometric task and the speed assignment.
 
-For the speed assignment, the guidance system needs to generate the speed profile $`v_s(t,s(t))`$ and its derivatives. We let the desired path speed $`u_d(t)`$ (in m/s) be a commanded input speed. We have that: 
+For the speed assignment, the guidance system needs to generate the speed profile $`v_s(t,s(t))`$ and its derivatives. We let the desired path speed $`u_d(t)`$ (in m/s) be a commanded input speed. We have that:
 ```math
 |\dot{p}_d(s(t))| = \sqrt{x^s_d(s(t))^2\dot{s}(t)^2 + y^s_d(s(t))^2\dot{s}(t)^2} \\ = \sqrt{x^s_d(s(t))^2 + y^s_d(s(t))^2} |v_s(t,s(t))| = |u_d(t)|
 ```
@@ -105,7 +105,7 @@ and its total derivative:
  = z^T_1z_2 + z^T_1[\alpha_1 - \textbf{R}(\psi)^T\eta^s_d(s)(\omega + v_s(t,s))]
 ```
 
-and futhermore, its derivative with respect to $s$ is:
+and furthermore, its derivative with respect to $s$ is:
 ```math
 V^s_1 = \frac{1}{2} z^{s\:T}z_1 + \frac{1}{2}z^T_1z^s_1
 ```

@@ -1,5 +1,5 @@
 # Vortex-ASV
-Vortex ASV software. Purpose built for competing in ASV competitions. 
+Vortex ASV software. Purpose built for competing in ASV competitions.
 
 ## Docker
 ### Prerequisites

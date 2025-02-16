@@ -3,5 +3,3 @@ joystick_interface:
     surge_scale_factor: 300.0
     sway_scale_factor: 300.0
     yaw_scale_factor: 180.0
-
-

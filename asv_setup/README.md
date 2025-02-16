@@ -10,5 +10,3 @@ There are currently no physical parameters
 ### Launch
 This package contains a launchfile for each specific ASV. Additionally the shoreside.launch.py file is to
 be used on the topside computer that the joystick is connected to, for ROV operations.
-
-
