@@ -46,7 +46,7 @@ class HybridPathControllerNode(Node):
             self.reference_callback,
             1,
         )
-        self.wrench_publisher_ = self.create_publisher(Wrench, 'thrust/wrench_input', 1)
+        self.wrench_publisher_ = self.create_publisher(Wrench, 'wrench_input', 1)
         self.operational_mode_subscriber = self.create_subscription(
             String, 'softWareOperationMode', self.operation_mode_callback, 10
         )

@@ -53,7 +53,6 @@ class Guidance(Node):
             Empty, 'set_stationkeeping_pose', self.set_stationkeeping_pose_callback
         )
 
-        # Get parameters
         self.lambda_val = (
             self.get_parameter('hybridpath_guidance.lambda_val')
             .get_parameter_value()
@@ -77,12 +76,11 @@ class Guidance(Node):
 
         self.eta = np.zeros(3)
 
-        self.u_desired = 1.1  # Desired velocity
+        self.u_desired = 1.1
 
         self.use_hybridpath_heading = True
         self.heading_ref = 0.0
 
-        # Initialize variables
         self.waypoints = []
         self.path = None
         self.s = 0.0
@@ -92,15 +90,12 @@ class Guidance(Node):
         self.operational_mode = 'autonomous mode'
         self.killswitch_active = False
 
-        # Initialize path generator
         self.generator = HybridPathGenerator(
             self.waypoints, self.path_generator_order, self.lambda_val
         )
 
-        # Initialize signals
         self.signals = HybridPathSignals()
 
-        # Flags for logging
         self.waypoints_received = False
         self.waiting_message_printed = False
         self.stationkeeping_flag = False
@@ -108,7 +103,6 @@ class Guidance(Node):
         self.eta_received = False
         self.initial_pos = False
 
-        # Timer for guidance
         self.timer = self.create_timer(self.dt, self.guidance_callback)
 
     def operation_mode_callback(self, msg: String):

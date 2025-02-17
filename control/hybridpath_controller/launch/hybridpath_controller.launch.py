@@ -10,6 +10,7 @@ def generate_launch_description():
         package='hybridpath_controller',
         executable='hybridpath_controller_node.py',
         name='hybridpath_controller_node',
+        namespace='freya',
         parameters=[
             os.path.join(
                 get_package_share_directory('hybridpath_controller'),

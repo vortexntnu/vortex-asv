@@ -31,12 +31,9 @@ class AdaptiveBackstep:
         Returns:
             np.ndarray: The control input.
         """
-        # Transform the Odometry message to a state vector
         state = self.odom_to_state(state)
 
-        # Extract values from the state and reference
         eta = state[:3]
-        # eta[0] = 0.
         nu = state[3:]
         w = reference.w
         v_s = reference.v_s
@@ -49,11 +46,9 @@ class AdaptiveBackstep:
             [reference.eta_d_ss.x, reference.eta_d_ss.y, reference.eta_d_ss.theta]
         )
 
-        # Get R_transposed and S
         rot_trps = self.rotationmatrix_in_yaw_transpose(eta[2])
         skew = self.skew_symmetric_matrix(nu[2])
 
-        # Define error signals
         eta_error = eta - eta_d
         eta_error[2] = self.ssa(eta_error[2])
 
@@ -63,11 +58,11 @@ class AdaptiveBackstep:
         z2 = nu - alpha1
 
         sigma1 = (
-            self.k1 @ (skew @ z1) - self.K_1 @ nu - skew @ (rot_trps @ eta_d_s) * v_s
+            self.k1 @ (skew @ z1) - self.k1 @ nu - skew @ (rot_trps @ eta_d_s) * v_s
         )
 
         ds_alpha1 = (
-            self.K_1 @ (rot_trps @ eta_d_s)
+            self.k1 @ (rot_trps @ eta_d_s)
             + rot_trps @ eta_d_ss * v_s
             + rot_trps @ eta_d_s * v_ss
         )
@@ -80,32 +75,7 @@ class AdaptiveBackstep:
             + self.m @ ds_alpha1 * (v_s + w)
         )
 
-        self.eta_error = eta_error
-        self.z1 = z1
-        self.alpha1 = alpha1
-        self.z2 = z2
-        self.ds_alpha1 = ds_alpha1
-        self.sigma1 = sigma1
-
         return tau
-
-    def get_eta_error(self):
-        return self.eta_error
-
-    def get_z1(self):
-        return self.z1
-
-    def get_alpha1(self):
-        return self.alpha1
-
-    def get_z2(self):
-        return self.z2
-
-    def get_sigma1(self):
-        return self.sigma1
-
-    def get_ds_alpha1(self):
-        return self.ds_alpha1
 
     @staticmethod
     def calculate_coriolis_matrix(nu: np.ndarray) -> np.ndarray:
