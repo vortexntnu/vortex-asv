@@ -8,12 +8,12 @@
 #ifndef VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
 #define VORTEX_ALLOCATOR_ALLOCATOR_ROS_HPP
 
-#include "thruster_allocator/allocator_utils.hpp"
-#include "thruster_allocator/pseudoinverse_allocator.hpp"
+#include "thrust_allocator_asv/allocator_utils.hpp"
+#include "thrust_allocator_asv/pseudoinverse_allocator.hpp"
 #include <eigen3/Eigen/Eigen>
 #include <geometry_msgs/msg/wrench.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <std_msgs/msg/float32_multi_array.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 
 using namespace std::chrono_literals;
 
@@ -48,7 +48,7 @@ private:
 
   Eigen::MatrixXd thrust_configuration;
   rclcpp_lifecycle::LifecyclePublisher<
-      std_msgs::msg::Float32MultiArray>::SharedPtr thruster_forces_publisher_;
+      std_msgs::msg::Float64MultiArray>::SharedPtr thruster_forces_publisher_;
   rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr
       wrench_subscriber_;
   rclcpp::TimerBase::SharedPtr calculate_thrust_timer_;

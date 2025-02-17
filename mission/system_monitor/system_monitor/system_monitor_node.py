@@ -2,7 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float64MultiArray
 from lifecycle_msgs.srv import ChangeState
 from lifecycle_msgs.msg import Transition
 import os
@@ -18,10 +18,10 @@ class SystemMonitor(Node):
         self.declare_parameter("ping_rate", rclpy.Parameter.Type.DOUBLE)
         ping_rate = self.get_parameter("ping_rate").get_parameter_value().double_value
 
-        self.m_force_publisher = self.create_publisher(Float32MultiArray, '/thrust/thruster_forces', 5)
+        self.m_force_publisher = self.create_publisher(Float64MultiArray, 'thruster_forces', 5)
         self.m_timer = self.create_timer(ping_rate, self.timer_callback)
 
-        self.m_allocator_lifecycle_client = self.create_client(ChangeState, '/motion/thruster_allocator_node/change_state')
+        self.m_allocator_lifecycle_client = self.create_client(ChangeState, '/freya/thrust_allocator_asv_node/change_state')
 
         self.get_logger().info('SystemMonitor initialized')
 
@@ -30,7 +30,7 @@ class SystemMonitor(Node):
         
         if not all_ips_responsive:
             self.get_logger().warn('One or more IPs are unresponsive. Initiating shutdown sequence.')
-            self.shutdown_thruster_allocator()
+            self.shutdown_thrust_allocator_asv()
             self.publish_zero_force()
             sys.exit(0)
 
@@ -41,7 +41,7 @@ class SystemMonitor(Node):
             return False
         return True
 
-    def shutdown_thruster_allocator(self):
+    def shutdown_thrust_allocator_asv(self):
         self.get_logger().warn("Shutting down thruster allocator"
          " -> Manual intervention will be necessary")
         
@@ -57,7 +57,7 @@ class SystemMonitor(Node):
 
     def publish_zero_force(self):
         self.get_logger().info('Publishing zero-force on shutdown...')
-        message = Float32MultiArray()
+        message = Float64MultiArray()
         message.data = [0.0] * 4
         self.m_force_publisher.publish(message)
         self.get_logger().warn('Done! Manual intervention is now required!')

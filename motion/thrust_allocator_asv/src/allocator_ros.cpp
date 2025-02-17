@@ -1,15 +1,14 @@
-#include "thruster_allocator/allocator_ros.hpp"
-#include "thruster_allocator/allocator_utils.hpp"
-#include "thruster_allocator/pseudoinverse_allocator.hpp"
+#include "thrust_allocator_asv/allocator_ros.hpp"
+#include "thrust_allocator_asv/allocator_utils.hpp"
+#include "thrust_allocator_asv/pseudoinverse_allocator.hpp"
 #include <chrono>
 #include <functional>
 #include <lifecycle_msgs/msg/state.hpp>
-#include <std_msgs/msg/float32_multi_array.hpp>
 
 using namespace std::chrono_literals;
 
 ThrusterAllocator::ThrusterAllocator()
-    : rclcpp_lifecycle::LifecycleNode("thruster_allocator_node"),
+    : rclcpp_lifecycle::LifecycleNode("thrust_allocator_asv_node"),
       pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
   declare_parameter("propulsion.dofs.num", 3);
   declare_parameter("propulsion.thrusters.num", 4);
@@ -31,13 +30,13 @@ ThrusterAllocator::on_configure(const rclcpp_lifecycle::State &) {
       num_dof_, num_thrusters_);
 
   wrench_subscriber_ = this->create_subscription<geometry_msgs::msg::Wrench>(
-      "/thrust/wrench_input", 1,
+      "wrench_input", 1,
       std::bind(&ThrusterAllocator::wrench_callback, this,
                 std::placeholders::_1));
 
   thruster_forces_publisher_ =
-      this->create_publisher<std_msgs::msg::Float32MultiArray>(
-          "/thrust/thruster_forces", 1);
+      this->create_publisher<std_msgs::msg::Float64MultiArray>(
+          "thruster_forces", 1);
 
   calculate_thrust_timer_ = this->create_wall_timer(
       100ms, std::bind(&ThrusterAllocator::calculate_thrust_timer_cb, this));
@@ -98,7 +97,7 @@ void ThrusterAllocator::calculate_thrust_timer_cb() {
   if (!saturate_vector_values(thruster_forces, min_thrust_, max_thrust_)) {
     RCLCPP_WARN(get_logger(), "Thruster forces vector required saturation.");
   }
-  std_msgs::msg::Float32MultiArray msg_out;
+  std_msgs::msg::Float64MultiArray msg_out;
   array_eigen_to_msg(thruster_forces, msg_out);
   thruster_forces_publisher_->publish(msg_out);
 }

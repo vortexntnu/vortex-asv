@@ -1,5 +1,5 @@
-#include "thruster_allocator/allocator_ros.hpp"
-#include "thruster_allocator/allocator_utils.hpp"
+#include "thrust_allocator_asv/allocator_ros.hpp"
+#include "thrust_allocator_asv/allocator_utils.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
