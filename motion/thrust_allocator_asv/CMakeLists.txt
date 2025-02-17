@@ -14,6 +14,7 @@ find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 
 include_directories(include)
 
@@ -29,6 +30,8 @@ ament_target_dependencies(${PROJECT_NAME}_node
   std_msgs
   Eigen3
   )
+
+target_link_libraries(${PROJECT_NAME}_node rclcpp_lifecycle::rclcpp_lifecycle)
 
 install(
   DIRECTORY include/

@@ -11,6 +11,16 @@ def generate_launch_description():
         name='ROSCONSOLE_FORMAT', value='[${severity}] [${time}] [${node}]: ${message}'
     )
 
+    system_monitor_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            path.join(
+                get_package_share_directory('system_monitor'),
+                'launch',
+                'system_monitor.launch.py',
+            )
+        )
+    )
+
     thrust_allocator_asv_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             path.join(
@@ -32,5 +42,10 @@ def generate_launch_description():
     )
 
     return LaunchDescription(
-        [set_env_var, thrust_allocator_asv_launch, thruster_interface_launch]
+        [
+            set_env_var,
+            system_monitor_launch,
+            thrust_allocator_asv_launch,
+            thruster_interface_launch,
+        ]
     )

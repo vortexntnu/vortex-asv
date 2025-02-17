@@ -1,0 +1,8 @@
+system_monitor:
+  ros__parameters:
+    ip_list:
+      - "10.0.1.10"
+      - "10.0.1.100"
+      - "10.0.1.240"
+      - "10.0.1.250"
+    ping_rate: 1.0

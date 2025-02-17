@@ -1,15 +1,14 @@
 #include "thrust_allocator_asv/allocator_ros.hpp"
-#include <std_msgs/msg/float64_multi_array.hpp>
-#include "thrust_allocator_asv/allocator_utils.hpp"
-#include "thrust_allocator_asv/pseudoinverse_allocator.hpp"
-
 #include <chrono>
 #include <functional>
+#include <lifecycle_msgs/msg/state.hpp>
+#include "thrust_allocator_asv/allocator_utils.hpp"
+#include "thrust_allocator_asv/pseudoinverse_allocator.hpp"
 
 using namespace std::chrono_literals;
 
 ThrustAllocator::ThrustAllocator()
-    : Node("thrust_allocator_asv_node"),
+    : rclcpp_lifecycle::LifecycleNode("thrust_allocator_asv_node"),
       pseudoinverse_allocator_(Eigen::MatrixXd::Zero(3, 4)) {
     declare_parameter("propulsion.dofs.num", 3);
     declare_parameter("propulsion.thrusters.num", 4);
@@ -17,12 +16,14 @@ ThrustAllocator::ThrustAllocator()
     declare_parameter("propulsion.thrusters.max", 100);
     declare_parameter("propulsion.thrusters.configuration_matrix",
                       std::vector<double>{0});
+}
 
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+ThrustAllocator::on_configure(const rclcpp_lifecycle::State&) {
     num_dof_ = get_parameter("propulsion.dofs.num").as_int();
     num_thrusters_ = get_parameter("propulsion.thrusters.num").as_int();
     min_thrust_ = get_parameter("propulsion.thrusters.min").as_int();
     max_thrust_ = get_parameter("propulsion.thrusters.max").as_int();
-
     thrust_configuration = double_array_to_eigen_matrix(
         get_parameter("propulsion.thrusters.configuration_matrix")
             .as_double_array(),
@@ -42,30 +43,72 @@ ThrustAllocator::ThrustAllocator()
 
     pseudoinverse_allocator_.T_pinv =
         calculate_right_pseudoinverse(thrust_configuration);
-
     body_frame_forces_.setZero();
+
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
+        CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+ThrustAllocator::on_activate(const rclcpp_lifecycle::State&) {
+    thruster_forces_publisher_->on_activate();
+    RCLCPP_INFO(get_logger(), "Thruster allocator activated");
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
+        CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+ThrustAllocator::on_deactivate(const rclcpp_lifecycle::State&) {
+    thruster_forces_publisher_->on_deactivate();
+    RCLCPP_INFO(get_logger(), "Thruster allocator deactivated");
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
+        CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+ThrustAllocator::on_cleanup(const rclcpp_lifecycle::State&) {
+    RCLCPP_INFO(get_logger(), "Thruster allocator cleaned up");
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
+        CallbackReturn::SUCCESS;
+}
+
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+ThrustAllocator::on_shutdown(const rclcpp_lifecycle::State&) {
+    thruster_forces_publisher_.reset();
+    wrench_subscriber_.reset();
+    calculate_thrust_timer_.reset();
+    RCLCPP_INFO(get_logger(), "Thruster allocator shutting down");
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
+        CallbackReturn::SUCCESS;
 }
 
 void ThrustAllocator::calculate_thrust_timer_cb() {
+    if (this->get_current_state().id() !=
+        lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+        return;
+    }
+
     Eigen::VectorXd thruster_forces =
         pseudoinverse_allocator_.calculate_allocated_thrust(body_frame_forces_);
-
     if (is_invalid_matrix(thruster_forces)) {
         RCLCPP_ERROR(get_logger(), "ThrusterForces vector invalid, ignoring");
         return;
     }
-
     if (!saturate_vector_values(thruster_forces, min_thrust_, max_thrust_)) {
         RCLCPP_WARN(get_logger(),
                     "Thruster forces vector required saturation.");
     }
-
     std_msgs::msg::Float64MultiArray msg_out;
     array_eigen_to_msg(thruster_forces, msg_out);
     thruster_forces_publisher_->publish(msg_out);
 }
 
 void ThrustAllocator::wrench_callback(const geometry_msgs::msg::Wrench& msg) {
+    if (this->get_current_state().id() !=
+        lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+        return;
+    }
+
     Eigen::Vector3d msg_vector;
     msg_vector(0) = msg.force.x;   // surge
     msg_vector(1) = msg.force.y;   // sway

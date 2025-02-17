@@ -1,19 +1,17 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>thrust_allocator_asv</name>
+  <name>system_monitor</name>
   <version>0.0.0</version>
-  <description>Thrust allocator for ASV</description>
-  <maintainer email="martiniuss.wan@gmail.com">martin</maintainer>
+  <description>A global system monitor to ensure safe autonomous operations</description>
+  <maintainer email="christopher.strom@zeabuz.com">Christopher Strøm</maintainer>
   <license>MIT</license>
 
-  <depend>rclcpp</depend>
-  <depend>rclcpp_lifecycle</depend>
-  <depend>geometry_msgs</depend>
-  <depend>std_msgs</depend>
-  <depend>eigen</depend>
-
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
