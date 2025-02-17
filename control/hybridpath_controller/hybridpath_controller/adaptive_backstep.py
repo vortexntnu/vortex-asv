@@ -1,7 +1,7 @@
 import numpy as np
 from nav_msgs.msg import Odometry
-from vortex_utils.python_utils import quat_to_euler
 from vortex_msgs.msg import HybridpathReference
+from vortex_utils.python_utils import quat_to_euler
 
 
 class AdaptiveBackstep:

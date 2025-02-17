@@ -42,7 +42,7 @@ class HybridPathControllerNode(Node):
         )
         self.hpref_subscriber_ = self.create_subscription(
             HybridpathReference,
-            'guidance/hybridpath/reference',
+            'hybridpath_guidance',
             self.reference_callback,
             1,
         )

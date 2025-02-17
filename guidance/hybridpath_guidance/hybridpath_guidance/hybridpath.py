@@ -71,11 +71,10 @@ class HybridPathGenerator:
         path (Path): The path object.
     """
 
-    def __init__(self, waypoints: list[Point], r: int, lambda_val: float):
-        self.waypoints = waypoints
+    def __init__(self, r: int, lambda_val: float):
         self.r = r
         self.lambda_val = lambda_val
-        self.order = 2 * r + 1
+        self.order = int(2 * r + 1)
 
     def create_path(self, waypoints: list[Point]) -> None:
         """Create a path object.

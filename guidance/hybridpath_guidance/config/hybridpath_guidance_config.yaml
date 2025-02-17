@@ -2,6 +2,6 @@
   ros__parameters:
     hybridpath_guidance:
       lambda_val: 0.15 # Curvature constant
-      path_generator_order: 1 # Differentiability order
+      path_generator_order: 1. # Differentiability order
       dt: 0.1 # Time step
       mu: 0.25 # Tuning parameter, changes how much the path will wait for the vessel if it lags behind

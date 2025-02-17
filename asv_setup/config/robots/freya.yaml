@@ -84,3 +84,4 @@
       odom: "/seapath/odom/ned"
       killswitch: "killswitch"
       operation_mode: "operation_mode"
+      hp_guidance: "hybridpath_guidance"
