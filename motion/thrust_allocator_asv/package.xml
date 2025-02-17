@@ -3,7 +3,7 @@
 <package format="3">
   <name>thrust_allocator_asv</name>
   <version>0.0.0</version>
-  <description>Thurster allocator for ASV</description>
+  <description>Thrust allocator for ASV</description>
   <maintainer email="martiniuss.wan@gmail.com">martin</maintainer>
   <license>MIT</license>
 

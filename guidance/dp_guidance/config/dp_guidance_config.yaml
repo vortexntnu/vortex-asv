@@ -1,4 +1,0 @@
-/**:
-  ros__parameters:
-    dp_guidance:
-      dt: 0.1 # Time step

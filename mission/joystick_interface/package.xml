@@ -4,19 +4,16 @@
   <name>joystick_interface</name>
   <version>0.0.0</version>
   <description>Joystick interface package</description>
-  
-  <maintainer email="aleksos@ntnu.no">aleksos</maintainer>
-  
-  <license>MIT</license>
-  
-  <exec_depend>rclpy</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>ros2launch</exec_depend>
 
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
-  <test_depend>ament_cmake_pytest</test_depend>
+  <maintainer email="aleksos@ntnu.no">aleksos</maintainer>
+
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>joy</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

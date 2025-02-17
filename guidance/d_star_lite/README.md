@@ -13,7 +13,7 @@ A D* lite object consists of these parameters:
 dsl_object = DStarLite(obstacle_x, obstacle_y, start, goal, safe_dist_to_obstacle, origin, height, width)
 ```
 
-where `obstacle_x` and `obstacle_y` are lists containg the x and y coordinates of the obstacles. `start` and `goal` are the start and goal node for the selected mission. `origin`, `height` and `width` are parameters to create the world boundaries and are used to compute `x_min`, `x_max`, `y_min` and `y_max`. See the figures below for visual representation.
+where `obstacle_x` and `obstacle_y` are lists containing the x and y coordinates of the obstacles. `start` and `goal` are the start and goal node for the selected mission. `origin`, `height` and `width` are parameters to create the world boundaries and are used to compute `x_min`, `x_max`, `y_min` and `y_max`. See the figures below for visual representation.
 
 ![World Grid](https://drive.google.com/uc?export=download&id=1RYXcRTjFWMFRhYBMRx5ILmheNvEKahrY)
 
@@ -21,4 +21,3 @@ where `obstacle_x` and `obstacle_y` are lists containg the x and y coordinates o
 
 # D* lite ROS2 node
 The node is responsible for gathering the waypoints found from the algorithm and send them to the waypoint manager. The node receives the mission parameters from the mission planner. It is both a client and a server.
-

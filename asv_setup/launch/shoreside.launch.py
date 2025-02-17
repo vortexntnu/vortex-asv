@@ -1,15 +1,16 @@
 import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import SetEnvironmentVariable, IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_directory
+
 
 def generate_launch_description():
     # Set environment variable
     set_env_var = SetEnvironmentVariable(
-        name='ROSCONSOLE_FORMAT',
-        value='[${severity}] [${time}] [${node}]: ${message}'
+        name='ROSCONSOLE_FORMAT', value='[${severity}] [${time}] [${node}]: ${message}'
     )
 
     # Joystick node
@@ -30,13 +31,12 @@ def generate_launch_description():
     # Joystick interface launch
     joystick_interface_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('joystick_interface'), 'launch/joystick_interface.launch.py')
+            os.path.join(
+                get_package_share_directory('joystick_interface'),
+                'launch/joystick_interface.launch.py',
+            )
         )
     )
 
     # Return launch description
-    return LaunchDescription([
-        set_env_var,
-        joy_node,
-        joystick_interface_launch
-    ])
+    return LaunchDescription([set_env_var, joy_node, joystick_interface_launch])

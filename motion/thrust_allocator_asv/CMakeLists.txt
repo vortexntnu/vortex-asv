@@ -3,7 +3,7 @@ project(thrust_allocator_asv)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
-endif() 
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -18,14 +18,14 @@ find_package(rclcpp_lifecycle REQUIRED)
 
 include_directories(include)
 
-add_executable(${PROJECT_NAME}_node 
-  src/thrust_allocator_asv_node.cpp 
-  src/allocator_ros.cpp 
+add_executable(${PROJECT_NAME}_node
+  src/thrust_allocator_asv_node.cpp
+  src/allocator_ros.cpp
   src/pseudoinverse_allocator.cpp
   )
 
-ament_target_dependencies(${PROJECT_NAME}_node 
-  rclcpp 
+ament_target_dependencies(${PROJECT_NAME}_node
+  rclcpp
   geometry_msgs
   std_msgs
   Eigen3

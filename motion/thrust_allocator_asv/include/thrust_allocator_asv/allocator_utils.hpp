@@ -1,3 +1,4 @@
+
 /**
  * @file allocator_utils.hpp
  * @brief This file contains utility functions for the thruster allocator
@@ -22,10 +23,10 @@
  * @return true if the matrix has any NaN or INF elements, false otherwise.
  */
 template <typename Derived>
-inline bool is_invalid_matrix(const Eigen::MatrixBase<Derived> &M) {
-  bool has_nan = !(M.array() == M.array()).all();
-  bool has_inf = M.array().isInf().any();
-  return has_nan || has_inf;
+inline bool is_invalid_matrix(const Eigen::MatrixBase<Derived>& M) {
+    bool has_nan = !(M.array() == M.array()).all();
+    bool has_inf = M.array().isInf().any();
+    return has_nan || has_inf;
 }
 
 /**
@@ -36,10 +37,10 @@ inline bool is_invalid_matrix(const Eigen::MatrixBase<Derived> &M) {
  * @return std::stringstream The string stream containing the matrix.
  */
 inline std::stringstream print_matrix(std::string name,
-                                      const Eigen::MatrixXd &M) {
-  std::stringstream ss;
-  ss << std::endl << name << " = " << std::endl << M;
-  return ss;
+                                      const Eigen::MatrixXd& M) {
+    std::stringstream ss;
+    ss << std::endl << name << " = " << std::endl << M;
+    return ss;
 }
 
 /**
@@ -49,13 +50,14 @@ inline std::stringstream print_matrix(std::string name,
  * @throws char* if the pseudoinverse is invalid.
  * @return The pseudoinverse of the given matrix.
  */
-inline Eigen::MatrixXd calculate_right_pseudoinverse(const Eigen::MatrixXd &T) {
-  Eigen::MatrixXd pseudoinverse = T.transpose() * (T * T.transpose()).inverse();
-  // pseudoinverse.completeOrthogonalDecomposition().pseudoInverse();
-  if (is_invalid_matrix(pseudoinverse)) {
-    throw std::runtime_error("Invalid Psuedoinverse Calculated");
-  }
-  return pseudoinverse;
+inline Eigen::MatrixXd calculate_right_pseudoinverse(const Eigen::MatrixXd& T) {
+    Eigen::MatrixXd pseudoinverse =
+        T.transpose() * (T * T.transpose()).inverse();
+    // pseudoinverse.completeOrthogonalDecomposition().pseudoInverse();
+    if (is_invalid_matrix(pseudoinverse)) {
+        throw std::runtime_error("Invalid Pseudoinverse Calculated");
+    }
+    return pseudoinverse;
 }
 
 /**
@@ -68,17 +70,18 @@ inline Eigen::MatrixXd calculate_right_pseudoinverse(const Eigen::MatrixXd &T) {
  * @return True if all vector values are within the given range, false
  * otherwise.
  */
-inline bool saturate_vector_values(Eigen::VectorXd &vec, double min,
+inline bool saturate_vector_values(Eigen::VectorXd& vec,
+                                   double min,
                                    double max) {
-  bool all_values_in_range =
-      std::all_of(vec.begin(), vec.end(),
-                  [min, max](double val) { return val >= min && val <= max; });
+    bool all_values_in_range = std::all_of(
+        vec.begin(), vec.end(),
+        [min, max](double val) { return val >= min && val <= max; });
 
-  std::transform(vec.begin(), vec.end(), vec.begin(), [min, max](double val) {
-    return std::min(std::max(val, min), max);
-  });
+    std::transform(vec.begin(), vec.end(), vec.begin(), [min, max](double val) {
+        return std::min(std::max(val, min), max);
+    });
 
-  return all_values_in_range;
+    return all_values_in_range;
 }
 
 /**
@@ -90,9 +93,9 @@ inline bool saturate_vector_values(Eigen::VectorXd &vec, double min,
  * converted values.
  */
 
-inline void array_eigen_to_msg(const Eigen::VectorXd &u,
-                               std_msgs::msg::Float64MultiArray &msg) {
-  msg.data.assign(u.data(), u.data() + u.size());
+inline void array_eigen_to_msg(const Eigen::VectorXd& u,
+                               std_msgs::msg::Float64MultiArray& msg) {
+    msg.data.assign(u.data(), u.data() + u.size());
 }
 
 /**
@@ -103,12 +106,13 @@ inline void array_eigen_to_msg(const Eigen::VectorXd &u,
  * @param cols The number of columns in the resulting Eigen matrix.
  * @return The resulting Eigen matrix.
  */
-inline Eigen::MatrixXd
-double_array_to_eigen_matrix(const std::vector<double> &matrix, int rows,
-                             int cols) {
-  return Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
-                                        Eigen::RowMajor>>(matrix.data(), rows,
-                                                          cols);
+inline Eigen::MatrixXd double_array_to_eigen_matrix(
+    const std::vector<double>& matrix,
+    int rows,
+    int cols) {
+    return Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic,
+                                          Eigen::Dynamic, Eigen::RowMajor>>(
+        matrix.data(), rows, cols);
 }
 
-#endif // VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
+#endif  // VORTEX_ALLOCATOR_ALLOCATOR_UTILS_HPP
