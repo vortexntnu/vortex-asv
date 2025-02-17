@@ -91,9 +91,7 @@ class JoystickInterface(Node):
 
         self.joystick_axes_map_ = []
 
-        self.joy_subscriber_ = self.create_subscription(
-            Joy, "joy", self.joystick_cb, 1
-        )
+        self.joy_subscriber_ = self.create_subscription(Joy, "joy", self.joystick_cb, 1)
         self.wrench_publisher_ = self.create_publisher(Wrench, "wrench_input", 1)
 
         self.set_stationkeeping_pose_client = self.create_client(

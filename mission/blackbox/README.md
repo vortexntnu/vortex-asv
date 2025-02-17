@@ -15,9 +15,9 @@ internal/status/bms1
 /pwm
 
 
-## Service file bootup
+## Service file boot up
 
-To start the blackbox loging automatically every time on boot up just run this command:
+To start the blackbox logging automatically every time on boot up just run this command:
 ```
 ./vortex-asv/add_service_files_to_bootup_sequence.sh
 ```
