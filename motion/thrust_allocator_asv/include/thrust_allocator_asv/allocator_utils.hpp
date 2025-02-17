@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <std_msgs/msg/float32_multi_array.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 
 /**
  * @brief Check if the matrix has any NaN or INF elements.
@@ -91,10 +91,9 @@ inline bool saturate_vector_values(Eigen::VectorXd& vec,
  * @param msg The std_msgs::msg::Float32MultiArray message to store the
  * converted values.
  */
-#include <std_msgs/msg/float32_multi_array.hpp>
 
 inline void array_eigen_to_msg(const Eigen::VectorXd& u,
-                               std_msgs::msg::Float32MultiArray& msg) {
+                               std_msgs::msg::Float64MultiArray& msg) {
     msg.data.assign(u.data(), u.data() + u.size());
 }
 

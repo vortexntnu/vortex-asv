@@ -14,7 +14,7 @@
 #include "thrust_allocator_asv/pseudoinverse_allocator.hpp"
 
 #include <geometry_msgs/msg/wrench.hpp>
-#include <std_msgs/msg/float32_multi_array.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 
 using namespace std::chrono_literals;
 
@@ -39,7 +39,7 @@ class ThrustAllocator : public rclcpp::Node {
      * @param msg The received geometry_msgs::msg::Wrench message.
      */
     void wrench_callback(const geometry_msgs::msg::Wrench& msg);
-    rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr
         thruster_forces_publisher_;
     rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr
         wrench_subscriber_;

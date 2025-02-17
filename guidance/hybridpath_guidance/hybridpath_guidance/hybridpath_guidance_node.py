@@ -8,9 +8,8 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, qos_profile_sensor_data
 from std_msgs.msg import Bool, Float32, String
 from std_srvs.srv import Empty
-from transforms3d.euler import quat2euler
+from vortex_utils.python_utils import quat_to_euler
 from vortex_msgs.msg import HybridpathReference
-from vortex_msgs.srv import DesiredHeading, DesiredVelocity, Waypoint
 
 from hybridpath_guidance.hybridpath import HybridPathGenerator, HybridPathSignals
 
@@ -34,13 +33,6 @@ class Guidance(Node):
             ],
         )
 
-        # Create services, subscribers and publishers
-        self.waypoint_server = self.create_service(
-            Waypoint, 'waypoint_list', self.waypoint_callback
-        )
-        self.u_desired_server = self.create_service(
-            DesiredVelocity, 'u_desired', self.u_desired_callback
-        )
         self.eta_subscriber_ = self.create_subscription(
             Odometry, '/seapath/odom/ned', self.eta_callback, qos_profile=qos_profile
         )
@@ -48,9 +40,6 @@ class Guidance(Node):
 
         self.guidance_publisher = self.create_publisher(
             HybridpathReference, 'guidance/hybridpath/reference', 1
-        )
-        self.heading_server = self.create_service(
-            DesiredHeading, 'heading_reference', self.heading_ref_callback
         )
 
         self.operational_mode_subscriber = self.create_subscription(
@@ -167,7 +156,7 @@ class Guidance(Node):
 
             self.waypoints_received = True
             self.waiting_message_printed = (
-                False  # Reset this flag to handle multiple waypoint sets
+                False
             )
             self.first_pos_flag = False
 
@@ -285,14 +274,13 @@ class Guidance(Node):
         y = msg.pose.pose.position.y
         orientation_q = msg.pose.pose.orientation
         orientation_list = [
-            orientation_q.w,
             orientation_q.x,
             orientation_q.y,
             orientation_q.z,
+            orientation_q.w,
         ]
 
-        # Convert quaternion to Euler angles
-        heading = quat2euler(orientation_list)[2]
+        heading = quat_to_euler(*orientation_list)[2]
 
         state = np.array([x, y, heading])
 

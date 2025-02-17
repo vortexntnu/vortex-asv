@@ -13,6 +13,7 @@
   <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>vortex_msgs</depend>
+  <depend>vortex_utils</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

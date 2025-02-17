@@ -10,6 +10,7 @@ def generate_launch_description():
         package='joystick_interface',
         executable='joystick_interface.py',
         name='joystick_interface',
+        namespace='freya',
         output='screen',
         parameters=[
             os.path.join(

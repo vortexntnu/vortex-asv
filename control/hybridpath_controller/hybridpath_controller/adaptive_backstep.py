@@ -1,6 +1,6 @@
 import numpy as np
 from nav_msgs.msg import Odometry
-from transforms3d.euler import quat2euler
+from vortex_utils.python_utils import quat_to_euler
 from vortex_msgs.msg import HybridpathReference
 
 
@@ -148,16 +148,13 @@ class AdaptiveBackstep:
         y = msg.pose.pose.position.y
         orientation_q = msg.pose.pose.orientation
         orientation_list = [
-            orientation_q.w,
             orientation_q.x,
             orientation_q.y,
             orientation_q.z,
+            orientation_q.w,
         ]
 
-        # Convert quaternion to Euler angles
-        yaw = quat2euler(orientation_list)[2]
-
-        # yaw = np.deg2rad(yaw)
+        yaw = quat_to_euler(*orientation_list)[2]
 
         u = msg.twist.twist.linear.x
         v = msg.twist.twist.linear.y

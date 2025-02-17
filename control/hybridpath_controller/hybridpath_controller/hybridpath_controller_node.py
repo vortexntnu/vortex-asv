@@ -7,7 +7,7 @@ from nav_msgs.msg import Odometry
 from rcl_interfaces.msg import SetParametersResult
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, qos_profile_sensor_data
-from std_msgs.msg import Bool, Float64MultiArray, String
+from std_msgs.msg import Bool, String
 from vortex_msgs.msg import HybridpathReference
 
 from hybridpath_controller.adaptive_backstep import AdaptiveBackstep
@@ -53,19 +53,6 @@ class HybridPathControllerNode(Node):
         self.killswitch_subscriber = self.create_subscription(
             Bool, 'softWareKillSwitch', self.killswitch_callback, 10
         )
-
-        # Debug publishers
-        self.eta_error_publisher = self.create_publisher(
-            Float64MultiArray, 'eta_error', 10
-        )
-        self.z1_publisher = self.create_publisher(Float64MultiArray, 'z1', 10)
-        self.alpha1_publisher = self.create_publisher(Float64MultiArray, 'alpha1', 10)
-        self.z2_publisher = self.create_publisher(Float64MultiArray, 'z2', 10)
-        self.ds_alpha1_publisher = self.create_publisher(
-            Float64MultiArray, 'ds_alpha1', 10
-        )
-        self.sigma1_publisher = self.create_publisher(Float64MultiArray, 'sigma1', 10)
-        self.tau_publisher = self.create_publisher(Float64MultiArray, 'tau', 10)
 
         self.backstepping_controller_ = AdaptiveBackstep()
 
@@ -156,35 +143,6 @@ class HybridPathControllerNode(Node):
             wrench_msg.force.y = control_input[1]
             wrench_msg.torque.z = control_input[2]
             self.wrench_publisher_.publish(wrench_msg)
-
-            # Debug publishers
-            eta_error_msg = Float64MultiArray()
-            eta_error_msg.data = self.backstepping_controller_.get_eta_error().tolist()
-            self.eta_error_publisher.publish(eta_error_msg)
-
-            z1_msg = Float64MultiArray()
-            z1_msg.data = self.backstepping_controller_.get_z1().tolist()
-            self.z1_publisher.publish(z1_msg)
-
-            alpha1_msg = Float64MultiArray()
-            alpha1_msg.data = self.backstepping_controller_.get_alpha1().tolist()
-            self.alpha1_publisher.publish(alpha1_msg)
-
-            z2_msg = Float64MultiArray()
-            z2_msg.data = self.backstepping_controller_.get_z2().tolist()
-            self.z2_publisher.publish(z2_msg)
-
-            ds_alpha1_msg = Float64MultiArray()
-            ds_alpha1_msg.data = self.backstepping_controller_.get_ds_alpha1().tolist()
-            self.ds_alpha1_publisher.publish(ds_alpha1_msg)
-
-            sigma1_msg = Float64MultiArray()
-            sigma1_msg.data = self.backstepping_controller_.get_sigma1().tolist()
-            self.sigma1_publisher.publish(sigma1_msg)
-
-            tau_msg = Float64MultiArray()
-            tau_msg.data = control_input.tolist()
-            self.tau_publisher.publish(tau_msg)
 
 
 def main(args=None):
