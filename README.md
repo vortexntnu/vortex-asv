@@ -19,3 +19,6 @@ ros_ws/
 │   └── vortex-asv/
 │   └── vortex-msgs/
 ```
+
+## Additional Repositories
+This project requires additional repositories, which are listed in the [dependencies.repos](dependencies.repos) file, add these to your workspace.
