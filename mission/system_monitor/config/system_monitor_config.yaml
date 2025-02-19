@@ -1,4 +1,4 @@
-system_monitor:
+/**:
   ros__parameters:
     ip_list:
       - "10.0.1.10"

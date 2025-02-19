@@ -4,7 +4,7 @@
 class ThrusterInterfaceASVNode : public rclcpp::Node {
    private:
     // ROS2 Variables ----------
-    rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr
+    rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr
         _subscriberThrusterForces;
     rclcpp::Publisher<std_msgs::msg::Int16MultiArray>::SharedPtr _publisherPWM;
     rclcpp::TimerBase::SharedPtr _thruster_driver_timer;
@@ -16,7 +16,7 @@ class ThrusterInterfaceASVNode : public rclcpp::Node {
 
     // Methods ----------
     void _thruster_forces_callback(
-        const std_msgs::msg::Float32MultiArray::SharedPtr msg) const {
+        const std_msgs::msg::Float64MultiArray::SharedPtr msg) const {
         // Save subscribed topic values into universal array for further usage
         for (size_t i = 0; i < 4; i++) {
             _thrusterForces[i] = msg->data[i];
@@ -110,15 +110,23 @@ class ThrusterInterfaceASVNode : public rclcpp::Node {
 
         // ROS Setup ----------
         // Initialize ROS2 thrusterForces subscriber
+
+        this->declare_parameter<std::string>("topics.thruster_forces");
+        this->declare_parameter<std::string>("topics.pwm_output");
+        std::string thruster_forces_topic =
+            this->get_parameter("topics.thruster_forces").as_string(); 
+        std::string pwm_output_topic =
+            this->get_parameter("topics.pwm_output").as_string();
+
         _subscriberThrusterForces =
-            this->create_subscription<std_msgs::msg::Float32MultiArray>(
-                "/thrust/thruster_forces", 5,
+            this->create_subscription<std_msgs::msg::Float64MultiArray>(
+                thruster_forces_topic, 5,
                 std::bind(&ThrusterInterfaceASVNode::_thruster_forces_callback,
                           this, std::placeholders::_1));
 
         // Initialize ROS2 pwm publisher
         _publisherPWM =
-            this->create_publisher<std_msgs::msg::Int16MultiArray>("/pwm", 5);
+            this->create_publisher<std_msgs::msg::Int16MultiArray>(pwm_output_topic, 5);
 
         // Initialize a never ending cycle that continuously publishes and
         // drives thrusters depending on what the ThrusterForces value is set to

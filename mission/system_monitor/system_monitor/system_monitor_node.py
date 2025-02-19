@@ -22,8 +22,9 @@ class SystemMonitor(Node):
         self.declare_parameter("ping_rate", rclpy.Parameter.Type.DOUBLE)
         ping_rate = self.get_parameter("ping_rate").get_parameter_value().double_value
 
+        self.declare_parameter("topics.thruster_forces", "_")
         self.m_force_publisher = self.create_publisher(
-            Float64MultiArray, 'thruster_forces', 5
+            Float64MultiArray, self.get_parameter("topics.thruster_forces").value, 5
         )
         self.m_timer = self.create_timer(ping_rate, self.timer_callback)
 

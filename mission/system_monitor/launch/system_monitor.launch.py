@@ -12,13 +12,21 @@ def generate_launch_description():
         'system_monitor_config.yaml',
     )
 
+    freya_config = os.path.join(
+        get_package_share_directory('asv_setup'),
+        'config',
+        'robots',
+        'freya.yaml',
+    )
+
     system_monitor_node = Node(
         package='system_monitor',
         executable='system_monitor_node.py',
         name='system_monitor',
+        namespace='freya',
         output='screen',
         emulate_tty=True,
-        parameters=[config],
+        parameters=[config, freya_config],
     )
 
     return LaunchDescription([system_monitor_node])

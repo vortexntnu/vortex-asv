@@ -32,26 +32,28 @@ class HybridPathControllerNode(Node):
             ],
         )
 
+        self.get_topics()
+
         self.parameters_updated = False
 
         self.killswitch_active = False
         self.operational_mode = 'autonomous mode'
 
         self.state_subscriber_ = self.state_subscriber_ = self.create_subscription(
-            Odometry, '/seapath/odom/ned', self.state_callback, qos_profile=qos_profile
+            Odometry, self.odom_topic, self.state_callback, qos_profile=qos_profile
         )
         self.hpref_subscriber_ = self.create_subscription(
             HybridpathReference,
-            'hybridpath_guidance',
+            self.hp_guidance_topic,
             self.reference_callback,
             1,
         )
-        self.wrench_publisher_ = self.create_publisher(Wrench, 'wrench_input', 1)
+        self.wrench_publisher_ = self.create_publisher(Wrench, self.wrench_input_topic, 1)
         self.operational_mode_subscriber = self.create_subscription(
-            String, 'softWareOperationMode', self.operation_mode_callback, 10
+            String, self.operation_mode_topic, self.operation_mode_callback, 10
         )
         self.killswitch_subscriber = self.create_subscription(
-            Bool, 'softWareKillSwitch', self.killswitch_callback, 10
+            Bool, self.killswitch_topic, self.killswitch_callback, 10
         )
 
         self.backstepping_controller_ = AdaptiveBackstep()
@@ -117,6 +119,19 @@ class HybridPathControllerNode(Node):
 
         # self.update_controller_parameters()
         return SetParametersResult(successful=True)
+    
+    def get_topics(self):
+        topics = [
+            "odom",
+            "hp_guidance",
+            "wrench_input",
+            "killswitch",
+            "operation_mode",
+        ]
+
+        for topic in topics:
+            self.declare_parameter(f"topics.{topic}", "_")
+            setattr(self, f"{topic}_topic", self.get_parameter(f"topics.{topic}").value)
 
     def state_callback(self, msg: Odometry):
         """Callback function for the Odometry message. This function saves the state message."""

@@ -16,6 +16,8 @@ ThrustAllocator::ThrustAllocator()
     declare_parameter("propulsion.thrusters.max", 100);
     declare_parameter("propulsion.thrusters.configuration_matrix",
                       std::vector<double>{0});
+    declare_parameter<std::string>("topics.wrench_input");
+    declare_parameter<std::string>("topics.thruster_forces");
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -28,15 +30,17 @@ ThrustAllocator::on_configure(const rclcpp_lifecycle::State&) {
         get_parameter("propulsion.thrusters.configuration_matrix")
             .as_double_array(),
         num_dof_, num_thrusters_);
-
+    
+    std::string wrench_input_topic = get_parameter("topics.wrench_input").as_string();
+    std::string thruster_forces_topic = get_parameter("topics.thruster_forces").as_string();
     wrench_subscriber_ = this->create_subscription<geometry_msgs::msg::Wrench>(
-        "wrench_input", 1,
+        wrench_input_topic, 1,
         std::bind(&ThrustAllocator::wrench_callback, this,
                   std::placeholders::_1));
 
     thruster_forces_publisher_ =
         this->create_publisher<std_msgs::msg::Float64MultiArray>(
-            "thruster_forces", 1);
+            thruster_forces_topic, 1);
 
     calculate_thrust_timer_ = this->create_wall_timer(
         100ms, std::bind(&ThrustAllocator::calculate_thrust_timer_cb, this));
@@ -52,7 +56,7 @@ ThrustAllocator::on_configure(const rclcpp_lifecycle::State&) {
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ThrustAllocator::on_activate(const rclcpp_lifecycle::State&) {
     thruster_forces_publisher_->on_activate();
-    RCLCPP_INFO(get_logger(), "Thruster allocator activated");
+    RCLCPP_INFO(get_logger(), "Thrust allocator activated");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
         CallbackReturn::SUCCESS;
 }
@@ -60,14 +64,14 @@ ThrustAllocator::on_activate(const rclcpp_lifecycle::State&) {
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ThrustAllocator::on_deactivate(const rclcpp_lifecycle::State&) {
     thruster_forces_publisher_->on_deactivate();
-    RCLCPP_INFO(get_logger(), "Thruster allocator deactivated");
+    RCLCPP_INFO(get_logger(), "Thrust allocator deactivated");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
         CallbackReturn::SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ThrustAllocator::on_cleanup(const rclcpp_lifecycle::State&) {
-    RCLCPP_INFO(get_logger(), "Thruster allocator cleaned up");
+    RCLCPP_INFO(get_logger(), "Thrust allocator cleaned up");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
         CallbackReturn::SUCCESS;
 }
@@ -77,7 +81,7 @@ ThrustAllocator::on_shutdown(const rclcpp_lifecycle::State&) {
     thruster_forces_publisher_.reset();
     wrench_subscriber_.reset();
     calculate_thrust_timer_.reset();
-    RCLCPP_INFO(get_logger(), "Thruster allocator shutting down");
+    RCLCPP_INFO(get_logger(), "Thrust allocator shutting down");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
         CallbackReturn::SUCCESS;
 }
@@ -91,12 +95,12 @@ void ThrustAllocator::calculate_thrust_timer_cb() {
     Eigen::VectorXd thruster_forces =
         pseudoinverse_allocator_.calculate_allocated_thrust(body_frame_forces_);
     if (is_invalid_matrix(thruster_forces)) {
-        RCLCPP_ERROR(get_logger(), "ThrusterForces vector invalid, ignoring");
+        RCLCPP_ERROR(get_logger(), "ThrustForces vector invalid, ignoring");
         return;
     }
     if (!saturate_vector_values(thruster_forces, min_thrust_, max_thrust_)) {
         RCLCPP_WARN(get_logger(),
-                    "Thruster forces vector required saturation.");
+                    "ThrustForces vector required saturation.");
     }
     std_msgs::msg::Float64MultiArray msg_out;
     array_eigen_to_msg(thruster_forces, msg_out);

@@ -31,20 +31,21 @@ class HybridpathGuidanceNode(Node):
         super().__init__("hp_guidance")
         self.goal_handle_: ServerGoalHandle = None
         self.goal_lock_ = threading.Lock()
-        self.action_server_ = ActionServer(
-            self,
-            HybridpathGuidance,
-            'hybridpath_guidance',
-            goal_callback=self.goal_callback,
-            cancel_callback=self.cancel_callback,
-            execute_callback=self.execute_callback,
-            callback_group=ReentrantCallbackGroup(),
-        )
 
         self.init_parameters()
         self.init_subscriber()
         self.init_publisher()
         self.init_hybridpath()
+
+        self.action_server_ = ActionServer(
+            self,
+            HybridpathGuidance,
+            self.get_parameter('action_servers.hp_guidance').value,
+            goal_callback=self.goal_callback,
+            cancel_callback=self.cancel_callback,
+            execute_callback=self.execute_callback,
+            callback_group=ReentrantCallbackGroup(),
+        )
 
         self.get_logger().info("Hybridpath guidance node initialized")
 
@@ -63,6 +64,8 @@ class HybridpathGuidanceNode(Node):
 
         for topic in topics:
             self.declare_parameter(f'topics.{topic}', '_')
+
+        self.declare_parameter('action_servers.hp_guidance', '_')
 
     def init_subscriber(self):
         self.odom_sub_ = self.create_subscription(

@@ -85,3 +85,6 @@
       killswitch: "killswitch"
       operation_mode: "operation_mode"
       hp_guidance: "hybridpath_guidance"
+
+    action_servers:
+      hp_guidance: "hybridpath_guidance"
