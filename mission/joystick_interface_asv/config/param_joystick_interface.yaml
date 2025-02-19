@@ -1,5 +1,6 @@
-joystick_interface:
+/**:
   ros__parameters:
     surge_scale_factor: 300.0
     sway_scale_factor: 300.0
     yaw_scale_factor: 180.0
+    debounce_duration: 0.25

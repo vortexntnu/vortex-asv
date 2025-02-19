@@ -1,127 +1,56 @@
 #!/usr/bin/env python3
+
 import rclpy
 from geometry_msgs.msg import Wrench
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool, String
-from std_srvs.srv import Empty
-
-
-class States:
-    XBOX_MODE = 1
-    AUTONOMOUS_MODE = 2
-    NO_GO = 3
-
-
-class Wired:
-    joystick_buttons_map_ = [
-        "A",
-        "B",
-        "X",
-        "Y",
-        "LB",
-        "RB",
-        "back",
-        "start",
-        "power",
-        "stick_button_left",
-        "stick_button_right",
-        "share_button",
-    ]
-
-    joystick_axes_map_ = [
-        "horizontal_axis_left_stick",  # Sway
-        "vertical_axis_left_stick",  # Surge
-        "LT",  # Negative thrust/torque multiplier
-        "horizontal_axis_right_stick",  # Yaw
-        "vertical_axis_right_stick",
-        "RT",  # Positive thrust/torque multiplier
-        "dpad_horizontal",
-        "dpad_vertical",
-    ]
-
-
-class WirelessXboxSeriesX:
-    joystick_buttons_map_ = [
-        "A",
-        "B",
-        "0",
-        "X",
-        "Y",
-        "0",
-        "LB",
-        "RB",
-        "0",
-        "0",
-        "back",
-        "start",
-        "power",
-        "stick_button_left",
-        "stick_button_right",
-        "share_button",
-    ]
-
-    joystick_axes_map_ = [
-        "horizontal_axis_left_stick",  # Sway
-        "vertical_axis_left_stick",  # Surge
-        "horizontal_axis_right_stick",  # Yaw
-        "vertical_axis_right_stick",
-        "RT",  # Positive thrust/torque multiplier
-        "LT",  # Negative thrust/torque multiplier
-        "dpad_horizontal",
-        "dpad_vertical",
-    ]
-
+from joystick_interface_asv.joystick_utils import Wired, WirelessXboxSeriesX, States
 
 class JoystickInterface(Node):
     def __init__(self):
         super().__init__('joystick_interface_node')
-        self.get_logger().info(
-            "Joystick interface is up and running. \n When the XBOX controller is connected, press the killswitch button once to enter XBOX mode."
-        )
 
-        self.last_button_press_time_ = 0
-        self.debounce_duration_ = 0.25
-        self.state_ = States.NO_GO
-        self.previous_state_ = None
-
+        self.last_button_press_time_ = 0 
+        self.mode_ = States.KILLSWITCH
+        self.joystick_buttons_map_ = []
+        self.joystick_axes_map_ = []
+        self.previous_state_ = States.KILLSWITCH
         self.mode_logger_done_ = False
 
-        self.joystick_buttons_map_ = []
+        self.get_params()
+        self.set_publishers_and_subscribers()
 
-        self.joystick_axes_map_ = []
-
-        self.joy_subscriber_ = self.create_subscription(Joy, "joy", self.joystick_cb, 1)
-        self.wrench_publisher_ = self.create_publisher(Wrench, "wrench_input", 1)
-
-        self.set_stationkeeping_pose_client = self.create_client(
-            Empty, 'set_stationkeeping_pose'
+        self.get_logger().info(
+            f"Joystick interface node started. Current mode: {self.mode_}"
         )
 
-        self.declare_parameter('surge_scale_factor', 50.0)
-        self.declare_parameter('sway_scale_factor', 50.0)
-        self.declare_parameter('yaw_scale_factor', 50.0)
+    def get_params(self):
+        self.surge_scale_ = self.declare_parameter("surge_scale_factor", 1.0).get_parameter_value().double_value
+        self.sway_scale_ = self.declare_parameter("sway_scale_factor", 1.0).get_parameter_value().double_value
+        self.yaw_scale_ = self.declare_parameter("yaw_scale_factor", 1.0).get_parameter_value().double_value
+        self.debounce_duration_ = self.declare_parameter("debounce_duration", 1.0).get_parameter_value().double_value
+        
+        topics = [
+            "wrench",
+            "operation_mode",
+            "killswitch",
+            "joy",
+        ]
 
-        # Gets the scaling factors from the yaml file
-        self.joystick_surge_scaling_ = self.get_parameter('surge_scale_factor').value
-        self.joystick_sway_scaling_ = self.get_parameter('sway_scale_factor').value
-        self.joystick_yaw_scaling_ = self.get_parameter('yaw_scale_factor').value
+        for topic in topics:
+            self.declare_parameter(f"topics.{topic}", "_")
+            setattr(
+                self,
+                f"{topic}_topic",
+                self.get_parameter(f"topics.{topic}").value,
+            )
 
-        # Killswitch publisher
-        self.software_killswitch_signal_publisher_ = self.create_publisher(
-            Bool, "softWareKillSwitch", 10
-        )
-        self.software_killswitch_signal_publisher_.publish(
-            Bool(data=True)
-        )  # Killswitch is not active
-
-        # Operational mode publisher
-        self.operational_mode_signal_publisher_ = self.create_publisher(
-            String, "softWareOperationMode", 10
-        )
-
-        # Signal that we are not in autonomous mode
-        self.operational_mode_signal_publisher_.publish(String(data="XBOX"))
+    def set_publishers_and_subscribers(self):
+        self.wrench_publisher_ = self.create_publisher(Wrench, self.wrench_topic, 1)
+        self.operational_mode_signal_publisher_ = self.create_publisher(String, self.operation_mode_topic, 1)
+        self.software_killswitch_signal_publisher_ = self.create_publisher(Bool, self.killswitch_topic, 1)
+        self.joystick_subscriber_ = self.create_subscription(Joy, "joy", self.joystick_cb, 10)
 
     def right_trigger_linear_converter(self, rt_input: float) -> float:
         """Does a linear conversion from the right trigger input range of (1 to -1) to (1 to 2).
@@ -169,7 +98,7 @@ class JoystickInterface(Node):
         msg = String()
         msg.data = "XBOX"
         self.operational_mode_signal_publisher_.publish(msg)
-        self.state_ = States.XBOX_MODE
+        self.mode_ = States.XBOX_MODE
         self.previous_state_ = States.XBOX_MODE
         self.mode_logger_done_ = False
 
@@ -180,19 +109,9 @@ class JoystickInterface(Node):
         msg = String()
         msg.data = "autonomous mode"
         self.operational_mode_signal_publisher_.publish(msg)
-        self.state_ = States.AUTONOMOUS_MODE
+        self.mode_ = States.AUTONOMOUS_MODE
         self.previous_state_ = States.AUTONOMOUS_MODE
         self.mode_logger_done_ = False
-
-    def set_stationkeeping_pose(self):
-        """Calls a service to set the current position as the stationkeeping position.
-
-        This function communicates with the guidance system to set the AUV’s current
-        position as the stationkeeping reference point.
-        """
-        request = Empty.Request()
-        future = self.set_stationkeeping_pose_client.call_async(request)
-        future.add_done_callback(self.set_stationkeeping_pose_callback)
 
     def set_stationkeeping_pose_callback(self, future):
         """Callback function for the set_stationkeeping_pose service."""
@@ -252,19 +171,19 @@ class JoystickInterface(Node):
 
         surge = (
             axes.get("vertical_axis_left_stick", 0.0)
-            * self.joystick_surge_scaling_
+            * self.surge_scale_
             * left_trigger
             * right_trigger
         )
         sway = (
             -axes.get("horizontal_axis_left_stick", 0.0)
-            * self.joystick_sway_scaling_
+            * self.sway_scale_
             * left_trigger
             * right_trigger
         )
         yaw = (
             -axes.get("horizontal_axis_right_stick", 0.0)
-            * self.joystick_yaw_scaling_
+            * self.yaw_scale_
             * left_trigger
             * right_trigger
         )
@@ -273,22 +192,18 @@ class JoystickInterface(Node):
         if current_time - self.last_button_press_time_ < self.debounce_duration_:
             software_control_mode_button = False
             xbox_control_mode_button = False
-            software_killswitch_button = False
-            software_set_home_button = False
 
         # If any button is pressed, update the last button press time
         if (
             software_control_mode_button
             or xbox_control_mode_button
             or software_killswitch_button
-            or software_set_home_button
         ):
             self.last_button_press_time_ = current_time
 
         # Toggle ks on and off
         if software_killswitch_button:
-            if self.state_ == States.NO_GO:
-                # signal that killswitch is not blocking
+            if self.mode_ == States.KILLSWITCH:
                 self.software_killswitch_signal_publisher_.publish(Bool(data=False))
 
                 if self.previous_state_ == States.XBOX_MODE:
@@ -300,18 +215,16 @@ class JoystickInterface(Node):
 
             else:
                 self.get_logger().info("SW killswitch", throttle_duration_sec=1)
-                # signal that killswitch is blocking
                 self.software_killswitch_signal_publisher_.publish(Bool(data=True))
-                # Publish a zero wrench message when sw killing
                 wrench_msg = self.create_2d_wrench_message(0.0, 0.0, 0.0)
                 self.wrench_publisher_.publish(wrench_msg)
-                self.state_ = States.NO_GO
+                self.mode_ = States.KILLSWITCH
                 return wrench_msg
 
         # Msg published from joystick_interface to thrust allocation
         wrench_msg = self.create_2d_wrench_message(surge, sway, yaw)
 
-        if self.state_ == States.XBOX_MODE:
+        if self.mode_ == States.XBOX_MODE:
             if not self.mode_logger_done_:
                 self.get_logger().info("XBOX mode")
                 self.mode_logger_done_ = True
@@ -321,10 +234,7 @@ class JoystickInterface(Node):
             if software_control_mode_button:
                 self.transition_to_autonomous_mode()
 
-            if software_set_home_button:
-                self.set_stationkeeping_pose()
-
-        elif self.state_ == States.AUTONOMOUS_MODE:
+        elif self.mode_ == States.AUTONOMOUS_MODE:
             if not self.mode_logger_done_:
                 self.get_logger().info("autonomous mode")
                 self.mode_logger_done_ = True
