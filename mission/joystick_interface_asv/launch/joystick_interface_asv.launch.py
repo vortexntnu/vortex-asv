@@ -17,6 +17,7 @@ freya_config = os.path.join(
     'freya.yaml',
 )
 
+
 def generate_launch_description():
     joystick_interface_node = Node(
         package='joystick_interface_asv',

@@ -114,7 +114,7 @@ class ThrusterInterfaceASVNode : public rclcpp::Node {
         this->declare_parameter<std::string>("topics.thruster_forces");
         this->declare_parameter<std::string>("topics.pwm_output");
         std::string thruster_forces_topic =
-            this->get_parameter("topics.thruster_forces").as_string(); 
+            this->get_parameter("topics.thruster_forces").as_string();
         std::string pwm_output_topic =
             this->get_parameter("topics.pwm_output").as_string();
 
@@ -125,8 +125,8 @@ class ThrusterInterfaceASVNode : public rclcpp::Node {
                           this, std::placeholders::_1));
 
         // Initialize ROS2 pwm publisher
-        _publisherPWM =
-            this->create_publisher<std_msgs::msg::Int16MultiArray>(pwm_output_topic, 5);
+        _publisherPWM = this->create_publisher<std_msgs::msg::Int16MultiArray>(
+            pwm_output_topic, 5);
 
         // Initialize a never ending cycle that continuously publishes and
         // drives thrusters depending on what the ThrusterForces value is set to

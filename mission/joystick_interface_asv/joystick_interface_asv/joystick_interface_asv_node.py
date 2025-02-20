@@ -5,13 +5,15 @@ from geometry_msgs.msg import Wrench
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool, String
-from joystick_interface_asv.joystick_utils import Wired, WirelessXboxSeriesX, States
+
+from joystick_interface_asv.joystick_utils import States, Wired, WirelessXboxSeriesX
+
 
 class JoystickInterface(Node):
     def __init__(self):
         super().__init__('joystick_interface_node')
 
-        self.last_button_press_time_ = 0 
+        self.last_button_press_time_ = 0
         self.mode_ = States.KILLSWITCH
         self.joystick_buttons_map_ = []
         self.joystick_axes_map_ = []
@@ -26,11 +28,27 @@ class JoystickInterface(Node):
         )
 
     def get_params(self):
-        self.surge_scale_ = self.declare_parameter("surge_scale_factor", 1.0).get_parameter_value().double_value
-        self.sway_scale_ = self.declare_parameter("sway_scale_factor", 1.0).get_parameter_value().double_value
-        self.yaw_scale_ = self.declare_parameter("yaw_scale_factor", 1.0).get_parameter_value().double_value
-        self.debounce_duration_ = self.declare_parameter("debounce_duration", 1.0).get_parameter_value().double_value
-        
+        self.surge_scale_ = (
+            self.declare_parameter("surge_scale_factor", 1.0)
+            .get_parameter_value()
+            .double_value
+        )
+        self.sway_scale_ = (
+            self.declare_parameter("sway_scale_factor", 1.0)
+            .get_parameter_value()
+            .double_value
+        )
+        self.yaw_scale_ = (
+            self.declare_parameter("yaw_scale_factor", 1.0)
+            .get_parameter_value()
+            .double_value
+        )
+        self.debounce_duration_ = (
+            self.declare_parameter("debounce_duration", 1.0)
+            .get_parameter_value()
+            .double_value
+        )
+
         topics = [
             "wrench",
             "operation_mode",
@@ -48,9 +66,15 @@ class JoystickInterface(Node):
 
     def set_publishers_and_subscribers(self):
         self.wrench_publisher_ = self.create_publisher(Wrench, self.wrench_topic, 1)
-        self.operational_mode_signal_publisher_ = self.create_publisher(String, self.operation_mode_topic, 1)
-        self.software_killswitch_signal_publisher_ = self.create_publisher(Bool, self.killswitch_topic, 1)
-        self.joystick_subscriber_ = self.create_subscription(Joy, "joy", self.joystick_cb, 10)
+        self.operational_mode_signal_publisher_ = self.create_publisher(
+            String, self.operation_mode_topic, 1
+        )
+        self.software_killswitch_signal_publisher_ = self.create_publisher(
+            Bool, self.killswitch_topic, 1
+        )
+        self.joystick_subscriber_ = self.create_subscription(
+            Joy, "joy", self.joystick_cb, 10
+        )
 
     def right_trigger_linear_converter(self, rt_input: float) -> float:
         """Does a linear conversion from the right trigger input range of (1 to -1) to (1 to 2).
@@ -165,7 +189,6 @@ class JoystickInterface(Node):
         xbox_control_mode_button = buttons.get("A", 0)
         software_killswitch_button = buttons.get("B", 0)
         software_control_mode_button = buttons.get("X", 0)
-        software_set_home_button = buttons.get("Y", 0)
         left_trigger = self.left_trigger_linear_converter(axes.get('LT', 0.0))
         right_trigger = self.right_trigger_linear_converter(axes.get('RT', 0.0))
 

@@ -48,7 +48,9 @@ class HybridPathControllerNode(Node):
             self.reference_callback,
             1,
         )
-        self.wrench_publisher_ = self.create_publisher(Wrench, self.wrench_input_topic, 1)
+        self.wrench_publisher_ = self.create_publisher(
+            Wrench, self.wrench_input_topic, 1
+        )
         self.operational_mode_subscriber = self.create_subscription(
             String, self.operation_mode_topic, self.operation_mode_callback, 10
         )
@@ -119,7 +121,7 @@ class HybridPathControllerNode(Node):
 
         # self.update_controller_parameters()
         return SetParametersResult(successful=True)
-    
+
     def get_topics(self):
         topics = [
             "odom",

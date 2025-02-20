@@ -30,9 +30,11 @@ ThrustAllocator::on_configure(const rclcpp_lifecycle::State&) {
         get_parameter("propulsion.thrusters.configuration_matrix")
             .as_double_array(),
         num_dof_, num_thrusters_);
-    
-    std::string wrench_input_topic = get_parameter("topics.wrench_input").as_string();
-    std::string thruster_forces_topic = get_parameter("topics.thruster_forces").as_string();
+
+    std::string wrench_input_topic =
+        get_parameter("topics.wrench_input").as_string();
+    std::string thruster_forces_topic =
+        get_parameter("topics.thruster_forces").as_string();
     wrench_subscriber_ = this->create_subscription<geometry_msgs::msg::Wrench>(
         wrench_input_topic, 1,
         std::bind(&ThrustAllocator::wrench_callback, this,
@@ -99,8 +101,7 @@ void ThrustAllocator::calculate_thrust_timer_cb() {
         return;
     }
     if (!saturate_vector_values(thruster_forces, min_thrust_, max_thrust_)) {
-        RCLCPP_WARN(get_logger(),
-                    "ThrustForces vector required saturation.");
+        RCLCPP_WARN(get_logger(), "ThrustForces vector required saturation.");
     }
     std_msgs::msg::Float64MultiArray msg_out;
     array_eigen_to_msg(thruster_forces, msg_out);
