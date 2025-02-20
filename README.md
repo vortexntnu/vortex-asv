@@ -1,5 +1,5 @@
 # Vortex-ASV
-Vortex ASV software. Purpose built for competing in ASV competitions. 
+Vortex ASV software. Purpose built for competing in ASV competitions.
 
 ## Docker
 ### Prerequisites
@@ -19,3 +19,6 @@ ros_ws/
 │   └── vortex-asv/
 │   └── vortex-msgs/
 ```
+
+## Additional Repositories
+This project requires additional repositories, which are listed in the [dependencies.repos](dependencies.repos) file, add these to your workspace.

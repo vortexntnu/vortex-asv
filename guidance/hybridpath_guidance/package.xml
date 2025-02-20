@@ -7,13 +7,13 @@
   <maintainer email="martiniuss.wan@gmail.com">vortex</maintainer>
   <license>MIT</license>
 
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
   <depend>rclpy</depend>
   <depend>nav_msgs</depend>
-  <depend>python-transforms3d-pip</depend>
   <depend>geometry_msgs</depend>
   <depend>vortex_msgs</depend>
-
-  <test_depend>python3-pytest</test_depend>
+  <depend>vortex_utils</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
