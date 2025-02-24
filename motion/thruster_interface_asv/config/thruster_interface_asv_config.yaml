@@ -1,0 +1,12 @@
+/**:
+  ros__parameters:
+    coeffs:
+      LEFT: [0.04171, 2.13177, 2.13177, 1521.64815]
+      RIGHT: [0.05127, 3.51027, 3.51027, 1479.85269]
+
+    i2c:
+      bus: 1
+      address: 0x21
+
+    debug:
+      flag: False
