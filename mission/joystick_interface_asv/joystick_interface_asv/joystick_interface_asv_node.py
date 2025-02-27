@@ -50,7 +50,7 @@ class JoystickInterface(Node):
         )
 
         topics = [
-            "wrench",
+            "wrench_input",
             "operation_mode",
             "killswitch",
             "joy",
@@ -65,7 +65,9 @@ class JoystickInterface(Node):
             )
 
     def set_publishers_and_subscribers(self):
-        self.wrench_publisher_ = self.create_publisher(Wrench, self.wrench_topic, 1)
+        self.wrench_publisher_ = self.create_publisher(
+            Wrench, self.wrench_input_topic, 1
+        )
         self.operational_mode_signal_publisher_ = self.create_publisher(
             String, self.operation_mode_topic, 1
         )
@@ -73,8 +75,7 @@ class JoystickInterface(Node):
             Bool, self.killswitch_topic, 1
         )
         self.joystick_subscriber_ = self.create_subscription(
-            Joy, "joy", self.joystick_cb, 10
-        )
+            Joy, self.joy_topic, self.joystick_cb, 10)
 
     def right_trigger_linear_converter(self, rt_input: float) -> float:
         """Does a linear conversion from the right trigger input range of (1 to -1) to (1 to 2).
@@ -136,14 +137,6 @@ class JoystickInterface(Node):
         self.mode_ = States.AUTONOMOUS_MODE
         self.previous_state_ = States.AUTONOMOUS_MODE
         self.mode_logger_done_ = False
-
-    def set_stationkeeping_pose_callback(self, future):
-        """Callback function for the set_stationkeeping_pose service."""
-        try:
-            response = future.result()
-            self.get_logger().info(f"Response: {response}")
-        except Exception as e:
-            self.get_logger().info(f"Service call failed {str(e)}")
 
     def joystick_cb(self, msg: Joy):
         """Receives joy messages and converts them into wrench messages.
