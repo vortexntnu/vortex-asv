@@ -39,9 +39,9 @@ ros2 topic pub /freya/killswitch std_msgs/msg/Bool "{data: false}" -1
 ros2 topic pub /freya/operation_mode std_msgs/msg/String "{data: 'autonomous mode'}" -1
 
 echo "Sending goal"
-python3 "$SCRIPT_DIR/freya_send_goal.py"
+python3 "$SCRIPT_DIR/send_goal.py"
 
 echo "Checking if goal reached"
-python3 "$SCRIPT_DIR/freya_check_goal.py"
+python3 "$SCRIPT_DIR/check_goal.py"
 
 kill -TERM -"$SIM_PID" -"$CONTROLLER_PID" -"$GUIDANCE_PID" -"$THRUST_PID"
