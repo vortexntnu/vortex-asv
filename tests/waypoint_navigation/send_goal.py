@@ -1,22 +1,29 @@
 import rclpy
-from rclpy.node import Node
+from geometry_msgs.msg import Point
 from rclpy.action import ActionClient
+from rclpy.node import Node
 from vortex_msgs.action import HybridpathGuidance
 from vortex_msgs.msg import Waypoints
-from geometry_msgs.msg import Point
-import numpy as np
+
 
 class HybridpathGuidanceClient(Node):
     def __init__(self):
         super().__init__('hybridpath_guidance_client')
         # Create the action client
-        self._action_client = ActionClient(self, HybridpathGuidance, '/freya/hybridpath_guidance')
+        self._action_client = ActionClient(
+            self, HybridpathGuidance, '/freya/hybridpath_guidance'
+        )
         self.send_goal()
 
     def send_goal(self):
         goal_msg = HybridpathGuidance.Goal()
 
-        points = [Point(x=10.0, y=0.0), Point(x=10.0, y=10.0), Point(x=0.0, y=10.0), Point(x=0.0, y=0.0)]
+        points = [
+            Point(x=10.0, y=0.0),
+            Point(x=10.0, y=10.0),
+            Point(x=0.0, y=10.0),
+            Point(x=0.0, y=0.0),
+        ]
         goal_msg.waypoints = Waypoints()
         goal_msg.waypoints.waypoints = points
 
@@ -55,6 +62,7 @@ def main(args=None):
     client = HybridpathGuidanceClient()
 
     rclpy.spin(client)
+
 
 if __name__ == '__main__':
     main()
