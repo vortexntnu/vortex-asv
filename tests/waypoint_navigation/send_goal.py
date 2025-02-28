@@ -29,9 +29,7 @@ class HybridpathGuidanceClient(Node):
 
         self._action_client.wait_for_server()
         self.get_logger().info('Sending goal...')
-        self._send_goal_future = self._action_client.send_goal_async(
-            goal_msg, feedback_callback=self.feedback_callback
-        )
+        self._send_goal_future = self._action_client.send_goal_async(goal_msg)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 
     def goal_response_callback(self, future):
@@ -43,10 +41,6 @@ class HybridpathGuidanceClient(Node):
         self.get_logger().info('Goal accepted :)')
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
-
-    def feedback_callback(self, feedback_msg):
-        feedback = feedback_msg.feedback.feedback
-        # self.get_logger().info(f'Received feedback: x={feedback.x}, y={feedback.y}')
 
     def get_result_callback(self, future):
         result = future.result().result.success

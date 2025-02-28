@@ -75,7 +75,8 @@ class JoystickInterface(Node):
             Bool, self.killswitch_topic, 1
         )
         self.joystick_subscriber_ = self.create_subscription(
-            Joy, self.joy_topic, self.joystick_cb, 10)
+            Joy, self.joy_topic, self.joystick_cb, 10
+        )
 
     def right_trigger_linear_converter(self, rt_input: float) -> float:
         """Does a linear conversion from the right trigger input range of (1 to -1) to (1 to 2).
