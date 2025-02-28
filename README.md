@@ -1,4 +1,9 @@
 # Vortex-ASV
+[![Industrial CI](https://github.com/vortexntnu/vortex-asv/actions/workflows/industrial-ci.yml/badge.svg)](https://github.com/vortexntnu/vortex-asv/actions/workflows/industrial-ci.yml)
+[![Simulator Test](https://github.com/vortexntnu/vortex-asv/actions/workflows/simulator-test.yml/badge.svg)](https://github.com/vortexntnu/vortex-asv/actions/workflows/simulator-test.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/vortexntnu/vortex-asv/main.svg)](https://results.pre-commit.ci/latest/github/vortexntnu/vortex-asv/main)
+[![codecov](https://codecov.io/github/vortexntnu/vortex-asv/graph/badge.svg?token=UERULMD5ES)](https://codecov.io/github/vortexntnu/vortex-asv)
+
 Vortex ASV software. Purpose built for competing in ASV competitions.
 
 ## Docker
