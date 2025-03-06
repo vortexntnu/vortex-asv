@@ -11,7 +11,7 @@ ThrusterInterfaceASVNode::ThrusterInterfaceASVNode()
         rclcpp::QoSInitialization(qos_profile.history, 1), qos_profile);
 
     thruster_forces_subscriber_ =
-        this->create_subscription<vortex_msgs::msg::ThrusterForces>(
+        this->create_subscription<std_msgs::msg::Float64MultiArray>(
             subscriber_topic_name_, qos_sensor_data,
             std::bind(&ThrusterInterfaceASVNode::thruster_forces_callback, this,
                       std::placeholders::_1));
@@ -26,7 +26,7 @@ ThrusterInterfaceASVNode::ThrusterInterfaceASVNode()
 
     // Declare thruster_forces_array_ in case no topic comes at the
     // very beginning
-    thruster_forces_array_ = std::vector<double>(8, 0.00);
+    thruster_forces_array_ = std::vector<double>(4, 0.00);
 
     this->initialize_parameter_handler();
 
@@ -35,8 +35,10 @@ ThrusterInterfaceASVNode::ThrusterInterfaceASVNode()
 }
 
 void ThrusterInterfaceASVNode::thruster_forces_callback(
-    const vortex_msgs::msg::ThrusterForces::SharedPtr msg) {
-    thruster_forces_array_ = msg->thrust;
+    const std_msgs::msg::Float64MultiArray::SharedPtr msg) {
+    for (size_t i = 0; i < 4; i++) {
+            thruster_forces_array_[i] = msg->data[i];
+    }
     this->pwm_callback();
 }
 

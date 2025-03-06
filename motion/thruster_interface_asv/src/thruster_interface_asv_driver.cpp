@@ -69,7 +69,7 @@ std::uint16_t ThrusterInterfaceASVDriver::calc_poly(
 void ThrusterInterfaceASVDriver::send_data_to_escs(
     const std::vector<uint16_t>& thruster_pwm_array) {
     constexpr std::size_t i2c_data_size =
-        1 + 8 * 2;  // 8 thrusters * (1xMSB + 1xLSB)
+        1 + 4 * 2;  // 4 thrusters * (1xMSB + 1xLSB)
     std::vector<std::uint8_t> i2c_data_array;
     i2c_data_array.reserve(i2c_data_size);
 

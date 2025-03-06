@@ -5,7 +5,7 @@
 #include <rclcpp/qos.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/int16_multi_array.hpp>
-#include <vortex_msgs/msg/thruster_forces.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 #include "thruster_interface_asv/thruster_interface_asv_driver.hpp"
 
 class ThrusterInterfaceASVNode : public rclcpp::Node {
@@ -19,7 +19,7 @@ class ThrusterInterfaceASVNode : public rclcpp::Node {
      * @param msg ThrusterForces message
      */
     void thruster_forces_callback(
-        const vortex_msgs::msg::ThrusterForces::SharedPtr msg);
+        const std_msgs::msg::Float64MultiArray::SharedPtr msg);
 
     /**
      * @brief publish and send pwm commands to thrusters. Sinchronous with
@@ -55,7 +55,7 @@ class ThrusterInterfaceASVNode : public rclcpp::Node {
 
     std::unique_ptr<ThrusterInterfaceASVDriver>
         thruster_driver_;  ///<-- pwm driver
-    rclcpp::Subscription<vortex_msgs::msg::ThrusterForces>::
+    rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::
         SharedPtr  ///<-- thruster forces subscriber
             thruster_forces_subscriber_;
     rclcpp::Publisher<
