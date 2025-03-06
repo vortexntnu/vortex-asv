@@ -49,7 +49,6 @@ std::vector<uint16_t> ThrusterInterfaceASVDriver::interpolate_forces_to_pwm(
 std::uint16_t ThrusterInterfaceASVDriver::force_to_pwm(
     double force,
     const std::vector<std::vector<double>>& coeffs) {
-
     if (force < 0) {
         return calc_poly(force, coeffs[LEFT]);
     } else if (force > 0) {
@@ -57,14 +56,11 @@ std::uint16_t ThrusterInterfaceASVDriver::force_to_pwm(
     } else {
         return idle_pwm_value_;  // 1500
     }
-
-    
 }
 
 std::uint16_t ThrusterInterfaceASVDriver::calc_poly(
     double force,
     const std::vector<double>& coeffs) {
-
     return static_cast<std::uint16_t>(coeffs[0] * std::pow(force, 3) +
                                       coeffs[1] * std::pow(force, 2) +
                                       coeffs[2] * force + coeffs[3]);

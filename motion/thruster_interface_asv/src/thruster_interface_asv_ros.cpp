@@ -37,7 +37,7 @@ ThrusterInterfaceASVNode::ThrusterInterfaceASVNode()
 void ThrusterInterfaceASVNode::thruster_forces_callback(
     const std_msgs::msg::Float64MultiArray::SharedPtr msg) {
     for (size_t i = 0; i < 4; i++) {
-            thruster_forces_array_[i] = msg->data[i];
+        thruster_forces_array_[i] = msg->data[i];
     }
     this->pwm_callback();
 }
