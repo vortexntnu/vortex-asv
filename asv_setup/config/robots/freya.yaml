@@ -79,7 +79,7 @@
     topics:
       wrench_input: "wrench_input"
       thruster_forces: "thruster_forces"
-      pwm_output: "pwm_ALBI"
+      pwm_output: "pwm_output"
       joy: "joy"
       odom: "/seapath/odom/ned"
       killswitch: "killswitch"
