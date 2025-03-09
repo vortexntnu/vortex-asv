@@ -59,7 +59,7 @@
 
     internal_status:
       psm_read_rate: 2.0 # [readings/second], Recommended 2.0 readings per second OBS! Try keeping under 2.0 as otherwise I2C communication to Power Sense Module might become bad as psm needs time to sample data
-    
+
     computer: "pc-debug"
 
     topics:
