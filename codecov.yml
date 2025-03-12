@@ -16,12 +16,4 @@ comment:
 flags:
   unittests:
     paths:
-      - control/hybrydpath_controller
-      - guidance/d_star_lite
-      - guidance/hybridpath_guidance
-      - mission/blackbox
-      - mission/internal_status
-      - mission/joystick_interface_asv
-      - mission/system_monitor
-      - motion/thrust_allocator_asv
-      - motion/thruster_interface_asv
+      - "**"
