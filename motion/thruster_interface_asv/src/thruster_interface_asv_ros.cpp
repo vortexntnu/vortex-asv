@@ -2,7 +2,6 @@
 
 ThrusterInterfaceASVNode::ThrusterInterfaceASVNode()
     : Node("thruster_interface_asv_node") {
-    // extract all .yaml parameters
     this->extract_all_parameters();
 
     // Set up subscriber and publisher
@@ -36,9 +35,7 @@ ThrusterInterfaceASVNode::ThrusterInterfaceASVNode()
 
 void ThrusterInterfaceASVNode::thruster_forces_callback(
     const std_msgs::msg::Float64MultiArray::SharedPtr msg) {
-    for (size_t i = 0; i < 4; i++) {
-            thruster_forces_array_[i] = msg->data[i];
-    }
+    std::copy_n(msg->data.begin(), msg->data.size(), thruster_forces_array_.begin());
     this->pwm_callback();
 }
 
@@ -83,15 +80,12 @@ void ThrusterInterfaceASVNode::extract_all_parameters() {
     this->declare_parameter<std::vector<int>>(
         "propulsion.thrusters.thruster_PWM_max");
 
-    // approx poly coeffs for 16V from thruster_interface_asv.yaml
     this->declare_parameter<std::vector<double>>("coeffs.LEFT");
     this->declare_parameter<std::vector<double>>("coeffs.RIGHT");
 
-    // i2c parameters
     this->declare_parameter<int>("i2c.bus");
     this->declare_parameter<int>("i2c.address");
 
-    // topics
     this->declare_parameter<std::string>("topics.thruster_forces");
     this->declare_parameter<std::string>("topics.pwm_output");
 
@@ -127,16 +121,19 @@ void ThrusterInterfaceASVNode::extract_all_parameters() {
 
     this->debug_flag_ = this->get_parameter("debug.flag").as_bool();
 
-    // create <ThrusterParameters> and <PolyCoeffs> vectors
-    ThrusterParameters temp;
-    for (size_t i = 0; i < thruster_mapping.size(); ++i) {
-        temp.mapping = static_cast<uint8_t>(thruster_mapping[i]);
-        temp.direction = static_cast<int8_t>(thruster_direction[i]);
-        temp.pwm_min = static_cast<uint16_t>(thruster_PWM_min[i]);
-        temp.pwm_max = static_cast<uint16_t>(thruster_PWM_max[i]);
-
-        this->thruster_parameters_.push_back(temp);
-    }
+    std::transform(thruster_mapping.begin(), thruster_mapping.end(),
+                    thruster_direction.begin(),
+                    std::back_inserter(this->thruster_parameters_),
+                    [&](const int64_t& mapping, const int64_t& direction) {
+                        size_t index = std::distance(thruster_mapping.begin(), 
+                                    std::find(thruster_mapping.begin(), thruster_mapping.end(), mapping));
+                        return ThrusterParameters{
+                            static_cast<uint8_t>(mapping),
+                            static_cast<int8_t>(direction),
+                            static_cast<uint16_t>(thruster_PWM_min[index]),
+                            static_cast<uint16_t>(thruster_PWM_max[index])
+                        };
+                    });
 
     this->poly_coeffs_.push_back(left_coeffs);
     this->poly_coeffs_.push_back(right_coeffs);

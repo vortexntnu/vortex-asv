@@ -54,12 +54,12 @@ class ThrusterInterfaceASVNode : public rclcpp::Node {
     bool debug_flag_;
 
     std::unique_ptr<ThrusterInterfaceASVDriver>
-        thruster_driver_;  ///<-- pwm driver
+        thruster_driver_;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::
-        SharedPtr  ///<-- thruster forces subscriber
+        SharedPtr
             thruster_forces_subscriber_;
     rclcpp::Publisher<
-        std_msgs::msg::Int16MultiArray>::SharedPtr  ///<-- pwm publisher
+        std_msgs::msg::Int16MultiArray>::SharedPtr
         thruster_pwm_publisher_;
 
     /**

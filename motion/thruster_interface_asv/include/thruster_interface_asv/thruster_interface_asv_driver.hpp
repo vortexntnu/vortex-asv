@@ -14,6 +14,11 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <ranges>
+#include <iterator>
+#include <stdexcept>
+#include <fmt/core.h>
+#include <spdlog/spdlog.h>
 
 /**
  * @brief struct to hold the parameters for a single thruster
