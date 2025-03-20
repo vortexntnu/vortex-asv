@@ -1,8 +1,8 @@
 # Thruster Interface ASV
 
-This package provides an interface for controlling the thrusters of freya converting forces values to pwm values. Similarly as what done with orca (see https://github.com/vortexntnu/vortex-auv/tree/main/motion/thruster_interface_auv) the mapping is based on a piecewise third order polynomial approximating the datasheet .csv table found in /resources. Values send via i2c protocol. Below it's shown how to derive the coefficients from the .csv table provided in /resources. 
+This package provides an interface for controlling the thrusters of freya converting forces values to pwm values. Similarly as what done with orca (see https://github.com/vortexntnu/vortex-auv/tree/main/motion/thruster_interface_auv) the mapping is based on a piecewise third order polynomial approximating the datasheet .csv table found in /resources. Values send via i2c protocol. Below it's shown how to derive the coefficients from the .csv table provided in /resources.
 
-The analysis covers the table splitted in two halfs:
+The analysis covers the table split in two halves:
 1) values > 0 + the leftmost green 0-valued point for a better fitting (see picture below)
 2) values < 0 with the rightmost red 0-valued point
 

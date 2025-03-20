@@ -4,8 +4,8 @@
 #include <rclcpp/parameter_event_handler.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/int16_multi_array.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
+#include <std_msgs/msg/int16_multi_array.hpp>
 #include "thruster_interface_asv/thruster_interface_asv_driver.hpp"
 
 class ThrusterInterfaceASVNode : public rclcpp::Node {
