@@ -2,7 +2,9 @@
 #define THRUSTER_INTERFACE_ASV_DRIVER_HPP
 
 #include <fcntl.h>
+#include <fmt/core.h>
 #include <linux/i2c-dev.h>
+#include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <algorithm>
@@ -11,14 +13,12 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <iterator>
 #include <map>
+#include <ranges>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <ranges>
-#include <iterator>
-#include <stdexcept>
-#include <fmt/core.h>
-#include <spdlog/spdlog.h>
 
 /**
  * @brief struct to hold the parameters for a single thruster

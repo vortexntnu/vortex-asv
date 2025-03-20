@@ -35,7 +35,8 @@ ThrusterInterfaceASVNode::ThrusterInterfaceASVNode()
 
 void ThrusterInterfaceASVNode::thruster_forces_callback(
     const std_msgs::msg::Float64MultiArray::SharedPtr msg) {
-    std::copy_n(msg->data.begin(), msg->data.size(), thruster_forces_array_.begin());
+    std::copy_n(msg->data.begin(), msg->data.size(),
+                thruster_forces_array_.begin());
     this->pwm_callback();
 }
 
@@ -121,19 +122,20 @@ void ThrusterInterfaceASVNode::extract_all_parameters() {
 
     this->debug_flag_ = this->get_parameter("debug.flag").as_bool();
 
-    std::transform(thruster_mapping.begin(), thruster_mapping.end(),
-                    thruster_direction.begin(),
-                    std::back_inserter(this->thruster_parameters_),
-                    [&](const int64_t& mapping, const int64_t& direction) {
-                        size_t index = std::distance(thruster_mapping.begin(), 
-                                    std::find(thruster_mapping.begin(), thruster_mapping.end(), mapping));
-                        return ThrusterParameters{
-                            static_cast<uint8_t>(mapping),
-                            static_cast<int8_t>(direction),
-                            static_cast<uint16_t>(thruster_PWM_min[index]),
-                            static_cast<uint16_t>(thruster_PWM_max[index])
-                        };
-                    });
+    std::transform(
+        thruster_mapping.begin(), thruster_mapping.end(),
+        thruster_direction.begin(),
+        std::back_inserter(this->thruster_parameters_),
+        [&](const int64_t& mapping, const int64_t& direction) {
+            size_t index =
+                std::distance(thruster_mapping.begin(),
+                              std::find(thruster_mapping.begin(),
+                                        thruster_mapping.end(), mapping));
+            return ThrusterParameters{
+                static_cast<uint8_t>(mapping), static_cast<int8_t>(direction),
+                static_cast<uint16_t>(thruster_PWM_min[index]),
+                static_cast<uint16_t>(thruster_PWM_max[index])};
+        });
 
     this->poly_coeffs_.push_back(left_coeffs);
     this->poly_coeffs_.push_back(right_coeffs);
