@@ -216,7 +216,7 @@ vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
         } else {
             if (landmark.landmark_type == goal->landmark_types &&
                 calculateDistance(landmark.odom.pose.pose.position,
-                                    landmark.odom.header) <= distance) {
+                                  landmark.odom.header) <= distance) {
                 filteredLandmarksOdoms.odoms.push_back(landmark.odom);
             }
         }
