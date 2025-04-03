@@ -33,9 +33,6 @@ add_executable(landmark_server_node
     src/landmark_server.cpp
     src/landmark_server_main.cpp)
 
-target_link_libraries( ${PROJECT_NAME}_node
-    pcl_common)
-
 ament_target_dependencies(landmark_server_node
     rclcpp
     std_msgs
