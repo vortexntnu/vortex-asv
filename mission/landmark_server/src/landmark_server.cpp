@@ -154,7 +154,7 @@ void LandmarkServerNode::execute(
     // Create a timer to control the publishing rate at 10 Hz
     rclcpp::Rate rate(10);  // 10 Hz
 
-    // Filter the StoredLandmarks by landmark_types in the action request
+    // Filter the StoredLandmarks by landmark_type in the action request
     while (rclcpp::ok()) {
         // Check if there is a cancel request
         if (goal_handle->is_canceling()) {
@@ -202,26 +202,22 @@ vortex_msgs::msg::OdometryArray LandmarkServerNode::filterLandmarks(
     vortex_msgs::msg::OdometryArray filteredLandmarksOdoms;
 
     for (const auto& landmark : storedLandmarks_->landmarks) {
-        if (goal->landmark_types.empty() && distance == 0.0) {
+        if (goal->landmark_types == 0 && distance == 0.0) {
             filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-        } else if (goal->landmark_types.empty()) {
+        } else if (goal->landmark_types == 0) {
             if (calculateDistance(landmark.odom.pose.pose.position,
                                   landmark.odom.header) <= distance) {
                 filteredLandmarksOdoms.odoms.push_back(landmark.odom);
             }
         } else if (distance == 0.0) {
-            for (const auto& type : goal->landmark_types) {
-                if (landmark.landmark_type == type) {
-                    filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-                }
+            if (landmark.landmark_type == goal->landmark_types) {
+                filteredLandmarksOdoms.odoms.push_back(landmark.odom);
             }
         } else {
-            for (const auto& type : goal->landmark_types) {
-                if (landmark.landmark_type == type &&
-                    calculateDistance(landmark.odom.pose.pose.position,
-                                      landmark.odom.header) <= distance) {
-                    filteredLandmarksOdoms.odoms.push_back(landmark.odom);
-                }
+            if (landmark.landmark_type == goal->landmark_types &&
+                calculateDistance(landmark.odom.pose.pose.position,
+                                    landmark.odom.header) <= distance) {
+                filteredLandmarksOdoms.odoms.push_back(landmark.odom);
             }
         }
     }
@@ -235,31 +231,19 @@ void LandmarkServerNode::requestLogger(
     const auto goal = goal_handle->get_goal();
     double distance = goal->distance;
 
-    if (distance == 0.0 && goal->landmark_types.empty()) {
+    if (distance == 0.0 && goal->landmark_types == 0) {
         RCLCPP_INFO_STREAM(this->get_logger(),
                            "Received request to return all landmarks.");
         return;
     }
 
-    if (goal->landmark_types.empty()) {
+    if (goal->landmark_types == 0) {
         RCLCPP_INFO_STREAM(
             this->get_logger(),
             "Received request to return all landmarks within distance "
                 << distance << ".");
         return;
     }
-
-    std::stringstream types_log;
-    types_log << "Received request to return landmarks by type filter: [";
-    for (auto it = goal->landmark_types.begin();
-         it != goal->landmark_types.end(); it++) {
-        types_log << *it;
-        if (std::next(it) != goal->landmark_types.end()) {
-            types_log << ", ";
-        }
-    }
-    types_log << "].";
-    RCLCPP_INFO_STREAM(this->get_logger(), types_log.str());
 }
 
 double LandmarkServerNode::calculateDistance(
