@@ -28,17 +28,20 @@ The `thrust_allocator_asv_node` manages **thruster power allocation**, convertin
 ## Topics
 
 - ### `/freya/thrust_allocator_asv_node/transition_event`
+  
+  | Topic Info         |                                  |
+  |--------------------|----------------------------------|
+  | **Message type**   | [`lifecycle_msgs/msg/TransitionEvent`](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/TransitionEvent.html) |
+  | **Published by**   | `thrust_allocator_asv_node` |
+  | **Subscribed by**  | *None* |
+  
+  #### Function
+  
+  This topic is automatically published by ROS 2 when a node implemented as a **LifecycleNode** changes its internal state.  
+  It broadcasts lifecycle state transitions of the `thrust_allocator_asv_node`.  
+  The topic is primarily used by system tools or monitoring nodes to track the operational state of the thrust allocator (e.g., *unconfigured*, *inactive*, *active*, *shutting down*).  
+  It supports **system transparency** and assists in **debugging** and managing the node’s lifecycle remotely.
 
-| Topic Info         |                                  |
-|--------------------|----------------------------------|
-| **Message type**   | [`lifecycle_msgs/msg/TransitionEvent`](https://docs.ros2.org/foxy/api/lifecycle_msgs/msg/TransitionEvent.html) |
-| **Published by**   | `thrust_allocator_asv_node` |
-| **Subscribed by**  | *None* |
+- ### [`/freya/thruster_forces`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/mission/system_monitor/README.md#freyathruster_forces)
 
-#### Function
-
-This topic is automatically published by ROS 2 when a node implemented as a **LifecycleNode** changes its internal state.  
-It broadcasts lifecycle state transitions of the `thrust_allocator_asv_node`.  
-The topic is primarily used by system tools or monitoring nodes to track the operational state of the thrust allocator (e.g., *unconfigured*, *inactive*, *active*, *shutting down*).  
-It supports **system transparency** and assists in **debugging** and managing the node’s lifecycle remotely.
-
+- ### [`/freya/wrench_input`](...)
