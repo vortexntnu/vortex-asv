@@ -9,7 +9,7 @@ It converts force values into appropriate PWM outputs based on thruster characte
 
 ### Goal
 
-- **Receives thrust force commands** for each individual thruster via the [`/freya/thruster_forces`](../mission/system_monitor/README.md#freyathruster_forces) topic.
+- **Receives thrust force commands** for each individual thruster via the [`/freya/thruster_forces`](../../mission/system_monitor/README.md#freyathruster_forces) topic.
 - **Converts the force commands into PWM values** using a hardware-specific mapping.
 - **Sends PWM signals** to the motor controller via I2C communication.
 - **Applies direction, offset, and saturation limits** based on ROS 2 parameters.
@@ -18,7 +18,7 @@ It converts force values into appropriate PWM outputs based on thruster characte
 
 ### Subscribers
 
-- [`/freya/thruster_forces`](../mission/system_monitor/README.md#freyathruster_forces)
+- [`/freya/thruster_forces`](../../mission/system_monitor/README.md#freyathruster_forces)
 
 ### Publishers
 
