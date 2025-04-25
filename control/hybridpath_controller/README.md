@@ -21,21 +21,21 @@ It calculates and sends **control commands** (force and torque) to the thrusters
 The node implements an **advanced control system** for autonomous vehicle navigation. Its main functions are:
 
 - **Acquiring vehicle status**: Subscribes to [`/seapath/odom/ned`](../../guidance/hybridpath_guidance/README.md#seapathodomned) ([`Odometry`](https://docs.ros2.org/foxy/api/nav_msgs/msg/Odometry.html) messages) to obtain real-time data on the vehicle's current position, orientation, and speed.
-- **Receiving trajectory references**: Receives [`HybridpathReference`](https://github.com/vortexntnu/vortex-msgs/blob/main/msg/HybridpathReference.msg) messages from the planning system that define the desired trajectory in terms of position, orientation, and target speed via [`/freya/hybridpath_guidance`](../guidance/hybridpath_guidance/README.md#freyahybridpath_guidance).
+- **Receiving trajectory references**: Receives [`HybridpathReference`](https://github.com/vortexntnu/vortex-msgs/blob/main/msg/HybridpathReference.msg) messages from the planning system that define the desired trajectory in terms of position, orientation, and target speed via [`/freya/hybridpath_guidance`](../../guidance/hybridpath_guidance/README.md#freyahybridpath_guidance).
 - **Processing control algorithms**: Uses an *Adaptive Backstepping Controller* to calculate optimal commands, considering the physical properties of the vehicle (e.g., inertia and damping) and dynamically adapting to operating conditions.
 - **Publication of actuation commands**: Publishes [`Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) messages to [`/freya/wrench_input`](../mission/joystick_interface_asv/README.md#freyawrench_input) containing the force and torque vectors required to follow the trajectory.
-- **Operational and safety mode management**: Constantly monitors the [`/freya/killswitch`](../mission/joystick_interface_asv/README.md#freyakillswitch) and [`/freya/operation_mode`](../mission/joystick_interface_asv/README.md#freyaoperation_mode) topics to ensure that commands are generated **only** when the system is in autonomous mode and the killswitch is **not activated**.
+- **Operational and safety mode management**: Constantly monitors the [`/freya/killswitch`](../../mission/joystick_interface_asv/README.md#freyakillswitch) and [`/freya/operation_mode`](../../mission/joystick_interface_asv/README.md#freyaoperation_mode) topics to ensure that commands are generated **only** when the system is in autonomous mode and the killswitch is **not activated**.
 
 ### Subscribers
 
-- [`/freya/killswitch`](../mission/joystick_interface_asv#freyakillswitch)
-- [`/freya/operation_mode`](../mission/joystick_interface_asv#freyaoperation_mode)
-- [`/freya/hybridpath_guidance`](../guidance/hybridpath_guidance/README.md#freyahybridpath_guidance)
-- [`/seapath/odom/ned`](../guidance/hybridpath_guidance/README.md#seapathodomned)
+- [`/freya/killswitch`](../../mission/joystick_interface_asv#freyakillswitch)
+- [`/freya/operation_mode`](../../mission/joystick_interface_asv#freyaoperation_mode)
+- [`/freya/hybridpath_guidance`](../../guidance/hybridpath_guidance/README.md#freyahybridpath_guidance)
+- [`/seapath/odom/ned`](../../guidance/hybridpath_guidance/README.md#seapathodomned)
 
 ### Publishers
 
-- [`/freya/wrench_input`](../mission/joystick_interface_asv#freyawrench_input)
+- [`/freya/wrench_input`](../../mission/joystick_interface_asv#freyawrench_input)
 
 ## Theory
 
