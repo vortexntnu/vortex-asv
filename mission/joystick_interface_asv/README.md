@@ -74,18 +74,3 @@ It also handles **emergency stop** through the *killswitch*.
   This topic defines the **current operating mode** of the ASV, such as `"XBOX"` for manual control or `"AUTONOMOUS"` for mission-based navigation.  
   It informs the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) whether it is allowed to actively compute and publish motion commands.  
   This enables **dynamic switching** between *manual* and *autonomous* operation within the system.
-
-- ### `/freya/wrench_input`
-
-  | Topic Info         |                                  |
-  |--------------------|----------------------------------|
-  | **Message type**   | [`geometry_msgs/msg/Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) |
-  | **Published by**   | `joystick_interface_asv` <br> [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
-  | **Subscribed by**  | [`thrust_allocator_asv_node`](../../motion/thrust_allocator_asv/README.md#node) |
-  
-  #### Function
-  
-  This topic carries **motion commands** expressed as *force* and *torque* vectors in the body frame of the ASV.  
-  It represents the desired physical interaction with the environment (e.g., *move forward*, *rotate*).  
-  Depending on the operation mode, the commands are generated either **manually** (via joystick) or **automatically** (via guidance and control).  
-  These values are then translated into individual thruster forces by the [`thrust_allocator_asv_node`](../../motion/thrust_allocator_asv/README.md#node).
