@@ -28,7 +28,7 @@ It also handles **emergency stop** through the *killswitch*.
 ### Publishers
 
 - [`/freya/killswitch`](#freyakillswitch)
-- [`/freya/operation_mode`](#freyaoperationmode)
+- [`/freya/operation_mode`](#freyaoperation_mode)
 - [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input)
 
 ## Topics
