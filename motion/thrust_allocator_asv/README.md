@@ -57,3 +57,5 @@ The `thrust_allocator_asv_node` manages **thruster power allocation**, convertin
   It supports **system transparency** and assists in **debugging** and managing the node’s lifecycle remotely.
 
 - ### [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input)
+
+- ### [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input)
