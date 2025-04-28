@@ -9,7 +9,7 @@ It converts force values into appropriate PWM outputs based on thruster characte
 
 ### Goal
 
-- **Receives thrust force commands** for each individual thruster via the [`/freya/thruster_forces`](../../mission/system_monitor/README.md#freyathruster_forces) topic.
+- **Receives thrust force commands** for each individual thruster via the [`/freya/thruster_forces`](../thrust_allocator_asv/README.md#freyathruster_forces) topic.
 - **Converts the force commands into PWM values** using a hardware-specific mapping.
 - **Sends PWM signals** to the motor controller via I2C communication.
 - **Applies direction, offset, and saturation limits** based on ROS 2 parameters.
@@ -18,7 +18,7 @@ It converts force values into appropriate PWM outputs based on thruster characte
 
 ### Subscribers
 
-- [`/freya/thruster_forces`](../../mission/system_monitor/README.md#freyathruster_forces)
+- [`/freya/thruster_forces`](../thrust_allocator_asv/README.md#freyathruster_forces)
 
 ### Publishers
 
@@ -39,4 +39,5 @@ It converts force values into appropriate PWM outputs based on thruster characte
   Publishes the **PWM values** sent to the ASV’s physical thrusters.  
   Although the PWM signals are actually transmitted to the motor controller via *I2C*, this topic provides a **copy of the signal values for diagnostic purposes**.  
   It allows developers and operators to **monitor the output** of the low-level actuation interface in real time.
-- ### [`/freya/thruster_forces`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/mission/system_monitor/README.md#freyathruster_forces)
+
+- ### [`/freya/thruster_forces`](../thrust_allocator_asv/README.md#freyathruster_forces)
