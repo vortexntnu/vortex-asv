@@ -49,7 +49,7 @@ It receives a list of waypoints and calculates a continuous path between them, p
   |--------------------|----------------------------------|
   | **Message type**   | [`nav_msgs/msg/Odometry`](https://docs.ros2.org/foxy/api/nav_msgs/msg/Odometry.html) |
   | **Published by**   | *External navigation system* |
-  | **Subscribed by**  | `hybridpath_guidance_node` <br> [`hybridpath_controller_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/control/hybridpath_controller/README.md#node) |
+  | **Subscribed by**  | `hybridpath_guidance_node` <br> [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
   
   #### Function
   
@@ -63,7 +63,7 @@ It receives a list of waypoints and calculates a continuous path between them, p
   |--------------------|----------------------------------|
   | **Message type**   | [`vortex_msgs/msg/HybridpathReference`](https://github.com/vortexntnu/vortex-msgs/blob/main/msg/HybridpathReference.msg) |
   | **Published by**   | `hybridpath_guidance_node` |
-  | **Subscribed by**  | [`hybridpath_controller_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/control/hybridpath_controller/README.md#node) |
+  | **Subscribed by**  | [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
   
   #### Function
   
