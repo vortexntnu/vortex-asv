@@ -53,12 +53,12 @@ It also handles **emergency stop** through the *killswitch*.
   |-------------------|--------------------------------|
   | **Message type**  | [`std_msgs/msg/Bool`](https://docs.ros2.org/foxy/api/std_msgs/msg/Bool.html) |
   | **Published by**  | `joystick_interface_asv` |
-  | **Subscribed by** | [`hybridpath_controller_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/control/hybridpath_controller/README.md#node) |
+  | **Subscribed by** | [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
   
   #### Function
   
   This topic indicates whether the **emergency stop mechanism** (*killswitch*) has been activated.
-  When set to `true`, it signals the [`hybridpath_controller_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/control/hybridpath_controller/README.md#node) to immediately halt operations and stop generating motion commands.  
+  When set to `true`, it signals the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) to immediately halt operations and stop generating motion commands.  
   It serves as a **central safety mechanism** to ensure the ASV can be quickly and safely stopped in case of *manual override* or *critical failure*.
 
 - ### `/freya/operation_mode`
@@ -67,12 +67,12 @@ It also handles **emergency stop** through the *killswitch*.
   |--------------------|----------------------------------|
   | **Message type**   | [`std_msgs/msg/String`](https://docs.ros2.org/foxy/api/std_msgs/msg/String.html) |
   | **Published by**   | `joystick_interface_asv` |
-  | **Subscribed by**  | [`hybridpath_controller_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/control/hybridpath_controller/README.md#node) |
+  | **Subscribed by**  | [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
   
   #### Function
   
   This topic defines the **current operating mode** of the ASV, such as `"XBOX"` for manual control or `"AUTONOMOUS"` for mission-based navigation.  
-  It informs the [`hybridpath_controller_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/control/hybridpath_controller/README.md#node) whether it is allowed to actively compute and publish motion commands.  
+  It informs the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) whether it is allowed to actively compute and publish motion commands.  
   This enables **dynamic switching** between *manual* and *autonomous* operation within the system.
 
 - ### `/freya/wrench_input`
@@ -80,12 +80,12 @@ It also handles **emergency stop** through the *killswitch*.
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
   | **Message type**   | [`geometry_msgs/msg/Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) |
-  | **Published by**   | `joystick_interface_asv` <br> [`hybridpath_controller_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/control/hybridpath_controller/README.md#node) |
-  | **Subscribed by**  | [`thrust_allocator_asv_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/motion/thrust_allocator_asv/README.md#node) |
+  | **Published by**   | `joystick_interface_asv` <br> [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
+  | **Subscribed by**  | [`thrust_allocator_asv_node`](../../motion/thrust_allocator_asv/README.md#node) |
   
   #### Function
   
   This topic carries **motion commands** expressed as *force* and *torque* vectors in the body frame of the ASV.  
   It represents the desired physical interaction with the environment (e.g., *move forward*, *rotate*).  
   Depending on the operation mode, the commands are generated either **manually** (via joystick) or **automatically** (via guidance and control).  
-  These values are then translated into individual thruster forces by the [`thrust_allocator_asv_node`](https://github.com/vortexntnu/vortex-asv/blob/doc-nodes-topics/motion/thrust_allocator_asv/README.md#node).
+  These values are then translated into individual thruster forces by the [`thrust_allocator_asv_node`](../../motion/thrust_allocator_asv/README.md#node).
