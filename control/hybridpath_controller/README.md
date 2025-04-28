@@ -37,7 +37,8 @@ The node implements an **advanced control system** for autonomous vehicle naviga
 
 - [`/freya/wrench_input`](#freyawrench_input)
 
-##Topics
+## Topics
+
 - ### `/freya/wrench_input`
 
   | Topic Info         |                                  |
