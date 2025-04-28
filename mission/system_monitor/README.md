@@ -19,16 +19,4 @@ The `system_monitor_node` implements a system-level safety monitor that checks n
 - [`/freya/thruster_forces`](#freyathruster_forces)
 
 ## Topics
-- ### /freya/thruster_forces
-  
-  | Topic Info         |                                  |
-  |--------------------|----------------------------------|
-  | **Message type**   | [`std_msgs/msg/Float64MultiArray`](https://docs.ros2.org/foxy/api/std_msgs/msg/Float64MultiArray.html) |
-  | **Published by**   | [`thrust_allocator_asv_node`](https://github.com/vortexntnu/vortex-asv/blob/main/motion/thrust_allocator_asv/README.md) <br> [`system_monitor_node`](#node) |
-  | **Subscribed by**  | [`thruster_interface_asv_node`](...) |
-
-  #### Function  
-  Transmits the **individual force values** to be applied to each thruster of the ASV.  
-  These forces are calculated by the [`thrust_allocator_asv_node`](https://github.com/vortexntnu/vortex-asv/blob/main/motion/thrust_allocator_asv/README.md) based on the desired motion commands and the vehicle's thruster configuration.  
-  In *emergency scenarios*, this topic is also used by the [`system_monitor_node`](#node) to send a **zero-force command** to stop the vehicle.  
-  It serves as the **final step in the control pipeline** before converting force into actuation signals.
+- ### [`/freya/thruster_forces`](../../motion/thrust_allocator_asv/README.md#freyathruster_forces)
