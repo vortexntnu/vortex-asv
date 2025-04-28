@@ -32,12 +32,12 @@ The `thrust_allocator_asv_node` manages **thruster power allocation**, convertin
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
   | **Message type**   | [`std_msgs/msg/Float64MultiArray`](https://docs.ros2.org/foxy/api/std_msgs/msg/Float64MultiArray.html) |
-  | **Published by**   | [`thrust_allocator_asv_node`](#node) <br> [`system_monitor_node`](../../mission/system_monitor/README.md#node) |
-  | **Subscribed by**  | [`thruster_interface_asv_node`](../../mission/joystick_interface_asv/README.md#node) |
+  | **Published by**   | [`thrust_allocator_asv_node`] <br> [`system_monitor_node`](../../mission/system_monitor/README.md#node) |
+  | **Subscribed by**  | [`thruster_interface_asv`](../../mission/joystick_interface_asv/README.md#node) |
 
   #### Function  
   Transmits the **individual force values** to be applied to each thruster of the ASV.  
-  These forces are calculated by the [`thrust_allocator_asv_node`](#node) based on the desired motion commands and the vehicle's thruster configuration.  
+  These forces are calculated by the [`thrust_allocator_asv_node`] based on the desired motion commands and the vehicle's thruster configuration.  
   In *emergency scenarios*, this topic is also used by the [`system_monitor_node`](../../mission/system_monitor/README.md#node) to send a **zero-force command** to stop the vehicle.  
   It serves as the **final step in the control pipeline** before converting force into actuation signals.
 
@@ -55,7 +55,5 @@ The `thrust_allocator_asv_node` manages **thruster power allocation**, convertin
   It broadcasts lifecycle state transitions of the `thrust_allocator_asv_node`.  
   The topic is primarily used by system tools or monitoring nodes to track the operational state of the thrust allocator (e.g., *unconfigured*, *inactive*, *active*, *shutting down*).  
   It supports **system transparency** and assists in **debugging** and managing the node’s lifecycle remotely.
-
-- ### [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input)
 
 - ### [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input)
