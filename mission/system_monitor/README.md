@@ -9,14 +9,14 @@ The `system_monitor_node` implements a system-level safety monitor that checks n
 - **Detects system-level failures** by monitoring the responsiveness of all listed IPs.
 - **Triggers an emergency shutdown** if any device becomes unreachable:
   - Sends a lifecycle transition request to deactivate the [`thrust_allocator_asv_node`](../../motion/thrust_allocator_asv/README.md#node)
-  - Publishes a zero-force command to [`/freya/thruster_forces`](#freyathruster_forces)
+  - Publishes a zero-force command to [`/freya/thruster_forces`](../../motion/thrust_allocator_asv/README.md#freyathruster_forces)
   - Terminates its execution, requiring **manual intervention** for recovery
 
 ### Subscribers
 - *None*
 
 ### Publishers
-- [`/freya/thruster_forces`](#freyathruster_forces)
+- [`/freya/thruster_forces`](../../motion/thrust_allocator_asv/README.md#freyathruster_forces)
 
 ## Topics
 - ### [`/freya/thruster_forces`](../../motion/thrust_allocator_asv/README.md#freyathruster_forces)
