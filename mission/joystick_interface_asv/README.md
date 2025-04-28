@@ -14,7 +14,7 @@ It also handles **emergency stop** through the *killswitch*.
     - **Configurable scaling factors** for *surge* (forward/backward), *sway* (sideways), and *yaw* (rotation)
     - **Power modulation** via LT/RT triggers acting as speed controllers
     - **Timed debounce** on buttons to prevent accidental activations
-- Posts movement commands to the [`/freya/wrench_input`](#freyawrench_input) topic ([`Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) messages) for the thruster allocation system.
+- Posts movement commands to the [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input) topic ([`Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) messages) for the thruster allocation system.
 - It handles three operational states, reporting changes on the dedicated topic:
     - `XBOX_MODE`: Direct manual control via joystick (activated with button A)
     - `AUTONOMOUS_MODE`: Autonomous system delegated control (activated with button X)
@@ -29,7 +29,7 @@ It also handles **emergency stop** through the *killswitch*.
 
 - [`/freya/killswitch`](#freyakillswitch)
 - [`/freya/operation_mode`](#freyaoperationmode)
-- [`/freya/wrench_input`](#freyawrench_input)
+- [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input)
 
 ## Topics
 
