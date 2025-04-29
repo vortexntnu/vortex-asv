@@ -1,0 +1,1 @@
+*PLEASE NOTE: values are in expressed in grams in the table here. They have been converted to kg before fitting the coefficients. Coefficients in .yaml file are valid for pwm/kg*
