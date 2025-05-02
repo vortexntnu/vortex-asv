@@ -27,7 +27,7 @@ The `thrust_allocator_asv_node` manages **thruster power allocation**, convertin
 
 ## Topics
 
-- ### thruster_forces
+- ### `thruster_forces`
   
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
