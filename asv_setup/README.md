@@ -25,11 +25,11 @@ It reads input from the joystick hardware and **publishes state information** (a
 
 ##### Publishers
 
-- [`/freya/joy`](#freyajoy)
+- [`joy`](#joy)
 
 ---
 
-#### `/freya/joy`
+#### `joy`
 
 |  Topic Info       |                                |
 |-------------------|--------------------------------|
