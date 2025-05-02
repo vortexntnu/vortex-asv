@@ -22,20 +22,20 @@ It receives a list of waypoints and calculates a continuous path between them, p
 
 ### Goal
 
-- **Navigation data acquisition**: Subscribes to [`/seapath/odom/ned`](#seapathodomned) ([Odometry](https://docs.ros2.org/foxy/api/nav_msgs/msg/Odometry.html) messages) to retrieve the vehicle's position and orientation, converting them into a simplified *3-DOF* state vector (*x*, *y*, *heading*).
-- **Mission request management**: Implements a ROS 2 Action Server on the [`/freya/hybridpath_guidance`](#freyahybridpath_guidance) topic using the [`HybridpathGuidance`](https://github.com/vortexntnu/vortex-msgs/blob/main/action/HybridpathGuidance.action) action type. This allows external clients to send waypoint-based navigation goals, receive live feedback, and be notified upon completion.
+- **Navigation data acquisition**: Subscribes to [`seapath/odom/ned`](#seapathodomned) ([Odometry](https://docs.ros2.org/foxy/api/nav_msgs/msg/Odometry.html) messages) to retrieve the vehicle's position and orientation, converting them into a simplified *3-DOF* state vector (*x*, *y*, *heading*).
+- **Mission request management**: Implements a ROS 2 Action Server on the [`hybridpath_guidance`](#hybridpath_guidance) topic using the [`HybridpathGuidance`](https://github.com/vortexntnu/vortex-msgs/blob/main/action/HybridpathGuidance.action) action type. This allows external clients to send waypoint-based navigation goals, receive live feedback, and be notified upon completion.
 - **Path generation**: Uses the `HybridPathGenerator` module to compute smooth and dynamically adaptable trajectories between waypoints, considering the current position as the starting point.
-- **Reference publication**: Publishes [`HybridpathReference`](https://github.com/vortexntnu/vortex-msgs/blob/main/msg/HybridpathReference.msg) messages to [`/freya/hybridpath_guidance`](#freyahybridpath_guidance). These messages define desired position, velocity, acceleration, and controller tuning parameters for the controller node.
+- **Reference publication**: Publishes [`HybridpathReference`](https://github.com/vortexntnu/vortex-msgs/blob/main/msg/HybridpathReference.msg) messages to [`hybridpath_guidance`](#hybridpath_guidance). These messages define desired position, velocity, acceleration, and controller tuning parameters for the controller node.
 - **Dynamic updates**: Continuously recalculates the reference based on vehicle state and target speed, allowing the system to adapt to deviations or changing conditions.
 - **Lifecycle management**: Supports goal preemption and deletion, emits feedback during route tracking, and communicates success or failure via the action interface.
 
 ### Subscribers
 
-- [`/seapath/odom/ned`](#seapathodomned)
+- [`seapath/odom/ned`](#seapathodomned)
 
 ### Publishers
 
-- [`/freya/hybridpath_guidance`](#freyahybridpath_guidance)
+- [`hybridpath_guidance`](#hybridpath_guidance)
 
 ## Action
 
@@ -43,7 +43,7 @@ It receives a list of waypoints and calculates a continuous path between them, p
 
 ## Topics
 
-- ### `/seapath/odom/ned`
+- ### `seapath/odom/ned`
 
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
@@ -57,7 +57,7 @@ It receives a list of waypoints and calculates a continuous path between them, p
   This topic is essential for **localization** and **feedback control**, allowing guidance and control nodes to compute reference trajectories and correct deviations from the desired path.  
   It serves as the **primary source of navigation data** within the autonomous system.
 
-- ### `/freya/hybridpath_guidance`
+- ### `hybridpath_guidance`
   
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
