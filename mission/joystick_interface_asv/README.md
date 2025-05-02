@@ -9,12 +9,12 @@ It also handles **emergency stop** through the *killswitch*.
 
 ### Goal
 
-- Acquires and interprets joystick input (topic [`/freya/joy`](#freyajoy) with [`Joy`](https://docs.ros.org/en/api/sensor_msgs/html/msg/Joy.html) messages), automatically distinguishing between *wired* and *wireless* Xbox controllers.
+- Acquires and interprets joystick input (topic [`joy`](#joy) with [`Joy`](https://docs.ros.org/en/api/sensor_msgs/html/msg/Joy.html) messages), automatically distinguishing between *wired* and *wireless* Xbox controllers.
 - Translates analogue joystick commands into force and torque vectors, applying:
     - **Configurable scaling factors** for *surge* (forward/backward), *sway* (sideways), and *yaw* (rotation)
     - **Power modulation** via LT/RT triggers acting as speed controllers
     - **Timed debounce** on buttons to prevent accidental activations
-- Posts movement commands to the [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input) topic ([`Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) messages) for the thruster allocation system.
+- Posts movement commands to the [`wrench_input`](../../control/hybridpath_controller/README.md#wrench_input) topic ([`Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) messages) for the thruster allocation system.
 - It handles three operational states, reporting changes on the dedicated topic:
     - `XBOX_MODE`: Direct manual control via joystick (activated with button A)
     - `AUTONOMOUS_MODE`: Autonomous system delegated control (activated with button X)
@@ -23,17 +23,17 @@ It also handles **emergency stop** through the *killswitch*.
 
 ### Subscribers
 
-- [`/freya/joy`](#freyajoy)
+- [`joy`](#joy)
 
 ### Publishers
 
-- [`/freya/killswitch`](#freyakillswitch)
-- [`/freya/operation_mode`](#freyaoperation_mode)
-- [`/freya/wrench_input`](../../control/hybridpath_controller/README.md#freyawrench_input)
+- [`killswitch`](#killswitch)
+- [`operation_mode`](#operation_mode)
+- [`wrench_input`](../../control/hybridpath_controller/README.md#wrench_input)
 
 ## Topics
 
-- ### `/freya/joy`
+- ### `joy`
   
   |  Topic Info       |                                |
   |-------------------|--------------------------------|
@@ -47,7 +47,7 @@ It also handles **emergency stop** through the *killswitch*.
   It serves as the **main interface for manual user input**, allowing an operator to control the ASV in real time.  
   The `joystick_interface_asv` node interprets this data to generate motion commands during *manual operation mode*.
 
-- ### `/freya/killswitch`
+- ### `killswitch`
   
   | Topic Info        |                                |
   |-------------------|--------------------------------|
@@ -61,7 +61,7 @@ It also handles **emergency stop** through the *killswitch*.
   When set to `true`, it signals the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) to immediately halt operations and stop generating motion commands.  
   It serves as a **central safety mechanism** to ensure the ASV can be quickly and safely stopped in case of *manual override* or *critical failure*.
 
-- ### `/freya/operation_mode`
+- ### `operation_mode`
   
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
