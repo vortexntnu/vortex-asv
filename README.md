@@ -6,7 +6,7 @@
 
 Vortex ASV software. Purpose built for competing in ASV competitions.
 
-# System Overview
+## System Overview
 
 The following diagram illustrates the structure of the main nodes in the project:
 
