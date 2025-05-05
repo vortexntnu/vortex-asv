@@ -4,7 +4,7 @@ This package provides the interface between high-level thruster commands and the
 
 ## Node
 
-The `thruster_interface_asv_node` acts as an interface between **high-level thruster commands** and **low-level PWM signals**.  
+The `thruster_interface_asv_node` acts as an interface between **high-level thruster commands** and **low-level PWM signals**.
 It converts force values into appropriate PWM outputs based on thruster characteristics and configuration.
 
 ### Goal
@@ -27,17 +27,17 @@ It converts force values into appropriate PWM outputs based on thruster characte
 ## Topics
 
 - ### `pwm_output`
-  
+
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
   | **Message type**   | [`std_msgs/msg/Int16MultiArray`](https://docs.ros2.org/foxy/api/std_msgs/msg/Int16MultiArray.html) |
   | **Published by**   | `thruster_interface_asv_node` |
   | **Subscribed by**  | *None* |
-  
+
   ##### Function
-  
-  Publishes the **PWM values** sent to the ASV’s physical thrusters.  
-  Although the PWM signals are actually transmitted to the motor controller via *I2C*, this topic provides a **copy of the signal values for diagnostic purposes**.  
+
+  Publishes the **PWM values** sent to the ASV’s physical thrusters.
+  Although the PWM signals are actually transmitted to the motor controller via *I2C*, this topic provides a **copy of the signal values for diagnostic purposes**.
   It allows developers and operators to **monitor the output** of the low-level actuation interface in real time.
 
 - ### [`thruster_forces`](../thrust_allocator_asv/README.md#thruster_forces)

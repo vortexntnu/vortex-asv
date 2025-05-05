@@ -39,6 +39,6 @@ It reads input from the joystick hardware and **publishes state information** (a
 
 ##### Function
 
-This topic provides **raw input data** from the physical joystick, including *button states* and *axis positions*.  
-It serves as the **main interface for manual user input**, allowing an operator to control the ASV in real time.  
+This topic provides **raw input data** from the physical joystick, including *button states* and *axis positions*.
+It serves as the **main interface for manual user input**, allowing an operator to control the ASV in real time.
 The [`joystick_interface_asv`](../mission/joystick_interface_asv/README.md#node) node interprets this data to generate motion commands during *manual operation mode*.

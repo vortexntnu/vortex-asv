@@ -4,7 +4,7 @@ This package provides a joystick-based manual control interface for the Vortex A
 
 ## Node
 
-The `joystick_interface_asv` node **interprets joystick input** and publishes control commands for manual operation, including *mode selection* and *direct thruster control*.  
+The `joystick_interface_asv` node **interprets joystick input** and publishes control commands for manual operation, including *mode selection* and *direct thruster control*.
 It also handles **emergency stop** through the *killswitch*.
 
 ### Goal
@@ -34,43 +34,43 @@ It also handles **emergency stop** through the *killswitch*.
 ## Topics
 
 - ### `joy`
-  
+
   |  Topic Info       |                                |
   |-------------------|--------------------------------|
   | **Message type**  | [`sensor_msgs/msg/Joy`](https://docs.ros2.org/foxy/api/sensor_msgs/msg/Joy.html) |
   | **Published by**  | [`joystick_driver`](...) |
   | **Subscribed by** | `joystick_interface_asv` |
-  
+
   #### Function
-  
-  This topic provides **raw input data** from the physical joystick, including *button states* and *axis positions*.  
-  It serves as the **main interface for manual user input**, allowing an operator to control the ASV in real time.  
+
+  This topic provides **raw input data** from the physical joystick, including *button states* and *axis positions*.
+  It serves as the **main interface for manual user input**, allowing an operator to control the ASV in real time.
   The `joystick_interface_asv` node interprets this data to generate motion commands during *manual operation mode*.
 
 - ### `killswitch`
-  
+
   | Topic Info        |                                |
   |-------------------|--------------------------------|
   | **Message type**  | [`std_msgs/msg/Bool`](https://docs.ros2.org/foxy/api/std_msgs/msg/Bool.html) |
   | **Published by**  | `joystick_interface_asv` |
   | **Subscribed by** | [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
-  
+
   #### Function
-  
+
   This topic indicates whether the **emergency stop mechanism** (*killswitch*) has been activated.
-  When set to `true`, it signals the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) to immediately halt operations and stop generating motion commands.  
+  When set to `true`, it signals the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) to immediately halt operations and stop generating motion commands.
   It serves as a **central safety mechanism** to ensure the ASV can be quickly and safely stopped in case of *manual override* or *critical failure*.
 
 - ### `operation_mode`
-  
+
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
   | **Message type**   | [`std_msgs/msg/String`](https://docs.ros2.org/foxy/api/std_msgs/msg/String.html) |
   | **Published by**   | `joystick_interface_asv` |
   | **Subscribed by**  | [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
-  
+
   #### Function
-  
-  This topic defines the **current operating mode** of the ASV, such as `"XBOX"` for manual control or `"AUTONOMOUS"` for mission-based navigation.  
-  It informs the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) whether it is allowed to actively compute and publish motion commands.  
+
+  This topic defines the **current operating mode** of the ASV, such as `"XBOX"` for manual control or `"AUTONOMOUS"` for mission-based navigation.
+  It informs the [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) whether it is allowed to actively compute and publish motion commands.
   This enables **dynamic switching** between *manual* and *autonomous* operation within the system.

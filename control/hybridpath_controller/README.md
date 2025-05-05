@@ -13,7 +13,7 @@ You can configure the behavior of the hybrid path controller by modifying the pa
 
 ## Node
 
-The `hybridpath_controller_node` **controls the motion** of the ASV.  
+The `hybridpath_controller_node` **controls the motion** of the ASV.
 It calculates and sends **control commands** (force and torque) to the thrusters to make the vehicle follow a predetermined trajectory.
 
 ### Goal
@@ -46,20 +46,20 @@ The node implements an **advanced control system** for autonomous vehicle naviga
   | **Message type**   | [`geometry_msgs/msg/Wrench`](https://docs.ros2.org/foxy/api/geometry_msgs/msg/Wrench.html) |
   | **Published by**   | `joystick_interface_asv` <br> [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
   | **Subscribed by**  | [`thrust_allocator_asv_node`](../../motion/thrust_allocator_asv/README.md#node) |
-  
+
   #### Function
-  
-  This topic carries **motion commands** expressed as *force* and *torque* vectors in the body frame of the ASV.  
-  It represents the desired physical interaction with the environment (e.g., *move forward*, *rotate*).  
-  Depending on the operation mode, the commands are generated either **manually** (via joystick) or **automatically** (via guidance and control).  
+
+  This topic carries **motion commands** expressed as *force* and *torque* vectors in the body frame of the ASV.
+  It represents the desired physical interaction with the environment (e.g., *move forward*, *rotate*).
+  Depending on the operation mode, the commands are generated either **manually** (via joystick) or **automatically** (via guidance and control).
   These values are then translated into individual thruster forces by the [`thrust_allocator_asv_node`](../../motion/thrust_allocator_asv/README.md#node).
-  
+
 - ### [`killswitch`](../../mission/joystick_interface_asv#killswitch)
-  
+
 - ### [`operation_mode`](../../mission/joystick_interface_asv#operation_mode)
 
 - ### [`hybridpath_guidance`](../../guidance/hybridpath_guidance/README.md#hybridpath_guidance)
-  
+
 - ### [`seapath/odom/ned`](../../guidance/hybridpath_guidance/README.md#seapathodomned)
 
 ## Theory
