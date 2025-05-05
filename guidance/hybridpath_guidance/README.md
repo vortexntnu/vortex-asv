@@ -27,7 +27,6 @@ It receives a list of waypoints and calculates a continuous path between them, p
 - **Path generation**: Uses the `HybridPathGenerator` module to compute smooth and dynamically adaptable trajectories between waypoints, considering the current position as the starting point.
 - **Reference publication**: Publishes [`HybridpathReference`](https://github.com/vortexntnu/vortex-msgs/blob/main/msg/HybridpathReference.msg) messages to [`hybridpath_guidance`](#hybridpath_guidance). These messages define desired position, velocity, acceleration, and controller tuning parameters for the controller node.
 - **Dynamic updates**: Continuously recalculates the reference based on vehicle state and target speed, allowing the system to adapt to deviations or changing conditions.
-- **Lifecycle management**: Supports goal preemption and deletion, emits feedback during route tracking, and communicates success or failure via the action interface.
 
 ### Subscribers
 
