@@ -38,7 +38,7 @@ It also handles **emergency stop** through the *killswitch*.
   |  Topic Info       |                                |
   |-------------------|--------------------------------|
   | **Message type**  | [`sensor_msgs/msg/Joy`](https://docs.ros2.org/foxy/api/sensor_msgs/msg/Joy.html) |
-  | **Published by**  | [`joystick_driver`](...) |
+  | **Published by**  | [`joystick_driver`](../../asv_setup/README.md#joystick_driver) |
   | **Subscribed by** | `joystick_interface_asv` |
 
   #### Function
