@@ -10,7 +10,7 @@ Vortex ASV software. Purpose built for competing in ASV competitions.
 
 The following diagram illustrates the structure of the main nodes in the project:
 
-![System Overview](docs/ros2_graph.pdf)
+![System Overview](docs/ros2_graph.png)
 
 ## Docker
 ### Prerequisites
