@@ -47,7 +47,7 @@ It receives a list of waypoints and calculates a continuous path between them, p
   | Topic Info         |                                  |
   |--------------------|----------------------------------|
   | **Message type**   | [`nav_msgs/msg/Odometry`](https://docs.ros2.org/foxy/api/nav_msgs/msg/Odometry.html) |
-  | **Published by**   | [`seapath_ros_driver_node`] (https://github.com/vortexntnu/vortex-seapath-driver/tree/main) |
+  | **Published by**   | [`seapath_ros_driver_node`](https://github.com/vortexntnu/vortex-seapath-driver)|
   | **Subscribed by**  | `hybridpath_guidance_node` <br> [`hybridpath_controller_node`](../../control/hybridpath_controller/README.md#node) |
 
   #### Function
